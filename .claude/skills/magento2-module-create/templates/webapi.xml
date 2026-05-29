@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Webapi:etc/webapi.xsd">
+    <route url="/V1/{vendor_lower}/{route}/:entityId" method="GET">
+        <service class="{Vendor}\{ModuleName}\Api\{EntityName}RepositoryInterface" method="getById"/>
+        <resources>
+            <resource ref="{Vendor}_{ModuleName}::view"/>
+        </resources>
+    </route>
+    <route url="/V1/{vendor_lower}/{route}" method="GET">
+        <service class="{Vendor}\{ModuleName}\Api\{EntityName}RepositoryInterface" method="getList"/>
+        <resources>
+            <resource ref="{Vendor}_{ModuleName}::view"/>
+        </resources>
+    </route>
+    <route url="/V1/{vendor_lower}/{route}" method="POST">
+        <service class="{Vendor}\{ModuleName}\Api\{EntityName}RepositoryInterface" method="save"/>
+        <resources>
+            <resource ref="{Vendor}_{ModuleName}::manage"/>
+        </resources>
+    </route>
+    <route url="/V1/{vendor_lower}/{route}/:entityId" method="PUT">
+        <service class="{Vendor}\{ModuleName}\Api\{EntityName}RepositoryInterface" method="save"/>
+        <resources>
+            <resource ref="{Vendor}_{ModuleName}::manage"/>
+        </resources>
+    </route>
+    <route url="/V1/{vendor_lower}/{route}/:entityId" method="DELETE">
+        <service class="{Vendor}\{ModuleName}\Api\{EntityName}RepositoryInterface" method="deleteById"/>
+        <resources>
+            <resource ref="{Vendor}_{ModuleName}::manage"/>
+        </resources>
+    </route>
+</routes>

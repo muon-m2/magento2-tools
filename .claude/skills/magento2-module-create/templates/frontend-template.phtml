@@ -1,0 +1,21 @@
+<?php
+declare(strict_types=1);
+
+/** @var \Magento\Framework\View\Element\Template $block */
+/** @var \Magento\Framework\Escaper $escaper */
+/** @var \{Vendor}\{ModuleName}\ViewModel\{Name}ViewModel $viewModel */
+$viewModel = $block->getData('view_model');
+?>
+<div class="{vendor_lower}-{module-kebab-case}">
+    <h2><?= $escaper->escapeHtml(__('{Page Heading}')) ?></h2>
+    <?php $items = $viewModel->getItems(); ?>
+    <?php if ($items === []): ?>
+        <p><?= $escaper->escapeHtml(__('No items found.')) ?></p>
+    <?php else: ?>
+        <ul>
+            <?php foreach ($items as $item): ?>
+                <li><?= $escaper->escapeHtml($item->getName()) ?></li>
+            <?php endforeach; ?>
+        </ul>
+    <?php endif; ?>
+</div>

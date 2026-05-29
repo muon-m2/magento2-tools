@@ -1,0 +1,15 @@
+{
+    "name": "{vendor-lower}/theme-frontend-{theme-lower}",
+    "description": "{Vendor} {Theme} frontend theme",
+    "type": "magento2-theme",
+    "version": "1.0.0",
+    "license": ["proprietary"],
+    "require": {
+        "php": "{php_constraint}",
+        "magento/framework": "{framework_constraint}",
+        "magento/theme-frontend-luma": "*"
+    },
+    "autoload": {
+        "files": ["registration.php"]
+    }
+}

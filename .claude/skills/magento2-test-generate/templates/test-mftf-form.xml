@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tests xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="urn:magento:mftf:Test/etc/testSchema.xsd">
+    <test name="{Vendor}{Entity}AddNewTest">
+        <annotations>
+            <features value="{Vendor}_{Module}"/>
+            <stories value="Form CRUD"/>
+            <title value="Admin can create a {Entity} via the form"/>
+            <description value="Verify the new-{Entity} flow saves the record and redirects to the listing."/>
+            <severity value="CRITICAL"/>
+            <group value="{Vendor}_{Module}"/>
+        </annotations>
+        <before>
+            <actionGroup ref="AdminLoginActionGroup" stepKey="login"/>
+        </before>
+        <after>
+            <actionGroup ref="AdminLogoutActionGroup" stepKey="logout"/>
+        </after>
+
+        <amOnPage url="{{_ENV.MAGENTO_BACKEND_NAME}}/{vendor_lower}_{module_lower}/{entity_lower}/new" stepKey="newPage"/>
+        <waitForPageLoad stepKey="waitForNew"/>
+        <fillField selector="{{ {Vendor}{Entity}FormSection.nameField }}" userInput="MFTF-Created" stepKey="setName"/>
+        <click selector="{{ {Vendor}{Entity}FormSection.saveButton }}" stepKey="save"/>
+        <seeInCurrentUrl url="/{vendor_lower}_{module_lower}/{entity_lower}/index" stepKey="seeListing"/>
+        <see userInput="MFTF-Created" stepKey="seeRow"/>
+    </test>
+</tests>

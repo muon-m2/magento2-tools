@@ -1,0 +1,51 @@
+# GraphQL schema for {Vendor}_{ModuleName}.
+#
+# Queries are namespaced by vendor prefix to avoid type collisions.
+# Mutations follow the verb{Vendor}{Entity} pattern.
+
+type Query {
+    {vendor_lower}{EntityName}(
+        id: Int! @doc(description: "{EntityName} identifier")
+    ): {EntityName}
+        @resolver(class: "{Vendor}\\{ModuleName}\\Model\\Resolver\\{EntityName}")
+        @doc(description: "Fetch a single {EntityName} by ID.")
+
+    {vendor_lower}{EntityName}List(
+        pageSize: Int = 20 @doc(description: "Page size")
+        currentPage: Int = 1 @doc(description: "Current page")
+    ): {EntityName}List
+        @resolver(class: "{Vendor}\\{ModuleName}\\Model\\Resolver\\{EntityName}List")
+        @doc(description: "Fetch a paginated list of {EntityName}.")
+}
+
+type Mutation {
+    save{Vendor}{EntityName}(
+        input: {EntityName}Input!
+    ): {EntityName}
+        @resolver(class: "{Vendor}\\{ModuleName}\\Model\\Resolver\\Mutation\\Save{EntityName}")
+        @doc(description: "Create or update a {EntityName}.")
+
+    delete{Vendor}{EntityName}(
+        id: Int! @doc(description: "{EntityName} identifier")
+    ): Boolean
+        @resolver(class: "{Vendor}\\{ModuleName}\\Model\\Resolver\\Mutation\\Delete{EntityName}")
+        @doc(description: "Delete a {EntityName} by ID.")
+}
+
+type {EntityName} @doc(description: "{EntityName} entity") {
+    id: Int! @doc(description: "Entity identifier")
+    name: String! @doc(description: "Display name")
+    created_at: String @doc(description: "Creation timestamp")
+    updated_at: String @doc(description: "Last update timestamp")
+}
+
+type {EntityName}List @doc(description: "Paginated {EntityName} list") {
+    items: [{EntityName}!]!
+    total_count: Int!
+    page_info: SearchResultPageInfo!
+}
+
+input {EntityName}Input @doc(description: "Input payload for save{Vendor}{EntityName}") {
+    id: Int @doc(description: "Optional ID; omit to create.")
+    name: String! @doc(description: "Display name")
+}

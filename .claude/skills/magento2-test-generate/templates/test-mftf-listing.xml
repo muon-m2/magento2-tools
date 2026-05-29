@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tests xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="urn:magento:mftf:Test/etc/testSchema.xsd">
+    <test name="{Vendor}{Entity}ListingRendersTest">
+        <annotations>
+            <features value="{Vendor}_{Module}"/>
+            <stories value="Listing"/>
+            <title value="Admin listing for {Entity} renders without error"/>
+            <description value="Verify the {Entity} listing page loads successfully."/>
+            <severity value="MAJOR"/>
+            <group value="{Vendor}_{Module}"/>
+        </annotations>
+        <before>
+            <actionGroup ref="AdminLoginActionGroup" stepKey="login"/>
+        </before>
+        <after>
+            <actionGroup ref="AdminLogoutActionGroup" stepKey="logout"/>
+        </after>
+
+        <amOnPage url="{{_ENV.MAGENTO_BACKEND_NAME}}/{vendor_lower}_{module_lower}/{entity_lower}/index" stepKey="goToListing"/>
+        <waitForPageLoad stepKey="waitForListing"/>
+        <seeElement selector="{{ {Vendor}{Entity}ListingSection.addNewButton }}" stepKey="seeAddNew"/>
+    </test>
+</tests>

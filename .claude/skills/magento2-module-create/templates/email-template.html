@@ -1,0 +1,23 @@
+<!--@subject {Email Subject} @-->
+<!--@vars {
+"var customer.name":"Customer Name",
+"var entity.id":"Entity ID",
+"var entity.name":"Entity Name"
+} @-->
+<!--@styles
+body { background:#ffffff; color:#222222; font-family: Arial, sans-serif; }
+.box { background:#f7f7f7; padding:20px; border:1px solid #e2e2e2; }
+@-->
+
+{{template config_path="design/email/header_template"}}
+
+<p>{{trans "Hi %name," name=$customer.name}}</p>
+
+<div class="box">
+    <p>{{trans "Your entity #%id is ready." id=$entity.id}}</p>
+    <p>{{trans "Entity name: %name." name=$entity.name}}</p>
+</div>
+
+<p>{{trans "Thanks."}}</p>
+
+{{template config_path="design/email/footer_template"}}

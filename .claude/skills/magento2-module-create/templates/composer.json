@@ -1,0 +1,19 @@
+{
+    "name": "{vendor_lower}/module-{module-kebab-case}",
+    "description": "{Short, meaningful description of what this module does}",
+    "type": "magento2-module",
+    "license": "proprietary",
+    "version": "1.0.0",
+    "require": {
+        "php": "{php_constraint}",
+        "magento/framework": "{framework_constraint}"
+    },
+    "autoload": {
+        "files": [
+            "registration.php"
+        ],
+        "psr-4": {
+            "{Vendor}\\{ModuleName}\\": ""
+        }
+    }
+}

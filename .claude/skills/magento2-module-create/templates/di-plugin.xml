@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <!--
+        Insert this <type> fragment into the appropriate etc/di.xml:
+            - etc/di.xml                  (all areas)
+            - etc/frontend/di.xml         (storefront only)
+            - etc/adminhtml/di.xml        (admin only)
+            - etc/webapi_rest/di.xml      (REST only)
+            - etc/graphql/di.xml          (GraphQL only)
+            - etc/crontab/di.xml          (cron only)
+    -->
+    <type name="{TargetNamespace}">
+        <plugin name="{vendor_lower}_{module_lower}_{target_short_lower}_{method_lower}_plugin"
+                type="{Vendor}\{ModuleName}\Plugin\{TargetShortName}{Method}Plugin"
+                sortOrder="10"
+                disabled="false"/>
+    </type>
+</config>

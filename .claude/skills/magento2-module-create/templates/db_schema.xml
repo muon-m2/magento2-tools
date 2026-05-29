@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<!--
+    Declarative schema for {Vendor}_{ModuleName}.
+
+    Table naming: {vendor_lower}_{module_lower}_{entity}  (e.g. acme_order_export_log)
+    Reference IDs: {VENDOR_UPPER}_{MODULE_UPPER}_{ENTITY_UPPER}_{DESC}  (UPPER_SNAKE_CASE, globally unique)
+
+    After setup:upgrade, regenerate the whitelist with
+    "bin/magento setup:db-declaration:generate-whitelist module-name={Vendor}_{ModuleName}"
+    (passing the module name flag in the form the CLI accepts).
+-->
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    <table name="{vendor_lower}_{module_lower}_{entity}" resource="default" engine="innodb"
+           comment="{EntityName} data">
+
+        <!-- Primary key -->
+        <column xsi:type="int"
+                name="entity_id"
+                unsigned="true"
+                nullable="false"
+                identity="true"
+                comment="Entity ID"/>
+
+        <!-- Add domain columns here. Examples:
+        <column xsi:type="varchar"  name="name"       nullable="false" length="255"  comment="Name"/>
+        <column xsi:type="text"     name="description" nullable="true"               comment="Description"/>
+        <column xsi:type="smallint" name="status"      nullable="false" default="1"  comment="Status (1=active)"/>
+        <column xsi:type="int"      name="store_id"    nullable="false" unsigned="true" comment="Store ID"/>
+        -->
+
+        <!-- Audit timestamps -->
+        <column xsi:type="timestamp"
+                name="created_at"
+                on_update="false"
+                nullable="false"
+                default="CURRENT_TIMESTAMP"
+                comment="Created At"/>
+        <column xsi:type="timestamp"
+                name="updated_at"
+                on_update="true"
+                nullable="false"
+                default="CURRENT_TIMESTAMP"
+                comment="Updated At"/>
+
+        <!-- Primary key constraint -->
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+
+        <!-- Add indexes for columns used in WHERE clauses. Example:
+        <index referenceId="{VENDOR_UPPER}_{MODULE_UPPER}_{ENTITY_UPPER}_STATUS" indexType="btree">
+            <column name="status"/>
+        </index>
+        -->
+
+        <!-- Add foreign keys when referencing core Magento tables. Example:
+        <constraint xsi:type="foreign"
+                    referenceId="{VENDOR_UPPER}_{MODULE_UPPER}_{ENTITY_UPPER}_STORE_ID_STORE_STORE_ID"
+                    table="{vendor_lower}_{module_lower}_{entity}"
+                    column="store_id"
+                    referenceTable="store"
+                    referenceColumn="store_id"
+                    onDelete="CASCADE"/>
+        -->
+    </table>
+</schema>

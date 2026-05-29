@@ -1,0 +1,17 @@
+# Runtime cache (regenerated per project by magento2-context, keyed by composer.lock hash)
+.claude/.cache/
+.cache/
+
+# Local, machine-specific settings — never share
+*.local.json
+.claude/settings.local.json
+
+# IDE
+.idea/
+.vscode/
+
+# OS noise
+.DS_Store
+
+# Stale manual packages superseded by this repo
+skills.zip

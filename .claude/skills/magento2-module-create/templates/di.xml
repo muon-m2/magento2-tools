@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <!--
+        DI wiring goes here. Common entries:
+
+        Repository preference:
+        <preference for="{Vendor}\{ModuleName}\Api\{EntityName}RepositoryInterface"
+                    type="{Vendor}\{ModuleName}\Model\{EntityName}Repository"/>
+
+        DTO preference:
+        <preference for="{Vendor}\{ModuleName}\Api\Data\{EntityName}Interface"
+                    type="{Vendor}\{ModuleName}\Model\{EntityName}"/>
+
+        Search results preference:
+        <preference for="{Vendor}\{ModuleName}\Api\Data\{EntityName}SearchResultsInterface"
+                    type="Magento\Framework\Api\SearchResults"/>
+
+        Session proxy (use when injecting a session class):
+        <type name="{Vendor}\{ModuleName}\Service\{Name}Service">
+            <arguments>
+                <argument name="session" xsi:type="object">
+                    Magento\Customer\Model\Session\Proxy
+                </argument>
+            </arguments>
+        </type>
+    -->
+</config>

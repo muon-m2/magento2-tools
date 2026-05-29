@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework-message-queue:etc/communication.xsd">
+    <topic name="{vendor_lower}.{module_lower}.{description}"
+           request="{Vendor}\{ModuleName}\Api\Data\{MessageName}Interface">
+        <handler name="default"
+                 type="{Vendor}\{ModuleName}\Model\Consumer\{ConsumerName}"
+                 method="process"/>
+    </topic>
+</config>
