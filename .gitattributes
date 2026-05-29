@@ -1,0 +1,14 @@
+# Enforce LF line endings regardless of the cloner's core.autocrlf setting.
+# Shell scripts and skill assets MUST stay LF or they break on Linux/macOS.
+* text=auto eol=lf
+
+*.sh    text eol=lf
+*.php   text eol=lf
+*.md    text eol=lf
+*.json  text eol=lf
+*.xml   text eol=lf
+*.xsd   text eol=lf
+*.csv   text eol=lf
+*.graphqls text eol=lf
+*.yaml  text eol=lf
+*.yml   text eol=lf
