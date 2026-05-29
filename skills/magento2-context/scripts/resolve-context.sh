@@ -321,13 +321,47 @@ probe_tool() {
     fi
 }
 
-T_PHPCS=$(probe_tool phpcs '[ -x vendor/bin/phpcs ]' "vendor/bin/phpcs")
-T_PHPSTAN=$(probe_tool phpstan '[ -x vendor/bin/phpstan ]' "vendor/bin/phpstan")
-T_PHPUNIT=$(probe_tool phpunit '[ -x vendor/bin/phpunit ]' "vendor/bin/phpunit")
-T_PHPMD=$(probe_tool phpmd '[ -x vendor/bin/phpmd ]' "vendor/bin/phpmd")
-T_RECTOR=$(probe_tool rector '[ -x vendor/bin/rector ]' "vendor/bin/rector")
-T_PSALM=$(probe_tool psalm '[ -x vendor/bin/psalm ]' "vendor/bin/psalm")
-T_PHPCSFIXER=$(probe_tool php-cs-fixer '[ -x vendor/bin/php-cs-fixer ]' "vendor/bin/php-cs-fixer")
+# Project-local vendor/bin tools are layout- and runner-aware. In a "src/" layout the host
+# path is ${MAGENTO_ROOT}/vendor/bin/<tool>, but a docker runner's working dir is the Magento
+# root, so the same tool is reachable as vendor/bin/<tool>. Downstream callers invoke
+# `${RUNNER} <resolved>`, so for runner-backed modes we emit the runner-relative
+# "vendor/bin/<tool>" (consistent with how MAGENTO_CLI is built); for bare mode we emit the
+# host path from the workspace root. Falls back to a runner probe (`${RUNNER} test -x ...`,
+# the runner-awareness rule from references/tool-probe.md) for tools that live only inside
+# the container image, not on the host mount — guarded on LOCK_FILE so the hermetic contract
+# test (empty workspace, no composer.lock) never shells into a container.
+probe_vendor_tool() {
+    local tool="$1"
+    local host_path="${MAGENTO_ROOT%/}/vendor/bin/${tool}"
+    [[ "$MAGENTO_ROOT" == "." ]] && host_path="vendor/bin/${tool}"
+
+    if [[ -x "$host_path" ]]; then
+        case "$RUNNER_KIND" in
+            docker-compose|docker-exec|custom) printf '"vendor/bin/%s"' "$tool" ;;
+            *)                                 printf '"%s"' "$host_path" ;;
+        esac
+        return
+    fi
+
+    case "$RUNNER_KIND" in
+        docker-compose|docker-exec|custom)
+            if [[ -n "$LOCK_FILE" ]] && ${RUNNER} test -x "vendor/bin/${tool}" >/dev/null 2>&1; then
+                printf '"vendor/bin/%s"' "$tool"
+                return
+            fi
+            ;;
+    esac
+
+    printf 'null'
+}
+
+T_PHPCS=$(probe_vendor_tool phpcs)
+T_PHPSTAN=$(probe_vendor_tool phpstan)
+T_PHPUNIT=$(probe_vendor_tool phpunit)
+T_PHPMD=$(probe_vendor_tool phpmd)
+T_RECTOR=$(probe_vendor_tool rector)
+T_PSALM=$(probe_vendor_tool psalm)
+T_PHPCSFIXER=$(probe_vendor_tool php-cs-fixer)
 T_XMLLINT=$(probe_tool xmllint 'command -v xmllint' "xmllint")
 T_COMPOSER=$(probe_tool composer 'command -v composer' "composer")
 T_SEMGREP=$(probe_tool semgrep 'command -v semgrep' "semgrep")
@@ -346,7 +380,7 @@ cat > "$CACHE_FILE" <<EOF
 {
   "schemaVersion": "1.0",
   "skill": "magento2-context",
-  "skillVersion": "1.2.0",
+  "skillVersion": "1.3.0",
   "resolvedAt": "${TIMESTAMP}",
   "cacheKey": $(json_or_null "$CACHE_KEY"),
 

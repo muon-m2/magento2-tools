@@ -27,4 +27,4 @@ Append a section per upgrade, newest at the top. Do NOT overwrite older sections
 
 - magento2-module-upgrade@1.0.0
 - magento2-module-review@2.2.0
-- magento2-context@1.2.0
+- magento2-context@1.3.0

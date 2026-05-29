@@ -27,12 +27,22 @@ command. If exit non-zero or command not found → record `null`.
 
 ## Runner Awareness
 
-For project-local `vendor/bin/*` tools, also check the **runner-relative** path. If the
-`runner` is Docker, `vendor/bin/phpcs` lives inside the container — probe with
-`{runner} test -x vendor/bin/phpcs`.
+Project-local `vendor/bin/*` tools are **layout- and runner-aware**. The bare host probe
+(`[ -x vendor/bin/phpcs ]`) only works for a repo-root install run from the workspace root;
+it misses a `src/` layout (where the tool is at `src/vendor/bin/phpcs`) and a Docker runner
+(where the tool is at `vendor/bin/phpcs` relative to the container working dir, which is the
+Magento root). Resolve in this order:
 
-If a tool is reachable only via the runner, record the full runner-prefixed path:
-`"docker compose exec -T -u magento php vendor/bin/phpcs"`.
+1. **Host path at the Magento root** — `[ -x {magento_root}/vendor/bin/phpcs ]`. Covers both
+   `.` and `src/` layouts without spawning a container.
+2. **Runner-relative probe** (only if step 1 misses and the runner is Docker, i.e. the tool
+   lives inside the image, not on the host mount) — `{runner} test -x vendor/bin/phpcs`.
+
+**Resolved value is always the bare relative `vendor/bin/<tool>`** (relative to the runner's
+working dir = the Magento root) for runner-backed modes, or the host path
+`{magento_root}/vendor/bin/<tool>` for bare mode. Do **not** store a runner-prefixed string —
+consumers prefix `{runner}` themselves (e.g. deploy runs `{runner} vendor/bin/phpcs`), so a
+prefixed value would double the runner.
 
 ## Why Probe at All
 

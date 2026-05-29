@@ -9,7 +9,7 @@ skills evolve.
 
 | Skill                          | Version | Bumped when                                                            |
 |--------------------------------|---------|------------------------------------------------------------------------|
-| magento2-context               | 1.2.0   | JSON schema changes, new resolution rules, new tool probes             |
+| magento2-context               | 1.3.0   | JSON schema changes, new resolution rules, new tool probes             |
 | magento2-module-create         | 1.5.1   | New template added, surface added, naming rule changed                 |
 | magento2-module-review         | 2.2.0   | New checklist category, severity calibration change, new JSON field    |
 | magento2-feature-implement     | 2.3.0   | New phase, new approval gate, mode added, template structure change    |
@@ -29,6 +29,15 @@ skills evolve.
 
 ## Changelog (last update: 2026-05-29)
 
+- **magento2-context 1.2.0 → 1.3.0** — tool probe is now layout- and runner-aware.
+  Project-local `vendor/bin/*` tools (phpcs, phpstan, phpunit, phpmd, rector, psalm,
+  php-cs-fixer) resolve via the host path at the Magento root (so a `src/` layout finds
+  `src/vendor/bin/*`) and, when absent from the host mount, via a runner probe
+  (`{runner} test -x vendor/bin/<tool>`, guarded on `composer.lock` presence so the
+  hermetic contract test never shells into a container). Resolved value is the bare
+  runner-relative `vendor/bin/<tool>` for runner-backed modes (consumers prefix `{runner}`
+  themselves). Previously these resolved to `null` in `src/` layouts; repo-root (`.`)
+  layouts are byte-identical to before.
 - **magento2-context 1.1.0 → 1.2.0** — portability: removed hardcoded project container
   name from runner detection. Container now resolves via `M2_PHP_CONTAINER` env >
   `.claude/m2.json` `php_container` > generic name patterns (configured-but-not-running

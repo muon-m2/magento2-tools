@@ -5,7 +5,7 @@ Bump: {major | minor | patch}
 Skill versions:
   - magento2-release@1.0.1
   - magento2-deploy@1.1.0
-  - magento2-context@1.2.0
+  - magento2-context@1.3.0
 
 ## Highlights
 
