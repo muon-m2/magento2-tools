@@ -1,0 +1,13 @@
+{
+  "name": "magento2-tools",
+  "version": "1.0.0",
+  "description": "End-to-end Magento 2 engineering skills: scaffold, review, test, fix, deploy, audit, and more. Hub-and-spoke design around magento2-context.",
+  "author": {
+    "name": "Serge Autushka",
+    "email": "s.autushka@gmail.com"
+  },
+  "homepage": "https://github.com/Muon/magento2-tools",
+  "repository": "https://github.com/Muon/magento2-tools",
+  "license": "MIT",
+  "keywords": ["magento2", "magento", "adobe-commerce", "php", "code-review", "testing"]
+}

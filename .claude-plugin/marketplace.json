@@ -1,0 +1,17 @@
+{
+  "name": "muon",
+  "description": "Muon's Claude Code plugins.",
+  "owner": {
+    "name": "Muon",
+    "email": "s.autushka@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "magento2-tools",
+      "source": "./",
+      "description": "End-to-end Magento 2 engineering skills suite.",
+      "category": "development",
+      "version": "1.0.0"
+    }
+  ]
+}
