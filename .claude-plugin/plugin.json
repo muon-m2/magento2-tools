@@ -6,8 +6,8 @@
     "name": "Serge Autushka",
     "email": "s.autushka@gmail.com"
   },
-  "homepage": "https://github.com/Muon/magento2-tools",
-  "repository": "https://github.com/Muon/magento2-tools",
+  "homepage": "https://github.com/muon-m2/magento2-tools",
+  "repository": "https://github.com/muon-m2/magento2-tools",
   "license": "MIT",
   "keywords": ["magento2", "magento", "adobe-commerce", "php", "code-review", "testing"]
 }

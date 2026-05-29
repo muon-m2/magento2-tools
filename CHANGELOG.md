@@ -9,7 +9,7 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 ## [1.0.0] — unreleased
 
 First packaged release: the `magento2-*` skills collection as an installable Claude Code
-plugin distributed via the `muon` marketplace (this repo).
+plugin distributed via the `muon-m2` marketplace (this repo).
 
 ### Added
 - `.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json` — the repo is its own

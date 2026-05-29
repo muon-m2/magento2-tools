@@ -1,8 +1,8 @@
 {
-  "name": "muon",
-  "description": "Muon's Claude Code plugins.",
+  "name": "muon-m2",
+  "description": "muon-m2 Claude Code plugins.",
   "owner": {
-    "name": "Muon",
+    "name": "muon-m2",
     "email": "s.autushka@gmail.com"
   },
   "plugins": [

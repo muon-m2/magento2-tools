@@ -7,8 +7,8 @@ context-resolver so the same toolkit adapts to any project and environment.
 ## Install
 
 ```
-/plugin marketplace add Muon/magento2-tools
-/plugin install magento2-tools@muon --scope user
+/plugin marketplace add muon-m2/magento2-tools
+/plugin install magento2-tools@muon-m2 --scope user
 ```
 
 `--scope user` makes it available in every project. Use `--scope project` to pin it to
@@ -19,9 +19,9 @@ one repo. Skills are then invoked namespaced, e.g. `magento2-tools:magento2-bug-
 ```json
 {
   "extraKnownMarketplaces": {
-    "muon": { "source": { "source": "github", "repo": "Muon/magento2-tools" } }
+    "muon-m2": { "source": { "source": "github", "repo": "muon-m2/magento2-tools" } }
   },
-  "enabledPlugins": { "magento2-tools@muon": true }
+  "enabledPlugins": { "magento2-tools@muon-m2": true }
 }
 ```
 
@@ -108,7 +108,7 @@ detection. Changing any override busts the resolver cache automatically.
 ```
 .claude-plugin/
   plugin.json        # plugin manifest
-  marketplace.json   # this repo doubles as its own marketplace ("muon")
+  marketplace.json   # this repo doubles as its own marketplace ("muon-m2")
 skills/              # 17 magento2-* skills (auto-discovered by Claude Code)
 tests/               # contract test harness
 ```
