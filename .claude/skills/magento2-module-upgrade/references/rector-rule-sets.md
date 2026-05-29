@@ -48,13 +48,13 @@ Apply quality sets only after the user reviews — they make many small changes.
 ## Dry Run First
 
 ```
-{ctx.runner} vendor/bin/rector process --dry-run src/app/code/{Vendor}/{Module}
+{ctx.runner} vendor/bin/rector process --dry-run {ctx.magento_root}/app/code/{Vendor}/{Module}
 ```
 
 Review the diff. Apply when ready:
 
 ```
-{ctx.runner} vendor/bin/rector process src/app/code/{Vendor}/{Module}
+{ctx.runner} vendor/bin/rector process {ctx.magento_root}/app/code/{Vendor}/{Module}
 ```
 
 ## Per-Rule Application
@@ -63,7 +63,7 @@ To apply one rule at a time (preferred for large changes):
 
 ```
 {ctx.runner} vendor/bin/rector process --only=AddVoidReturnTypeWhereNoReturnRector \
-    src/app/code/{Vendor}/{Module}
+    {ctx.magento_root}/app/code/{Vendor}/{Module}
 ```
 
 Commit per-rule application makes reverting one easier.

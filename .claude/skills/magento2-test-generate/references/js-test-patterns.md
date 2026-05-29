@@ -85,7 +85,7 @@ Or per file:
 ## Lint
 
 ```bash
-node --check src/app/code/{Vendor}/{Module}/view/frontend/web/js/test/component.test.js
+node --check {ctx.magento_root}/app/code/{Vendor}/{Module}/view/frontend/web/js/test/component.test.js
 ```
 
 `node --check` validates syntax but does not run the test. The full test runner uses

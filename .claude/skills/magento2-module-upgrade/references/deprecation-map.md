@@ -67,16 +67,16 @@ Common Magento 2 deprecations and their replacements. Used by the Phase 2 scanne
 
 ```
 # ObjectManager misuse
-grep -rE 'ObjectManager::getInstance' src/app/code/{Vendor}/{Module}
+grep -rE 'ObjectManager::getInstance' {ctx.magento_root}/app/code/{Vendor}/{Module}
 
 # Legacy install
-find src/app/code/{Vendor}/{Module}/Setup -name 'Install*.php' -o -name 'Upgrade*.php'
+find {ctx.magento_root}/app/code/{Vendor}/{Module}/Setup -name 'Install*.php' -o -name 'Upgrade*.php'
 
 # Legacy M1 calls
-grep -rE 'Mage::(getModel|getSingleton|helper|getConfig|app)' src/app/code/{Vendor}/{Module}
+grep -rE 'Mage::(getModel|getSingleton|helper|getConfig|app)' {ctx.magento_root}/app/code/{Vendor}/{Module}
 
 # Untyped constructor params
-grep -rE 'function __construct\([^)]*\$\w+[^,)]*\)' src/app/code/{Vendor}/{Module} | grep -v ': '
+grep -rE 'function __construct\([^)]*\$\w+[^,)]*\)' {ctx.magento_root}/app/code/{Vendor}/{Module} | grep -v ': '
 ```
 
 ## Adding to the Map

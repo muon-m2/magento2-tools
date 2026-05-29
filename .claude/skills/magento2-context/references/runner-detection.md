@@ -22,7 +22,7 @@ mode — read `runner_kind` instead.
 ## Priority Order
 
 1. **`CLAUDE.md` hint.** If `CLAUDE.md` contains `Docker prefix:` or `Runner:` (e.g.
-   `Docker prefix: docker exec -it battlefield-php`), use the value verbatim.
+   `Docker prefix: docker exec -it my-php`), use the value verbatim.
    `runner_kind = "custom"`. `resolution_source.runner = "CLAUDE.md hint"`.
 
 2. **Docker Compose running container.**
@@ -31,10 +31,13 @@ mode — read `runner_kind` instead.
      `runner_kind = "docker-compose"`.
    - `{magento_user}` resolves from `CLAUDE.md` `Docker user:` or defaults to `magento`.
 
-3. **Bare `docker exec` with a known container.**
-   - If `docker ps` shows a container matching `battlefield-php`, `magento.*php`, or
-     `m2.*php`, use `docker exec -i {container}`.
-   - `runner_kind = "docker-exec"`.
+3. **Bare `docker exec` with a known container.** Resolution order (most specific wins):
+   - `M2_PHP_CONTAINER` environment variable, if set.
+   - `.claude/m2.json` `"php_container"` key, if present.
+   - Otherwise generic name patterns: `magento.*php`, `m2.*php`, any `<name>-php`
+     (optionally suffixed `-1`), or a bare `php` container. No project name is hardcoded.
+   - A configured container that is not running falls through to the patterns.
+   - Matched → `runner = "docker exec -i {container}"`, `runner_kind = "docker-exec"`.
 
 4. **Bare PHP.**
    - Probe: `command -v php && php --version` — both must succeed.

@@ -111,7 +111,7 @@ config is needed — Magento resolves the constructor args automatically.
 
 ## File Location
 
-`src/app/code/{Vendor}/{Module}/Model/Source/{AttributeCode}.php`
+`{ctx.magento_root}/app/code/{Vendor}/{Module}/Model/Source/{AttributeCode}.php`
 
 ## Reference
 

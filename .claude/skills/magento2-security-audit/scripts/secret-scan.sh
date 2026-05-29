@@ -10,7 +10,7 @@
 
 set -uo pipefail
 
-SCAN_PATH="${1:-src/app/code}"
+SCAN_PATH="${1:-$([[ -d app/code ]] && echo app/code || echo src/app/code)}"
 SCRIPT_DIR="$(dirname "$0")"
 
 if command -v gitleaks >/dev/null 2>&1; then

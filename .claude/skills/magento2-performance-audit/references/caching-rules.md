@@ -91,7 +91,7 @@ mishit:
 ## Tag Audit Pattern
 
 ```bash
-grep -rE 'getIdentities|CACHE_TAG' src/app/code/{Vendor}/{Module}/Block
+grep -rE 'getIdentities|CACHE_TAG' {ctx.magento_root}/app/code/{Vendor}/{Module}/Block
 ```
 
 Cross-reference with Magento core tags from `vendor/magento/module-*/Model/*::CACHE_TAG`.

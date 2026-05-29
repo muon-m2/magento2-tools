@@ -12,7 +12,7 @@ Algorithm for resolving `{vendor}` (the project's vendor prefix).
 2. **`src/app/code/` directory inspection.**
    List immediate subdirectories of `src/app/code/`.
    - If exactly one non-Magento directory exists → use that name.
-     `resolution_source.vendor` = `"src/app/code/{name}/ (single non-Magento dir)"`.
+     `resolution_source.vendor` = `"{ctx.magento_root}/app/code/{name}/ (single non-Magento dir)"`.
    - If multiple non-Magento directories exist → ask the user which one is the project's
      vendor.
    - If only `Magento/` exists or the directory is empty → fall through.

@@ -102,7 +102,7 @@ Theme generation requires:
 
 ## Outputs
 
-Files written under `src/app/code/{Vendor}/{Module}/view/frontend/` or
+Files written under `{ctx.magento_root}/app/code/{Vendor}/{Module}/view/frontend/` or
 `src/app/design/frontend/{Vendor}/{Theme}/`.
 
 ## Reference Files

@@ -49,7 +49,7 @@ checklist with zero post-creation fixes required.
    - Set `{module_lower}` = ModuleName converted to snake_case (see
      `magento2-context/references/naming.md`).
    - Resolve the target path: `{ctx.module_dir}/{Vendor}/{ModuleName}`
-     (typically `src/app/code/{Vendor}/{ModuleName}`). Abort if the directory already exists
+     (typically `{ctx.magento_root}/app/code/{Vendor}/{ModuleName}`). Abort if the directory already exists
      unless `--mode=augment` is set.
    - Map the user's description to surfaces using `references/surfaces.md`.
    - Present a **module profile** — vendor, name, path, surfaces, estimated file count — and confirm

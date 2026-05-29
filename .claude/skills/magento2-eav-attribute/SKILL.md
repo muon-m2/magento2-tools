@@ -108,9 +108,9 @@ Brief Markdown saved to `.docs/eav-attributes/{Vendor}_{Module}-{code}-{date}.md
 ## Outputs
 
 ```
-src/app/code/{Vendor}/{Module}/Setup/Patch/Data/Add{Code}Attribute.php
-src/app/code/{Vendor}/{Module}/Model/Source/{Code}.php          # if applicable
-src/app/code/{Vendor}/{Module}/Model/Attribute/Backend/{Code}.php # if applicable
+{ctx.magento_root}/app/code/{Vendor}/{Module}/Setup/Patch/Data/Add{Code}Attribute.php
+{ctx.magento_root}/app/code/{Vendor}/{Module}/Model/Source/{Code}.php          # if applicable
+{ctx.magento_root}/app/code/{Vendor}/{Module}/Model/Attribute/Backend/{Code}.php # if applicable
 
 .docs/eav-attributes/{Vendor}_{Module}-{code}-{date}.md
 ```

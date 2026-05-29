@@ -5,7 +5,7 @@ Magento translation files use a simple two-column CSV.
 ## File Location
 
 ```
-src/app/code/{Vendor}/{Module}/i18n/{locale}.csv
+{ctx.magento_root}/app/code/{Vendor}/{Module}/i18n/{locale}.csv
 ```
 
 Where `{locale}` is the IETF tag (e.g. `en_US`, `de_DE`, `fr_FR`, `ja_JP`).

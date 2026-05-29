@@ -38,7 +38,7 @@ flag is used in:
 
 ```bash
 grep -rE 'Magento\\Payment\\Method|quote_payment|sales_order_payment|Gateway\\(Command|Config|Http|Response|Validator)' \
-    src/app/code/{Vendor}/{Module}
+    {ctx.magento_root}/app/code/{Vendor}/{Module}
 ```
 
 Any match flags the module as PCI-touched.

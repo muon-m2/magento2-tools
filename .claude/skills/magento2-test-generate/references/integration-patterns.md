@@ -107,7 +107,7 @@ public function testDataPatchApplies(): void
 ## Running Integration Tests
 
 ```bash
-{ctx.runner} vendor/bin/phpunit -c dev/tests/integration/phpunit.xml src/app/code/{Vendor}/{Module}/Test/Integration
+{ctx.runner} vendor/bin/phpunit -c dev/tests/integration/phpunit.xml {ctx.magento_root}/app/code/{Vendor}/{Module}/Test/Integration
 ```
 
 The `phpunit.xml` for integration is at `dev/tests/integration/phpunit.xml` — different

@@ -90,10 +90,10 @@ Interactive flow drives the rest.
 ## Outputs
 
 ```
-src/app/code/{Vendor}/{Module}/etc/schema.graphqls          # appended or created
-src/app/code/{Vendor}/{Module}/etc/graphql/di.xml           # created or merged
-src/app/code/{Vendor}/{Module}/Model/Resolver/...           # new files
-src/app/code/{Vendor}/{Module}/Test/Unit/Resolver/...       # new tests
+{ctx.magento_root}/app/code/{Vendor}/{Module}/etc/schema.graphqls          # appended or created
+{ctx.magento_root}/app/code/{Vendor}/{Module}/etc/graphql/di.xml           # created or merged
+{ctx.magento_root}/app/code/{Vendor}/{Module}/Model/Resolver/...           # new files
+{ctx.magento_root}/app/code/{Vendor}/{Module}/Test/Unit/Resolver/...       # new tests
 ```
 
 ## Reference Files

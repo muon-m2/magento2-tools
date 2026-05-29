@@ -51,8 +51,13 @@ if [[ -f "composer.json" ]]; then JSON_FILE="composer.json"
 elif [[ -f "src/composer.json" ]]; then JSON_FILE="src/composer.json"; fi
 CLAUDE_FILE=""
 [[ -f "CLAUDE.md" ]] && CLAUDE_FILE="CLAUDE.md"
+M2_FILE=""
+[[ -f ".claude/m2.json" ]] && M2_FILE=".claude/m2.json"
 
-CACHE_KEY="lock:$(hash_file "${LOCK_FILE:-/dev/null}");json:$(hash_file "${JSON_FILE:-/dev/null}");claude:$(hash_file "${CLAUDE_FILE:-/dev/null}")"
+# The cache key folds in everything that can change resolution: the lock/json/CLAUDE.md
+# hashes, the optional .claude/m2.json override file, and the M2_* env overrides — so
+# changing any override busts the cache instead of returning a stale result.
+CACHE_KEY="lock:$(hash_file "${LOCK_FILE:-/dev/null}");json:$(hash_file "${JSON_FILE:-/dev/null}");claude:$(hash_file "${CLAUDE_FILE:-/dev/null}");m2:$(hash_file "${M2_FILE:-/dev/null}");env:${M2_MAGENTO_ROOT:-}|${M2_PHP_CONTAINER:-}"
 
 # --- Cache check ---
 if [[ "$USE_CACHE" == "true" && -f "$CACHE_FILE" ]]; then
@@ -95,8 +100,24 @@ if [[ -n "$VENDOR" ]]; then
 fi
 
 # --- Magento root ---
-MAGENTO_ROOT="src"
-[[ -f "bin/magento" ]] && MAGENTO_ROOT="."
+# Detect the layout rather than assuming one. Repo-root installs have bin/magento or
+# app/code at the top level; "src/" composer-template installs nest them under src/.
+# M2_MAGENTO_ROOT (env) or .claude/m2.json "magento_root" override the probe.
+MAGENTO_ROOT=""
+if [[ -n "${M2_MAGENTO_ROOT:-}" ]]; then
+    MAGENTO_ROOT="$M2_MAGENTO_ROOT"
+elif [[ -f ".claude/m2.json" ]] && command -v python3 >/dev/null 2>&1; then
+    MAGENTO_ROOT=$(python3 -c "import json; print(json.load(open('.claude/m2.json')).get('magento_root',''))" 2>/dev/null || echo "")
+fi
+if [[ -z "$MAGENTO_ROOT" ]]; then
+    if [[ -f "bin/magento" || -d "app/code" ]]; then
+        MAGENTO_ROOT="."
+    elif [[ -f "src/bin/magento" || -d "src/app/code" ]]; then
+        MAGENTO_ROOT="src"
+    else
+        MAGENTO_ROOT="."   # neutral default when nothing is detectable yet
+    fi
+fi
 MODULE_DIR="${MAGENTO_ROOT}/app/code"
 [[ "$MAGENTO_ROOT" == "." ]] && MODULE_DIR="app/code"
 
@@ -132,13 +153,37 @@ if [[ "$RUNNER_KIND" == "null" ]] && command -v docker >/dev/null 2>&1; then
     fi
 fi
 
-# Bare docker exec for a known container
+# Bare docker exec for a known container.
+# Resolution order (most specific wins): M2_PHP_CONTAINER env var >
+# .claude/m2.json "php_container" > generic name patterns. A configured container
+# that is not actually running falls through to the patterns.
 if [[ "$RUNNER_KIND" == "null" ]] && command -v docker >/dev/null 2>&1; then
-    if docker ps --format '{{.Names}}' 2>/dev/null | grep -qE '(battlefield-php|magento.*php|m2.*php)'; then
-        container=$(docker ps --format '{{.Names}}' | grep -E '(battlefield-php|magento.*php|m2.*php)' | head -1)
+    container=""
+    container_src=""
+    if [[ -n "${M2_PHP_CONTAINER:-}" ]]; then
+        container="$M2_PHP_CONTAINER"
+        container_src="M2_PHP_CONTAINER env"
+    elif [[ -f ".claude/m2.json" ]] && command -v python3 >/dev/null 2>&1; then
+        container=$(python3 -c "import json; print(json.load(open('.claude/m2.json')).get('php_container',''))" 2>/dev/null || echo "")
+        [[ -n "$container" ]] && container_src=".claude/m2.json"
+    fi
+    # Drop a configured-but-not-running container so the patterns can try.
+    if [[ -n "$container" ]] && ! docker ps --format '{{.Names}}' 2>/dev/null | grep -qx "$container"; then
+        container=""
+        container_src=""
+    fi
+    # Generic fallback patterns — match magento*/m2* php containers, any "<name>-php"
+    # (optionally suffixed "-1"), or a bare "php" container, without naming any project.
+    if [[ -z "$container" ]]; then
+        container=$(docker ps --format '{{.Names}}' 2>/dev/null \
+            | grep -E '(magento.*php|m2.*php|.*-php([_-][0-9]+)?$|^php([_-][0-9]+)?$)' \
+            | head -1 || echo "")
+        [[ -n "$container" ]] && container_src="docker ps name pattern"
+    fi
+    if [[ -n "$container" ]]; then
         RUNNER="docker exec -i ${container}"
         RUNNER_KIND="docker-exec"
-        RUNNER_SRC="docker ps probe (${container})"
+        RUNNER_SRC="docker ps probe (${container}) via ${container_src}"
     fi
 fi
 
@@ -301,7 +346,7 @@ cat > "$CACHE_FILE" <<EOF
 {
   "schemaVersion": "1.0",
   "skill": "magento2-context",
-  "skillVersion": "1.1.0",
+  "skillVersion": "1.2.0",
   "resolvedAt": "${TIMESTAMP}",
   "cacheKey": $(json_or_null "$CACHE_KEY"),
 

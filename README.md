@@ -52,10 +52,24 @@ Invoke a skill, e.g. `/magento2-bug-fix "<description>"`.
 ### Per-project environment overrides
 
 `magento2-context` auto-detects the runner (Docker vs bare PHP) and the Magento root.
-For non-standard setups you can override detection:
+For non-standard setups, override detection in either of two ways (env var wins over file):
 
-- `M2_PHP_CONTAINER` — environment variable naming the PHP container (Docker projects).
-- `.claude/m2.json` — optional per-project config read by the context resolver.
+```bash
+export M2_PHP_CONTAINER=my-php-container   # name of the running PHP container
+export M2_MAGENTO_ROOT=src                 # path to the Magento root (default: auto-detect "." or "src")
+```
+
+or commit a per-project `.claude/m2.json`:
+
+```json
+{
+  "php_container": "my-php-container",
+  "magento_root": "src"
+}
+```
+
+A configured container that is not actually running falls through to generic name-pattern
+detection. Changing any override busts the resolver cache automatically.
 
 ## Tests
 

@@ -5,7 +5,7 @@ Status: Awaiting Approval
 Blueprint: `.docs/{FeatureName}/blueprint.md`
 Skill versions:
   - magento2-feature-implement@2.3.0
-  - magento2-context@1.1.0
+  - magento2-context@1.2.0
 
 ---
 
@@ -127,7 +127,7 @@ Outcome: —
 ### M1: Create `{Vendor}_{ModuleA}`
 
 Type: Create Module
-Target: `src/app/code/{Vendor}/{ModuleA}`
+Target: `{ctx.magento_root}/app/code/{Vendor}/{ModuleA}`
 Depends on: none
 Skill: `magento2-module-create`
 Estimate: M
@@ -157,7 +157,7 @@ Acceptance criteria:
 ### R1: Review `{Vendor}_{ModuleA}`
 
 Type: Review
-Target: `src/app/code/{Vendor}/{ModuleA}`
+Target: `{ctx.magento_root}/app/code/{Vendor}/{ModuleA}`
 Depends on: M1
 Skill: `magento2-module-review`
 Estimate: S
@@ -181,7 +181,7 @@ Acceptance criteria:
 ### M2: Create `{Vendor}_{ModuleB}`
 
 Type: Create Module
-Target: `src/app/code/{Vendor}/{ModuleB}`
+Target: `{ctx.magento_root}/app/code/{Vendor}/{ModuleB}`
 Depends on: R1
 Skill: `magento2-module-create`
 Estimate: M
@@ -198,7 +198,7 @@ Acceptance criteria:
 ### R2: Review `{Vendor}_{ModuleB}`
 
 Type: Review
-Target: `src/app/code/{Vendor}/{ModuleB}`
+Target: `{ctx.magento_root}/app/code/{Vendor}/{ModuleB}`
 Depends on: M2
 Skill: `magento2-module-review`
 Estimate: S
@@ -214,7 +214,7 @@ Acceptance criteria:
 ### X1: Modify `{Vendor}_{ExistingModule}`
 
 Type: Modify Module
-Target: `src/app/code/{Vendor}/{ExistingModule}`
+Target: `{ctx.magento_root}/app/code/{Vendor}/{ExistingModule}`
 Depends on: R1
 Skill: manual
 Estimate: S
@@ -233,7 +233,7 @@ Acceptance criteria:
 ### T1: Unit Tests — `{Vendor}_{ModuleA}`
 
 Type: Test
-Target: `src/app/code/{Vendor}/{ModuleA}/Test/Unit/`
+Target: `{ctx.magento_root}/app/code/{Vendor}/{ModuleA}/Test/Unit/`
 Depends on: R1
 Skill: manual
 Estimate: M
@@ -251,7 +251,7 @@ Acceptance criteria:
 ### T2: Unit Tests — `{Vendor}_{ModuleB}`
 
 Type: Test
-Target: `src/app/code/{Vendor}/{ModuleB}/Test/Unit/`
+Target: `{ctx.magento_root}/app/code/{Vendor}/{ModuleB}/Test/Unit/`
 Depends on: R2
 Skill: manual
 Estimate: S

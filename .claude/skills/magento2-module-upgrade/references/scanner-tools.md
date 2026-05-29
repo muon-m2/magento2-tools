@@ -27,7 +27,7 @@ require "vendor/autoload.php";
 $parser = (new PhpParser\ParserFactory)->createForNewestSupportedVersion();
 $ast = $parser->parse(file_get_contents($argv[1]));
 // Walk and detect patterns from deprecation-map.md
-' src/app/code/{Vendor}/{Module}/{File}.php
+' {ctx.magento_root}/app/code/{Vendor}/{Module}/{File}.php
 ```
 
 Or use a simple grep-based pre-scan (faster, less precise) to identify candidate files
@@ -47,7 +47,7 @@ Reports which dependencies block the target. If any module's composer.json const
 ```bash
 {ctx.runner} vendor/bin/phpcs --standard=PHPCompatibility \
     --runtime-set testVersion {target_php_version} \
-    src/app/code/{Vendor}/{Module}
+    {ctx.magento_root}/app/code/{Vendor}/{Module}
 ```
 
 Requires `phpcompatibility/php-compatibility` installed. Reports PHP-version-specific

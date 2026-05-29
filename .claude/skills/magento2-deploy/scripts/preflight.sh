@@ -23,7 +23,7 @@ set -uo pipefail
 MODULES="${MODULES:?MODULES is required, e.g. 'Acme_OrderS3Export Acme_Catalog'}"
 ENV="${ENV:-local}"
 STRICT="${STRICT:-0}"
-MODULE_DIR="${MODULE_DIR:-src/app/code}"
+MODULE_DIR="${MODULE_DIR:-$([[ -d app/code ]] && echo app/code || echo src/app/code)}"
 CONTEXT_FILE=".claude/.cache/magento2-context.json"
 
 if [ -z "${RUNNER:-}" ] && [ -f "$CONTEXT_FILE" ] && command -v python3 >/dev/null 2>&1; then
@@ -149,7 +149,7 @@ if command -v python3 >/dev/null 2>&1; then
         *)          MAGENTO_ROOT_FOR_DEPS="" ;;
     esac
     dep_out="$(MODULES="$MODULES" MODULE_DIR="$MODULE_DIR" \
-        COMPOSER_LOCK="${COMPOSER_LOCK:-src/composer.lock}" \
+        COMPOSER_LOCK="${COMPOSER_LOCK:-$([[ -f composer.lock ]] && echo composer.lock || echo src/composer.lock)}" \
         MAGENTO_ROOT_FOR_DEPS="${MAGENTO_ROOT_FOR_DEPS:-.}" \
         MAGENTO_CLI="$MAGENTO_CLI" \
         python3 - <<'PY' 2>&1

@@ -97,7 +97,7 @@ public function beforeSave($object)
 
 ## File Location
 
-`src/app/code/{Vendor}/{Module}/Model/Attribute/Backend/{AttributeCode}.php`
+`{ctx.magento_root}/app/code/{Vendor}/{Module}/Model/Attribute/Backend/{AttributeCode}.php`
 
 ## Common Mistakes
 

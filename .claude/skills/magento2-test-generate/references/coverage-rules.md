@@ -23,7 +23,7 @@ file and four 0%-covered files is NOT 80% — it's 19% on average.
 ```bash
 {ctx.runner} XDEBUG_MODE=coverage vendor/bin/phpunit \
     --coverage-clover var/log/coverage-{Vendor}_{Module}.xml \
-    src/app/code/{Vendor}/{Module}/Test/Unit
+    {ctx.magento_root}/app/code/{Vendor}/{Module}/Test/Unit
 ```
 
 Then parse the Clover XML for per-file coverage. Total coverage is line-weighted, not

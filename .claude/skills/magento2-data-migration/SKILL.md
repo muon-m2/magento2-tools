@@ -87,9 +87,9 @@ Save to `.docs/migrations/{name}-{date}.md`:
 ## Outputs
 
 ```
-src/app/code/{Vendor}/{Module}/Setup/Patch/Data/{Name}.php
-src/app/code/{Vendor}/{Module}/Service/Importer/{Name}Importer.php        # if import
-src/app/code/{Vendor}/{Module}/Console/Command/{Name}Command.php          # if CLI
+{ctx.magento_root}/app/code/{Vendor}/{Module}/Setup/Patch/Data/{Name}.php
+{ctx.magento_root}/app/code/{Vendor}/{Module}/Service/Importer/{Name}Importer.php        # if import
+{ctx.magento_root}/app/code/{Vendor}/{Module}/Console/Command/{Name}Command.php          # if CLI
 
 .docs/migrations/{name}-{date}.md
 ```

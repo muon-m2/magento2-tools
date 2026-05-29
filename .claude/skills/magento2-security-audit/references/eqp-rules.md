@@ -8,12 +8,12 @@ the canonical reference.
 
 Preferred:
 ```bash
-{ctx.runner} vendor/bin/magento-marketplace-eqp analyse src/app/code/{Vendor}/{Module}
+{ctx.runner} vendor/bin/magento-marketplace-eqp analyse {ctx.magento_root}/app/code/{Vendor}/{Module}
 ```
 
 Fallback:
 ```bash
-{ctx.runner} vendor/bin/m2-coding-standard src/app/code/{Vendor}/{Module}
+{ctx.runner} vendor/bin/m2-coding-standard {ctx.magento_root}/app/code/{Vendor}/{Module}
 ```
 
 If neither is installed, skip Phase 5 and report it.

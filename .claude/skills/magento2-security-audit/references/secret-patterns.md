@@ -57,7 +57,7 @@ unavailable.
 
 ## Scan Scope
 
-Default: `src/app/code/{Vendor}/`, `src/app/etc/env.php` (in git history only),
+Default: `{ctx.magento_root}/app/code/{Vendor}/`, `src/app/etc/env.php` (in git history only),
 `src/composer.json`, `src/composer.lock`, `.env.example`, every `etc/config.xml`.
 
 Exclude: `vendor/`, `pub/static/`, `var/`, `generated/`, `node_modules/`.

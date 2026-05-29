@@ -87,7 +87,7 @@ Add reference links at the bottom for tag comparison:
 Each module's `CHANGELOG.md` lives in the module folder:
 
 ```
-src/app/code/{Vendor}/{Module}/CHANGELOG.md
+{ctx.magento_root}/app/code/{Vendor}/{Module}/CHANGELOG.md
 ```
 
 The skill updates one file per release.

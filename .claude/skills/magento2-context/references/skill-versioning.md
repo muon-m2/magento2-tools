@@ -9,7 +9,7 @@ skills evolve.
 
 | Skill                          | Version | Bumped when                                                            |
 |--------------------------------|---------|------------------------------------------------------------------------|
-| magento2-context               | 1.1.0   | JSON schema changes, new resolution rules, new tool probes             |
+| magento2-context               | 1.2.0   | JSON schema changes, new resolution rules, new tool probes             |
 | magento2-module-create         | 1.5.1   | New template added, surface added, naming rule changed                 |
 | magento2-module-review         | 2.2.0   | New checklist category, severity calibration change, new JSON field    |
 | magento2-feature-implement     | 2.3.0   | New phase, new approval gate, mode added, template structure change    |
@@ -27,8 +27,15 @@ skills evolve.
 | magento2-release               | 1.0.1   | New tag convention, new publish target                                 |
 | magento2-i18n                  | 1.1.0   | New extraction pattern, new placeholder rule                           |
 
-## Changelog (last update: 2026-05-26)
+## Changelog (last update: 2026-05-29)
 
+- **magento2-context 1.1.0 → 1.2.0** — portability: removed hardcoded project container
+  name from runner detection. Container now resolves via `M2_PHP_CONTAINER` env >
+  `.claude/m2.json` `php_container` > generic name patterns (configured-but-not-running
+  falls through). Magento root now detects `.`-vs-`src` layout (was hardcoded `src`
+  default), overridable via `M2_MAGENTO_ROOT` / `.claude/m2.json` `magento_root`. Cache
+  key now folds in the `.claude/m2.json` hash and the `M2_*` env overrides so changing an
+  override busts the cache.
 - **magento2-context 1.0.0 → 1.1.0** — new fields: `runner_kind`,
   `theme.frontend_source`, `theme.adminhtml_source`, `composer_source`,
   `php_version_source`. Cache key now includes `composer.json` and `CLAUDE.md` hashes.

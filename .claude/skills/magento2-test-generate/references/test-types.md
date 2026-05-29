@@ -80,7 +80,7 @@ Tests per listing + form pair:
 ## Test Path Conventions
 
 ```
-src/app/code/{Vendor}/{Module}/
+{ctx.magento_root}/app/code/{Vendor}/{Module}/
 ├── Test/Unit/                    # Unit tests
 │   ├── Model/SomeServiceTest.php
 │   └── Plugin/SomePluginTest.php

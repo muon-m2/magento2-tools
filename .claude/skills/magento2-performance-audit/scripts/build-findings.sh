@@ -24,7 +24,7 @@ set -uo pipefail
 : "${TARGET_PATH:?TARGET_PATH is required}"
 
 SCOPE="${SCOPE:-module}"
-SCAN_ROOT="${SCAN_ROOT:-src/app/code}"
+SCAN_ROOT="${SCAN_ROOT:-$([[ -d app/code ]] && echo app/code || echo src/app/code)}"
 INCLUDE_RUNTIME="${INCLUDE_RUNTIME:-0}"
 OUTPUT_DIR="${OUTPUT_DIR:-.docs/audits}"
 SKILL_VERSION="${SKILL_VERSION:-1.0.1}"
@@ -114,7 +114,7 @@ export SKILL_VERSION
 export OUTPUT_KIND="performance"
 export OUTPUT_BASENAME="perf-${SCOPE}-${DATE}"
 export OUTPUT_DIR
-export SKILL_VERSIONS_JSON="[\"magento2-performance-audit@${SKILL_VERSION}\",\"magento2-context@1.1.0\"]"
+export SKILL_VERSIONS_JSON="[\"magento2-performance-audit@${SKILL_VERSION}\",\"magento2-context@1.2.0\"]"
 
 bash "$EMIT_JSON" > /dev/null
 

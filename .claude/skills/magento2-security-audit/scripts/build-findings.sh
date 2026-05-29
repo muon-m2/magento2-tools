@@ -21,8 +21,8 @@ set -uo pipefail
 : "${TARGET_PATH:?TARGET_PATH is required}"
 
 SCOPE="${SCOPE:-module}"
-COMPOSER_LOCK="${COMPOSER_LOCK:-src/composer.lock}"
-SCAN_ROOT="${SCAN_ROOT:-src/app/code}"
+COMPOSER_LOCK="${COMPOSER_LOCK:-$([[ -f composer.lock ]] && echo composer.lock || echo src/composer.lock)}"
+SCAN_ROOT="${SCAN_ROOT:-$([[ -d app/code ]] && echo app/code || echo src/app/code)}"
 OUTPUT_DIR="${OUTPUT_DIR:-.docs/audits}"
 SKILL_VERSION="${SKILL_VERSION:-1.1.0}"
 
@@ -114,7 +114,7 @@ export SKILL_VERSION
 export OUTPUT_KIND="security"
 export OUTPUT_BASENAME="security-${SCOPE}-${DATE}"
 export OUTPUT_DIR
-export SKILL_VERSIONS_JSON="[\"magento2-security-audit@${SKILL_VERSION}\",\"magento2-context@1.1.0\"]"
+export SKILL_VERSIONS_JSON="[\"magento2-security-audit@${SKILL_VERSION}\",\"magento2-context@1.2.0\"]"
 
 bash "$EMIT_JSON" > /dev/null
 

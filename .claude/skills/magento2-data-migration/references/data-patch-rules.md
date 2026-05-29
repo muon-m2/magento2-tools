@@ -111,7 +111,7 @@ Magento treats the alias as already-applied, preventing re-execution.
 ## File Location
 
 ```
-src/app/code/{Vendor}/{Module}/Setup/Patch/Data/{PatchClassName}.php
+{ctx.magento_root}/app/code/{Vendor}/{Module}/Setup/Patch/Data/{PatchClassName}.php
 ```
 
 Patch class name MUST match the file name. Magento uses class name for tracking

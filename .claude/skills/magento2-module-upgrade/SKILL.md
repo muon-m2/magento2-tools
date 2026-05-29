@@ -119,7 +119,7 @@ Flags:
 ```
 .docs/upgrades/{Vendor}_{Module}-{from}-to-{to}-{date}.md
 .docs/upgrades/{Vendor}_{Module}-{from}-to-{to}-{date}.json
-src/app/code/{Vendor}/{Module}/UPGRADE.md   # Consumer notice (always present after upgrade)
+{ctx.magento_root}/app/code/{Vendor}/{Module}/UPGRADE.md   # Consumer notice (always present after upgrade)
 ```
 
 ## Reference Files

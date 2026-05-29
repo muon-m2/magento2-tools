@@ -42,7 +42,7 @@ Ask:
 
 If Magento CLI available:
 ```
-{ctx.magento_cli} i18n:collect-phrases src/app/code/{Vendor}/{Module}/ -o /tmp/extract.csv
+{ctx.magento_cli} i18n:collect-phrases {ctx.magento_root}/app/code/{Vendor}/{Module}/ -o /tmp/extract.csv
 ```
 
 Otherwise: regex scan via `scripts/extract.sh` for:
@@ -86,7 +86,7 @@ Via `scripts/validate-csv.sh`:
 ## Outputs
 
 ```
-src/app/code/{Vendor}/{Module}/i18n/{locale}.csv (updated)
+{ctx.magento_root}/app/code/{Vendor}/{Module}/i18n/{locale}.csv (updated)
 
 .docs/i18n/{Vendor}_{Module}-{date}.md
 ```

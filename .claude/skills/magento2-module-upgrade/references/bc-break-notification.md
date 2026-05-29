@@ -6,7 +6,7 @@ When the upgrade introduces a BC break visible to callers of the module, documen
 ## File Location
 
 ```
-src/app/code/{Vendor}/{Module}/UPGRADE.md
+{ctx.magento_root}/app/code/{Vendor}/{Module}/UPGRADE.md
 ```
 
 One `UPGRADE.md` per module. Append to the existing file — never overwrite — so the

@@ -5,7 +5,7 @@
 
 set -uo pipefail
 
-MODULE_DIR="${1:-src/app/code}"
+MODULE_DIR="${1:-$([[ -d app/code ]] && echo app/code || echo src/app/code)}"
 [ -d "$MODULE_DIR" ] || { echo "[]"; exit 0; }
 
 if ! command -v python3 >/dev/null 2>&1; then

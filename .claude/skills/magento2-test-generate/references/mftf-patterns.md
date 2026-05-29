@@ -5,7 +5,7 @@ Magento Functional Testing Framework — Selenium-based admin UI tests.
 ## File Layout
 
 ```
-src/app/code/{Vendor}/{Module}/Test/Mftf/
+{ctx.magento_root}/app/code/{Vendor}/{Module}/Test/Mftf/
 ├── ActionGroup/
 ├── Data/
 ├── Page/

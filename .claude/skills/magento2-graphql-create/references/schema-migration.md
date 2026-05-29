@@ -37,7 +37,7 @@ field still get data; introspection shows the deprecation reason.
 
 ## UPGRADE.md
 
-Every breaking change goes in `src/app/code/{Vendor}/{Module}/UPGRADE.md` per the
+Every breaking change goes in `{ctx.magento_root}/app/code/{Vendor}/{Module}/UPGRADE.md` per the
 `magento2-module-upgrade` BC-break-notification format.
 
 ## Schema Merge Conflict

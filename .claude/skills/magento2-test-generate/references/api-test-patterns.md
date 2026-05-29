@@ -115,8 +115,8 @@ The base class includes a `getCustomerToken()` helper; reuse it.
 
 ```bash
 {ctx.runner} vendor/bin/phpunit -c dev/tests/api-functional/phpunit_rest.xml \
-    src/app/code/{Vendor}/{Module}/Test/Api
+    {ctx.magento_root}/app/code/{Vendor}/{Module}/Test/Api
 
 {ctx.runner} vendor/bin/phpunit -c dev/tests/api-functional/phpunit_graphql.xml \
-    src/app/code/{Vendor}/{Module}/Test/Api/GraphQl
+    {ctx.magento_root}/app/code/{Vendor}/{Module}/Test/Api/GraphQl
 ```

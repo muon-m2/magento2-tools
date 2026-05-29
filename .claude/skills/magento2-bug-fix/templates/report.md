@@ -28,11 +28,11 @@ Recipe: `.docs/bug-fixes/{slug}/reproduction.md`
 
 | File | Change |
 |------|--------|
-| `src/app/code/{Vendor}/{Module}/{Path}` | {description} |
+| `{ctx.magento_root}/app/code/{Vendor}/{Module}/{Path}` | {description} |
 
 ## Regression Test
 
-Path: `src/app/code/{Vendor}/{Module}/Test/Unit/{...}Test.php`
+Path: `{ctx.magento_root}/app/code/{Vendor}/{Module}/Test/Unit/{...}Test.php`
 Pre-fix: failing assertion confirmed.
 Post-fix: passing assertion confirmed.
 Suite result: {N passed / 0 failed}.
@@ -59,7 +59,7 @@ Critical/High findings introduced by the fix: 0 (else: list and resolution).
 ## Verification Steps
 
 1. Apply patch (commits listed below).
-2. Run `{ctx.runner} vendor/bin/phpunit src/app/code/{Vendor}/{Module}/Test/Unit/{...}Test.php`.
+2. Run `{ctx.runner} vendor/bin/phpunit {ctx.magento_root}/app/code/{Vendor}/{Module}/Test/Unit/{...}Test.php`.
 3. Re-run the reproduction recipe — confirm success.
 
 ## Commits
