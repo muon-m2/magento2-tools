@@ -16,6 +16,7 @@ Default — fastest, no maintenance mode, no static-content deploy. Use during d
 ```
 
 Optional steps (skip unless `--full`):
+
 - `setup:di:compile`
 - `setup:static-content:deploy -f`
 
@@ -74,6 +75,7 @@ deploy list, ensure X is already enabled or include it.
 ## Persistence Module Detection
 
 A module is "persistence" if any of these exist:
+
 - `etc/db_schema.xml`
 - `Setup/Patch/Schema/*.php`
 - `Setup/Patch/Data/*.php` (data patches count for `generate-whitelist`)
@@ -87,6 +89,7 @@ Read `{ctx.theme.frontend}` and `{ctx.theme.adminhtml}` from the context resolve
 their package names verbatim in the `--theme` flag.
 
 Examples:
+
 - `Magento/luma` (Luma frontend)
 - `Magento/blank` (Blank frontend)
 - `Hyva/default` (Hyva frontend)

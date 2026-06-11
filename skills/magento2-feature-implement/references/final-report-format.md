@@ -76,13 +76,13 @@ A reference list of every interface and endpoint that external callers can use.
 
 | Type  | Name      | Auth             |
 |-------|-----------|------------------|
-| Query | `muonXyz` | Customer session |
+| Query | `acmeWidget` | Customer session |
 
 #### Events Dispatched (if applicable)
 
-| Event name            | Payload    | Dispatched in         |
-|-----------------------|------------|-----------------------|
-| `muon_xyz_save_after` | `{entity}` | `XyzRepository::save` |
+| Event name              | Payload    | Dispatched in           |
+|-------------------------|------------|-------------------------|
+| `acme_widget_save_after` | `{entity}` | `WidgetRepository::save` |
 
 ---
 
@@ -90,9 +90,9 @@ A reference list of every interface and endpoint that external callers can use.
 
 List every admin configuration field added, with path, default, and purpose:
 
-| Config path                | Type   | Default | Purpose        |
-|----------------------------|--------|---------|----------------|
-| `muon_xyz/general/enabled` | Yes/No | 1       | Feature toggle |
+| Config path                 | Type   | Default | Purpose        |
+|-----------------------------|--------|---------|----------------|
+| `acme_widget/general/enabled` | Yes/No | 1       | Feature toggle |
 
 Describe any required post-install steps:
 
@@ -159,10 +159,10 @@ If none: "No known limitations identified."
 Ordered list of what to do after this implementation, with the highest-value item first:
 
 1. Run `setup:db-declaration:generate-whitelist` for each new module with a persistence surface.
-2. Run `/module-review` for any module that received only a quick review during Phase 5.
+2. Run `magento2-module-review` for any module that received only a quick review during Phase 5.
 3. Add integration tests for the REST endpoints.
 4. Configure the feature in Admin > {section path}.
-5. Run `/deploy` to enable modules on staging.
+5. Run `magento2-deploy` to enable modules on staging.
 
 ---
 
@@ -201,7 +201,7 @@ Final decision: {PASS / ACCEPT-KNOWN-ISSUES / ABORT — set by user at halt}.
 |----|----------|----------|------------------|--------------|-------|
 | F1 | Critical | rest_contract | 3 | magento2-bug-fix | ACL missing in webapi.xml |
 | F2 | Critical | php_exception | 2 | magento2-debug → magento2-bug-fix | Class typo in di.xml |
-| F3 | High | frontend | 3 | magento2-frontend-create (augment) | KO bind error in vehicle.js |
+| F3 | High | frontend | 3 | magento2-frontend-create | KO bind error in vehicle.js |
 | F4 | Medium | performance | n/a | magento2-performance-audit | New grid 2.3s; target 2.0s |
 
 #### Artifacts

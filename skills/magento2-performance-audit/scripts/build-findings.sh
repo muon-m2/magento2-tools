@@ -13,7 +13,7 @@
 #   SCAN_ROOT           default: src/app/code
 #   INCLUDE_RUNTIME     "1" to include runtime-checks.sh output (default: off)
 #   OUTPUT_DIR          default: .docs/audits
-#   SKILL_VERSION       default: 1.0.1
+#   SKILL_VERSION       default: 1.1.0
 #
 # Output:
 #   Writes {OUTPUT_DIR}/perf-{SCOPE}-{YYYY-MM-DD}.json + .sarif. Stdout echoes the JSON.
@@ -27,7 +27,7 @@ SCOPE="${SCOPE:-module}"
 SCAN_ROOT="${SCAN_ROOT:-$([[ -d app/code ]] && echo app/code || echo src/app/code)}"
 INCLUDE_RUNTIME="${INCLUDE_RUNTIME:-0}"
 OUTPUT_DIR="${OUTPUT_DIR:-.docs/audits}"
-SKILL_VERSION="${SKILL_VERSION:-1.0.1}"
+SKILL_VERSION="${SKILL_VERSION:-1.1.0}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 EMIT_JSON="${SCRIPT_DIR}/../../magento2-module-review/scripts/emit-json.sh"
@@ -61,10 +61,31 @@ run_scanner() {
     return 0
 }
 
-run_scanner static-perf "$STATIC_OUT" "$STATIC_ERR" "${SCRIPT_DIR}/static-perf.sh" "$SCAN_ROOT" || true
+# Scan the module subtree when scoped to a single module; only widen to SCAN_ROOT for a
+# site-wide audit. Scanning all of SCAN_ROOT for a single-module run would both slow the
+# scan and attribute other modules' findings to this target.
+if [ "$SCOPE" = "site" ]; then
+    STATIC_SCAN_TARGET="$SCAN_ROOT"
+else
+    STATIC_SCAN_TARGET="$TARGET_PATH"
+fi
+run_scanner static-perf "$STATIC_OUT" "$STATIC_ERR" "${SCRIPT_DIR}/static-perf.sh" "$STATIC_SCAN_TARGET" || true
 
-if [ "$INCLUDE_RUNTIME" = "1" ] && [ -x "${SCRIPT_DIR}/runtime-checks.sh" ]; then
-    run_scanner runtime-checks "$RUNTIME_OUT" "$RUNTIME_ERR" "${SCRIPT_DIR}/runtime-checks.sh" || true
+if [ "$INCLUDE_RUNTIME" = "1" ]; then
+    if [ -f "${SCRIPT_DIR}/runtime-checks.sh" ]; then
+        run_scanner runtime-checks "$RUNTIME_OUT" "$RUNTIME_ERR" "${SCRIPT_DIR}/runtime-checks.sh" || true
+        # runtime-checks.sh emits a findings array. Distinguish "ran but produced no
+        # findings" (e.g. every probe tool absent) from "found problems" so the report
+        # never conflates "scanner didn't run" with "scanner found nothing".
+        if python3 -c "import json,sys; d=json.load(open(sys.argv[1])); sys.exit(0 if isinstance(d,list) and d else 1)" "$RUNTIME_OUT" 2>/dev/null; then
+            :
+        else
+            echo "runtime-checks: INCLUDE_RUNTIME=1 but no runtime findings were produced (probe tools likely unavailable — this is not the same as a clean result)" >> "$RUNTIME_ERR"
+        fi
+    else
+        echo "[]" > "$RUNTIME_OUT"
+        echo "runtime-checks: INCLUDE_RUNTIME=1 but ${SCRIPT_DIR}/runtime-checks.sh not found" >> "$RUNTIME_ERR"
+    fi
 else
     echo "[]" > "$RUNTIME_OUT"
 fi
@@ -114,7 +135,7 @@ export SKILL_VERSION
 export OUTPUT_KIND="performance"
 export OUTPUT_BASENAME="perf-${SCOPE}-${DATE}"
 export OUTPUT_DIR
-export SKILL_VERSIONS_JSON="[\"magento2-performance-audit@${SKILL_VERSION}\",\"magento2-context@1.3.0\"]"
+export SKILL_VERSIONS_JSON="[\"magento2-performance-audit@${SKILL_VERSION}\",\"magento2-context@1.4.0\"]"
 
 bash "$EMIT_JSON" > /dev/null
 

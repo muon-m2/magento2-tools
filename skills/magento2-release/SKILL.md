@@ -14,7 +14,9 @@ Cut a release for a Magento 2 module that lives in this repo.
 
 ## Core Rules
 
-- **Validate first.** No release happens if pre-flight validation fails (`magento2-deploy --validate-only --strict --env=local`). The release MUST use `--validate-only` — never a state-changing deploy invocation.
+- **Validate first.** No release happens if pre-flight validation fails (
+  `magento2-deploy --validate-only --strict --env=local`). The release MUST use `--validate-only` — never a
+  state-changing deploy invocation.
 - **Semver from commits.** Detect the next version from conventional commits, then let
   the user override.
 - **Module-prefixed tags.** Multi-module repos need disambiguating tags:
@@ -35,12 +37,18 @@ Invoke `magento2-context`. Capture `gh` CLI availability.
 
 - Read current `composer.json` version.
 - Read commits since last git tag matching `{Vendor}_{Module}-*` (or fall back to
-  `HEAD` if no prior tag).
+  the initial commit if no prior tag). **Path-filter to this module** so commits from
+  sibling modules in the same repo are excluded:
+  `git log {lastTag}..HEAD -- {module_path}`.
 - Classify each commit per conventional commits:
-  - `feat:` → minor bump
-  - `fix:` → patch bump
-  - `BREAKING CHANGE:` or `feat!:` → major bump
+    - `feat:` → minor bump
+    - `fix:` → patch bump
+    - `BREAKING CHANGE:` or `feat!:` → major bump
 - Propose next version. User can override with `--version=X.Y.Z`.
+    - **Downgrade guard:** if an explicit `--version` is passed, refuse it unless it is
+      strictly greater than the latest existing tag for this module (use the version
+      comparison in `references/semver-rules.md`). A forced *upward* jump is still allowed
+      (with a warning); a downgrade or equal version is rejected.
 
 ### Phase 2 — Validate
 
@@ -85,8 +93,17 @@ gh release create {tag} \
 
 ### Phase 7 — Publish (Optional)
 
-If `composer.json` declares a Packagist or private registry source, trigger the publish
-webhook or `composer publish`. Mostly no-op for project-internal modules.
+There is no `composer publish` command. "Publishing" means making the pushed tag
+resolvable by a Composer source:
+
+- **Packagist / Private Packagist:** the GitHub→registry webhook (or registry sync) picks
+  up the tag automatically — no extra command. Verify on the package page if needed.
+- **Satis:** regenerate the static repo with `satis build`.
+- **Plain VCS source:** nothing to do — the consumer resolves the tag directly from git.
+- **Marketplace (EQP):** prepare the zip artefact; the user uploads it via the Marketplace
+  developer portal manually.
+
+See `references/publish-targets.md`. Mostly a no-op for project-internal modules.
 
 ## Inputs
 
@@ -94,12 +111,12 @@ webhook or `composer publish`. Mostly no-op for project-internal modules.
 /magento2-release [--version=X.Y.Z] [--no-publish] [--no-github-release] [--dry-run] <Vendor>_<Module>
 ```
 
-| Flag | Default | Meaning |
-|------|---------|---------|
-| `--version` | auto-detected | Override the proposed version |
-| `--no-publish` | off | Skip Phase 7 |
-| `--no-github-release` | off | Skip Phase 6 |
-| `--dry-run` | off | Print everything; make no changes |
+| Flag                  | Default       | Meaning                           |
+|-----------------------|---------------|-----------------------------------|
+| `--version`           | auto-detected | Override the proposed version     |
+| `--no-publish`        | off           | Skip Phase 7                      |
+| `--no-github-release` | off           | Skip Phase 6                      |
+| `--dry-run`           | off           | Print everything; make no changes |
 
 ## Outputs
 
@@ -117,7 +134,8 @@ GitHub Release page (if Phase 6 ran)
 - `references/semver-rules.md` — conventional commit → version bump rules.
 - `references/changelog-format.md` — Keep a Changelog conventions.
 - `references/tag-format.md` — multi-module tag prefix rules.
-- `references/publish-targets.md` — Packagist, private registry, GitHub Packages.
+- `references/publish-targets.md` — Packagist, private Composer registries (Private Packagist / Satis / VCS),
+  Marketplace EQP.
 
 ## Templates
 
@@ -128,12 +146,13 @@ GitHub Release page (if Phase 6 ran)
 - Version bump matches semver convention.
 - CHANGELOG entries reflect actual commits since last tag.
 - No release happens if Phase 2 validate fails.
-- Tag is signed if `git config commit.gpgsign` is true.
+- Tag is signed if `git config tag.gpgsign` is true (tag signing reads `tag.gpgsign`, not `commit.gpgsign`).
 - Release notes paste cleanly into GitHub Release.
 
 ## Multi-Module Repo
 
 If multiple modules live in the same repo:
+
 - Tag prefix disambiguates (`Acme_OrderExport-1.4.0` vs `Acme_Inventory-2.0.1`)
 - Each module's `composer.json` is independent
 - `CHANGELOG.md` lives in each module folder
@@ -141,8 +160,8 @@ If multiple modules live in the same repo:
 
 ## Related Skills
 
-| Phase | Skill |
-|-------|-------|
-| 0 | `magento2-context` |
-| 2 | `magento2-deploy --validate-only --strict --env=local` |
-| 6 | external: `gh` CLI |
+| Phase | Skill                                                  |
+|-------|--------------------------------------------------------|
+| 0     | `magento2-context`                                     |
+| 2     | `magento2-deploy --validate-only --strict --env=local` |
+| 6     | external: `gh` CLI                                     |

@@ -92,6 +92,7 @@ For non-standard setups, override detection (env var wins over file):
 ```bash
 export M2_PHP_CONTAINER=my-php-container   # name of the running PHP container
 export M2_MAGENTO_ROOT=src                 # Magento root (default: auto-detect "." or "src")
+export M2_CACHE_TTL=86400                  # context cache TTL in seconds (0 disables; default 24h)
 ```
 
 or commit a per-project `.claude/m2.json`:
@@ -123,9 +124,12 @@ themselves self-locate via `BASH_SOURCE`, so they are layout-independent.
 bash tests/run-all.sh
 ```
 
-Contract tests cover bash syntax, template lint (PHP/XML/JSON/GraphQL/CSV/JS),
-cross-reference integrity (including `${CLAUDE_SKILL_DIR}` / `${CLAUDE_PLUGIN_ROOT}`
-paths), and skill-version-registry consistency.
+Contract tests cover bash syntax, template lint (PHP/XML/JSON/GraphQL/CSV/JS), SKILL.md
+frontmatter validity, cross-reference integrity (including `${CLAUDE_SKILL_DIR}` /
+`${CLAUDE_PLUGIN_ROOT}` and `magento2-<skill>/…` cross-refs), context-resolver behaviour
+(bare/docker runner contract + src-layout/override fixtures), plugin↔marketplace version
+sync, and skill-version-registry consistency. CI additionally runs `shellcheck`. Tests that
+need a missing interpreter exit 77 (SKIP) rather than failing.
 
 ## Versioning
 

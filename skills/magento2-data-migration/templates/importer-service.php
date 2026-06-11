@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace {Vendor}\{Module}\Service\Importer;
 
-use Magento\Framework\App\ResourceConnection;
-use Psr\Log\LoggerInterface;
+use Psr\Log\LoggerInterface;use Magento\Framework\App\ResourceConnection;
 
 /**
  * Bulk importer for {entity} from a CSV source.
@@ -44,7 +43,21 @@ final class {Entity}Importer
         }
 
         $chunk = [];
+        $lineNo = 1; // header consumed above
         while (($row = fgetcsv($handle)) !== false) {
+            $lineNo++;
+            // A ragged row (column count != header count) makes array_combine() throw a
+            // ValueError on PHP 8. That must count as ONE failed row, not abort the whole
+            // import — the contract is "a failing row does NOT abort the run".
+            if (count($row) !== count($header)) {
+                $stats['failed']++;
+                $this->logger->error('Import row failed: column count mismatch', [
+                    'line'             => $lineNo,
+                    'expected_columns' => count($header),
+                    'actual_columns'   => count($row),
+                ]);
+                continue;
+            }
             $chunk[] = array_combine($header, $row);
             if (count($chunk) >= self::CHUNK_SIZE) {
                 $this->processChunk($chunk, $stats);

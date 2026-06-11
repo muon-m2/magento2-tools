@@ -11,7 +11,14 @@ fi
 echo ""
 echo "== PHP parse check =="
 if command -v php >/dev/null 2>&1; then
-    find "$module_path" -type f -name '*.php' -print0 | xargs -0 php -l 2>&1 | grep -v "^No syntax errors" || true
+    # Lint each file independently (-n1) so one syntax error does not abort the
+    # batch, and so we do not rely on PHP >= 8.1 multi-file `php -l` behaviour.
+    # `php -l` exits 255 on a syntax error; xargs treats 255 as a fatal stop and
+    # would suppress every remaining file. Wrap the lint in a shell that prints
+    # the error but always exits 0, so each file is linted and reported.
+    find "$module_path" -type f -name '*.php' -print0 \
+        | xargs -0 -n1 sh -c 'php -l "$1" 2>&1 || true' sh \
+        | grep -v "^No syntax errors" || true
 else
     echo "SKIPPED php lint: php not found"
 fi

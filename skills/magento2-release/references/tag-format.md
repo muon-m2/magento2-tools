@@ -7,6 +7,7 @@
 ```
 
 Examples:
+
 - `Acme_OrderS3Export-1.4.0`
 - `Acme_Catalog-2.0.0-rc.1`
 - `Acme_Inventory-0.3.5`
@@ -24,17 +25,20 @@ form.
 
 ## Signed Tags
 
-If `git config commit.gpgsign` is `true` AND `git config user.signingkey` is set,
+Tag signing is controlled by `tag.gpgsign` (NOT `commit.gpgsign`, which governs commit
+signing). If `git config tag.gpgsign` is `true` AND `git config user.signingkey` is set,
 create signed tags:
 
 ```bash
-git tag -s -a {tag} -m "Release {Vendor}_{Module} {Version}"
+git tag -s -m "Release {Vendor}_{Module} {Version}" {tag}
 ```
+
+`-s` already implies an annotated tag, so `-s -a` is redundant — pass `-s -m` alone.
 
 Otherwise unsigned annotated:
 
 ```bash
-git tag -a {tag} -m "Release {Vendor}_{Module} {Version}"
+git tag -a -m "Release {Vendor}_{Module} {Version}" {tag}
 ```
 
 ## Annotated vs Lightweight
@@ -51,9 +55,27 @@ git tag -l "{Vendor}_{Module}-*" --sort=-version:refname | head -1
 Returns the most recent tag for this module. If none exist, the "since" base for
 CHANGELOG generation is the initial commit.
 
+**Pre-release caveat.** By default `--sort=-version:refname` treats a pre-release suffix
+as sorting *after* the stable release (so `-1.0.0-rc.1` would rank above `-1.0.0`), which
+contradicts semver — see the ordering in `references/semver-rules.md` where
+`1.4.0-rc.1 < 1.4.0`. Git only sorts pre-releases correctly when `versionsort.suffix` is
+configured. Set it once per repo so `-rc`, `-beta`, `-alpha` sort before the stable tag:
+
+```bash
+git config versionsort.suffix -alpha
+git config versionsort.suffix -beta
+git config versionsort.suffix -rc
+```
+
+If `versionsort.suffix` is NOT configured, treat the result as approximate: when the top
+hit is a pre-release of an already-released stable version, the stable tag is the real
+"last release". The skill should configure these suffixes (or compare candidates with the
+semver rules) rather than trusting the raw `--sort` order for pre-release tags.
+
 ## Tag Collision
 
 If a tag already exists:
+
 - Refuse to overwrite.
 - Suggest bumping the patch version: "Tag {Vendor}_{Module}-1.4.0 exists. Did you mean 1.4.1?"
 

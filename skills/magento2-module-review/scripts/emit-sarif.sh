@@ -49,18 +49,35 @@ def physical_location(evidence: dict) -> dict:
 
 
 def rule_from_finding(f: dict) -> dict:
-    return {
+    rule = {
         'id': f.get('id'),
         'name': f.get('category', 'uncategorized'),
         'shortDescription': {'text': f.get('title', '')},
         'fullDescription': {'text': f.get('description') or f.get('title', '')},
         'defaultConfiguration': {'level': SEVERITY_TO_LEVEL.get(f.get('severity', 'info'), 'note')},
-        'helpUri': None,
     }
+    # SARIF requires helpUri to be a valid URI string when present; omit it
+    # entirely (rather than emitting null) when the finding carries no URL.
+    help_uri = f.get('bulletin_url') or f.get('helpUri')
+    if isinstance(help_uri, str) and help_uri:
+        rule['helpUri'] = help_uri
+    # CWE -> SARIF taxa relationship (taxonomies declared at run level).
+    cwe = f.get('cwe')
+    if isinstance(cwe, str) and cwe:
+        rule['relationships'] = [
+            {
+                'target': {
+                    'id': cwe,
+                    'toolComponent': {'name': 'CWE'},
+                },
+                'kinds': ['superset'],
+            }
+        ]
+    return rule
 
 
 def result_from_finding(f: dict) -> dict:
-    return {
+    result = {
         'ruleId': f.get('id'),
         'level': SEVERITY_TO_LEVEL.get(f.get('severity', 'info'), 'note'),
         'message': {'text': f.get('title', '')},
@@ -68,6 +85,39 @@ def result_from_finding(f: dict) -> dict:
             physical_location({'file': 'unknown', 'line': 1})
         ],
     }
+    cwe = f.get('cwe')
+    if isinstance(cwe, str) and cwe:
+        result['taxa'] = [
+            {
+                'id': cwe,
+                'toolComponent': {'name': 'CWE'},
+            }
+        ]
+    return result
+
+
+def cwe_taxonomy(findings: list) -> list:
+    """Build the SARIF taxonomies[] block from finding `cwe` fields.
+
+    Returns an empty list when no finding carries a CWE so the key can be
+    omitted (SARIF requires taxa[].id to be a non-null string when present).
+    """
+    seen = []
+    for f in findings:
+        cwe = f.get('cwe')
+        if isinstance(cwe, str) and cwe and cwe not in seen:
+            seen.append(cwe)
+    if not seen:
+        return []
+    return [
+        {
+            'name': 'CWE',
+            'organization': 'MITRE',
+            'shortDescription': {'text': 'Common Weakness Enumeration'},
+            'informationUri': 'https://cwe.mitre.org/',
+            'taxa': [{'id': cwe} for cwe in seen],
+        }
+    ]
 
 
 with open(os.environ['JSON_FILE'], encoding='utf-8') as fh:
@@ -75,25 +125,34 @@ with open(os.environ['JSON_FILE'], encoding='utf-8') as fh:
 
 findings = doc.get('findings', [])
 
+driver = {
+    'name': doc.get('skill', 'magento2-module-review'),
+    'version': doc.get('skillVersion', '0.0.0'),
+    # Attribute the tool to this plugin, not Magento core.
+    'informationUri': 'https://github.com/muon-m2/magento2-tools',
+    'rules': [rule_from_finding(f) for f in findings],
+}
+
+run = {
+    'tool': {'driver': driver},
+    'invocations': [{'executionSuccessful': True}],
+    'results': [result_from_finding(f) for f in findings],
+}
+
+# SARIF requires endTimeUtc to be a date-time string when present; omit it
+# rather than emitting null when the document has no runAt timestamp.
+run_at = doc.get('runAt')
+if isinstance(run_at, str) and run_at:
+    run['invocations'][0]['endTimeUtc'] = run_at
+
+taxonomies = cwe_taxonomy(findings)
+if taxonomies:
+    run['taxonomies'] = taxonomies
+
 sarif = {
     '$schema': 'https://docs.oasis-open.org/sarif/sarif/v2.1.0/cos02/schemas/sarif-schema-2.1.0.json',
     'version': '2.1.0',
-    'runs': [
-        {
-            'tool': {
-                'driver': {
-                    'name': doc.get('skill', 'magento2-module-review'),
-                    'version': doc.get('skillVersion', '0.0.0'),
-                    'informationUri': 'https://github.com/magento/magento2',
-                    'rules': [rule_from_finding(f) for f in findings],
-                }
-            },
-            'invocations': [
-                {'executionSuccessful': True, 'endTimeUtc': doc.get('runAt')}
-            ],
-            'results': [result_from_finding(f) for f in findings],
-        }
-    ],
+    'runs': [run],
 }
 
 print(json.dumps(sarif, indent=2, ensure_ascii=False))

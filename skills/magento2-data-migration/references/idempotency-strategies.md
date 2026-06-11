@@ -29,9 +29,13 @@ Cons: Requires a UNIQUE index on the lookup key; silently swallows other errors.
 
 ## 3. Hash-Tracked Config
 
+Read with `Magento\Framework\App\Config\ScopeConfigInterface` and write with
+`Magento\Framework\App\Config\Storage\WriterInterface` — the writer (`$configWriter`) only
+exposes `save()`/`delete()`, so the read must go through `$scopeConfig`:
+
 ```php
-$signature = sha256(serialize($payload));
-$flag = $this->configWriter->getValue("{module}/migrations/{patch_id}");
+$signature = hash('sha256', serialize($payload));
+$flag = $this->scopeConfig->getValue("{module}/migrations/{patch_id}");
 if ($flag === $signature) {
     return $this; // already applied
 }
@@ -40,7 +44,9 @@ $this->configWriter->save("{module}/migrations/{patch_id}", $signature);
 ```
 
 Pros: Works for multi-row operations as a unit; detects "different input" cases.
-Cons: Requires config storage; not row-level.
+Cons: Requires config storage; not row-level. `ScopeConfigInterface` reads a cached
+snapshot, so a freshly written flag is only visible on the next run (fine for data patches,
+which run once per `setup:upgrade`).
 
 ## 4. Migration Log Table
 

@@ -16,16 +16,16 @@ the source describes how it was derived (e.g. `"src/app/etc/config.php:themes[].
 
 1. **`app/etc/config.php` (authoritative).** If the file exists, iterate the `themes`
    array and pick the first entry whose `area = "frontend"`. Use its `theme_path`.
-   - `theme.frontend = "<theme_path>"`.
-   - `theme.frontend_source = "<config.php path>:themes[].area=frontend"`.
-   - The resolver checks `src/app/etc/config.php` first, then `app/etc/config.php`.
+    - `theme.frontend = "<theme_path>"`.
+    - `theme.frontend_source = "<config.php path>:themes[].area=frontend"`.
+    - The resolver checks `src/app/etc/config.php` first, then `app/etc/config.php`.
 
 2. **Hyva package presence (heuristic).** If step 1 produced no result and
    `composer.json` requires any `hyva-themes/*` package, classify as `hyva`.
-   - `theme.frontend = "hyva"`.
-   - `theme.frontend_source = "<composer.json>:hyva-themes/* dependency (installed, active-theme unverified)"`.
-   - The source string explicitly notes this is package-presence evidence, not
-     active-theme confirmation.
+    - `theme.frontend = "hyva"`.
+    - `theme.frontend_source = "<composer.json>:hyva-themes/* dependency (installed, active-theme unverified)"`.
+    - The source string explicitly notes this is package-presence evidence, not
+      active-theme confirmation.
 
 3. **No evidence.** Leave `theme.frontend = null`. Do **not** fall through to
    `"custom"`. Downstream skills that need the active theme must surface an honest
@@ -41,11 +41,13 @@ Resolved the same way as `theme.frontend`, from the `area = "adminhtml"` entry i
 ## Output values
 
 `theme.frontend` is one of:
+
 - `null` when no evidence is available
 - `"hyva"` (package-presence heuristic)
 - A concrete theme code from `config.php` (e.g. `"Magento/luma"`, `"Acme/checkout"`)
 
 `theme.adminhtml` is one of:
+
 - `null` when no evidence is available
 - A concrete theme code from `config.php` (e.g. `"Magento/backend"`, `"Acme/admin"`)
 

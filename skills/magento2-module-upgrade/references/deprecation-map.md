@@ -44,9 +44,12 @@ Common Magento 2 deprecations and their replacements. Used by the Phase 2 scanne
 
 ## Cron
 
-| Deprecated | Replacement |
-|------------|-------------|
-| `<job name=...><schedule>* * * * *</schedule></job>` directly in module | Use a config path: `<schedule_config_path>...</schedule_config_path>` |
+Inline `<schedule>* * * * *</schedule>` in `crontab.xml` is **not** deprecated — it is a
+fully supported way to declare a fixed cron expression. Use `<config_path>` only when you
+want the schedule to be admin-configurable; it is an alternative, not a replacement.
+
+| Deprecated                                      | Replacement                    |
+|-------------------------------------------------|--------------------------------|
 | Cron classes extending `Magento\Cron\Model\Job` | Plain classes with `execute()` |
 
 ## DI
@@ -58,10 +61,10 @@ Common Magento 2 deprecations and their replacements. Used by the Phase 2 scanne
 
 ## GraphQL
 
-| Deprecated | Replacement |
-|------------|-------------|
-| `Magento\Framework\GraphQl\Query\Resolver::resolve()` returning `[]` for not-found | Throw `GraphQlNoSuchEntityException` |
-| Hardcoded auth check in resolver body | `@auth` directive or `Magento\Framework\GraphQl\Config\Element\Field::getResolver()` annotation |
+| Deprecated                                                                                    | Replacement                                                                                                                     |
+|-----------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------|
+| `Magento\Framework\GraphQl\Query\ResolverInterface::resolve()` returning `[]` for not-found   | Throw `GraphQlNoSuchEntityException`                                                                                            |
+| Resolver that runs work before checking `$context->getExtensionAttributes()->getIsCustomer()` | Guard the resolver body: read the customer/store from `$context` and throw `GraphQlAuthorizationException` when unauthenticated |
 
 ## Patterns to Grep For
 

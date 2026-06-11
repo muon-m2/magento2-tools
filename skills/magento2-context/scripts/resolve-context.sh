@@ -36,12 +36,37 @@ jget_php() {
 }
 
 # --- Helpers ---
-json_str() { printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g; s/\t/\\t/g; s/\r//g' | tr -d '\n'; }
+# Portable JSON string escaping. Tab handling uses a literal tab via printf rather than
+# sed's `\t` (BSD/macOS sed treats `\t` in the pattern as the letter "t", which corrupted
+# every "t" in a value). CR/LF are stripped with tr, which understands \r/\n on GNU and BSD.
+json_str() {
+    printf '%s' "$1" \
+        | sed 's/\\/\\\\/g; s/"/\\"/g' \
+        | sed "s/$(printf '\t')/\\\\t/g" \
+        | tr -d '\r' | tr -d '\n'
+}
 json_or_null() { if [[ -z "$1" || "$1" == "null" ]]; then printf 'null'; else printf '"%s"' "$(json_str "$1")"; fi; }
+# runner is special: an EMPTY string is a real value in bare mode (callers compose
+# `${runner} php ...`), so it must serialize as "" — never null. Only the no-environment
+# case (runner_kind == "null") emits JSON null.
+runner_json() { if [[ "${RUNNER_KIND}" == "null" ]]; then printf 'null'; else printf '"%s"' "$(json_str "${RUNNER}")"; fi; }
 
 # --- Cache key (composer.lock + composer.json + CLAUDE.md) ---
+# Portable SHA-256. macOS has no `sha256sum` (it ships `shasum`); calling a missing
+# sha256sum under `set -e` hard-exited the whole resolver on stock macOS. Fall back through
+# shasum and openssl, then a size-based pseudo-key as a last resort (still busts the cache on
+# content change because file size is part of it for most edits).
 hash_file() {
-    if [[ -f "$1" ]]; then sha256sum "$1" | cut -d' ' -f1; else echo "absent"; fi
+    if [[ ! -f "$1" ]]; then echo "absent"; return; fi
+    if command -v sha256sum >/dev/null 2>&1; then
+        sha256sum "$1" | cut -d' ' -f1
+    elif command -v shasum >/dev/null 2>&1; then
+        shasum -a 256 "$1" | cut -d' ' -f1
+    elif command -v openssl >/dev/null 2>&1; then
+        openssl dgst -sha256 "$1" | awk '{print $NF}'
+    else
+        echo "size-$(wc -c < "$1" | tr -d ' ')"
+    fi
 }
 LOCK_FILE=""
 if [[ -f "composer.lock" ]]; then LOCK_FILE="composer.lock"
@@ -60,49 +85,30 @@ M2_FILE=""
 CACHE_KEY="lock:$(hash_file "${LOCK_FILE:-/dev/null}");json:$(hash_file "${JSON_FILE:-/dev/null}");claude:$(hash_file "${CLAUDE_FILE:-/dev/null}");m2:$(hash_file "${M2_FILE:-/dev/null}");env:${M2_MAGENTO_ROOT:-}|${M2_PHP_CONTAINER:-}"
 
 # --- Cache check ---
+# The cache key busts on content change (lock/json/CLAUDE.md/m2.json hashes + env overrides),
+# but runner state is NOT in the key — a container can stop without any of those changing. A
+# TTL bounds how long that stale runner can be served: a cache older than the TTL is
+# re-resolved even on a key match. Default 24h (the documented value); M2_CACHE_TTL overrides
+# (seconds); 0 disables the TTL.
+CACHE_TTL="${M2_CACHE_TTL:-86400}"
 if [[ "$USE_CACHE" == "true" && -f "$CACHE_FILE" ]]; then
+    cache_stale=0
+    if [[ "$CACHE_TTL" -gt 0 ]] && find "$CACHE_FILE" -mmin +"$((CACHE_TTL / 60))" 2>/dev/null | grep -q .; then
+        cache_stale=1
+    fi
     cached_key=$(jget_php "$CACHE_FILE" "cacheKey")
-    if [[ -n "$cached_key" && "$cached_key" == "$CACHE_KEY" ]]; then
+    if [[ "$cache_stale" == "0" && -n "$cached_key" && "$cached_key" == "$CACHE_KEY" ]]; then
         cat "$CACHE_FILE"
         exit 0
     fi
 fi
 
-# --- Vendor resolution ---
-VENDOR=""
-VENDOR_SRC=""
-
-# 1. CLAUDE.md
-if [[ -f "CLAUDE.md" ]]; then
-    raw=$(grep -E '^[[:space:]]*Vendor prefix[[:space:]]*:' CLAUDE.md | head -1 | sed -E 's/^[^:]*:[[:space:]]*//; s/\*\*//g; s/`//g' | xargs || echo "")
-    if [[ -n "$raw" && "$raw" =~ ^[A-Za-z]+$ ]]; then
-        VENDOR=$(printf '%s' "$raw" | sed -E 's/^./\U&/')
-        VENDOR_SRC="CLAUDE.md:Vendor prefix"
-    fi
-fi
-
-# 2. src/app/code inspection
-if [[ -z "$VENDOR" && -d "src/app/code" ]]; then
-    candidates=()
-    while IFS= read -r dir; do
-        name=$(basename "$dir")
-        [[ "$name" != "Magento" ]] && candidates+=("$name")
-    done < <(find src/app/code -mindepth 1 -maxdepth 1 -type d 2>/dev/null)
-    if [[ ${#candidates[@]} -eq 1 ]]; then
-        VENDOR="${candidates[0]}"
-        VENDOR_SRC="src/app/code/${VENDOR}/ (single non-Magento dir)"
-    fi
-fi
-
-VENDOR_LOWER=""
-if [[ -n "$VENDOR" ]]; then
-    VENDOR_LOWER=$(printf '%s' "$VENDOR" | tr '[:upper:]' '[:lower:]')
-fi
-
 # --- Magento root ---
 # Detect the layout rather than assuming one. Repo-root installs have bin/magento or
 # app/code at the top level; "src/" composer-template installs nest them under src/.
-# M2_MAGENTO_ROOT (env) or .claude/m2.json "magento_root" override the probe.
+# M2_MAGENTO_ROOT (env) or .claude/m2.json "magento_root" override the probe. Resolved BEFORE
+# vendor detection so the vendor scan looks in the correct app/code (CTX-5: a repo-root
+# layout previously yielded vendor=null because the scan hardcoded src/app/code).
 MAGENTO_ROOT=""
 if [[ -n "${M2_MAGENTO_ROOT:-}" ]]; then
     MAGENTO_ROOT="$M2_MAGENTO_ROOT"
@@ -120,6 +126,39 @@ if [[ -z "$MAGENTO_ROOT" ]]; then
 fi
 MODULE_DIR="${MAGENTO_ROOT}/app/code"
 [[ "$MAGENTO_ROOT" == "." ]] && MODULE_DIR="app/code"
+
+# --- Vendor resolution ---
+VENDOR=""
+VENDOR_SRC=""
+
+# 1. CLAUDE.md
+if [[ -f "CLAUDE.md" ]]; then
+    raw=$(grep -E '^[[:space:]]*Vendor prefix[[:space:]]*:' CLAUDE.md | head -1 | sed -E 's/^[^:]*:[[:space:]]*//; s/\*\*//g; s/`//g' | xargs || echo "")
+    if [[ -n "$raw" && "$raw" =~ ^[A-Za-z]+$ ]]; then
+        # Uppercase the first letter portably — sed's \U is GNU-only (no-op on BSD/macOS sed).
+        VENDOR=$(printf '%s' "$raw" | awk '{print toupper(substr($0,1,1)) substr($0,2)}')
+        VENDOR_SRC="CLAUDE.md:Vendor prefix"
+    fi
+fi
+
+# 2. {MODULE_DIR} inspection — honours the detected layout, so repo-root (app/code) and
+# src/ (src/app/code) projects both resolve a vendor (CTX-5).
+if [[ -z "$VENDOR" && -d "$MODULE_DIR" ]]; then
+    candidates=()
+    while IFS= read -r dir; do
+        name=$(basename "$dir")
+        [[ "$name" != "Magento" ]] && candidates+=("$name")
+    done < <(find "$MODULE_DIR" -mindepth 1 -maxdepth 1 -type d 2>/dev/null)
+    if [[ ${#candidates[@]} -eq 1 ]]; then
+        VENDOR="${candidates[0]}"
+        VENDOR_SRC="${MODULE_DIR}/${VENDOR}/ (single non-Magento dir)"
+    fi
+fi
+
+VENDOR_LOWER=""
+if [[ -n "$VENDOR" ]]; then
+    VENDOR_LOWER=$(printf '%s' "$VENDOR" | tr '[:upper:]' '[:lower:]')
+fi
 
 # --- Runner resolution ---
 # RUNNER is the command-prefix that places subsequent argv inside a PHP-capable
@@ -144,12 +183,17 @@ if [[ -f "CLAUDE.md" ]]; then
     [[ -n "$duser" ]] && DOCKER_USER="$duser"
 fi
 
-# Docker compose probe
+# Docker compose probe. The PHP service is named differently across stacks: generic `php`,
+# markshust `phpfpm`, Warden `php-fpm`, ddev `web`. Match a running service by name instead
+# of requiring a literal `php` (CTX-8), preferring php-named services over the generic `web`.
 if [[ "$RUNNER_KIND" == "null" ]] && command -v docker >/dev/null 2>&1; then
-    if docker compose ps --services --filter status=running 2>/dev/null | grep -qx "php"; then
-        RUNNER="docker compose exec -T -u ${DOCKER_USER} php"
+    running_svcs="$(docker compose ps --services --filter status=running 2>/dev/null || true)"
+    compose_svc="$(printf '%s\n' "$running_svcs" | grep -iE '^php(-?fpm)?$' | head -1 || true)"
+    [[ -z "$compose_svc" ]] && compose_svc="$(printf '%s\n' "$running_svcs" | grep -iE '^(fpm|web)$' | head -1 || true)"
+    if [[ -n "$compose_svc" ]]; then
+        RUNNER="docker compose exec -T -u ${DOCKER_USER} ${compose_svc}"
         RUNNER_KIND="docker-compose"
-        RUNNER_SRC="docker compose ps probe"
+        RUNNER_SRC="docker compose ps probe (service: ${compose_svc})"
     fi
 fi
 
@@ -200,10 +244,18 @@ fi
 MAGENTO_CLI="null"
 MAGENTO_CLI_SRC="not available"
 if [[ "$RUNNER_KIND" != "null" ]]; then
+    # Runner-backed modes (docker-compose/exec/custom) execute with the Magento root as the
+    # working dir, so the CLI is bin/magento. Bare host PHP runs from the workspace cwd, so in
+    # a src/ layout it must be the layout-aware path src/bin/magento — a bare "bin/magento"
+    # was a broken relative path there (CTX-6).
+    cli_path="bin/magento"
+    if [[ "$RUNNER_KIND" == "bare" && "$MAGENTO_ROOT" != "." ]]; then
+        cli_path="${MAGENTO_ROOT%/}/bin/magento"
+    fi
     if [[ -f "${MAGENTO_ROOT}/bin/magento" || -f "bin/magento" ]]; then
         # ${RUNNER} is empty for bare mode, so leading-space collapses naturally.
-        MAGENTO_CLI="$(echo "${RUNNER} bin/magento" | sed 's/^ //')"
-        MAGENTO_CLI_SRC="{runner} + bin/magento exists"
+        MAGENTO_CLI="$(echo "${RUNNER} ${cli_path}" | sed 's/^ //')"
+        MAGENTO_CLI_SRC="{runner} + ${cli_path} exists"
     fi
 fi
 
@@ -232,7 +284,15 @@ COMPOSER_JSON="${MAGENTO_ROOT}/composer.json"
 if [[ -f "$COMPOSER_JSON" ]] && command -v php >/dev/null 2>&1; then
     ent=$(jget_php "$COMPOSER_JSON" "require.magento/product-enterprise-edition")
     com=$(jget_php "$COMPOSER_JSON" "require.magento/product-community-edition")
-    if [[ -n "$ent" ]]; then
+    cloud=$(jget_php "$COMPOSER_JSON" "require.magento/magento-cloud-metapackage")
+    mageos=$(jget_php "$COMPOSER_JSON" "require.mage-os/product-community-edition")
+    if [[ -n "$cloud" ]]; then
+        # Commerce Cloud ships the cloud metapackage on top of the enterprise edition.
+        EDITION="commerce-cloud"
+        MAGENTO_VERSION=$(printf '%s' "${ent:-$cloud}" | sed -E 's/[~^>=<* ]//g' | head -c 40)
+        EDITION_SRC="${COMPOSER_JSON}:magento/magento-cloud-metapackage"
+        MAGENTO_VERSION_SRC="$EDITION_SRC"
+    elif [[ -n "$ent" ]]; then
         EDITION="commerce"
         MAGENTO_VERSION=$(printf '%s' "$ent" | sed -E 's/[~^>=<* ]//g' | head -c 40)
         EDITION_SRC="${COMPOSER_JSON}:magento/product-enterprise-edition"
@@ -241,6 +301,12 @@ if [[ -f "$COMPOSER_JSON" ]] && command -v php >/dev/null 2>&1; then
         EDITION="open-source"
         MAGENTO_VERSION=$(printf '%s' "$com" | sed -E 's/[~^>=<* ]//g' | head -c 40)
         EDITION_SRC="${COMPOSER_JSON}:magento/product-community-edition"
+        MAGENTO_VERSION_SRC="$EDITION_SRC"
+    elif [[ -n "$mageos" ]]; then
+        # Mage-OS — the community fork; its product metapackage is mage-os/product-community-edition.
+        EDITION="mage-os"
+        MAGENTO_VERSION=$(printf '%s' "$mageos" | sed -E 's/[~^>=<* ]//g' | head -c 40)
+        EDITION_SRC="${COMPOSER_JSON}:mage-os/product-community-edition"
         MAGENTO_VERSION_SRC="$EDITION_SRC"
     fi
     pc=$(jget_php "$COMPOSER_JSON" "require.php")
@@ -274,26 +340,36 @@ CONFIG_PHP=""
 [[ -z "$CONFIG_PHP" && -f "app/etc/config.php" ]] && CONFIG_PHP="app/etc/config.php"
 
 if [[ -n "$CONFIG_PHP" ]] && command -v php >/dev/null 2>&1; then
+    # config.php's `themes` array is the list of REGISTERED themes, NOT the active one (the
+    # active theme is in the DB: core_config_data design/theme/theme_id). The old code took
+    # the FIRST frontend theme, which is almost always Magento/blank — steering frontend work
+    # to Luma even on a custom/Hyva storefront (CTX-2). We instead prefer a non-Magento
+    # registered frontend theme (a custom/Hyva theme is far more likely the active one than
+    # the base), and mark the source as unverified.
     active=$(php -r "
         \$d = include '$CONFIG_PHP';
         \$themes = \$d['themes'] ?? [];
-        \$out = [];
+        \$frontend = []; \$admin = [];
         foreach (\$themes as \$code => \$row) {
             \$area = \$row['area'] ?? '';
-            \$path = \$row['theme_path'] ?? '';
-            if (\$area === 'frontend' && !isset(\$out['frontend'])) { \$out['frontend'] = \$path; }
-            if (\$area === 'adminhtml' && !isset(\$out['adminhtml'])) { \$out['adminhtml'] = \$path; }
+            \$path = \$row['theme_path'] ?? \$code;
+            if (\$area === 'frontend') { \$frontend[] = \$path; }
+            if (\$area === 'adminhtml') { \$admin[] = \$path; }
         }
-        echo (\$out['frontend'] ?? '') . '|' . (\$out['adminhtml'] ?? '');
+        \$pick = '';
+        foreach (\$frontend as \$p) { if (stripos(\$p, 'Magento/') !== 0) { \$pick = \$p; break; } }
+        if (\$pick === '') { foreach (\$frontend as \$p) { if (\$p !== 'Magento/blank') { \$pick = \$p; break; } } }
+        if (\$pick === '' && \$frontend) { \$pick = \$frontend[0]; }
+        echo \$pick . '|' . (\$admin[0] ?? '');
     " 2>/dev/null || echo "|")
     fe="${active%%|*}"; ah="${active##*|}"
     if [[ -n "$fe" ]]; then
         THEME_FRONTEND="$fe"
-        THEME_FRONTEND_SRC="${CONFIG_PHP}:themes[].area=frontend"
+        THEME_FRONTEND_SRC="${CONFIG_PHP}:themes[] registered (active theme unverified — confirm via 'config:show design/theme/theme_id')"
     fi
     if [[ -n "$ah" ]]; then
         THEME_ADMIN="$ah"
-        THEME_ADMIN_SRC="${CONFIG_PHP}:themes[].area=adminhtml"
+        THEME_ADMIN_SRC="${CONFIG_PHP}:themes[].area=adminhtml (registered)"
     fi
 fi
 
@@ -376,11 +452,14 @@ TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 
 mkdir -p "$(dirname "$CACHE_FILE")"
 
-cat > "$CACHE_FILE" <<EOF
+# Write to a sibling temp file then atomically rename, so a concurrent reader never sees a
+# half-written cache (and a crash mid-write leaves the old cache intact).
+CACHE_TMP="${CACHE_FILE}.tmp.$$"
+cat > "$CACHE_TMP" <<EOF
 {
   "schemaVersion": "1.0",
   "skill": "magento2-context",
-  "skillVersion": "1.3.0",
+  "skillVersion": "1.4.0",
   "resolvedAt": "${TIMESTAMP}",
   "cacheKey": $(json_or_null "$CACHE_KEY"),
 
@@ -396,7 +475,7 @@ cat > "$CACHE_FILE" <<EOF
   "php_constraint": $(json_or_null "$PHP_CONSTRAINT"),
   "framework_constraint": $(json_or_null "$FRAMEWORK_CONSTRAINT"),
 
-  "runner": $(json_or_null "$RUNNER"),
+  "runner": $(runner_json),
   "runner_kind": $(json_or_null "$RUNNER_KIND"),
   "magento_cli": $(json_or_null "$MAGENTO_CLI"),
   "composer": $(json_or_null "$COMPOSER_CMD"),
@@ -440,4 +519,5 @@ cat > "$CACHE_FILE" <<EOF
 }
 EOF
 
+mv -f "$CACHE_TMP" "$CACHE_FILE"
 cat "$CACHE_FILE"

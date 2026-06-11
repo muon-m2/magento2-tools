@@ -25,6 +25,7 @@ SELECT * FROM catalog_product_entity WHERE entity_id = ? AND store_id = ?
 ```
 
 Group queries with the same signature; report:
+
 - count
 - total time
 - average time
@@ -41,23 +42,23 @@ EXPLAIN <query>;
 
 Common findings:
 
-| Symptom | Recommendation |
-|---------|----------------|
-| `type: ALL` (full table scan) | Add index on the WHERE column(s) |
-| `key: NULL` | Add index covering WHERE + ORDER BY |
-| `Extra: Using temporary` | Consider whether ORDER BY can use the same index |
-| `Extra: Using filesort` | Index column ordering may be wrong |
-| `rows: > 100000` | Query likely needs a different shape, not just an index |
+| Symptom                       | Recommendation                                          |
+|-------------------------------|---------------------------------------------------------|
+| `type: ALL` (full table scan) | Add index on the WHERE column(s)                        |
+| `key: NULL`                   | Add index covering WHERE + ORDER BY                     |
+| `Extra: Using temporary`      | Consider whether ORDER BY can use the same index        |
+| `Extra: Using filesort`       | Index column ordering may be wrong                      |
+| `rows: > 100000`              | Query likely needs a different shape, not just an index |
 
 ## Magento-Specific Slow Patterns
 
-| Pattern | Fix |
-|---------|-----|
-| `WHERE entity_id IN (1,2,3,...50K)` | Chunk the IN list to ≤ 500 |
-| `LEFT JOIN catalog_product_index_*` | Verify the right index table for store/customer group |
-| `ORDER BY rand()` | Replace with deterministic ordering |
-| `WHERE updated_at > NOW() - INTERVAL N DAY` | Add index on `updated_at` |
-| EAV multi-attribute filter | Use flat tables or `catalog_product_index_*` |
+| Pattern                                     | Fix                                                   |
+|---------------------------------------------|-------------------------------------------------------|
+| `WHERE entity_id IN (1,2,3,...50K)`         | Chunk the IN list to ≤ 500                            |
+| `LEFT JOIN catalog_product_index_*`         | Verify the right index table for store/customer group |
+| `ORDER BY rand()`                           | Replace with deterministic ordering                   |
+| `WHERE updated_at > NOW() - INTERVAL N DAY` | Add index on `updated_at`                             |
+| EAV multi-attribute filter                  | Use flat tables or `catalog_product_index_*`          |
 
 ## Slow Query Finding Format
 

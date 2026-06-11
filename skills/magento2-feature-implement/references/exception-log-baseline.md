@@ -54,9 +54,11 @@ contain that hash region, the file rotated.
    4b. Also check for the rotated file under `var/log/exception.log.1` etc. and prepend any
        lines after baseline_size in that file to the diff.
 5. Save the diff to smoke/raw/S8/exception-diff.log.
-6. If the diff is empty → S8 passes.
-7. If non-empty → each new "exception group" (a logical group of consecutive lines that share a
-   timestamp and trace) becomes one finding.
+6. If the diff contains no new or unresolved exception groups → S8 passes. (An empty diff is
+   the simplest such case; a diff that holds only groups already marked `resolved` in
+   findings.md also passes — see "How fixes interact with the baseline" below.)
+7. Otherwise → each new "exception group" (a logical group of consecutive lines that share a
+   timestamp and trace) that is not already a resolved finding becomes one finding.
 ```
 
 An "exception group" is detected by Magento's own log format: lines starting with
@@ -95,15 +97,25 @@ skill reads CLAUDE.md once at S1 and applies the patterns at S8.
 
 ## How fixes interact with the baseline
 
-The baseline is captured **once per skill run**, not once per Phase 6 iteration. This is
-intentional:
+The baseline is captured **once per skill run**, not once per Phase 6 iteration — so the S8
+diff (live log minus baseline) ACCUMULATES every exception logged since the run started, and a
+group never leaves the diff just because it was fixed.
 
-- If iteration 1's fix attempt itself wrote an exception, iteration 2's S8 still catches it.
-- The "5 iterations" cap means even pathological loops cannot hide exception spew behind a
-  rebased baseline.
+Because of that, the S8 pass criterion is **"no new or unresolved exception groups"**, NOT
+"the diff is empty". An empty-diff criterion is unsatisfiable once any exception has ever been
+logged in the run: iteration 1's exception stays in the diff at iterations 2–5 even after it is
+fixed, which would force the loop to the 5-iteration cap every time (FI-1). Instead:
 
-If a fix legitimately needs to rotate the log (rare — typically only when iteration 1's exception
-was so large it interferes with diffing), the fix delegate writes a one-line note to
+- Every exception **group** in the S8 diff is tracked in `findings.md` with a status.
+- A group whose fix landed in an earlier iteration is marked `resolved` — its lingering bytes
+  in the diff are EXPECTED and do **not** fail S8.
+- S8 fails 6B only when the diff contains a group that is **new** (first seen this iteration)
+  or still **unresolved**.
+- The "5 iterations" cap still bounds pathological loops; `findings.md` carries the
+  cross-iteration memory so resolved groups are not re-counted.
+
+If a fix legitimately needs to rotate the log (rare — typically only when iteration 1's
+exception was so large it interferes with diffing), the fix delegate writes a one-line note to
 `smoke/baseline.txt` and re-captures. This is logged in the iteration report and counts as a
 finding (Medium) in its own right.
 

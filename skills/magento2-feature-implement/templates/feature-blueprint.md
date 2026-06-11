@@ -5,8 +5,9 @@ Status: Awaiting Approval
 Date: {YYYY-MM-DD}
 Requested by: {user or team}
 Skill versions:
-  - magento2-feature-implement@2.3.0
-  - magento2-context@1.3.0
+
+- magento2-feature-implement@2.4.0
+- magento2-context@1.4.0
 
 ---
 

@@ -4,12 +4,12 @@ When and how to enable Magento's maintenance flag during deploy.
 
 ## When to Enable
 
-| Scenario | Maintenance mode |
-|----------|-----------------|
-| Production deploy | Always |
-| Staging deploy with schema change | Yes |
-| Staging deploy code-only | Optional |
-| Local deploy | Never (slows iteration) |
+| Scenario                                   | Maintenance mode                        |
+|--------------------------------------------|-----------------------------------------|
+| Production deploy                          | Always                                  |
+| Staging deploy with schema change          | Yes                                     |
+| Staging deploy code-only                   | Optional                                |
+| Local deploy                               | Never (slows iteration)                 |
 | Hotfix on production with no schema change | Optional — depends on the change's risk |
 
 ## Whitelist for Maintenance Mode

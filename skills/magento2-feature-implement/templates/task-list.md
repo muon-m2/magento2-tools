@@ -4,8 +4,9 @@ Date: {YYYY-MM-DD}
 Status: Awaiting Approval
 Blueprint: `.docs/{FeatureName}/blueprint.md`
 Skill versions:
-  - magento2-feature-implement@2.3.0
-  - magento2-context@1.3.0
+
+- magento2-feature-implement@2.4.0
+- magento2-context@1.4.0
 
 ---
 
@@ -243,7 +244,7 @@ Write unit tests for `Service/{Name}Service.php` and `Model/{Entity}Repository.p
 Target: ≥ 80% coverage for `Api/`, `Service/`, `Model/`.
 
 Acceptance criteria:
-- `{runner} vendor/bin/phpunit app/code/{Vendor}/{ModuleA}/Test/Unit` passes with zero failures
+- `{runner} vendor/bin/phpunit -c dev/tests/unit/phpunit.xml.dist app/code/{Vendor}/{ModuleA}/Test/Unit` passes with zero failures
 - Coverage ≥ 80% confirmed via Phase 6 coverage run
 
 ---
@@ -260,7 +261,7 @@ Description:
 Write unit tests for any service or model classes in `{Vendor}_{ModuleB}`.
 
 Acceptance criteria:
-- `{runner} vendor/bin/phpunit app/code/{Vendor}/{ModuleB}/Test/Unit` passes with zero failures
+- `{runner} vendor/bin/phpunit -c dev/tests/unit/phpunit.xml.dist app/code/{Vendor}/{ModuleB}/Test/Unit` passes with zero failures
 
 ---
 
@@ -269,7 +270,7 @@ Acceptance criteria:
 Type: Validate
 Target: all {Vendor} modules
 Depends on: T1, T2
-Skill: `/validate`
+Skill: `magento2-module-review`
 Estimate: S
 
 Description:
@@ -288,7 +289,7 @@ Acceptance criteria:
 Type: Deploy
 Target: all new and modified modules
 Depends on: V1
-Skill: `/deploy`
+Skill: `magento2-deploy`
 Estimate: S
 
 Description:

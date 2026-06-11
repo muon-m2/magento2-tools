@@ -66,6 +66,8 @@ row, NOT all stores. For "any store" semantics, omit the filter entirely.
 
 ## Per-Store Cache Key
 
-If the resolver's output depends on store, register a per-store cache key in the FPC
-layer. This is automatic when `Store` is in `Magento_PageCache::DEFAULT_CACHE_VARY_KEYS`,
-but custom GraphQL caching may need explicit configuration.
+If the resolver's output depends on store, the response cache must vary by store. For
+GraphQL this happens through the `Magento_GraphQlCache` module: the cache identifier is
+derived from request context (including the `Store` header), so store-scoped responses are
+cached separately. Custom or non-store context that affects output may still need explicit
+cache-tag/identity configuration on the resolver.

@@ -4,15 +4,20 @@ declare(strict_types=1);
 
 namespace {Vendor}\{ModuleName}\Model;
 
-use Magento\Framework\Model\AbstractModel;
+use Magento\Framework\Model\AbstractExtensibleModel;
 use {Vendor}\{ModuleName}\Api\Data\{EntityName}Interface;
 use {Vendor}\{ModuleName}\Api\Data\{EntityName}ExtensionInterface;
 use {Vendor}\{ModuleName}\Model\ResourceModel\{EntityName} as {EntityName}Resource;
 
 /**
  * {EntityName} model.
+ *
+ * Extends AbstractExtensibleModel (not AbstractModel) so the protected
+ * _getExtensionAttributes()/_setExtensionAttributes() helpers used below exist. The parent
+ * constructor (Context, Registry, ExtensionAttributesFactory, AttributeValueFactory, ...) is
+ * inherited; redeclare it only when injecting additional dependencies.
  */
-class {EntityName} extends AbstractModel implements {EntityName}Interface
+class {EntityName} extends AbstractExtensibleModel implements {EntityName}Interface
 {
     /**
      * @return void

@@ -61,6 +61,16 @@ runner_test_file() {
     fi
 }
 
+# runner_test_dir <path> — true iff the directory exists inside the runner environment.
+runner_test_dir() {
+    local path="$1"
+    if [ "$RUNNER_KIND" = "bare" ] || [ -z "$RUNNER" ]; then
+        [ -d "$path" ]
+    else
+        $RUNNER test -d "$path" 2>/dev/null
+    fi
+}
+
 if [ -z "${MAGENTO_CLI:-}" ] && [ -f "$CONTEXT_FILE" ] && command -v python3 >/dev/null 2>&1; then
     MAGENTO_CLI="$(python3 -c "import json; print(json.load(open('${CONTEXT_FILE}')).get('magento_cli') or '')")"
 fi
@@ -449,11 +459,20 @@ else
     record "dependency-graph" "true" "skipped" "python3 not available"
 fi
 
-# Required: unit tests (PHPUnit) for the supplied modules
+# Unit tests (PHPUnit) — only for modules that actually ship a Test/Unit directory.
+# A module without unit tests is a legitimate state, not a deploy blocker, so the check is
+# downgraded to non-required (skipped) when there are no unit tests or phpunit is absent.
+# Building Test/Unit paths for every module unconditionally (the old behaviour) made any
+# test-less module fail a *required* check and never deploy (DEP-7).
 PHPUNIT_BIN="vendor/bin/phpunit"
-if runner_available && runner_test_file "$PHPUNIT_BIN"; then
-    unit_paths=()
-    for mod in $MODULES; do unit_paths+=("${MODULE_DIR}/${mod//_/\/}/Test/Unit"); done
+unit_paths=()
+for mod in $MODULES; do
+    unit_dir="${MODULE_DIR}/${mod//_/\/}/Test/Unit"
+    if runner_test_dir "$unit_dir"; then unit_paths+=("$unit_dir"); fi
+done
+if [ ${#unit_paths[@]} -eq 0 ]; then
+    record "phpunit-unit" "false" "skipped" "no Test/Unit directories in the deploy set"
+elif runner_available && runner_test_file "$PHPUNIT_BIN"; then
     # $RUNNER may be empty (bare PHP) or a multi-word docker prefix; build argv accordingly.
     if [ -n "$RUNNER" ]; then
         # shellcheck disable=SC2206  # intentional word-splitting of the runner prefix
@@ -463,17 +482,32 @@ if runner_available && runner_test_file "$PHPUNIT_BIN"; then
         run_check "phpunit-unit" "true" "$PHPUNIT_BIN" --no-coverage "${unit_paths[@]}"
     fi
 else
-    record "phpunit-unit" "true" "fail" "phpunit not available (runner_kind='${RUNNER_KIND}', RUNNER='${RUNNER}')"
+    record "phpunit-unit" "false" "skipped" "phpunit not available (runner_kind='${RUNNER_KIND}', RUNNER='${RUNNER}') but Test/Unit dirs exist — install phpunit to run them"
 fi
 
-# Required: setup:db:status reports no pending schema/data changes
+# Required: setup:db:status — interpret the result rather than treating any non-zero exit
+# as failure. `setup:db:status` returns non-zero PRECISELY when there are pending changes,
+# which is the normal reason to deploy: the deploy plan runs setup:upgrade to apply them.
+# So pending-changes ⇒ PASS (with a note); only a real error or a downgrade / manual-action
+# state ⇒ FAIL. The old "any non-zero ⇒ fail" aborted every legitimate deploy (DEP-1).
 if [ -n "$MAGENTO_CLI" ]; then
     if $MAGENTO_CLI setup:db:status >/tmp/db-status.out 2>&1; then
         record "db-status" "true" "pass" "no pending schema/data changes"
     else
         note="$(head -c 500 /tmp/db-status.out | tr -d '\n')"
-        record "db-status" "true" "fail" "pending changes: ${note}"
-        FAILED=1
+        if grep -qiE 'newer than|downgrade|roll ?back|manual' /tmp/db-status.out; then
+            # Code is older than the DB, or a manual rollback is required — setup:upgrade
+            # will NOT fix this. Block the deploy.
+            record "db-status" "true" "fail" "manual action required: ${note}"
+            FAILED=1
+        elif grep -qiE "setup:upgrade|out.?dated|out of date|update your db" /tmp/db-status.out; then
+            # Ordinary pending schema/data changes — applied by the deploy's setup:upgrade.
+            record "db-status" "true" "pass" "pending changes will be applied by setup:upgrade: ${note}"
+        else
+            # Unrecognised non-zero exit — surface it as a failure rather than guess.
+            record "db-status" "true" "fail" "setup:db:status error: ${note}"
+            FAILED=1
+        fi
     fi
 else
     # Required check: no Magento CLI means we cannot verify DB state. Fail rather than skip

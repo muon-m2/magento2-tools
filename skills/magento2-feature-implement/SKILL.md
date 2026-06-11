@@ -1,21 +1,17 @@
 ---
 name: magento2-feature-implement
 description:
-    End-to-end Magento 2 feature implementation orchestrator. Use when the user asks to add,
-    change, build, or implement any Magento 2 functionality — from a simple model change to a
-    multi-module integration. Drives the full lifecycle: requirement analysis, feature blueprint,
-    module schema, task breakdown, code generation, review, unit tests, smoke testing
-    (REST scenarios, admin/storefront via headless browser, exception.log diff) with bounded
-    auto-fix loop, and final report. Requires explicit user approval at two gates (blueprint
-    and task plan) before writing any code. Calls magento2-module-create for new modules,
-    magento2-module-review after each module, and routes Critical/High smoke findings to
-    magento2-bug-fix / magento2-debug / magento2-performance-audit / magento2-frontend-create /
-    magento2-security-audit for remediation.
-    Also use when the user asks to resume, continue, pick up, or finish a feature implementation
-    AND names a specific feature folder under `.docs/` (e.g. "resume ./.docs/CaseManagement",
-    "continue .docs/CaseManagement"). The skill loads that folder's plan.md and resumes from the
-    first unchecked task. Without an explicit `.docs/{FeatureName}` path in the request, treat
-    the request as a new feature and start from Phase 1.
+  End-to-end Magento 2 feature implementation orchestrator. Use when the user asks to add,
+  change, build, or implement any Magento 2 functionality — from a simple model change to a
+  multi-module integration. Drives the full lifecycle: requirement analysis, blueprint, module
+  schema, task breakdown, code generation, review, unit tests, smoke testing, and final report.
+  Requires explicit user approval at two gates (blueprint and task plan) before writing code.
+  Calls magento2-module-create, magento2-module-review, and routes Critical/High findings to
+  bug-fix / debug / performance-audit / frontend-create / security-audit.
+  Also use to resume, continue, pick up, or finish a feature when the request names a specific
+  feature folder under `.docs/` (e.g. "resume ./.docs/CaseManagement"): the skill loads that
+  folder's plan.md and resumes from the first unchecked task. Without an explicit
+  `.docs/{FeatureName}` path, treat the request as a new feature and start from Phase 1.
 ---
 
 # Magento 2 Feature Implement
@@ -87,6 +83,7 @@ Every feature gets its own subfolder under `.docs/`. Create it at the start of P
 ```
 
 **plan.md** is the single source of truth for resuming interrupted runs. It must always contain:
+
 - The implementation flow diagram (Mermaid `flowchart TD`)
 - The task dependency graph (Mermaid `graph LR`)
 - The module schema diagram (Mermaid `graph TD`)
@@ -105,35 +102,35 @@ Auto-scanning of `.docs/` is intentionally disabled — without an explicit path
 skill treats the request as a new feature.
 
 1. Parse the user request for a path matching `.docs/{FeatureName}` — accept any of:
-   - leading `./` or none (`.docs/CaseManagement`, `./.docs/CaseManagement`)
-   - `.docs/` or `docs/` (some users elide the leading dot)
-   - trailing `/`, `/plan.md`, or `/blueprint.md` are tolerated and stripped
-   Examples that match:
-   - *"resume execution of ./.docs/CaseManagement"*
-   - *"continue .docs/CaseManagement"*
-   - *"finish .docs/CaseManagement/plan.md"*
-   Examples that do NOT match (fall through to Phase 1 as a new feature):
-   - *"continue the plan"*, *"resume what we were doing"*, *"pick up the case stuff"*
+    - leading `./` or none (`.docs/CaseManagement`, `./.docs/CaseManagement`)
+    - `.docs/` or `docs/` (some users elide the leading dot)
+    - trailing `/`, `/plan.md`, or `/blueprint.md` are tolerated and stripped
+      Examples that match:
+    - *"resume execution of ./.docs/CaseManagement"*
+    - *"continue .docs/CaseManagement"*
+    - *"finish .docs/CaseManagement/plan.md"*
+      Examples that do NOT match (fall through to Phase 1 as a new feature):
+    - *"continue the plan"*, *"resume what we were doing"*, *"pick up the case stuff"*
 2. If no such path is present in the request: skip Phase 0 entirely and start Phase 1.
 3. If a path is present:
-   1. Verify `.docs/{FeatureName}/plan.md` exists. If not, tell the user the folder has
-      no plan and stop — do NOT silently fall back to Phase 1. The user explicitly
-      asked to resume; restarting from scratch would destroy work.
-   2. Verify `.docs/{FeatureName}/blueprint.md` exists and read its `Status:` line.
-      - `Status: Complete` — tell the user the feature is already done and ask whether
-        they want to extend it (which is a different mode) before doing anything else.
-      - `Status: Awaiting Approval` — the plan never got the Phase 4 approval gate;
-        present the existing blueprint + plan and re-enter Phase 4 at the approval prompt.
-      - `Status: Approved` or `Status: In Progress` — proceed to step 3 below.
-   3. Announce the feature: name, mode (from blueprint), and a summary of completed vs
-      pending tasks from `plan.md`'s **Current State** checklist (count of `[x]` vs
-      `[ ]` and the next unchecked task ID/title).
-   4. Jump directly to **Phase 5 "Resuming a partial run"**. Do NOT re-elicit, do NOT
-      re-plan, do NOT re-prompt for the blueprint or plan approval gates — the user
-      already approved when the plan was first written.
-   5. Continue execution from the first unchecked task in `plan.md`. All standard
-      Phase 5 rules (per-task review, per-task commit if enabled, checkbox update on
-      completion) apply unchanged.
+    1. Verify `.docs/{FeatureName}/plan.md` exists. If not, tell the user the folder has
+       no plan and stop — do NOT silently fall back to Phase 1. The user explicitly
+       asked to resume; restarting from scratch would destroy work.
+    2. Verify `.docs/{FeatureName}/blueprint.md` exists and read its `Status:` line.
+        - `Status: Complete` — tell the user the feature is already done and ask whether
+          they want to extend it (which is a different mode) before doing anything else.
+        - `Status: Awaiting Approval` — the plan never got the Phase 4 approval gate;
+          present the existing blueprint + plan and re-enter Phase 4 at the approval prompt.
+        - `Status: Approved` or `Status: In Progress` — proceed to step 3 below.
+    3. Announce the feature: name, mode (from blueprint), and a summary of completed vs
+       pending tasks from `plan.md`'s **Current State** checklist (count of `[x]` vs
+       `[ ]` and the next unchecked task ID/title).
+    4. Jump directly to **Phase 5 "Resuming a partial run"**. Do NOT re-elicit, do NOT
+       re-plan, do NOT re-prompt for the blueprint or plan approval gates — the user
+       already approved when the plan was first written.
+    5. Continue execution from the first unchecked task in `plan.md`. All standard
+       Phase 5 rules (per-task review, per-task commit if enabled, checkbox update on
+       completion) apply unchanged.
 
 ---
 
@@ -148,27 +145,27 @@ skill treats the request as a new feature.
    In `spike` mode, Phases 6-7 are reduced and findings are logged at Info.
 
 1. **Resolve `{Vendor}`** — do not assume a fixed vendor name:
-   1. Read `CLAUDE.md` for a `Vendor prefix:` line (e.g. `Vendor prefix: **Acme**`).
-   2. If absent, inspect `src/app/code/` (or `app/code/`) and use the top-level directory name found
-      there (e.g. if `app/code/Acme/` exists, `{Vendor}` = `Acme`).
-   3. If still unresolvable, ask: *"What vendor prefix does this project use (e.g. `Acme`)?"*
-      and wait for the answer before proceeding.
-   Store `{Vendor}` and use it in all subsequent phases wherever a vendor prefix is needed.
-   Never default to any hardcoded vendor name.
+    1. Read `CLAUDE.md` for a `Vendor prefix:` line (e.g. `Vendor prefix: **Acme**`).
+    2. If absent, inspect `src/app/code/` (or `app/code/`) and use the top-level directory name found
+       there (e.g. if `app/code/Acme/` exists, `{Vendor}` = `Acme`).
+    3. If still unresolvable, ask: *"What vendor prefix does this project use (e.g. `Acme`)?"*
+       and wait for the answer before proceeding.
+       Store `{Vendor}` and use it in all subsequent phases wherever a vendor prefix is needed.
+       Never default to any hardcoded vendor name.
 
 2. Read `$ARGUMENTS`. If the request is fully specified (clear feature, scope, and constraints),
    proceed directly to step 4.
 3. If the request is ambiguous, ask a single batch of 3–6 targeted questions. Choose from:
-   - What business problem does this solve? (if not stated)
-   - Which Magento areas are involved? (checkout, catalog, customer, order, inventory, EAV, …)
-   - Does this require admin configuration, a REST/GraphQL endpoint, or a frontend UI?
-   - Are there existing modules that already own part of this domain?
-   - Are there third-party integrations involved?
-   - Are there performance or data-volume constraints to design around?
+    - What business problem does this solve? (if not stated)
+    - Which Magento areas are involved? (checkout, catalog, customer, order, inventory, EAV, …)
+    - Does this require admin configuration, a REST/GraphQL endpoint, or a frontend UI?
+    - Are there existing modules that already own part of this domain?
+    - Are there third-party integrations involved?
+    - Are there performance or data-volume constraints to design around?
 4. After receiving answers, map the request to:
-   - Affected Magento areas
-   - Likely surfaces from `magento2-module-create/references/surfaces.md`
-   - Whether new modules are needed or existing modules will be modified
+    - Affected Magento areas
+    - Likely surfaces from `magento2-module-create/references/surfaces.md`
+    - Whether new modules are needed or existing modules will be modified
 5. State your understanding in one paragraph, including the resolved `{Vendor}`, and proceed.
 
 ---
@@ -221,11 +218,11 @@ skill treats the request as a new feature.
 5. Produce the execution flow diagram (Mermaid `flowchart TD`) and the dependency graph
    (Mermaid `graph LR`).
 6. Present the complete task list including:
-   - Module schema (from Phase 3)
-   - Implementation flow diagram
-   - Task dependency graph
-   - Full task list
-   - Summary table (task count, module counts, total estimate)
+    - Module schema (from Phase 3)
+    - Implementation flow diagram
+    - Task dependency graph
+    - Full task list
+    - Summary table (task count, module counts, total estimate)
 7. Print the approval prompt verbatim:
    > **Plan ready for approval.**
    > Tasks: {N} | Modules to create: {N} | Modules to modify: {N}
@@ -234,17 +231,17 @@ skill treats the request as a new feature.
    > Reply **"proceed"** to begin implementation, or describe any changes to the plan.
 8. **Wait for explicit approval.** Do not write any code until the user approves.
    Once approved:
-   - Update the blueprint status line to `Status: Approved` in `.docs/{FeatureName}/blueprint.md`.
-   - Save the execution plan to `.docs/{FeatureName}/plan.md`. The plan must include:
-     - Implementation flow diagram (Mermaid `flowchart TD`)
-     - Task dependency graph (Mermaid `graph LR`)
-     - Module schema diagram (Mermaid `graph TD` from Phase 3)
-     - **Current State** checklist — every task as an unchecked checkbox: `- [ ] {ID}: {Title}`.
-   - Save the detailed task records to:
-     - `.docs/{FeatureName}/tasks.md` if the feature has ≤ 5 tasks (single flat file).
-     - `.docs/{FeatureName}/tasks/` if the feature has > 5 tasks (one file per task named
-       `{ID}-{kebab-title}.md`). Each task file must contain: what is included, which files
-       will change and why, execution estimate, dependencies, and possible risks.
+    - Update the blueprint status line to `Status: Approved` in `.docs/{FeatureName}/blueprint.md`.
+    - Save the execution plan to `.docs/{FeatureName}/plan.md`. The plan must include:
+        - Implementation flow diagram (Mermaid `flowchart TD`)
+        - Task dependency graph (Mermaid `graph LR`)
+        - Module schema diagram (Mermaid `graph TD` from Phase 3)
+        - **Current State** checklist — every task as an unchecked checkbox: `- [ ] {ID}: {Title}`.
+    - Save the detailed task records to:
+        - `.docs/{FeatureName}/tasks.md` if the feature has ≤ 5 tasks (single flat file).
+        - `.docs/{FeatureName}/tasks/` if the feature has > 5 tasks (one file per task named
+          `{ID}-{kebab-title}.md`). Each task file must contain: what is included, which files
+          will change and why, execution estimate, dependencies, and possible risks.
 
 ---
 
@@ -260,35 +257,24 @@ section. Read the task records from `tasks.md` or `tasks/` and resume from the f
 item. Do not re-run tasks already marked complete. Mark each task `[x]` in `plan.md` immediately
 after it completes and save the file before starting the next task.
 
-### Environment probe (run once at the start of Phase 5)
+### Environment context (resolve once, before Phase 5 tool steps)
 
-First, check `CLAUDE.md` for a runner hint (e.g. a `Docker prefix:` line). If the runner is
-specified there, use it directly as `{runner}` and skip to the `{magento}` derivation step.
-Otherwise, run these checks and record the results — do not assume any tool exists:
+**Invoke the `magento2-context` skill** — it is the single source of truth for `{ctx.vendor}`,
+`{ctx.runner}`, `{ctx.magento_cli}`, `{ctx.composer}`, `{ctx.tools.*}`, edition, versions, and
+the active theme. Do **not** hand-roll a runner/tool probe here (that duplicated the hub and
+drifted from it — FI-3). The same applies to the Phase 1 vendor lookup: prefer `{ctx.vendor}`,
+falling back to a `CLAUDE.md` `Vendor prefix:` line or an explicit user question only when the
+hub reports it as null.
 
-| Check | Command |
-|-------|---------|
-| PHP binary | `php --version` |
-| Docker Compose | `docker compose version` |
-| Magento CLI | `php bin/magento --version` or `docker compose exec -u magento php bin/magento --version` |
-| PHPCS | `php vendor/bin/phpcs --version` |
-| PHPStan | `php vendor/bin/phpstan --version` |
-| PHPUnit | `php vendor/bin/phpunit --version` |
-| php-cs-fixer | `php vendor/bin/php-cs-fixer --version` |
-| xmllint | `xmllint --version` |
-| composer | `composer --version` |
+Consume the resolved values directly:
 
-Derive a **{runner}** prefix from the results:
-- If `docker compose exec` is available and a running PHP container exists: `docker compose exec -u magento php`
-- Else if bare `php` is available: `php`
-- Else: record "no PHP runner available" and skip all tool steps — report them as environment limitations.
+- `{runner}` = `{ctx.runner}` (empty string in bare-PHP mode — `${runner} php …` still works).
+- `{magento}` = `{ctx.magento_cli}` (null ⇒ offer the commands as manual "next steps").
+- Tool availability = `{ctx.tools.phpcs}`, `{ctx.tools.phpstan}`, `{ctx.tools.phpunit}`, etc.
+  (each is the resolved path or null — skip and report the ones that are null).
 
-Derive a **{magento}** command:
-- `{runner} bin/magento` if `bin/magento` exists under the Magento root.
-- If unavailable, offer the commands as "next steps" for the user to run manually.
-
-All subsequent tool invocations in Phase 5 and Phase 6 use the probed `{runner}` and `{magento}`
-values. Never hardcode a specific runner — always fall back gracefully and report what was skipped.
+All subsequent tool invocations in Phase 5 and Phase 6 use these `{ctx.*}` values. Never
+hardcode a specific runner — fall back gracefully and report what was skipped.
 
 ---
 
@@ -380,7 +366,7 @@ Run each check with the probed `{runner}`. Skip and report any tool that is unav
 {runner} vendor/bin/phpstan analyse --level=8 app/code/{Vendor}/{ModuleName}
 
 # Unit tests
-{runner} vendor/bin/phpunit app/code/{Vendor}/{ModuleName}/Test/Unit
+{runner} vendor/bin/phpunit -c dev/tests/unit/phpunit.xml.dist app/code/{Vendor}/{ModuleName}/Test/Unit
 ```
 
 The validate task is complete only when PHPCS, PHPMD, PHPStan level 8, and PHPUnit all pass for
@@ -402,9 +388,11 @@ Args: --env=local {Vendor}_{ModuleA} {Vendor}_{ModuleB}
 Per-task commit (when enabled): D* tasks make no commit (no files change). Record the
 deploy report path returned by `magento2-deploy` in `plan.md` next to the D* task.
 
-If `magento2-deploy` is unavailable, fall back to the manual command list documented in
-the previous version of this skill — but state the unavailability explicitly and ask the
-user to install the skill before re-running.
+If `magento2-deploy` is unavailable, state the unavailability explicitly and offer the
+equivalent commands as manual next steps for the user to run themselves:
+`{magento} module:enable {modules}` → `{magento} setup:upgrade` →
+`{magento} setup:di:compile` (prod) → `{magento} setup:static-content:deploy -f` (prod) →
+`{magento} cache:flush`. Ask the user to install `magento2-deploy` before re-running.
 
 ---
 
@@ -440,7 +428,7 @@ unit tests.
    every `Api/`, `Service/`, and `Model/` class — do not skip and report it as a limitation.
 2. Run all tests using the probed `{runner}`:
    ```bash
-   {runner} vendor/bin/phpunit app/code/{Vendor}/{ModuleName}/Test/Unit
+   {runner} vendor/bin/phpunit -c dev/tests/unit/phpunit.xml.dist app/code/{Vendor}/{ModuleName}/Test/Unit
    ```
    Fix any failures. Do not proceed to Phase 6B with failing unit tests.
    If PHPUnit is unavailable, document as an environment limitation and list the command for the user.
@@ -448,12 +436,12 @@ unit tests.
    `{runner}` type:
    ```bash
    # Docker runner — pass the env var inside the exec call
-   docker compose exec -e XDEBUG_MODE=coverage -u magento php vendor/bin/phpunit \
+   docker compose exec -e XDEBUG_MODE=coverage -u magento php vendor/bin/phpunit -c dev/tests/unit/phpunit.xml.dist \
      --coverage-clover var/log/coverage-{Vendor}_{ModuleName}.xml \
      app/code/{Vendor}/{ModuleName}/Test/Unit
 
    # Bare PHP runner — prefix the command directly
-   XDEBUG_MODE=coverage php vendor/bin/phpunit \
+   XDEBUG_MODE=coverage php vendor/bin/phpunit -c dev/tests/unit/phpunit.xml.dist \
      --coverage-clover var/log/coverage-{Vendor}_{ModuleName}.xml \
      app/code/{Vendor}/{ModuleName}/Test/Unit
    ```
@@ -474,84 +462,28 @@ Load `references/smoke-test-guide.md`, `references/smoke-runner.md`, and
 mode, reduced in `hotfix` and `extend` modes, and skipped in `spike` mode (see
 `references/modes.md`).
 
-#### Environment probe (S1)
+Emit one `S*` task per applicable suite (Phase 4 task type `S`). S1 (baseline & probe) and S8
+(exception.log diff) are always present; S2–S7 only when the feature exercises that surface.
+The suite catalogue, per-suite acceptance, the S1 probe table + production guard, the S9
+triage/decision loop, and the data-hygiene/cleanup rules live in the references — **follow
+them rather than duplicating here** (the duplicate had already drifted from the source):
 
-Run once per Phase 6B entry. Record every result in `.docs/{FeatureName}/smoke/baseline.txt`.
-The full table of probes and fallbacks lives in `references/smoke-runner.md` §1. Highlights:
+- `references/smoke-runner.md` — §1 probe table (Base URL, admin creds, HTTP client, headless
+  browser) + production guard; the per-suite driver commands. Refuse to run against production
+  unless `CLAUDE.md` contains `Allow smoke on production: true`.
+- `references/smoke-test-guide.md` — the S1–S9 suite catalogue, per-suite acceptance, severity
+  rubric, fix-routing table, halt prompt, and data-hygiene/cleanup rules.
+- `references/exception-log-baseline.md` — the S8 baseline/diff mechanics and the "no
+  new/unresolved exception groups" pass rule.
 
-| Probe | If missing |
-|-------|------------|
-| Base URL | Halt 6B — smoke cannot run. |
-| Admin credentials | Halt S3 only; other suites continue. |
-| HTTP client (curl / php-curl) | Skip S2; record explicit limitation. |
-| Headless browser (playwright → puppeteer → google-chrome CDP) | Skip S3–S7; record explicit limitation. |
+Scripts: `${CLAUDE_SKILL_DIR}/scripts/smoke-baseline.sh` (S1), `smoke-tail-since.sh` (S8),
+`smoke-browser.mjs` (browser S3–S7), `curl`/PHP-cURL (S2).
 
-After resolving Base URL, apply the **production guard** from `smoke-runner.md` §1. Refuse to
-run against production unless `CLAUDE.md` contains `Allow smoke on production: true`.
-
-#### Suites
-
-Emit one `S*` task per applicable suite (see Phase 4 task type `S`). Suites S1 and S8 are always
-present; S2–S7 are present only when the feature actually exercises that surface.
-
-| ID | Suite |
-|----|-------|
-| S1 | Baseline & probe |
-| S2 | REST API scenarios (per blueprint §6) |
-| S3 | Admin login |
-| S4 | Stores → Configuration walk |
-| S5 | Admin grids (Customers, Catalog Products, Sales Orders + any new grid) |
-| S6 | New / changed pages and controllers (per route registered by the feature) |
-| S7 | Customer storefront flows (register, login, every My Account tab) |
-| S8 | Exception.log diff against S1 baseline |
-| S9 | Triage & report |
-
-Each suite is executed via the patterns in `references/smoke-runner.md` and the included scripts:
-
-- `${CLAUDE_SKILL_DIR}/scripts/smoke-baseline.sh` — S1 baseline capture.
-- `${CLAUDE_SKILL_DIR}/scripts/smoke-tail-since.sh` — S8 diff.
-- `${CLAUDE_SKILL_DIR}/scripts/smoke-browser.mjs` — browser commands for S3–S7.
-- `curl` (or PHP cURL fallback) — S2 invocations.
-
-#### Per-suite acceptance
-
-| Suite | Passes when |
-|-------|-------------|
-| S1 | All probes resolved or explicitly skipped with a recorded limitation; production guard cleared. |
-| S2 | Every endpoint has at minimum 5–6 documented scenarios; every scenario row has Actual + Pass filled; all pass. |
-| S3 | Admin dashboard renders after submitting credentials; no console errors. |
-| S4 | Every new/changed section loads; one safe field per section is changed and reverted; Save Config returns success; no exception. |
-| S5 | Customers, Catalog Products, Sales Orders grids render; one filter applied and cleared per grid; any new grid added by the feature also passes. |
-| S6 | Every new or modified controller route renders with HTTP 2xx; primary CTA on each route clicks successfully; no console errors. |
-| S7 | Throwaway customer registers, logs out, logs back in, visits every default My Account tab + any new tabs; no console errors. |
-| S8 | Diff against the S1 byte-offset baseline is empty (allowlisted patterns from CLAUDE.md demoted to Medium). |
-| S9 | Findings classified, `run-{N}.md` written, decision recorded in `plan.md`. |
-
-#### S9 — Triage and decision
-
-1. Classify every recorded failure with severity (Critical / High / Medium / Low) and category
-   per `references/smoke-test-guide.md` §Severity Rubric.
-2. Assign each finding a stable ID (`F1`, `F2`, …). If a finding from a prior iteration recurs,
-   reuse its ID.
-3. Write the iteration report from `templates/smoke-run-report.md` to
-   `.docs/{FeatureName}/smoke/run-{N}.md`.
-4. Append/update `templates/smoke-findings.md` at
-   `.docs/{FeatureName}/smoke/findings.md` — preserve prior IDs; flip status of resolved findings.
-5. Decide:
-   - **0 Critical + 0 High** → Phase 6 passes; proceed to Phase 7.
-   - **≥ 1 Critical or High** AND counter < 5 → delegate fixes per the routing table in
-     `references/smoke-test-guide.md` §Fix Routing. After each fix, re-deploy via
-     `magento2-deploy` if PHP/XML/JS/template changed, then re-enter Phase 6 from 6A.
-   - **≥ 1 Critical or High** AND counter == 5 → halt and prompt the user per
-     `smoke-test-guide.md` §Halt Prompt.
-
-#### Cleanup
-
-Before exiting Phase 6B (pass or halt), S9 also:
-
-- Reverts any admin config changes captured during S4.
-- Deletes the throwaway customer created in S7 (best-effort; failure is a Medium finding).
-- Removes any SKUs prefixed `SMOKE-{uuid}-` created by S2 happy-path scenarios.
+**The loop (S9 decision):** 0 Critical + 0 High → Phase 6 passes → Phase 7. ≥1 Critical/High and
+iteration < 5 → delegate fixes per `smoke-test-guide.md` §Fix Routing, re-deploy via
+`magento2-deploy` if code changed, then re-enter from 6A. ≥1 Critical/High and iteration == 5 →
+halt and prompt the user. Record each iteration via `templates/smoke-run-report.md` and keep
+`templates/smoke-findings.md` updated (stable finding IDs across iterations).
 
 ---
 
@@ -562,26 +494,26 @@ Before exiting Phase 6B (pass or halt), S9 also:
 1. Load `references/final-report-format.md`.
 2. Use `templates/final-report.md` as the structural base.
 3. Fill in all 10 sections:
-   - Executive Summary
-   - Modules Implemented (table)
-   - Public API Index
-   - Configuration Guide
-   - Tradeoffs (load `references/tradeoffs-catalog.md` and document applicable ones)
-   - Deviations from Blueprint
-   - Test Coverage Summary
-   - Known Limitations
-   - Recommended Next Steps
-   - Smoke Test Results (per `references/final-report-format.md` §10 — omit in `spike` mode)
+    - Executive Summary
+    - Modules Implemented (table)
+    - Public API Index
+    - Configuration Guide
+    - Tradeoffs (load `references/tradeoffs-catalog.md` and document applicable ones)
+    - Deviations from Blueprint
+    - Test Coverage Summary
+    - Known Limitations
+    - Recommended Next Steps
+    - Smoke Test Results (per `references/final-report-format.md` §10 — omit in `spike` mode)
 4. Update the blueprint status line to `Status: Complete` in `.docs/{FeatureName}/blueprint.md`.
    Update the plan status and mark all remaining checkboxes `[x]` in `.docs/{FeatureName}/plan.md`.
 5. Save the report to `.docs/{FeatureName}/report.md`.
 6. If the feature includes complex configuration, non-obvious developer integration points, or
    admin workflows, generate the relevant optional documents in the feature folder:
-   - `guides/developer-guide.html` — integration and extension guide for developers.
-   - `user-docs/user-guide.html` — admin/end-user guide for configuring and using the feature.
-   - `spec.md` — technical specification, if the blueprint warrants persistent reference material.
-   Each HTML file must define a CSS color schema inline (primary, secondary, background, text,
-   accent colors) and apply it consistently across all HTML files in the feature folder.
+    - `guides/developer-guide.html` — integration and extension guide for developers.
+    - `user-docs/user-guide.html` — admin/end-user guide for configuring and using the feature.
+    - `spec.md` — technical specification, if the blueprint warrants persistent reference material.
+      Each HTML file must define a CSS color schema inline (primary, secondary, background, text,
+      accent colors) and apply it consistently across all HTML files in the feature folder.
 7. Print the report to the conversation.
 8. State explicitly: *"Feature implementation complete. See report above and
    `.docs/{FeatureName}/report.md`."*

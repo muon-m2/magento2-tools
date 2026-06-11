@@ -14,34 +14,42 @@ Rector rule sets to apply per upgrade target.
 
 ## Magento Upgrade Sets
 
-Adobe ships a Magento Rector rule set (`magento/rector-rules-magento`). Apply the set
-matching the target Magento version.
+There is **no official Adobe-published Rector rule set** on Packagist. Drive Magento
+upgrades with the core `rector/rector` package and a hand-listed set of rules derived
+from `references/deprecation-map.md`:
 
 ```php
-return RectorConfig::configure()
-    ->withSets([
-        \Magento\Rector\Sets\MagentoLevelSetList::UP_TO_MAGENTO_2_4_8,
-    ]);
-```
+use Rector\Config\RectorConfig;
 
-Without the official set, fall back to:
-
-```php
 return RectorConfig::configure()
+    ->withPaths([__DIR__ . '/app/code/{Vendor}/{Module}'])
     ->withRules([
-        // List specific rules from references/deprecation-map.md
+        // List specific rules from references/deprecation-map.md, e.g.:
+        \Rector\Php80\Rector\Class_\ClassPropertyAssignToConstructorPromotionRector::class,
     ]);
 ```
+
+> Community Magento rule sets exist (search Packagist for `rector` + `magento`), but none
+> are first-party. If you adopt one, **verify each rule against the target Magento version
+> before use** — community sets lag behind releases and may rewrite working code.
 
 ## Quality / Cleanup Sets
 
-Run after the upgrade-target sets to clean up:
+Run after the upgrade-target sets to clean up. These live in
+`Rector\Set\ValueObject\SetList`:
 
-| Set | Effect |
-|-----|--------|
-| `LevelSetList::UP_TO_QUALITY_*` | Code-quality improvements |
-| `LevelSetList::UP_TO_TYPE_DECLARATION_*` | Add missing type declarations |
-| `LevelSetList::UP_TO_DEAD_CODE_*` | Remove dead code |
+| Set                         | Effect                        |
+|-----------------------------|-------------------------------|
+| `SetList::CODE_QUALITY`     | Code-quality improvements     |
+| `SetList::TYPE_DECLARATION` | Add missing type declarations |
+| `SetList::DEAD_CODE`        | Remove dead code              |
+
+```php
+use Rector\Set\ValueObject\SetList;
+
+return RectorConfig::configure()
+    ->withSets([SetList::CODE_QUALITY, SetList::TYPE_DECLARATION, SetList::DEAD_CODE]);
+```
 
 Apply quality sets only after the user reviews — they make many small changes.
 
@@ -59,14 +67,26 @@ Review the diff. Apply when ready:
 
 ## Per-Rule Application
 
-To apply one rule at a time (preferred for large changes):
+The `--only` CLI flag was removed from Rector years ago. To apply one rule at a time
+(preferred for large changes), write a temporary `rector.php` that lists just that rule,
+then run `process` against it:
+
+```php
+// rector.php (temporary — narrow to a single rule)
+use Rector\Config\RectorConfig;
+use Rector\TypeDeclaration\Rector\ClassMethod\AddVoidReturnTypeWhereNoReturnRector;
+
+return RectorConfig::configure()
+    ->withPaths([__DIR__ . '/app/code/{Vendor}/{Module}'])
+    ->withRules([AddVoidReturnTypeWhereNoReturnRector::class]);
+```
 
 ```
-{ctx.runner} vendor/bin/rector process --only=AddVoidReturnTypeWhereNoReturnRector \
-    {ctx.magento_root}/app/code/{Vendor}/{Module}
+{ctx.runner} vendor/bin/rector process --config rector.php
 ```
 
-Commit per-rule application makes reverting one easier.
+Swap the single rule in `->withRules([...])` for the next one and re-run. A commit per
+single-rule run makes reverting one easier.
 
 ## When Rector Isn't Available
 
@@ -74,14 +94,20 @@ Document the unavailable scanner. Mark all findings as `manual-fixable` even whe
 would have auto-fixed them. The user can install Rector and re-run, or accept manual
 fixes for this run.
 
-## Magento-Specific Rules Worth Knowing
+## Core Rector Rules Worth Knowing
 
-| Rule | Effect |
-|------|--------|
-| `ReplaceObjectManagerWithConstructorInjectionRector` | Replaces `ObjectManager` calls with injected dependencies |
-| `AddTypedConstantRector` | Adds types to constants (PHP 8.3+) |
-| `MoveAttributesBeforeMethodSignatureRector` | PHP 8 attribute conversion |
-| `MagentoSetupUpgradeToPatchRector` (if present) | Convert `InstallData` → `Setup/Patch/Data` |
+These ship with `rector/rector` and help with PHP-level modernization (not Magento
+patterns specifically):
+
+| Rule                                                                             | Effect                                             |
+|----------------------------------------------------------------------------------|----------------------------------------------------|
+| `Rector\Php83\Rector\ClassConst\AddTypeToConstRector`                            | Adds types to class constants (PHP 8.3+)           |
+| `Rector\Php80\Rector\Class_\ClassPropertyAssignToConstructorPromotionRector`     | Constructor property promotion (PHP 8.0+)          |
+| `Rector\TypeDeclaration\Rector\ClassMethod\AddVoidReturnTypeWhereNoReturnRector` | Adds `void` return type where no value is returned |
+
+> There is no core Rector rule that rewrites `ObjectManager` usage into constructor
+> injection, nor one that converts `Setup/InstallData` → `Setup/Patch/Data` — those are
+> Magento-specific transforms and must be done manually (see `references/deprecation-map.md`).
 
 The exact rule list depends on the Rector version installed. Use
-`vendor/bin/rector list-rules` to enumerate.
+`vendor/bin/rector list-rules` to enumerate what is actually available.

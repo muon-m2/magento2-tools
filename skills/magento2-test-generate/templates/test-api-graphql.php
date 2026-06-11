@@ -35,7 +35,11 @@ query {
 }
 QUERY;
 
+        // GraphQlAbstract surfaces server-side GraphQlInputException as a
+        // \Exception whose message is prefixed "GraphQL response contains errors:".
+        // Assert on that specific message rather than catching any \Exception.
         $this->expectException(\Exception::class);
+        $this->expectExceptionMessageMatches('/GraphQL response contains errors/');
         $this->graphQlQuery($query);
     }
 }

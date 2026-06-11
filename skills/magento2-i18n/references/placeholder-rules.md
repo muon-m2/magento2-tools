@@ -46,11 +46,11 @@ DE: "Bitte bestätigen Sie %1"                                              # MI
 
 ## Mismatch Findings
 
-| Mismatch | Severity |
-|----------|----------|
-| Target uses fewer placeholders than source | Medium |
-| Target uses more placeholders than source | Medium |
-| Target uses different placeholders (e.g. %1 source, %3 target) | Medium |
+| Mismatch                                                       | Severity |
+|----------------------------------------------------------------|----------|
+| Target uses fewer placeholders than source                     | Medium   |
+| Target uses more placeholders than source                      | Medium   |
+| Target uses different placeholders (e.g. %1 source, %3 target) | Medium   |
 
 A mismatch causes runtime errors in Magento's `Phrase` rendering when an arg isn't
 substituted; severity is Medium because it's user-visible.

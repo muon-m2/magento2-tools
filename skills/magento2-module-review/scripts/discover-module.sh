@@ -52,10 +52,13 @@ find "$module_path" -type f \( -name '*.js' -o -name '*.ts' -o -name '*.css' -o 
 
 echo ""
 echo "== PHP classes/interfaces =="
+# Match class/interface/trait/enum declarations including leading modifiers such
+# as `final`, `abstract`, and `readonly` (PHP 8.2+), in any order.
+class_re='^[[:space:]]*((final|abstract|readonly)[[:space:]]+)*(class|interface|trait|enum)[[:space:]]'
 if command -v rg >/dev/null 2>&1; then
-    rg -n "^(class|interface|trait) " "$module_path" || true
+    rg -n "$class_re" "$module_path" || true
 else
-    grep -RInE "^(class|interface|trait) " "$module_path" || true
+    grep -RInE "$class_re" "$module_path" || true
 fi
 
 echo ""

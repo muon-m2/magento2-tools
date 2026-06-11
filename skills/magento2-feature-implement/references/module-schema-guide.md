@@ -40,7 +40,7 @@ Each module must satisfy all three rules:
    A data module (`Persistence`) must not depend on a UI module (`AdminUi`). If a cycle appears,
    extract a shared interface module.
 3. **Surface match** — a module may include any surface combination from
-   `.docs/magento2-module-create/references/surfaces.md`, but every surface it declares must
+   `magento2-module-create/references/surfaces.md`, but every surface it declares must
    serve its stated concern.
 
 ---

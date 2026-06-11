@@ -7,11 +7,11 @@ Algorithm for resolving `{runner}`, `{runner_kind}`, `{magento_cli}`, and `{comp
 The resolver emits two related fields:
 
 - `runner` — the command-prefix that puts subsequent argv inside a PHP-capable environment.
-  - For docker modes it is a non-empty wrapper like `docker compose exec -T -u magento php`.
-  - For **bare host PHP** it is the **empty string** (`""`). Downstream callers that do
-    `${RUNNER} php -r '...'` therefore produce ` php -r '...'`, which works correctly.
-  - When no PHP environment can be detected, the resolver emits `runner: ""` together
-    with `runner_kind: "null"`.
+    - For docker modes it is a non-empty wrapper like `docker compose exec -T -u magento php`.
+    - For **bare host PHP** it is the **empty string** (`""`). Downstream callers that do
+      `${RUNNER} php -r '...'` therefore produce ` php -r '...'`, which works correctly.
+    - When no PHP environment can be detected, the resolver emits `runner: ""` together
+      with `runner_kind: "null"`.
 - `runner_kind` — one of `null`, `bare`, `docker-compose`, `docker-exec`, `custom`.
   Use this when you need to branch on the mode. Treat `null` as "no PHP available".
 
@@ -26,23 +26,23 @@ mode — read `runner_kind` instead.
    `runner_kind = "custom"`. `resolution_source.runner = "CLAUDE.md hint"`.
 
 2. **Docker Compose running container.**
-   - Probe: `docker compose ps --services --filter status=running` and check membership of `php`.
-   - If matched → `runner = "docker compose exec -T -u {magento_user} php"`,
-     `runner_kind = "docker-compose"`.
-   - `{magento_user}` resolves from `CLAUDE.md` `Docker user:` or defaults to `magento`.
+    - Probe: `docker compose ps --services --filter status=running` and check membership of `php`.
+    - If matched → `runner = "docker compose exec -T -u {magento_user} php"`,
+      `runner_kind = "docker-compose"`.
+    - `{magento_user}` resolves from `CLAUDE.md` `Docker user:` or defaults to `magento`.
 
 3. **Bare `docker exec` with a known container.** Resolution order (most specific wins):
-   - `M2_PHP_CONTAINER` environment variable, if set.
-   - `.claude/m2.json` `"php_container"` key, if present.
-   - Otherwise generic name patterns: `magento.*php`, `m2.*php`, any `<name>-php`
-     (optionally suffixed `-1`), or a bare `php` container. No project name is hardcoded.
-   - A configured container that is not running falls through to the patterns.
-   - Matched → `runner = "docker exec -i {container}"`, `runner_kind = "docker-exec"`.
+    - `M2_PHP_CONTAINER` environment variable, if set.
+    - `.claude/m2.json` `"php_container"` key, if present.
+    - Otherwise generic name patterns: `magento.*php`, `m2.*php`, any `<name>-php`
+      (optionally suffixed `-1`), or a bare `php` container. No project name is hardcoded.
+    - A configured container that is not running falls through to the patterns.
+    - Matched → `runner = "docker exec -i {container}"`, `runner_kind = "docker-exec"`.
 
 4. **Bare PHP.**
-   - Probe: `command -v php && php --version` — both must succeed.
-   - `runner = ""` (empty) and `runner_kind = "bare"`.
-   - `resolution_source.runner = "bare php on PATH"`.
+    - Probe: `command -v php && php --version` — both must succeed.
+    - `runner = ""` (empty) and `runner_kind = "bare"`.
+    - `resolution_source.runner = "bare php on PATH"`.
 
 5. **No runner.** `runner = ""`, `runner_kind = "null"`. Consumers that require PHP must
    report "no PHP runner available" and refuse to proceed.
@@ -50,9 +50,10 @@ mode — read `runner_kind` instead.
 ## Magento CLI Resolution
 
 Once `runner` is resolved:
+
 - If `bin/magento` exists at `src/bin/magento` or `bin/magento`:
-  - Docker modes: `magento_cli = "{runner} bin/magento"`.
-  - Bare mode: `magento_cli = "bin/magento"`.
+    - Docker modes: `magento_cli = "{runner} bin/magento"`.
+    - Bare mode: `magento_cli = "bin/magento"`.
 - Else: `magento_cli = null`.
 
 The path is relative to the working directory of the runner. For Docker containers
@@ -79,13 +80,13 @@ sets `runner_kind = "custom"`.
 
 ## Edge Cases
 
-| Case | Behaviour |
-|------|-----------|
-| `docker-compose.yml` exists but no container is running | Fall through to bare PHP (step 4). |
-| Two compose services match `php` | Use the first; warn the user. |
-| `CLAUDE.md` hint runner fails to exec | Report the error; do NOT silently fall through. The user explicitly asked for this runner. |
-| Multiple Magento roots | Resolver fails; ask user which root. |
-| No PHP at all | `runner = ""`, `runner_kind = "null"`; consumers degrade. |
+| Case                                                    | Behaviour                                                                                  |
+|---------------------------------------------------------|--------------------------------------------------------------------------------------------|
+| `docker-compose.yml` exists but no container is running | Fall through to bare PHP (step 4).                                                         |
+| Two compose services match `php`                        | Use the first; warn the user.                                                              |
+| `CLAUDE.md` hint runner fails to exec                   | Report the error; do NOT silently fall through. The user explicitly asked for this runner. |
+| Multiple Magento roots                                  | Resolver fails; ask user which root.                                                       |
+| No PHP at all                                           | `runner = ""`, `runner_kind = "null"`; consumers degrade.                                  |
 
 ## Consumer Pattern
 

@@ -20,11 +20,13 @@ config). Do not edit `/etc/php/conf.d` ad-hoc.
 ```
 
 Common modes:
+
 - `develop,debug` — full step-through debugging
 - `coverage` — code coverage measurement
 - `develop,debug,profile` — also Cachegrind profiling
 
 Set via `php.ini`:
+
 ```
 xdebug.mode=develop,debug
 ```
@@ -43,12 +45,14 @@ xdebug.mode=develop,debug
 ### 4. IDE listening
 
 The IDE must listen on the configured port:
+
 - PhpStorm: green telephone icon "Start Listening for PHP Debug Connections."
 - VSCode: launch config `port: 9003`.
 
 ### 5. Path mapping
 
 The container and host file paths differ. Configure path mapping in the IDE:
+
 - Container: `/var/www/html/src/app/code/Acme/Module`
 - Host: `~/projects/example/src/app/code/Acme/Module`
 
@@ -56,13 +60,13 @@ PhpStorm: Settings → Languages → PHP → Servers → add mapping.
 
 ## Common Issues
 
-| Symptom | Likely cause |
-|---------|--------------|
-| Breakpoint never hits | `XDEBUG_TRIGGER` cookie/header not set on request |
-| "Cannot find source file" | Path mapping wrong |
-| Connection refused | IDE not listening; or wrong port |
-| Slow page when Xdebug on | Use `xdebug.mode=off` when not debugging |
-| Step-into shows generated code | Path mapping excludes `generated/` directory |
+| Symptom                        | Likely cause                                      |
+|--------------------------------|---------------------------------------------------|
+| Breakpoint never hits          | `XDEBUG_TRIGGER` cookie/header not set on request |
+| "Cannot find source file"      | Path mapping wrong                                |
+| Connection refused             | IDE not listening; or wrong port                  |
+| Slow page when Xdebug on       | Use `xdebug.mode=off` when not debugging          |
+| Step-into shows generated code | Path mapping excludes `generated/` directory      |
 
 ## Toggling Xdebug
 

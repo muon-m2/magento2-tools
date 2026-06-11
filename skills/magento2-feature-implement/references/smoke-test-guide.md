@@ -21,8 +21,8 @@ when the feature actually exercises that surface.
 | S1 | Baseline & probe | Yes | Snapshot `var/log/exception.log` byte offset; probe BASE_URL, admin URL, browser tool, credentials. Halts cleanly if a precondition is missing. |
 | S2 | REST API scenarios | If feature adds/changes REST | Document and execute every scenario per endpoint (happy / missing-auth / wrong-ACL / validation / not-found / pagination). |
 | S3 | Admin login | If admin surfaces touched (default: yes) | Browser opens `/admin`, posts credentials, asserts dashboard rendered, no JS console error. |
-| S4 | Stores → Configuration | If feature adds/changes admin config | Walk every new/changed section; expand it; change one safe field; Save Config; assert success + no exception. |
-| S5 | Admin grids | Always when admin surfaces touched | Customers, Catalog → Products, Sales → Orders. For each: load, assert rows render, apply one filter, clear filter. Plus any new grid the feature added. |
+| S4 | Stores → Configuration | If feature adds/changes admin config | Walk every new/changed section; assert it renders with no exception. (Changing + reverting a field is best-effort: a headless write needs the form key + secret key, so do it manually or via a data fixture and note it.) |
+| S5 | Admin grids | Always when admin surfaces touched | Customers, Catalog → Products, Sales → Orders. For each: load, assert rows render, apply one filter (clearing it is best-effort). Plus any new grid the feature added. |
 | S6 | New / changed pages & controllers | Per route registered | One pass per admin and frontend route the feature owns. Render, screenshot, click primary CTA, assert no console error. |
 | S7 | Customer storefront flows | If feature touches customer area or default flows | Register throwaway customer → log out → log back in → visit every My Account tab. Assert no console error and no exception. |
 | S8 | Exception.log diff | Yes | Tail `var/log/exception.log` from S1 offset; fail if any new line appeared during S2–S7. |
@@ -57,7 +57,7 @@ mapping is deterministic — do not pick the skill ad-hoc.
 | Broken controller / route / layout | `magento2-bug-fix` | Re-runs `magento2-module-review --diff` after the fix. |
 | Broken REST contract or response shape | `magento2-bug-fix` (+ `magento2-module-review --diff`) | Update scenarios.md if the contract was wrong, not the implementation. |
 | Slow page / N+1 / cache miss | `magento2-performance-audit` → `magento2-bug-fix` | Performance audit produces the diagnosis; bug-fix applies the change. |
-| Frontend (JS console, missing asset, KO bind error) | `magento2-frontend-create` (augment) → `magento2-bug-fix` | Use augment mode, not new-module mode. |
+| Frontend (JS console, missing asset, KO bind error) | `magento2-frontend-create` → `magento2-bug-fix` | Add to the existing theme; do not scaffold a new module. |
 | Security regression (ACL bypass, CSRF, escaping) | `magento2-security-audit` → `magento2-bug-fix` | Always re-run S2 fully after the fix. |
 | Schema / patch issue | `magento2-data-migration` or direct edit | Direct edit only for trivial cases; data-migration for anything reseed-y. |
 | Anything else | `magento2-bug-fix` | Default. |
@@ -110,7 +110,9 @@ Phase 6B passes when, simultaneously:
 
 1. Every applicable suite (S1 + S2–S7 as relevant + S8 + S9) has run to completion.
 2. S9 records zero Critical and zero High findings.
-3. S8's exception.log diff is empty.
+3. S8's exception.log diff has no **new or unresolved** exception groups (groups already
+   marked `resolved` in findings.md may linger in the diff — see `exception-log-baseline.md`).
+   An empty diff trivially satisfies this.
 
 Any other outcome triggers the fix loop unless the cap is reached.
 
@@ -120,9 +122,12 @@ Any other outcome triggers the fix loop unless the cap is reached.
 
 Smoke runs must never leave persistent test data behind:
 
-- Customer emails: `smoke+{uuid}@example.test` — created in S7, deleted in S9 cleanup.
+- Customer emails: `smoke+{uuid}@example.test` — created in S7. The S9 `cleanup` command
+  navigates to the filtered customer grid but does NOT delete (a headless grid mass-delete
+  needs the form + secret key); delete the throwaway customer manually or via a data fixture.
 - Product / category / order SKUs (if created): prefixed `SMOKE-{uuid}-`.
-- Admin config changes in S4: revert after assertion (capture original value before write).
+- Admin config changes in S4: only make one if you can revert it — capture the original value
+  first. The browser driver does not auto-revert; treat config mutation as manual/best-effort.
 - Never run smoke against a base URL that resolves to production unless `CLAUDE.md` contains
   `Allow smoke on production: true`. Production base URL is identified heuristically: `.com`,
   `.io`, `.net` TLD with no `:port` and no `localhost`/`127.0.0.1`/`*.test`/`*.local` host.

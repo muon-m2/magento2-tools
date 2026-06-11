@@ -4,13 +4,13 @@ A backend model intercepts attribute save/load to transform values.
 
 ## When to Use a Backend Model
 
-| Input type | Magento-provided backend | When to subclass |
-|-----------|--------------------------|------------------|
-| text / textarea / select | (none needed) | Custom validation only |
-| multiselect | `Magento\Eav\Model\Entity\Attribute\Backend\ArrayBackend` | Custom serialization |
-| date | `Magento\Eav\Model\Entity\Attribute\Backend\Datetime` | Custom timezone handling |
-| price | `Magento\Catalog\Model\Product\Attribute\Backend\Price` | Custom rounding / formatting |
-| image | `Magento\Catalog\Model\Product\Attribute\Backend\Image` | Custom path / mime check |
+| Input type               | Magento-provided backend                                  | When to subclass             |
+|--------------------------|-----------------------------------------------------------|------------------------------|
+| text / textarea / select | (none needed)                                             | Custom validation only       |
+| multiselect              | `Magento\Eav\Model\Entity\Attribute\Backend\ArrayBackend` | Custom serialization         |
+| date                     | `Magento\Eav\Model\Entity\Attribute\Backend\Datetime`     | Custom timezone handling     |
+| price                    | `Magento\Catalog\Model\Product\Attribute\Backend\Price`   | Custom rounding / formatting |
+| image                    | `Magento\Catalog\Model\Product\Attribute\Backend\Image`   | Custom path / mime check     |
 
 ## Multiselect with ArrayBackend
 

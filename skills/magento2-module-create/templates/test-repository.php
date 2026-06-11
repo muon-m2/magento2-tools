@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace {Vendor}\{ModuleName}\Test\Unit\Model;
 
+use Magento\Framework\Api\SearchCriteria\CollectionProcessorInterface;
 use Magento\Framework\Api\SearchCriteriaInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -27,6 +28,7 @@ class {EntityName}RepositoryTest extends TestCase
     private {EntityName}InterfaceFactory&MockObject $entityFactory;
     private CollectionFactory&MockObject $collectionFactory;
     private {EntityName}SearchResultsInterfaceFactory&MockObject $searchResultsFactory;
+    private CollectionProcessorInterface&MockObject $collectionProcessor;
     private {EntityName}Repository $subject;
 
     protected function setUp(): void
@@ -35,12 +37,14 @@ class {EntityName}RepositoryTest extends TestCase
         $this->entityFactory         = $this->createMock({EntityName}InterfaceFactory::class);
         $this->collectionFactory     = $this->createMock(CollectionFactory::class);
         $this->searchResultsFactory  = $this->createMock({EntityName}SearchResultsInterfaceFactory::class);
+        $this->collectionProcessor   = $this->createMock(CollectionProcessorInterface::class);
 
         $this->subject = new {EntityName}Repository(
             $this->resource,
             $this->entityFactory,
             $this->collectionFactory,
             $this->searchResultsFactory,
+            $this->collectionProcessor,
         );
     }
 

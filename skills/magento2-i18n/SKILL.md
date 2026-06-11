@@ -31,21 +31,24 @@ Invoke `magento2-context`. Capture Magento CLI availability.
 ### Phase 1 — Scope
 
 Ask:
+
 - Modules to extract from (default: all custom modules under `{vendor_lower}/`).
 - Target locale(s) (default: `en_US` + all existing locale CSVs).
 - Behaviour for missing translations:
-  - Leave empty (default)
-  - Copy English string
-  - Machine-translate (requires API key in env)
+    - Leave empty (default)
+    - Copy English string
+    - Machine-translate (requires API key in env)
 
 ### Phase 2 — Extract
 
 If Magento CLI available:
+
 ```
 {ctx.magento_cli} i18n:collect-phrases {ctx.magento_root}/app/code/{Vendor}/{Module}/ -o /tmp/extract.csv
 ```
 
 Otherwise: regex scan via `${CLAUDE_SKILL_DIR}/scripts/extract.sh` for:
+
 - `__('text')` and `__("text")` in PHP
 - `<label translate="true">text</label>` in XML
 - `<item name="..." translate="true">text</item>` in XML
@@ -56,6 +59,7 @@ Otherwise: regex scan via `${CLAUDE_SKILL_DIR}/scripts/extract.sh` for:
 
 Run `${CLAUDE_SKILL_DIR}/scripts/merge-csv.sh <fresh.csv> <locale.csv>` for each target locale. The script
 guarantees:
+
 - Existing translations are preserved byte-for-byte.
 - New phrases are appended at the end with empty translation columns.
 - Phrases no longer in the fresh extraction are moved to `<locale>.obsolete.csv` next
@@ -65,6 +69,7 @@ guarantees:
 ### Phase 4 — Validate
 
 Via `${CLAUDE_SKILL_DIR}/scripts/validate-csv.sh`:
+
 - Placeholder consistency: `%1` count in source must match target.
 - Character encoding (UTF-8).
 - CSV well-formedness (correct quoting, no embedded newlines in unquoted fields).
@@ -72,6 +77,7 @@ Via `${CLAUDE_SKILL_DIR}/scripts/validate-csv.sh`:
 ### Phase 5 — Report
 
 `.docs/i18n/{Vendor}_{Module}-{date}.md`:
+
 - Phrases added per locale
 - Translations missing per locale
 - Placeholder mismatches per locale (if any)
@@ -115,6 +121,6 @@ Via `${CLAUDE_SKILL_DIR}/scripts/validate-csv.sh`:
 
 ## Related Skills
 
-| Phase | Skill |
-|-------|-------|
-| 0 | `magento2-context` |
+| Phase | Skill              |
+|-------|--------------------|
+| 0     | `magento2-context` |

@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace {Vendor}\{ModuleName}\Observer;
 
-use Magento\Framework\Event\Observer;
-use Magento\Framework\Event\ObserverInterface;
-use Psr\Log\LoggerInterface;
+use Psr\Log\LoggerInterface;use Magento\Framework\Event\Observer;use Magento\Framework\Event\ObserverInterface;
 
 /**
  * Observer for the {event_name} event.
@@ -30,8 +28,10 @@ class {DescriptiveName}Observer implements ObserverInterface
     public function execute(Observer $observer): void
     {
         try {
-            // Observer logic. Observers never modify the source event return value;
-            // use a plugin if you need to alter the return.
+            /** @var \Magento\Framework\Event $event */
+            $event = $observer->getEvent();
+            // Observer logic using $event (e.g. $event->getData('...')). Observers never
+            // modify the source event return value; use a plugin if you need to alter it.
         } catch (\Throwable $e) {
             $this->logger->error(
                 '{vendor_lower}_{module_lower} observer {DescriptiveName}Observer failed: ' . $e->getMessage(),

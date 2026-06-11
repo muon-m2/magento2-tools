@@ -5,8 +5,9 @@ Modules: {Vendor}_{ModuleA}, {Vendor}_{ModuleB}
 Runner: `{ctx.runner}`
 Magento CLI: `{ctx.magento_cli}`
 Skill versions:
-  - magento2-deploy@1.1.0
-  - magento2-context@1.3.0
+
+- magento2-deploy@1.2.0
+- magento2-context@1.4.0
 
 ## Pre-Flight Result
 
@@ -29,6 +30,7 @@ All required checks passed. Optional checks (strict mode): {skipped|run}.
 ## Rollback Plan
 
 If any step fails:
+
 - `module:enable` → `module:disable {modules}`
 - `setup:upgrade` → `git revert {commit}` + re-run
 - `setup:di:compile` → restore `generated/` from snapshot (if --snapshot)

@@ -19,6 +19,7 @@ Where `{locale}` is the IETF tag (e.g. `en_US`, `de_DE`, `fr_FR`, `ja_JP`).
 ```
 
 Two columns:
+
 1. Source phrase (exactly as it appears in `__()`).
 2. Translated phrase.
 
@@ -69,6 +70,7 @@ your module's CSV with the new translation.
 ## Validation
 
 The skill validates:
+
 - File is UTF-8
 - No BOM
 - Each row has exactly 2 fields

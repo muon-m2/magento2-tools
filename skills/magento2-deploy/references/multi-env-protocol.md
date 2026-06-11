@@ -73,6 +73,7 @@ MAGENTO2_DEPLOY_NON_INTERACTIVE=1 /magento2-deploy --env=staging --auto {modules
 ```
 
 In non-interactive mode, the skill:
+
 - Skips approval prompts (uses `--auto`).
 - Refuses production deploys without `--i-know-what-im-doing`.
 - Emits JSON reports for CI ingestion (`.docs/deployments/{ts}-{env}.json`).

@@ -147,18 +147,24 @@ public function resolve(Field $field, $context, ResolveInfo $info, ?array $value
 }
 ```
 
-## DI Wiring
+## Wiring a Batch Resolver
 
-```xml
-<!-- etc/graphql/di.xml -->
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
-    <type name="Magento\Framework\GraphQl\Query\Resolver\BatchResolverFactory">
-        <arguments>
-            <argument name="batchResolvers" xsi:type="array">
-                <item name="reviews_for_product" xsi:type="string">{Vendor}\{Module}\Model\Resolver\Batch\ReviewsBatchResolver</item>
-            </argument>
-        </arguments>
-    </type>
-</config>
+A class implementing `BatchResolverInterface` is wired the same way as a standard
+resolver: reference it directly from the schema with the `@resolver(class: "...")`
+directive on the field. There is no factory or provider to register, and no `di.xml`
+entry is required for the resolver reference itself — Magento detects that the class
+implements `BatchResolverInterface` and dispatches all requests for that field in one
+call.
+
+```graphql
+type Product {
+    reviews: [Review] @resolver(class: "\\{Vendor}\\{Module}\\Model\\Resolver\\Batch\\ReviewsBatchResolver")
+}
 ```
+
+Add `di.xml` only if the resolver's own constructor dependencies need configuration
+(virtual types, argument overrides) — the same as for any other class.
+
+> For service-contract-backed batch loading, Magento also ships
+> `Magento\Framework\GraphQl\Query\Resolver\BatchServiceContractResolverInterface`,
+> a base for batch resolvers that delegate to a repository/service contract.

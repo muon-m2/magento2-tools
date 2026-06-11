@@ -117,7 +117,7 @@ Diff file: `smoke/raw/S8/exception-diff.log`.
 |----|----------|----------|--------------|---------|--------------|
 | F1 | Critical | rest_contract | S2 | POST /V1/xyz returns 200 for unauthenticated request | magento2-bug-fix |
 | F2 | Critical | rest_contract | S2 | GET 404 case throws 500 stack trace | magento2-bug-fix + magento2-debug |
-| F3 | High | frontend | S7 | New My Account tab fails to load | magento2-frontend-create (augment) |
+| F3 | High | frontend | S7 | New My Account tab fails to load | magento2-frontend-create |
 | F4 | Critical | php_exception | S8 | Controller class not found | magento2-debug → magento2-bug-fix |
 
 ### Recurring findings (same ID as prior iteration)

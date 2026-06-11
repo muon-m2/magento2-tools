@@ -2,10 +2,17 @@
 # plugin-trace.sh — find plugins / observers for an event, method, or class.
 #
 # Usage:
-#   plugin-trace.sh --event=<event_name>
-#   plugin-trace.sh --method='Class\Name::method'
-#   plugin-trace.sh --class='Class\Name'
+#   plugin-trace.sh --event=<event_name>          [--root=<module-dir>]
+#   plugin-trace.sh --method='Class\Name::method' [--root=<module-dir>]
+#   plugin-trace.sh --class='Class\Name'          [--root=<module-dir>]
+#
+# Scope: matches only entries DECLARED directly against the given type name.
+# Plugins declared on a parent class or implemented interface of the target, and
+# virtualType entries, are NOT chased. For inheritance-aware resolution that
+# matches the framework's compiled view, use `bin/magento dev:di:info`.
 
+# `set -uo` (no -e) is deliberate: an unreadable di.xml / events.xml or a failing
+# `find` branch must not abort the whole trace — partial results beat none.
 set -uo pipefail
 
 if ! command -v python3 >/dev/null 2>&1; then
@@ -15,12 +22,14 @@ fi
 
 MODE=""
 TARGET=""
+MODULE_ROOT=""
 
 for arg in "$@"; do
     case "$arg" in
         --event=*) MODE="event"; TARGET="${arg#*=}" ;;
         --method=*) MODE="method"; TARGET="${arg#*=}" ;;
         --class=*) MODE="class"; TARGET="${arg#*=}" ;;
+        --root=*) MODULE_ROOT="${arg#*=}" ;;
     esac
 done
 
@@ -29,7 +38,26 @@ if [ -z "$MODE" ]; then
     exit 1
 fi
 
-ROOTS=("src/app/code" "vendor")
+# Detect the module root like the rest of this repo's scripts do: root-layout keeps
+# app/code at the repo root, src-layout under src/. A --root override (or the cached
+# module_dir) wins so unusual layouts aren't silently dropped (find errors are swallowed).
+CONTEXT_FILE=".claude/.cache/magento2-context.json"
+if [ -z "$MODULE_ROOT" ] && [ -f "$CONTEXT_FILE" ]; then
+    MODULE_ROOT="$(python3 -c "import json; print(json.load(open('${CONTEXT_FILE}')).get('module_dir') or '')" 2>/dev/null || echo "")"
+fi
+MODULE_ROOT="${MODULE_ROOT:-$([[ -d app/code ]] && echo app/code || echo src/app/code)}"
+
+ROOTS=("$MODULE_ROOT" "vendor")
+
+# find_xml <basename> — emit candidate XML paths, searching only roots that exist.
+find_xml() {
+    local name="$1" r existing=()
+    for r in "${ROOTS[@]}"; do
+        [ -d "$r" ] && existing+=("$r")
+    done
+    [ "${#existing[@]}" -eq 0 ] && return 0
+    find "${existing[@]}" -type f -name "$name" 2>/dev/null || true
+}
 
 if [ "$MODE" = "event" ]; then
     FILES="$(find "${ROOTS[@]}" -type f -name 'events.xml' 2>/dev/null || true)"

@@ -48,29 +48,29 @@ The format is based on Keep a Changelog and this project adheres to Semantic Ver
 
 ## Entry Categories
 
-| Category | When to use |
-|----------|-------------|
-| Added | New feature, new public API |
-| Changed | Behaviour change in existing feature |
+| Category   | When to use                            |
+|------------|----------------------------------------|
+| Added      | New feature, new public API            |
+| Changed    | Behaviour change in existing feature   |
 | Deprecated | Marked for removal in a future release |
-| Removed | Removed in this release |
-| Fixed | Bug fix |
-| Security | Security-related fix or hardening |
+| Removed    | Removed in this release                |
+| Fixed      | Bug fix                                |
+| Security   | Security-related fix or hardening      |
 
 Skip empty categories — don't list "### Added" with no items.
 
 ## Sourcing Entries from Commits
 
-| Commit | Category |
-|--------|----------|
-| `feat:` | Added |
-| `fix:` | Fixed |
-| `refactor:` | Changed (if user-visible) else skip |
-| `perf:` | Changed |
-| `deprecation:` | Deprecated |
-| `security:` | Security |
-| `BREAKING CHANGE:` body | Changed (and notes "BREAKING:" in the entry) |
-| `docs:` / `chore:` / `test:` | Skip |
+| Commit                       | Category                                     |
+|------------------------------|----------------------------------------------|
+| `feat:`                      | Added                                        |
+| `fix:`                       | Fixed                                        |
+| `refactor:`                  | Changed (if user-visible) else skip          |
+| `perf:`                      | Changed                                      |
+| `deprecation:`               | Deprecated                                   |
+| `security:`                  | Security                                     |
+| `BREAKING CHANGE:` body      | Changed (and notes "BREAKING:" in the entry) |
+| `docs:` / `chore:` / `test:` | Skip                                         |
 
 ## Linking
 

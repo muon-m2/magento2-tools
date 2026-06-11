@@ -8,9 +8,20 @@
 $context->getExtensionAttributes()->getIsCustomer();      // bool
 $context->getExtensionAttributes()->getCustomerId();      // int|null
 $context->getExtensionAttributes()->getCustomerGroupId(); // int|null
-$context->getUserId();                                    // int|null (admin)
-$context->getUserType();                                  // int — 1=customer, 2=guest, 3=admin
+$context->getUserId();                                    // int|null
+$context->getUserType();                                  // int — see UserContextInterface
 ```
+
+`getUserType()` returns one of the `Magento\Authorization\Model\UserContextInterface`
+constants. **Always compare against the named constant, never a bare integer** — the
+numeric values are NOT in "customer, guest, admin" order:
+
+| Constant                                      | Value |
+|-----------------------------------------------|-------|
+| `UserContextInterface::USER_TYPE_INTEGRATION` | 1     |
+| `UserContextInterface::USER_TYPE_ADMIN`       | 2     |
+| `UserContextInterface::USER_TYPE_CUSTOMER`    | 3     |
+| `UserContextInterface::USER_TYPE_GUEST`       | 4     |
 
 ## Three Auth Modes
 
@@ -30,41 +41,41 @@ if ($context->getExtensionAttributes()->getIsCustomer() === false) {
 }
 ```
 
-Equivalent: `getUserType() !== 1`. Use for any mutation modifying customer-owned data.
+Equivalent: `getUserType() !== UserContextInterface::USER_TYPE_CUSTOMER`. Use for any
+mutation modifying customer-owned data.
 
 ### Admin-only
 
 ```php
-if ($context->getUserType() !== 3) {
+use Magento\Authorization\Model\UserContextInterface;
+
+if ((int) $context->getUserType() !== UserContextInterface::USER_TYPE_ADMIN) {
     throw new GraphQlAuthorizationException(__('Admin authorization required'));
 }
 ```
 
-Use for back-office GraphQL endpoints.
+Use for back-office GraphQL endpoints. Note `USER_TYPE_ADMIN` is **2**, not 3 — a bare
+`!== 3` check rejects admins and admits customers, the exact inverse of the intent.
 
-## Schema Annotation (Magento 2.4.5+)
+## Schema-level auth
 
-Modern Magento accepts `@doc(category="...")` annotations on schema fields to declare
-auth requirements:
-
-```graphql
-mutation: {
-    updateCart(...): Cart @doc(category="customer") @resolver(...)
-}
-```
-
-Magento's framework checks the directive before invoking the resolver. Combine schema
-directive + in-resolver check for defense in depth.
+Magento GraphQL has **no built-in schema directive that enforces authentication**. The
+`@doc(...)` directive only carries documentation metadata; it does not gate access, and
+the framework does not check it before invoking a resolver. Authentication and
+authorization must be enforced **inside the resolver** (the checks above). Treat the
+schema as public surface and the resolver as the trust boundary.
 
 ## Auth + Store Scope
 
-Customer mutations must also verify the customer belongs to the active store:
+A customer account belongs to a single website (not a list of stores). Verify the
+customer's website matches the active store's website before serving customer-owned data:
 
 ```php
 $customerId = (int) $context->getExtensionAttributes()->getCustomerId();
 $customer = $this->customerRepository->getById($customerId);
-$storeId = (int) $context->getExtensionAttributes()->getStore()->getId();
-if (!in_array($storeId, $customer->getStores())) {
+$customerWebsiteId = (int) $customer->getWebsiteId();
+$activeWebsiteId = (int) $context->getExtensionAttributes()->getStore()->getWebsiteId();
+if ($customerWebsiteId !== $activeWebsiteId) {
     throw new GraphQlAuthorizationException(__('Customer not authorized for this store'));
 }
 ```

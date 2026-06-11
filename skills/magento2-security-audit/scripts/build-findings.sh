@@ -10,7 +10,7 @@
 #   COMPOSER_LOCK       default: src/composer.lock
 #   SCAN_ROOT           default: src/app/code  (for secret/cross-module scans)
 #   OUTPUT_DIR          default: .docs/audits
-#   SKILL_VERSION       default: 1.1.0
+#   SKILL_VERSION       default: 1.2.0
 #
 # Output:
 #   Writes {OUTPUT_DIR}/security-{SCOPE}-{YYYY-MM-DD}.json to stdout AND saves to file.
@@ -24,7 +24,7 @@ SCOPE="${SCOPE:-module}"
 COMPOSER_LOCK="${COMPOSER_LOCK:-$([[ -f composer.lock ]] && echo composer.lock || echo src/composer.lock)}"
 SCAN_ROOT="${SCAN_ROOT:-$([[ -d app/code ]] && echo app/code || echo src/app/code)}"
 OUTPUT_DIR="${OUTPUT_DIR:-.docs/audits}"
-SKILL_VERSION="${SKILL_VERSION:-1.1.0}"
+SKILL_VERSION="${SKILL_VERSION:-1.2.0}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 EMIT_JSON="${SCRIPT_DIR}/../../magento2-module-review/scripts/emit-json.sh"
@@ -114,7 +114,7 @@ export SKILL_VERSION
 export OUTPUT_KIND="security"
 export OUTPUT_BASENAME="security-${SCOPE}-${DATE}"
 export OUTPUT_DIR
-export SKILL_VERSIONS_JSON="[\"magento2-security-audit@${SKILL_VERSION}\",\"magento2-context@1.3.0\"]"
+export SKILL_VERSIONS_JSON="[\"magento2-security-audit@${SKILL_VERSION}\",\"magento2-context@1.4.0\"]"
 
 bash "$EMIT_JSON" > /dev/null
 

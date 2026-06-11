@@ -61,14 +61,24 @@ Updates only the listed columns when a UNIQUE key conflicts.
 
 For complex multi-step seeds:
 
+Inject a reader and a writer — these are two different services:
+`Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig` (read) and
+`Magento\Framework\App\Config\Storage\WriterInterface $configWriter` (write,
+`save()`/`delete()` only — it has no read method).
+
 ```php
-$patchHash = sha256(serialize($payload));
-if ($this->configWriter->getValue("{module}/migrated/{patch_id}") === $patchHash) {
+$patchHash = hash('sha256', serialize($payload));
+if ($this->scopeConfig->getValue("{module}/migrated/{patch_id}") === $patchHash) {
     return $this; // already applied
 }
 // ... do work
 $this->configWriter->save("{module}/migrated/{patch_id}", $patchHash);
 ```
+
+`ScopeConfigInterface` reads from a cached snapshot, so a value written via
+`WriterInterface` is not visible to `getValue()` within the **same** request until the
+config cache is reloaded. Across separate `setup:upgrade` runs (the normal case for data
+patches) this is not an issue, because each run starts with a fresh config snapshot.
 
 ## Dependencies
 

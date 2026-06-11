@@ -1,4 +1,4 @@
-    ---
+---
 name: magento2-eav-attribute
 description:
     Add a Magento 2 EAV attribute (product, customer, customer-address, or category) via
@@ -38,31 +38,32 @@ Invoke `magento2-context`.
 
 Ask for any missing values:
 
-| Input | Default | Notes |
-|-------|---------|-------|
-| Entity type | (ask) | `product`, `customer`, `customer_address`, `category` |
-| Module to host the patch | (ask) | Existing `{Vendor}_{Module}` or new |
-| Attribute code | (ask) | snake_case, ≤ 30 chars |
-| Attribute label | (ask) | Human-readable |
-| Input type | text | text, textarea, select, multiselect, date, boolean, price, image, media_image |
-| Scope | store | global, website, store |
-| Required | false | true/false |
-| Source model | none | Required if select/multiselect |
-| Backend model | none | Required for multiselect, image, date, price |
-| Frontend model | none | Optional |
-| Used in product listing | false | Triggers flat-table inclusion |
-| Used for sorting | false | Triggers flat-table inclusion |
-| Filterable in catalog search | false | Layered nav |
-| Searchable | false | Catalog search index |
-| Visible on storefront | true | Triggers system attribute group assignment |
-| Apply to product types | all | Restrict to simple, configurable, etc. |
-| Form / grid visibility (customer) | varies | `is_used_in_grid`, `is_visible_in_grid` etc. |
+| Input                             | Default | Notes                                                                         |
+|-----------------------------------|---------|-------------------------------------------------------------------------------|
+| Entity type                       | (ask)   | `product`, `customer`, `customer_address`, `category`                         |
+| Module to host the patch          | (ask)   | Existing `{Vendor}_{Module}` or new                                           |
+| Attribute code                    | (ask)   | snake_case, ≤ 30 chars                                                        |
+| Attribute label                   | (ask)   | Human-readable                                                                |
+| Input type                        | text    | text, textarea, select, multiselect, date, boolean, price, image, media_image |
+| Scope                             | store   | global, website, store                                                        |
+| Required                          | false   | true/false                                                                    |
+| Source model                      | none    | Required if select/multiselect                                                |
+| Backend model                     | none    | Required for multiselect, image, date, price                                  |
+| Frontend model                    | none    | Optional                                                                      |
+| Used in product listing           | false   | Triggers flat-table inclusion                                                 |
+| Used for sorting                  | false   | Triggers flat-table inclusion                                                 |
+| Filterable in catalog search      | false   | Layered nav                                                                   |
+| Searchable                        | false   | Catalog search index                                                          |
+| Visible on storefront             | true    | Triggers system attribute group assignment                                    |
+| Apply to product types            | all     | Restrict to simple, configurable, etc.                                        |
+| Form / grid visibility (customer) | varies  | `is_used_in_grid`, `is_visible_in_grid` etc.                                  |
 
 See `references/entity-types.md`, `references/input-types.md`, `references/scope-rules.md`.
 
 ### Phase 2 — Plan
 
 Present the file plan:
+
 - `Setup/Patch/Data/Add{AttributeCode}Attribute.php`
 - Optionally: source model `Model/Source/{AttributeCode}.php`
 - Optionally: backend model `Model/Attribute/Backend/{AttributeCode}.php`
@@ -75,12 +76,14 @@ Wait for "proceed."
 ### Phase 3 — Generate
 
 Use the entity-specific template:
+
 - `templates/eav-add-product-attribute-patch.php`
 - `templates/eav-add-customer-attribute-patch.php`
 - `templates/eav-add-customer-address-attribute-patch.php`
 - `templates/eav-add-category-attribute-patch.php`
 
 Plus companion templates as needed:
+
 - `templates/source-model.php`
 - `templates/backend-model.php`
 - `templates/frontend-model.php`
@@ -94,6 +97,7 @@ Plus companion templates as needed:
 ### Phase 5 — Report
 
 Brief Markdown saved to `.docs/eav-attributes/{Vendor}_{Module}-{code}-{date}.md`:
+
 - Files generated
 - Migration command: `bin/magento setup:upgrade`
 - Reindex hint if attribute is searchable / filterable
@@ -134,12 +138,18 @@ Brief Markdown saved to `.docs/eav-attributes/{Vendor}_{Module}-{code}-{date}.md
 - `templates/backend-model.php`
 - `templates/frontend-model.php`
 
-All templates follow the canonical placeholder schema in
-`magento2-context/references/placeholder-schema.md` — use `{Module}`, not `{ModuleName}`,
-and substitute via the template-lint-approved set.
+All templates follow the placeholder registry in
+`magento2-context/references/placeholder-schema.md`. This skill's templates use the
+`{Vendor}` / `{Module}` / `{Entity}` convention (both that and the module-create
+`{ModuleName}` / `{EntityName}` convention are registered and accepted). Every token used
+must be in the Registry there — `tests/test-placeholder-tokens.sh` enforces it.
 
-(Templates also live in `magento2-module-create/templates/` from Wave 1; this skill
-links to those rather than duplicating.)
+(Near-identical EAV patch templates also exist in `magento2-module-create/templates/`
+(`eav-add-*-attribute-patch.php`). They are **not** identical: this skill's copies are the
+canonical ones for EAV work because they add the `getAttribute()` idempotency short-circuit
+and the `try/finally` around `startSetup()/endSetup()`. Prefer this skill's templates; the
+module-create copies are the simpler scaffolding variant. Single-sourcing the two sets is
+tracked as a follow-up.)
 
 ## Acceptance Criteria
 
@@ -151,18 +161,18 @@ links to those rather than duplicating.)
 
 ## Common Pitfalls Handled
 
-| Pitfall | How the skill avoids it |
-|---------|------------------------|
-| Forgetting `getDependencies()` returns | Always emitted, even when empty |
-| `addAttribute` without `apply_to` for product type | Asked in Phase 1 |
-| `is_global` set wrong | Asked in Phase 1; default `store` |
-| Missing DI for source model | Generated when source model used |
-| Missing `is_used_in_grid` / `is_visible_in_grid` | Asked in Phase 1 |
-| Legacy `Setup/InstallData.php` | Skill refuses; uses `Setup/Patch/Data/` only |
+| Pitfall                                            | How the skill avoids it                      |
+|----------------------------------------------------|----------------------------------------------|
+| Forgetting `getDependencies()` returns             | Always emitted, even when empty              |
+| `addAttribute` without `apply_to` for product type | Asked in Phase 1                             |
+| `is_global` set wrong                              | Asked in Phase 1; default `store`            |
+| Missing DI for source model                        | Generated when source model used             |
+| Missing `is_used_in_grid` / `is_visible_in_grid`   | Asked in Phase 1                             |
+| Legacy `Setup/InstallData.php`                     | Skill refuses; uses `Setup/Patch/Data/` only |
 
 ## Related Skills
 
-| Phase | Skill |
-|-------|-------|
-| 0 | `magento2-context` |
+| Phase    | Skill                                                                         |
+|----------|-------------------------------------------------------------------------------|
+| 0        | `magento2-context`                                                            |
 | (caller) | `magento2-feature-implement` Phase 5 — when blueprint declares EAV attributes |

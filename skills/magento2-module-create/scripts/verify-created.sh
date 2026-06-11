@@ -170,11 +170,11 @@ echo "== Category 4: PHP coding standards =="
 if $PHP_CMD -v >/dev/null 2>&1; then
     syntax_errors=0
     while IFS= read -r -d '' file; do
-        result=$($PHP_CMD -l "$file" 2>&1)
+        result=$($PHP_CMD -l "$file" 2>&1 || true)
         if ! echo "$result" | grep -q "No syntax errors"; then
             fail "PHP syntax error: ${file#"$module_path/"}"
             printf "     %s\n" "$result"
-            ((syntax_errors++))
+            syntax_errors=$((syntax_errors + 1))
         fi
     done < <(find "$module_path" -type f -name '*.php' -print0)
     [[ $syntax_errors -eq 0 ]] && ok "All PHP files pass syntax check"
@@ -187,13 +187,17 @@ strict_missing=0
 while IFS= read -r -d '' file; do
     if ! grep -q "declare(strict_types=1)" "$file"; then
         fail "Missing declare(strict_types=1): ${file#"$module_path/"}"
-        ((strict_missing++))
+        strict_missing=$((strict_missing + 1))
     fi
 done < <(find "$module_path" -type f -name '*.php' -not -path '*/Test/*' -print0)
 [[ $strict_missing -eq 0 ]] && ok "declare(strict_types=1) in all production PHP files"
 
-# Forbidden constructs in production PHP
-forbidden_pattern='ObjectManager::getInstance\(\)|die\(|exit\(|var_dump\(|eval\(|print_r\(|\becho\b|\bprint\b|@[a-zA-Z_]'
+# Forbidden constructs in production PHP.
+# The final alternative targets the @ error-suppression operator, which always precedes a
+# call expression (e.g. @file_get_contents(...), @unlink(...)). Matching `@<ident>(` avoids
+# the previous `@[a-zA-Z_]` pattern that flagged every PHPDoc tag (@param, @return, @api)
+# and made every compliant module fail (MC-1).
+forbidden_pattern='ObjectManager::getInstance\(\)|die\(|exit\(|var_dump\(|eval\(|print_r\(|\becho\b|\bprint\b|@[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]*\('
 forbidden_hits=$(grep -RlnE --include='*.php' "$forbidden_pattern" \
     "$module_path" 2>/dev/null | grep -v '/Test/' || true)
 if [[ -n "$forbidden_hits" ]]; then
@@ -213,7 +217,7 @@ if [[ -d "${module_path}/Api" ]]; then
     while IFS= read -r -d '' file; do
         if ! grep -q "@api" "$file"; then
             warn "Missing @api annotation: ${file#"$module_path/"}"
-            ((api_missing_tag++))
+            api_missing_tag=$((api_missing_tag + 1))
         fi
     done < <(find "${module_path}/Api" -type f -name '*.php' \
         ! -path '*/Test/*' -print0 2>/dev/null)
@@ -266,7 +270,7 @@ if [[ -d "${module_path}/Controller/Adminhtml" ]]; then
     while IFS= read -r -d '' file; do
         if ! grep -q "ADMIN_RESOURCE" "$file"; then
             fail "Missing ADMIN_RESOURCE constant: ${file#"$module_path/"}"
-            ((admin_missing_resource++))
+            admin_missing_resource=$((admin_missing_resource + 1))
         fi
     done < <(find "${module_path}/Controller/Adminhtml" -name '*.php' -print0 2>/dev/null)
     [[ $admin_missing_resource -eq 0 ]] && ok "ADMIN_RESOURCE declared in all admin controllers"
@@ -303,7 +307,7 @@ if [[ -d "${module_path}/Service" ]]; then
         testname="${basename%.php}Test.php"
         if ! find "${module_path}/Test/Unit" -name "$testname" -print -quit 2>/dev/null | grep -q .; then
             warn "No unit test found for ${src#"$module_path/"} (expected Test/Unit/**/${testname})"
-            ((service_missing++))
+            service_missing=$((service_missing + 1))
         fi
     done < <(find "${module_path}/Service" -name '*.php' -print0 2>/dev/null)
     [[ $service_missing -eq 0 ]] && ok "Unit tests found for all Service/ classes"
@@ -318,7 +322,7 @@ if [[ -d "${module_path}/Model" ]]; then
         testname="${basename%.php}Test.php"
         if ! find "${module_path}/Test/Unit" -name "$testname" -print -quit 2>/dev/null | grep -q .; then
             warn "No unit test found for ${src#"$module_path/"} (expected Test/Unit/**/${testname})"
-            ((repo_missing++))
+            repo_missing=$((repo_missing + 1))
         fi
     done < <(find "${module_path}/Model" -maxdepth 1 -name '*Repository.php' -print0 2>/dev/null)
     [[ $repo_missing -eq 0 ]] && ok "Unit tests found for all Model/*Repository.php classes"
@@ -338,8 +342,13 @@ if [[ -f "${module_path}/etc/adminhtml/system.xml" ]]; then
     fi
 
     # Every <section> in system.xml must have a <resource> element
-    section_count=$(grep -c '<section ' "${module_path}/etc/adminhtml/system.xml" 2>/dev/null || echo 0)
-    resource_count=$(grep -c '<resource>' "${module_path}/etc/adminhtml/system.xml" 2>/dev/null || echo 0)
+    # grep -c prints the count (0 on no match) but exits 1 on no match; `|| true` keeps the
+    # single "0" line instead of `|| echo 0` appending a second "0" (which broke the
+    # `-gt`/`-lt` arithmetic below on a "0\n0" value).
+    section_count=$(grep -c '<section ' "${module_path}/etc/adminhtml/system.xml" 2>/dev/null || true)
+    resource_count=$(grep -c '<resource>' "${module_path}/etc/adminhtml/system.xml" 2>/dev/null || true)
+    section_count=${section_count:-0}
+    resource_count=${resource_count:-0}
     if [[ "$section_count" -gt 0 && "$resource_count" -lt "$section_count" ]]; then
         fail "system.xml: ${section_count} <section> element(s) but only ${resource_count} <resource> element(s) — every section needs ACL protection"
     else
@@ -358,10 +367,10 @@ echo "== XML well-formedness =="
 if command -v xmllint >/dev/null 2>&1; then
     xml_errors=0
     while IFS= read -r -d '' file; do
-        result=$(xmllint --noout "$file" 2>&1)
+        result=$(xmllint --noout "$file" 2>&1 || true)
         if [[ -n "$result" ]]; then
             fail "XML error in ${file#"$module_path/"}: $result"
-            ((xml_errors++))
+            xml_errors=$((xml_errors + 1))
         fi
     done < <(find "${module_path}/etc" -name '*.xml' -print0 2>/dev/null)
     [[ $xml_errors -eq 0 ]] && ok "All XML files well-formed"
@@ -437,16 +446,16 @@ echo "============================================"
 if [[ $FAIL -gt 0 ]]; then
     echo ""
     echo "  RESULT: FAIL — fix all ✗ items before deploying."
-    echo "  Run /validate for full PHPCS + PHPStan + unit test results."
+    echo "  Run the magento2-module-review skill for full PHPCS + PHPStan + unit test results."
     exit 1
 elif [[ $WARN -gt 0 ]]; then
     echo ""
     echo "  RESULT: WARN — review ⚠ items before release."
-    echo "  Run /module-review {Vendor}/{ModuleName} to verify all 12 categories."
+    echo "  Run the magento2-module-review skill on {Vendor}/{ModuleName} to verify all 12 categories."
     exit 0
 else
     echo ""
     echo "  RESULT: PASS — module is compliant."
-    echo "  Run /deploy to enable and deploy, then /validate to confirm."
+    echo "  Run the magento2-deploy skill to enable and deploy, then magento2-module-review to confirm."
     exit 0
 fi

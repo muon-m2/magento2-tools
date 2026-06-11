@@ -1,14 +1,19 @@
 #!/usr/bin/env bash
-# Deploy preflight must NOT silently green-light a release when its required tools
-# (PHPUnit, Magento CLI) are unavailable. After the v2 remediation, required-but-skipped
-# checks fail. This test verifies that contract on a fixture module tree.
+# Deploy preflight must NOT silently green-light a release when a genuinely required tool
+# (the Magento CLI, needed for setup:db:status) is unavailable. A required-but-skipped check
+# still fails the run.
+#
+# DEP-7 refinement: PHPUnit is NOT a hard deploy blocker. A module may legitimately ship no
+# unit tests, and a deploy host may legitimately lack phpunit. So when phpunit is absent the
+# check is recorded as non-required + "skipped", and the overall preflight still fails here
+# because the (truly required) db-status check fails with no Magento CLI.
 set -uo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
 if ! command -v python3 >/dev/null 2>&1; then
     echo "skip: python3 not on PATH"
-    exit 0
+    exit 77
 fi
 
 WORK="$(mktemp -d)"
@@ -53,13 +58,14 @@ if [ "$EXIT" = "0" ]; then
     exit 1
 fi
 
-# Validate that the JSON records phpunit-unit and db-status as fail (not skipped).
+# phpunit absent ⇒ recorded as non-required + "skipped" (DEP-7); db-status must still fail
+# (no Magento CLI), and the required-skipped db-status must drive the overall failure.
 PHPUNIT_RESULT=$(python3 -c "
 import json
 d = json.load(open('$WORK/preflight.json'))
 for c in d['preflight']['checks']:
     if c['name'] == 'phpunit-unit':
-        print(c['result']); break
+        print(c['result'], c['required']); break
 " 2>/dev/null)
 DBSTATUS_RESULT=$(python3 -c "
 import json
@@ -69,8 +75,8 @@ for c in d['preflight']['checks']:
         print(c['result']); break
 " 2>/dev/null)
 
-if [ "$PHPUNIT_RESULT" != "fail" ]; then
-    echo "FAIL: phpunit-unit result='$PHPUNIT_RESULT' (expected 'fail')"
+if [ "$PHPUNIT_RESULT" != "skipped False" ]; then
+    echo "FAIL: phpunit-unit result/required='$PHPUNIT_RESULT' (expected 'skipped False')"
     cat "$WORK/preflight.json"
     exit 1
 fi

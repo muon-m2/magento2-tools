@@ -1,9 +1,9 @@
 # {Vendor}_{Module} GraphQL Schema Fragment
 
 type Query {
-    {vendorLower}{Entity}(id: ID! @doc(description: "Entity ID")): {Entity} @resolver(class: "\\{Vendor}\\{Module}\\Model\\Resolver\\Get{Entity}") @doc(description: "Fetch a single {Entity} by ID")
+    {vendor_lower}{Entity}(id: ID! @doc(description: "Entity ID")): {Entity} @resolver(class: "\\{Vendor}\\{Module}\\Model\\Resolver\\Get{Entity}") @doc(description: "Fetch a single {Entity} by ID")
 
-    {vendorLower}{Entity}List(
+    {vendor_lower}{Entity}List(
         filter: {Entity}FilterInput
         currentPage: Int = 1
         pageSize: Int = 20
@@ -11,7 +11,7 @@ type Query {
 }
 
 type Mutation {
-    {vendorLower}Create{Entity}(input: {Entity}CreateInput!): {Entity}! @resolver(class: "\\{Vendor}\\{Module}\\Model\\Resolver\\Create{Entity}") @doc(description: "Create a new {Entity}")
+    {vendor_lower}Create{Entity}(input: {Entity}CreateInput!): {Entity}! @resolver(class: "\\{Vendor}\\{Module}\\Model\\Resolver\\Create{Entity}") @doc(description: "Create a new {Entity}")
 }
 
 type {Entity} {

@@ -5,7 +5,11 @@
 #   MAGENTO_CLI  (default: from .claude/.cache/magento2-context.json)
 #   REDIS_CLI    (optional, default: redis-cli)
 #
-# Output: JSON document with per-check results.
+# Output: JSON ARRAY of finding objects (same schema as static-perf.sh), so that
+# build-findings.sh can merge runtime results the same way it merges static ones.
+# Probe raw text is attached to each finding's evidence/description so the LLM pass
+# can interpret it. When a probe tool is absent, the array is empty (no findings) —
+# build-findings.sh records "didn't run" separately via stderr.
 
 set -uo pipefail
 
@@ -17,7 +21,8 @@ fi
 REDIS_CLI="${REDIS_CLI:-redis-cli}"
 
 if ! command -v python3 >/dev/null 2>&1; then
-    echo "{}"
+    echo "runtime-checks: python3 not found; cannot build findings" >&2
+    echo "[]"
     exit 2
 fi
 
@@ -45,17 +50,59 @@ fi
 IDX_OUT="$IDX_OUT" CACHE_OUT="$CACHE_OUT" QUEUE_OUT="$QUEUE_OUT" REDIS_OUT="$REDIS_OUT" python3 <<'PY'
 import json
 import os
+import sys
 
-out = {
-    'indexer_status_raw': os.environ.get('IDX_OUT', '').splitlines()[-30:],
-    'cache_status_raw': os.environ.get('CACHE_OUT', '').splitlines()[-30:],
-    'queue_consumers_raw': os.environ.get('QUEUE_OUT', '').splitlines()[-30:],
-    'redis_stats_raw': os.environ.get('REDIS_OUT', '').splitlines()[-30:],
-    'available': {
-        'magento_cli': bool(os.environ.get('IDX_OUT') or os.environ.get('CACHE_OUT')),
-        'redis_cli': bool(os.environ.get('REDIS_OUT')),
-    }
-}
+# Each probe that produced output becomes one finding carrying the raw probe text.
+# Severity is intentionally `info` and confidence `candidate`: this is unparsed
+# evidence the LLM pass must interpret and calibrate against the shared severity
+# scale (see references/severity-perf.md). Probes whose tool was absent emit no
+# finding; build-findings.sh reports that separately so "didn't run" is observable.
+PROBES = [
+    ('runtime-indexer', 'indexer', 'IDX_OUT',
+     'Indexer status snapshot (interpret manually)',
+     '`{magento_cli} indexer:status` output. Flag any index in "invalid" or '
+     'stuck "processing"; recommend reindex and review update mode.'),
+    ('runtime-cache', 'cache', 'CACHE_OUT',
+     'Cache type status snapshot (interpret manually)',
+     '`{magento_cli} cache:status` output. Flag disabled cache types that should '
+     'be enabled in production (full_page, block_html, config).'),
+    ('runtime-queue', 'queue', 'QUEUE_OUT',
+     'Queue consumers snapshot (interpret manually)',
+     '`{magento_cli} queue:consumers:list` output. Cross-check against declared '
+     'queue_consumer.xml consumers; flag declared-but-unregistered consumers.'),
+    ('runtime-redis', 'cache', 'REDIS_OUT',
+     'Redis stats snapshot (interpret manually)',
+     '`redis-cli INFO stats` output. Compute keyspace_hits / (hits+misses); flag '
+     'a low hit ratio on a warm cache.'),
+]
+
+out = []
+fid = 1
+for pid, category, env_key, title, recommendation in PROBES:
+    raw = os.environ.get(env_key, '')
+    lines = raw.splitlines()[-30:]
+    if not lines:
+        # Tool absent or probe produced nothing — not a finding. Note on stderr so a
+        # caller can tell an empty probe ("didn't run") from a clean probe ("found
+        # nothing"). build-findings.sh aggregates these into scanner_errors.
+        print(f'{pid}: no output (probe tool unavailable or returned nothing)',
+              file=sys.stderr)
+        continue
+    out.append({
+        'id': f'perf-audit-runtime-{fid:03d}',
+        'severity': 'info',
+        'confidence': 'candidate',
+        'category': category,
+        'subcategory': pid,
+        'title': title,
+        'description': '\n'.join(lines),
+        'evidence': [{'file': '(runtime probe)', 'line': 0,
+                      'snippet': (lines[-1] if lines else '')[:200]}],
+        'recommendation': recommendation,
+        'verification': 'Re-run runtime-checks.sh after remediation; the probe '
+                        'snapshot should reflect the corrected state.'
+    })
+    fid += 1
 
 print(json.dumps(out, indent=2))
 PY

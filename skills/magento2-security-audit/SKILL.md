@@ -86,14 +86,17 @@ Beyond review's Tier 1 — see `references/security-checklist.md` for the full c
 | ACL resource using wildcards | `*` in ACL ID |
 | GraphQL resolvers without auth check on mutations | Static check on resolver class |
 
-### Phase 5 — EQP Rules
+### Phase 5 — Marketplace coding-standard checks
 
-Run the Marketplace Extension Quality Program static rules (Magento's official lints):
+Run the Magento coding standard — the publicly runnable part of the Marketplace Extension
+Quality Program (there is no `m2-coding-standard` / `magento-marketplace-eqp` binary):
 
-- `vendor/bin/m2-coding-standard` (if installed)
-- `vendor/bin/magento-marketplace-eqp` (if installed)
+- `{ctx.runner} vendor/bin/phpcs --standard=Magento2 {target}` (install `magento/magento-coding-standard`)
+- optionally `vendor/bin/phpstan analyse {target}` and `vendor/bin/phpmd {target} text cleancode,codesize`
 
-Map findings to the shared severity scale per `references/eqp-rules.md`.
+If `phpcs` / the `Magento2` standard is not installed, skip this phase and report it
+(do not silently pass). Map findings to the shared severity scale per
+`references/eqp-rules.md` (subcategory = the PHPCS sniff code).
 
 ### Phase 6 — Cross-Module Pattern Pass
 

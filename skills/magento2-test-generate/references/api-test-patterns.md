@@ -90,8 +90,10 @@ mutation {
 }
 MUTATION;
 
+        // graphQlMutation wraps server errors in a generic \Exception; pin the
+        // assertion to the specific authorization message rather than any \Exception.
         $this->expectException(\Exception::class);
-        $this->expectExceptionMessage('Current customer does not have access');
+        $this->expectExceptionMessage('The current customer isn\'t authorized.');
         $this->graphQlMutation($mutation);
     }
 }

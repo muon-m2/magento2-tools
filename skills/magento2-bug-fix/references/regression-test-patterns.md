@@ -21,6 +21,7 @@ Location: `Test/Unit/Plugin/{TargetClass}Plugin{Name}Test.php`
 Skeleton: `templates/regression-test-unit.php` (uses MockObject pattern).
 
 Key assertions:
+
 - The `before*` / `around*` / `after*` method is called with the expected args.
 - The plugin returns the expected value.
 - The plugin does NOT swallow exceptions when the target throws.
@@ -34,6 +35,7 @@ Location: `Test/Unit/Observer/{Name}Test.php`
 Skeleton: `templates/regression-test-unit.php`.
 
 Key assertions:
+
 - The observer reads the expected event data.
 - The observer mutates state via the expected service.
 - The observer does NOT throw on missing event data (use `getData('key', null)` then
@@ -47,6 +49,7 @@ class instantiates correctly with the real DI graph.
 Location: `Test/Unit/{Module-path}/{Class}Test.php`
 
 Key assertions:
+
 - Class can be instantiated.
 - Required collaborators are non-null.
 - Optional collaborators have their default values applied.
@@ -64,6 +67,7 @@ Location: `Test/Integration/{Module-path}/{Class}Test.php`
 Skeleton: `templates/regression-test-integration.php`.
 
 Key assertions:
+
 - The query returns the expected rows.
 - The query uses a parameterized binding (assert no raw SQL injection vector).
 - The query handles edge cases (empty result, large result set).
@@ -80,6 +84,7 @@ Location: `Test/Unit/Controller/{Area}/{Name}Test.php`
 Skeleton: `templates/regression-test-controller.php`.
 
 Key assertions:
+
 - 200 vs 302 vs 404 vs 500 return for the relevant inputs.
 - For POST controllers: form key validation enforced.
 - For admin controllers: ACL check enforced.
@@ -93,6 +98,7 @@ Location: `Test/Api/{Route}Test.php` (REST) or `Test/Api/GraphQl/{Operation}Test
 Skeleton: derive from existing API tests in the module.
 
 Key assertions:
+
 - Status code matches expected.
 - Response body shape matches expected JSON schema.
 - Auth errors return 401, not 200 with empty body.
@@ -104,6 +110,7 @@ Test the cron job's `execute()` method directly.
 Location: `Test/Unit/Cron/{Name}Test.php`.
 
 Key assertions:
+
 - The job processes the expected batch size.
 - The job advances state correctly between runs.
 - The job logs and continues on per-item failure rather than crashing the whole run.
@@ -115,6 +122,7 @@ Test the consumer's `process()` (or equivalent) method with a synthetic message.
 Location: `Test/Unit/Queue/{Consumer}Test.php`.
 
 Key assertions:
+
 - Message decoded correctly.
 - Bad messages routed to dead-letter / logged appropriately.
 - Idempotency: processing the same message twice doesn't double-apply.
@@ -125,9 +133,10 @@ Test the resolver class directly with mocked `ContextInterface` and `Field`.
 
 Location: `Test/Unit/Model/Resolver/{Name}Test.php`.
 
-Skeleton: see `magento2-test-generate/templates/test-resolver.php`.
+Skeleton: see `magento2-module-create/templates/test-resolver.php`.
 
 Key assertions:
+
 - Resolver returns the expected shape.
 - Auth check: anonymous request rejected when not allowed.
 - Input error: invalid args throw `GraphQlInputException`.
@@ -139,6 +148,7 @@ Test the block/view-model in isolation.
 Location: `Test/Unit/Block/{Name}Test.php` or `Test/Unit/ViewModel/{Name}Test.php`.
 
 Key assertions:
+
 - Block returns expected data.
 - Escaping: any output is run through `$escaper->escapeHtml(...)`.
 - Cache identities: `getIdentities()` returns the expected cache tags.
@@ -152,6 +162,7 @@ resolved value matches the expected.
 Location: `Test/Unit/Config/{Name}Test.php`.
 
 Key assertions:
+
 - XML is well-formed (`xmllint --noout`).
 - Validates against the published XSD (`xmllint --schema`).
 - Resolved config value matches expectation when loaded by Magento's Config\Reader.

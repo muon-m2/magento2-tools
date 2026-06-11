@@ -66,6 +66,11 @@ Post-fix expectation: passing assertion `{description}`
 {critical | high | medium | low} — {1-sentence justification per bug-fix SKILL.md
 classification table.}
 
+These four levels ARE the shared 5-level scale (`magento2-context/references/severity.md`)
+minus `info`: a defect is never `info`, so bug-fix omits that level. `critical`, `high`,
+`medium`, and `low` carry exactly the same meaning as in the shared scale, so findings cross
+between skills without re-grading.
+
 ## Deferred Issues
 
 {If the investigation surfaced additional bugs: list them here. Do not fold into this
