@@ -28,6 +28,7 @@ Use `templates/README.md` and `templates/CHANGELOG.md` as the structural base.
 7. **Known Limitations** — Any intentional constraints or out-of-scope behavior
 
 **Writing rules:**
+
 - Write in plain English. No marketing language.
 - Omit sections that genuinely do not apply (e.g. skip Configuration if there are no config fields).
 - Replace all `{placeholders}` before marking the task complete.

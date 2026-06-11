@@ -5,10 +5,11 @@ Status: Complete
 Implemented by: Claude Code using `magento2-feature-implement`
 Blueprint: `.docs/{FeatureName}/blueprint.md`
 Skill versions:
-  - magento2-feature-implement@2.3.0
-  - magento2-module-create@1.5.1
-  - magento2-module-review@2.2.0
-  - magento2-context@1.3.0
+
+- magento2-feature-implement@2.4.0
+  - magento2-module-create@1.6.0
+  - magento2-module-review@2.2.1
+- magento2-context@1.4.0
 
 ---
 
@@ -125,10 +126,10 @@ PHPUnit result: {N} passed, {N} failed, {N} skipped.
 ## Recommended Next Steps
 
 1. Run `setup:db-declaration:generate-whitelist` for each new module with a persistence surface.
-2. Run `/module-review` for any module reviewed only quickly during Phase 5.
+2. Run `magento2-module-review` for any module reviewed only quickly during Phase 5.
 3. Add integration tests for REST endpoints.
 4. Configure the feature in Admin > {path}.
-5. Run `/deploy` to enable modules on staging.
+5. Run `magento2-deploy` to enable modules on staging.
 
 ---
 

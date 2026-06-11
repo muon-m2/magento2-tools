@@ -60,6 +60,7 @@ See `references/event-catalog.md` and `${CLAUDE_SKILL_DIR}/scripts/plugin-trace.
 ```
 
 Shows DI graph for a type:
+
 - All `<preference>` for the interface
 - All plugins on the resolved type
 - All argument bindings from `<type>` entries
@@ -76,6 +77,7 @@ See `references/di-graph-walk.md` and `${CLAUDE_SKILL_DIR}/scripts/di-walk.sh`.
 
 Reads MySQL slow log (path configurable). Groups queries by signature (replaces literals
 with placeholders). Top 20 by total time + per-query suggestions:
+
 - Missing index inferred from WHERE columns
 - WHERE on non-indexed columns
 - Table scan hint
@@ -90,6 +92,7 @@ See `references/slow-query-patterns.md` and `${CLAUDE_SKILL_DIR}/scripts/slow-qu
 ```
 
 One-shot system snapshot:
+
 - Indexer status + mode
 - Cache type status
 - Queue consumers + backlog
@@ -100,7 +103,9 @@ One-shot system snapshot:
 - PHP version + extensions
 - `composer outdated`
 
-Output: single Markdown snapshot for paste-into-ticket.
+Output: single Markdown snapshot for paste-into-ticket. Produced by
+`${CLAUDE_SKILL_DIR}/scripts/snapshot.sh` (read-only; resolves `{magento_cli}`/`{runner}` from
+the magento2-context cache, every probe best-effort).
 
 See `references/snapshot-format.md`.
 
@@ -123,6 +128,7 @@ Includes troubleshooting checklist.
 ```
 
 Common flags:
+
 - `--since=<duration>` — `1h`, `24h`, `7d`
 - `--module=<Vendor>_<Module>` — constrain scope
 - `--format=markdown|json` — output format
@@ -161,13 +167,14 @@ Common flags:
 
 This skill is **read-only**. It does not edit any file. If the user wants to act on
 findings, the skill suggests the appropriate next skill:
+
 - defects → `magento2-bug-fix`
 - slow-query patterns → `magento2-performance-audit`
 - DI collisions → `magento2-security-audit`
 
 ## Related Skills
 
-| Phase | Skill |
-|-------|-------|
-| 0 | `magento2-context` |
-| (none — output is the deliverable; no code changes) | |
+| Phase                                               | Skill              |
+|-----------------------------------------------------|--------------------|
+| 0                                                   | `magento2-context` |
+| (none — output is the deliverable; no code changes) |                    |

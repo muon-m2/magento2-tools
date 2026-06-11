@@ -49,13 +49,14 @@ State the target explicitly. Ask for clarification if multiple targets fit.
 
 Run scanners in order; record what was available and what wasn't.
 
-| Scanner | Purpose |
-|---------|---------|
-| Rector with Magento rule set | Identify rewritable deprecations |
-| `vendor/bin/m2-coding-standard` (if installed) | Magento-specific lints |
-| Custom AST scan (per `references/deprecation-map.md`) | Removed classes/methods per Magento version |
-| Composer constraint scan | Detect constraints incompatible with target |
-| PHPStan | Errors that surface only at the new PHP/Magento level |
+| Scanner                                                                                 | Purpose                                               |
+|-----------------------------------------------------------------------------------------|-------------------------------------------------------|
+| Adobe UCT (`vendor/bin/uct upgrade:check`, edition-gated)                               | First-party compatibility scan                        |
+| Rector (core `rector/rector` + hand-listed rules)                                       | Identify rewritable deprecations                      |
+| `vendor/bin/phpcs --standard=Magento2` (if `magento/magento-coding-standard` installed) | Magento-specific lints                                |
+| Custom AST scan (per `references/deprecation-map.md`)                                   | Removed classes/methods per Magento version           |
+| Composer constraint scan                                                                | Detect constraints incompatible with target           |
+| PHPStan                                                                                 | Errors that surface only at the new PHP/Magento level |
 
 Emit a **scan report**: each finding categorized as:
 - `auto-fixable` (Rector can do it)

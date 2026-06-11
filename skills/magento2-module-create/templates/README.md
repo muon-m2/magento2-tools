@@ -29,8 +29,8 @@ bin/magento setup:db-declaration:generate-whitelist --module-name={Vendor}_{Modu
 
 Navigate to **Stores → Configuration → {Section} → {Group}**.
 
-| Field | Description | Default |
-|---|---|---|
+| Field        | Description   | Default         |
+|--------------|---------------|-----------------|
 | {Field name} | {Description} | {Default value} |
 
 <!-- Omit this section if the module has no admin configuration. -->
@@ -39,14 +39,14 @@ Navigate to **Stores → Configuration → {Section} → {Group}**.
 
 <!-- Include when rest_api or graphql surface is declared. -->
 
-| Interface | Description |
-|---|---|
+| Interface                                                   | Description   |
+|-------------------------------------------------------------|---------------|
 | `{Vendor}\{ModuleName}\Api\{EntityName}RepositoryInterface` | {Description} |
 
 ## Dependencies
 
-| Module | Purpose |
-|---|---|
+| Module              | Purpose        |
+|---------------------|----------------|
 | `Magento_Framework` | Core framework |
 
 ## Known Limitations

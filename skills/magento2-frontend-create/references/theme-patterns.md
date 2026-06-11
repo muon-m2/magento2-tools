@@ -71,8 +71,18 @@ app/design/frontend/{Vendor}/{Theme}/
 
 ## Activating the Theme
 
+The `design/theme/theme_id` config value is the **numeric** `theme_id` row from the `theme`
+table — NOT the `{Vendor}/{Theme}` path. Passing the path does nothing. Activate one of two
+ways:
+
+- **Admin (simplest):** Content → Design → Configuration → edit the store-view scope → pick
+  the theme → Save. Magento writes the correct numeric id.
+- **CLI:** look up the numeric id first, then set it:
+
 ```bash
-{ctx.magento_cli} config:set design/theme/theme_id {Vendor}/{Theme}
+# Find the numeric theme_id for the path (query the theme table via the DB client), e.g.:
+#   SELECT theme_id FROM theme WHERE theme_path = '{Vendor}/{Theme}' AND area = 'frontend';
+{ctx.magento_cli} config:set design/theme/theme_id <numeric-theme-id>
 {ctx.magento_cli} setup:static-content:deploy -f --theme={Vendor}/{Theme}
 {ctx.magento_cli} cache:flush
 ```
@@ -96,7 +106,8 @@ For Hyva: depend on `hyva-themes/magento2-default-theme`.
 ## Multi-Store Theme Assignment
 
 ```bash
-{ctx.magento_cli} config:set design/theme/theme_id {Vendor}/{Theme} --scope=stores --scope-code=default
+# Same rule: the value is the numeric theme_id, not the {Vendor}/{Theme} path.
+{ctx.magento_cli} config:set design/theme/theme_id <numeric-theme-id> --scope=stores --scope-code=default
 ```
 
 ## Common Mistakes

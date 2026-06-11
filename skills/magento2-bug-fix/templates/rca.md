@@ -36,10 +36,12 @@ What changed since then: {if applicable}
 {One paragraph describing the minimal change. Behaviour, not code.}
 
 Files to modify:
+
 - `{file1}` — {one-line reason}
 - `{file2}` — {one-line reason}
 
 Scope discipline check:
+
 - [ ] Change touches only files listed above
 - [ ] No surrounding cleanup
 - [ ] No refactor for testability beyond the regression test

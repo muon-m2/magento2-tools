@@ -26,8 +26,8 @@ Recipe: `.docs/bug-fixes/{slug}/reproduction.md`
 
 ## Files Changed
 
-| File | Change |
-|------|--------|
+| File                                                   | Change        |
+|--------------------------------------------------------|---------------|
 | `{ctx.magento_root}/app/code/{Vendor}/{Module}/{Path}` | {description} |
 
 ## Regression Test
@@ -39,12 +39,12 @@ Suite result: {N passed / 0 failed}.
 
 ## Review Findings
 
-| Severity | Count | Notes |
-|----------|-------|-------|
-| Critical | 0 | — |
-| High | 0 | — |
-| Medium | {N} | {if any: brief list} |
-| Low | {N} | {if any: brief list} |
+| Severity | Count | Notes                |
+|----------|-------|----------------------|
+| Critical | 0     | —                    |
+| High     | 0     | —                    |
+| Medium   | {N}   | {if any: brief list} |
+| Low      | {N}   | {if any: brief list} |
 
 Critical/High findings introduced by the fix: 0 (else: list and resolution).
 
@@ -59,7 +59,7 @@ Critical/High findings introduced by the fix: 0 (else: list and resolution).
 ## Verification Steps
 
 1. Apply patch (commits listed below).
-2. Run `{ctx.runner} vendor/bin/phpunit {ctx.magento_root}/app/code/{Vendor}/{Module}/Test/Unit/{...}Test.php`.
+2. Run `{ctx.runner} vendor/bin/phpunit -c dev/tests/unit/phpunit.xml.dist {ctx.magento_root}/app/code/{Vendor}/{Module}/Test/Unit/{...}Test.php`.
 3. Re-run the reproduction recipe — confirm success.
 
 ## Commits

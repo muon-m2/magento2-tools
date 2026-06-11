@@ -38,6 +38,7 @@ Sort plugins by `sortOrder` (ascending); within the same sortOrder, by alphabeti
 plugin name.
 
 For each plugin, find the actual method bindings:
+
 - `beforeFoo()` → fires before `Foo`
 - `aroundFoo()` → wraps `Foo`
 - `afterFoo()` → fires after `Foo`

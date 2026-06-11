@@ -30,15 +30,15 @@ to `.claude/.cache/magento2-context.json`.
 ## Workflow
 
 1. Check cache (`.claude/.cache/magento2-context.json`).
-   - If present, age < 24h, and `composer.lock` sha256 matches: return cached JSON.
-   - Else: continue.
+    - If present, age < 24h, and `composer.lock` sha256 matches: return cached JSON.
+    - Else: continue.
 2. Resolve each context field per `references/`:
-   - `vendor` — see `references/vendor-resolution.md`
-   - `runner`, `magento_cli`, `composer` — see `references/runner-detection.md`
-   - `edition`, `magento_version`, `php_constraint`, `php_version`,
-     `framework_constraint` — see `references/version-resolution.md`
-   - `theme.frontend`, `theme.adminhtml` — see `references/theme-detection.md`
-   - `tools.*` — see `references/tool-probe.md`
+    - `vendor` — see `references/vendor-resolution.md`
+    - `runner`, `magento_cli`, `composer` — see `references/runner-detection.md`
+    - `edition`, `magento_version`, `php_constraint`, `php_version`,
+      `framework_constraint` — see `references/version-resolution.md`
+    - `theme.frontend`, `theme.adminhtml` — see `references/theme-detection.md`
+    - `tools.*` — see `references/tool-probe.md`
 3. Assemble JSON per the schema below.
 4. Save to cache.
 5. Emit JSON.
@@ -135,6 +135,7 @@ to `.claude/.cache/magento2-context.json`.
 ## Cache Invalidation
 
 The cache becomes stale when any of:
+
 - `composer.lock` sha256 changes
 - `composer.json` sha256 changes
 - `CLAUDE.md` sha256 changes
@@ -155,7 +156,8 @@ Force a refresh by deleting `.claude/.cache/magento2-context.json` or passing `-
 - `references/naming.md` — authoritative naming conventions (consumed by all builder skills).
 - `references/severity.md` — shared severity scale (consumed by all findings-producing skills).
 - `references/skill-versioning.md` — current skill versions + bump rules; consumed by every artefact-producing skill.
-- `references/findings-schema.md` — shared JSON + SARIF schema for finding-producing skills (review, security-audit, performance-audit, module-upgrade).
+- `references/findings-schema.md` — shared JSON + SARIF schema for finding-producing skills (review, security-audit,
+  performance-audit, module-upgrade).
 
 ## Scripts
 

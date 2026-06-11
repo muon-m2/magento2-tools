@@ -10,22 +10,22 @@ rather than expanding scope.
    original.
 2. **Document deferred bugs in the RCA's "Deferred Issues" section.** Each deferred bug
    gets:
-   - One-line symptom
-   - File:line where it was noticed
-   - Why it's deferred (not in scope of current fix)
+    - One-line symptom
+    - File:line where it was noticed
+    - Why it's deferred (not in scope of current fix)
 3. **After Phase 7, surface deferred bugs to the user.** Offer to start a new
    `/magento2-bug-fix` run for each.
 
 ## What Counts as a Deferred Bug
 
-| Discovery | Defer or Include? |
-|-----------|------------------|
-| Same root cause, different symptom | Include (it's the same bug) |
-| Different root cause in the same method | Defer (would expand scope) |
-| Code smell in surrounding code | Defer (not a bug — file as refactor task) |
-| Missing test for adjacent method | Defer (not a bug — file as test-generate task) |
-| Failing assertion in unrelated test broken by your fix | Include (you caused it; you fix it) |
-| Pre-existing failing test in another file | Defer (not yours) |
+| Discovery                                              | Defer or Include?                              |
+|--------------------------------------------------------|------------------------------------------------|
+| Same root cause, different symptom                     | Include (it's the same bug)                    |
+| Different root cause in the same method                | Defer (would expand scope)                     |
+| Code smell in surrounding code                         | Defer (not a bug — file as refactor task)      |
+| Missing test for adjacent method                       | Defer (not a bug — file as test-generate task) |
+| Failing assertion in unrelated test broken by your fix | Include (you caused it; you fix it)            |
+| Pre-existing failing test in another file              | Defer (not yours)                              |
 
 ## Example RCA Deferred Section
 
@@ -46,6 +46,7 @@ rather than expanding scope.
 
 If two bugs share a root cause that you only discover during Phase 4, it is acceptable
 to fix both in one commit — but only if:
+
 - The combined fix is still minimal (< 5 files).
 - The combined regression test covers both symptoms.
 - You note the bundling explicitly in the RCA and the final report.

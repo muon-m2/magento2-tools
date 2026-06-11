@@ -72,33 +72,24 @@ Model/Resolver/Get{Entity}.php             # Standard
 Model/Resolver/Batch/{Entity}BatchResolver.php  # Batch
 ```
 
-## DI Registration
+## Wiring
 
-Batch resolvers need an entry in the BatchResolverFactory list:
-
-```xml
-<type name="Magento\Framework\GraphQl\Query\Resolver\BatchResolverFactory">
-    <arguments>
-        <argument name="batchResolvers" xsi:type="array">
-            <item name="reviews_for_product" xsi:type="string">{Vendor}\{Module}\Model\Resolver\Batch\ReviewsBatchResolver</item>
-        </argument>
-    </arguments>
-</type>
-```
-
-The `name` is referenced from the schema:
+A batch resolver is referenced directly from the schema with `@resolver(class: "...")`,
+exactly like a standard resolver. There is no factory, provider, or batch-key registration:
+Magento detects that the class implements `BatchResolverInterface` and dispatches all
+requests for the field in a single `resolve()` call.
 
 ```graphql
 type Product {
-    reviews: [Review] @resolver(class: "\\Magento\\Framework\\GraphQl\\Query\\Resolver\\BatchedResolver\\BatchedResolverProvider") @doc(batch: "reviews_for_product")
+    reviews: [Review] @resolver(class: "\\{Vendor}\\{Module}\\Model\\Resolver\\Batch\\ReviewsBatchResolver")
 }
 ```
 
-## DataLoader Alternative (Magento 2.4.5+)
+No `di.xml` entry is needed for the resolver reference itself — add `di.xml` only if the
+resolver's constructor dependencies need configuration.
 
-Magento exposes a `Magento\GraphQl\Model\Resolver\DataLoaderInterface` pattern that
-some teams prefer. The shape is similar to batch resolvers; pick one approach per
-module and stick with it for consistency.
+For batch resolvers that delegate to a service contract / repository, Magento also ships
+`Magento\Framework\GraphQl\Query\Resolver\BatchServiceContractResolverInterface` as a base.
 
 ## Testing Batch Resolvers
 
@@ -113,5 +104,6 @@ If your test passes with N calls to the repository, the batch isn't working.
 
 - Batch resolver that loops over `$requests` and calls `repo->get()` per request — that's
   still N+1, just inside a batch interface.
-- Forgetting to add the entry to `etc/graphql/di.xml` — the resolver is never invoked.
-- Mismatched batch key between schema (`@doc(batch:`) and DI (`<item name=`).
+- Pointing the field's `@resolver(class: "...")` at a standard resolver instead of the
+  `BatchResolverInterface` implementation — the field falls back to per-item resolution.
+- Wrong FQCN in `@resolver` (typo or single backslash) — the resolver fails to load.

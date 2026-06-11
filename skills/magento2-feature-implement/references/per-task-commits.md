@@ -11,12 +11,18 @@ When ANY of the three is set, per-task commits are on.
 
 ## Commit Format
 
+Follow the shared rule in `magento2-bug-fix/references/commit-format.md`: **do not hard-code
+skill version numbers or a fixed model name in a commit message** — both drift. Skill
+versions are recorded in the feature's saved artefacts (`plan.md`, `report.md`), not in
+commits; the commit lists the contributing skill *names* only. Use the co-author line the
+harness specifies for the active model.
+
 ```
 [feature-implement] {TaskID} {Task title}
 
 Module(s): {Vendor}_{ModuleA}, {Vendor}_{ModuleB}
 Feature: {FeatureName}
-Skill versions: magento2-feature-implement@2.3.0, magento2-module-create@1.5.1
+Contributing skills: magento2-feature-implement, magento2-module-create
 
 {Optional 1-2 sentence task summary}
 ```
@@ -28,7 +34,7 @@ Examples:
 
 Module(s): Acme_OrderS3Export
 Feature: OrderS3Export
-Skill versions: magento2-feature-implement@2.3.0, magento2-module-create@1.5.1
+Contributing skills: magento2-feature-implement, magento2-module-create
 
 Initial module scaffold with persistence + service_contracts + cron surfaces.
 ```
@@ -38,7 +44,7 @@ Initial module scaffold with persistence + service_contracts + cron surfaces.
 
 Module(s): Acme_OrderS3Export
 Feature: OrderS3Export
-Skill versions: magento2-feature-implement@2.3.0, magento2-module-review@2.2.0
+Contributing skills: magento2-feature-implement, magento2-module-review
 
 Fixed 2 High findings (CSRF on admin POST, missing ACL on cron config).
 Logged 3 Medium findings.
@@ -52,7 +58,7 @@ In hotfix mode the prefix is `[hotfix]` and there is one commit:
 [hotfix] {Short description}
 
 Module(s): {Vendor}_{Module}
-Skill versions: magento2-feature-implement@2.3.0
+Contributing skills: magento2-feature-implement
 Files: Controller/Order/Save.php, etc/di.xml
 ```
 

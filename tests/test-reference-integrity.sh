@@ -40,6 +40,7 @@ while IFS= read -r doc; do
     while IFS= read -r ref; do
         # Resolve plugin-var prefixes first (they contain literal { } that would
         # otherwise be mistaken for {Module}-style doc placeholders).
+        cross_skill=0
         case "$ref" in
             '${CLAUDE_SKILL_DIR}/'*)
                 rel="${ref#'${CLAUDE_SKILL_DIR}/'}"
@@ -48,6 +49,13 @@ while IFS= read -r doc; do
             '${CLAUDE_PLUGIN_ROOT}/'*)
                 rel="${ref#'${CLAUDE_PLUGIN_ROOT}/'}"
                 target="./${rel}"
+                ;;
+            magento2-*/references/* | magento2-*/templates/* | magento2-*/scripts/*)
+                # Dominant cross-skill form `magento2-<skill>/references/foo.md`. Resolve it
+                # PRECISELY against skills/<skill>/... — no fuzzy fallback (TEST-4).
+                rel="$ref"
+                target="skills/${ref}"
+                cross_skill=1
                 ;;
             *"{"*"}"*)
                 continue   # placeholder-templated doc path
@@ -61,6 +69,13 @@ while IFS= read -r doc; do
         if [ -e "$target" ]; then
             continue
         fi
+        # A cross-skill `magento2-<skill>/...` ref must resolve exactly — a same-named file
+        # somewhere else in the tree does NOT satisfy it.
+        if [ "$cross_skill" = "1" ]; then
+            echo "missing reference: ${ref} (in ${doc})"
+            FAIL=1
+            continue
+        fi
         # Fall back to any skill dir under skills/ — registry/cross-cutting docs
         # legitimately reference templates and references from other skills.
         if find skills -mindepth 2 -maxdepth 6 -path "*/${rel}" -print -quit | grep -q .; then
@@ -68,7 +83,7 @@ while IFS= read -r doc; do
         fi
         echo "missing reference: ${ref} (in ${doc})"
         FAIL=1
-    done < <(grep -oE '`(\$\{CLAUDE_SKILL_DIR\}/|\$\{CLAUDE_PLUGIN_ROOT\}/)?(references|templates|scripts|skills)/[A-Za-z0-9._/-]+`' "$doc" | sed 's/`//g' | sort -u)
+    done < <(grep -oE '`(\$\{CLAUDE_SKILL_DIR\}/|\$\{CLAUDE_PLUGIN_ROOT\}/)?(magento2-[a-z-]+/(references|templates|scripts)|references|templates|scripts|skills)/[A-Za-z0-9._/-]+`' "$doc" | sed 's/`//g' | sort -u)
 done < <(find skills \( -name SKILL.md -o \( -path '*/references/*.md' \) \) -type f | sort)
 
 exit "$FAIL"

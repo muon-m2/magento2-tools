@@ -127,7 +127,7 @@ Files written under `{ctx.magento_root}/app/code/{Vendor}/{Module}/view/frontend
 - `templates/ko-ui-component.html`
 - `templates/alpine-component.phtml`
 - `templates/email-template.html`
-- `templates/email-templates.xml`
+- `templates/email_templates.xml`
 - `templates/_extend.less`
 
 ## Theme Awareness

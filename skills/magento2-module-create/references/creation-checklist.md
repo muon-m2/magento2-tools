@@ -10,6 +10,7 @@ Mark each item as ✓ (compliant), ⚠ (partial), or ✗ (gap) in the final repo
 ## Category 1 — Structure & File Layout
 
 Must create:
+
 - [ ] `registration.php` (always)
 - [ ] `composer.json` (always)
 - [ ] `etc/module.xml` (always)
@@ -19,6 +20,7 @@ Must create:
 - [ ] `etc/db_schema_whitelist.json` (when `persistence` surface declared)
 
 Must NOT create:
+
 - [ ] No `Helper/` directory (use `Service/` or `ViewModel/`)
 - [ ] No `Setup/InstallSchema.php`
 - [ ] No `Setup/UpgradeSchema.php`
@@ -28,15 +30,18 @@ Must NOT create:
 ## Category 2 — Registration & Declaration
 
 `registration.php`:
+
 - [ ] Uses `ComponentRegistrar::MODULE`
 - [ ] Module name literal exactly `{Vendor}_{ModuleName}` — matches both `registration.php` and `etc/module.xml`
 
 `etc/module.xml`:
+
 - [ ] No `setup_version` attribute on the `<module>` element
 - [ ] `<sequence>` entries present only for concrete load-order dependencies
 - [ ] `name` attribute matches the registered name in `registration.php`
 
 `composer.json` (see also `references/composer-metadata.md`):
+
 - [ ] `"type": "magento2-module"`
 - [ ] PSR-4 autoload (not PSR-0)
 - [ ] Autoload key `"{Vendor}\\{ModuleName}\\"` pointing to `""`
@@ -69,6 +74,7 @@ Must NOT create:
 ## Category 4 — PHP Coding Standards
 
 Every generated PHP file must pass all of:
+
 - [ ] `<?php` on line 1, blank line, `declare(strict_types=1);` on the next line
 - [ ] All method parameters and return types declared — no missing type hints
 - [ ] Constructor injection only — `ObjectManager::getInstance()` absent from production code
@@ -87,17 +93,20 @@ observers, plugins, ViewModels, cron jobs, consumers, data patches, repository i
 and all `Api/` and `Service/` classes. See `references/phpdoc-rules.md` for the full rule set.
 
 **Class docblock:**
+
 - [ ] Every class and interface has a one-line summary docblock ending with a period
 - [ ] `@api` annotation on every interface in `Api/` — no `@api` on concrete classes
 - [ ] `@SuppressWarnings(PHPMD.CouplingBetweenObjects)` with inline justification when constructor
   dependency count exceeds 5
 
 **Constructor PHPDoc:**
+
 - [ ] Constructor docblock present when the constructor has parameters
 - [ ] One `@param` tag per injected dependency, using FQCN with leading backslash
 - [ ] No `@return` tag on constructors
 
 **Public method PHPDoc:**
+
 - [ ] Every public method has a one-line summary sentence ending with a period
 - [ ] `@param` and `@return` use FQCN for object/interface types (e.g. `\Magento\Framework\...`)
 - [ ] Scalar types (`int`, `string`, `bool`, `float`, `array`, `null`) use short form
@@ -108,15 +117,18 @@ and all `Api/` and `Service/` classes. See `references/phpdoc-rules.md` for the 
   full PHPDoc when behaviour differs or additional `@throws` are declared
 
 **`@throws` rules:**
+
 - [ ] `@throws` present only for exceptions callers are expected to handle (runtime conditions)
 - [ ] Each `@throws` uses FQCN; one tag per distinct exception type
 - [ ] No `@throws \Exception` (generic)
 
 **`@var` rules:**
+
 - [ ] `@var` added for class properties not covered by a PHP type declaration
 - [ ] `@var` omitted when the property already has a PHP typed declaration (redundant)
 
 **Extension-attribute PHPDoc (critical — DI compile failure without this):**
+
 - [ ] `getExtensionAttributes()` `@return` = `\{Vendor}\{ModuleName}\Api\Data\{EntityName}ExtensionInterface|null`
 - [ ] `setExtensionAttributes()` `@param` = `\{Vendor}\{ModuleName}\Api\Data\{EntityName}ExtensionInterface`
 - [ ] Applied to both the DTO interface (`Api/Data/`) and the Model implementation

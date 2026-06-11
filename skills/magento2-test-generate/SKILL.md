@@ -154,7 +154,9 @@ test-repository.php). Plus this skill's additions:
 
 - `templates/test-service.php`
 - `templates/test-integration-schema.php`
-- `templates/test-integration-repository.php`
+- `templates/test-integration-repository.php` (legacy `@magento*` annotations; for Magento < 2.4.5)
+- `templates/test-integration-repository-attributes.php` (attribute-first `#[DataFixture]` / `#[DbIsolation]` /
+  `#[AppArea]`; preferred on Magento 2.4.5+)
 - `templates/test-integration-data-patch.php`
 - `templates/test-api-rest.php`
 - `templates/test-api-graphql.php`

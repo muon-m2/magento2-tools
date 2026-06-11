@@ -6,15 +6,23 @@
 //   2. Puppeteer  (`npx puppeteer`)
 //   3. Raw CDP    (spawn `google-chrome --headless --remote-debugging-port=...`)
 //
-// Commands (one-shot, stateless; auth is re-established per command from --token / --user/--pass):
+// Commands (one-shot, stateless; admin auth is established by admin-login, which SAVES the
+// session cookies to a file the later commands re-load via --admin-cookie-file). There is no
+// --token flag — auth is cookie-file based:
 //
-//   admin-login        --url=https://… --user=… --pass=…  [--screenshot=path]
-//   stores-config-walk --url=…  --admin-cookie-file=…  --sections=a/b/c,d/e/f
-//   grid               --url=…  --admin-cookie-file=…  --route=/admin/...  --filter=key:val
+//   admin-login        --url=https://…/admin --user=… --pass=…  [--admin-path=/admin]
+//                                [--save-cookies=path | --admin-cookie-file=path]  [--screenshot=path]
+//   stores-config-walk --url=…  --admin-cookie-file=…  --sections=a/b/c,d/e/f  [--admin-path=/admin]
+//   grid               --url=…  --admin-cookie-file=…  --route=/{admin}/...  --filter=key:val
 //   visit              --url=…  [--admin-cookie-file=… | --customer-cookie-file=…]
 //                                --route=/…  [--click=selector]  [--screenshot=path]
 //   customer-flow      --url=…  --email=…  --pass=…  [--out-dir=…]
-//   cleanup            --url=…  --admin-cookie-file=…  --customer-email=…
+//   cleanup            --url=…  --admin-cookie-file=…  --customer-email=…  [--admin-path=/admin]
+//                       (navigates to the filtered customer grid only — does NOT delete)
+//
+// Both Playwright and Puppeteer backends are supported (the Puppeteer page is adapted to the
+// Playwright API used below). With "Add Secret Key to URLs" enabled (Magento default), direct
+// admin GETs may redirect — statuses are reported for triage, not treated as hard failures.
 //
 // Output: a single JSON line on stdout.
 // Exit codes:
@@ -23,8 +31,8 @@
 //   78 — no headless-browser backend available (skill skips browser suites)
 //   64 — bad CLI usage
 
-import { spawn, spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+import { existsSync, mkdirSync, writeFileSync, readFileSync } from "node:fs";
 import { dirname } from "node:path";
 
 const args = parseArgs(process.argv.slice(2));
@@ -95,8 +103,11 @@ async function adminLogin(backend, args) {
   const user = required(args, "user");
   const pass = required(args, "pass");
   const screenshot = args.screenshot;
+  // The admin front name is configurable in Magento (default "admin"); S1 may have probed a
+  // custom one. Use it instead of a hardcoded "/admin" for the success check (FI-9).
+  const adminPath = normAdminPath(args["admin-path"]);
 
-  const { page, close, consoleErrors, captureNetworkErrors } = await openPage(backend);
+  const { page, close, consoleErrors, captureNetworkErrors, saveCookies } = await openPage(backend);
   const netErrors = captureNetworkErrors();
   try {
     await page.goto(url, { waitUntil: "networkidle", timeout: 30000 });
@@ -108,31 +119,55 @@ async function adminLogin(backend, args) {
     ]);
     if (screenshot) await safeScreenshot(page, screenshot);
     const dashUrl = page.url();
-    const status = dashUrl.includes("/admin") && !dashUrl.endsWith("/admin") ? 200 : 401;
+    // Success = landed inside the admin area AND the login form is gone. Checking for the
+    // form's absence is more robust than string-matching the URL (which broke on custom admin
+    // front names and on secret-key redirects).
+    const loginField = await page.$('input[name="login[username]"]').catch(() => null);
+    const ok = dashUrl.includes(adminPath) && !loginField;
+    const status = ok ? 200 : 401;
+    // Persist cookies so the stateless S4–S6 commands can re-authenticate (FI-7). Without
+    // this, --admin-cookie-file pointed at a file nobody wrote and those suites could not run.
+    const cookieOut = args["save-cookies"] || args["admin-cookie-file"];
+    if (ok && cookieOut && saveCookies) {
+      try { await saveCookies(cookieOut); } catch { /* best-effort */ }
+    }
     emit({
-      ok: status === 200 && consoleErrors.length === 0 && netErrors.length === 0,
+      ok: ok && consoleErrors.length === 0 && netErrors.length === 0,
       status,
       url: dashUrl,
+      adminPath,
+      cookiesSaved: ok && cookieOut ? cookieOut : null,
       consoleErrors,
       networkErrors: netErrors,
       screenshot: screenshot || null,
     });
-    process.exit(status === 200 && consoleErrors.length === 0 ? 0 : 1);
+    process.exit(ok && consoleErrors.length === 0 ? 0 : 1);
   } finally {
     await close();
   }
+}
+
+// Normalise an admin front name into a leading-slash path segment, defaulting to "/admin".
+function normAdminPath(raw) {
+  let p = (raw || "admin").trim().replace(/^\/+|\/+$/g, "");
+  return "/" + (p || "admin");
 }
 
 async function storesConfigWalk(backend, args) {
   const url = required(args, "url");
   const cookieFile = required(args, "admin-cookie-file");
   const sections = required(args, "sections").split(",").filter(Boolean);
+  const adminPath = normAdminPath(args["admin-path"]);
 
   const { context, page, close, consoleErrors } = await openPage(backend, { cookieFile });
   const results = [];
   try {
     for (const section of sections) {
-      const routeUrl = `${url.replace(/\/+$/, "")}/admin/system_config/edit/section/${encodeURIComponent(section)}`;
+      // NOTE: when "Add Secret Key to URLs" is enabled (Magento default), a direct GET to a
+      // config section can redirect to the dashboard because it lacks the per-action key. A
+      // 200 here is a real load; a 302/redirect to login/dashboard is reported as the status
+      // and should be triaged rather than treated as a hard failure.
+      const routeUrl = `${url.replace(/\/+$/, "")}${adminPath}/system_config/edit/section/${encodeURIComponent(section)}`;
       const resp = await page.goto(routeUrl, { waitUntil: "networkidle", timeout: 30000 });
       const status = resp ? resp.status() : 0;
       results.push({ section, status, consoleErrors: [...consoleErrors] });
@@ -287,10 +322,18 @@ async function cleanup(backend, args) {
   const url = required(args, "url");
   const cookieFile = required(args, "admin-cookie-file");
   const email = required(args, "customer-email");
+  const adminPath = normAdminPath(args["admin-path"]);
   const { page, close } = await openPage(backend, { cookieFile });
   try {
-    await page.goto(`${url.replace(/\/+$/, "")}/admin/customer/index/index?email=${encodeURIComponent(email)}`, { timeout: 30000 });
-    emit({ ok: true, note: "cleanup is best-effort; verify in admin manually if needed" });
+    // This only NAVIGATES to the filtered customer grid — it does NOT delete the customer
+    // (grid mass-delete needs the form key + secret key, which a direct GET cannot supply).
+    // The emitted note says so; S9 acceptance text is downgraded to match (FI-10).
+    await page.goto(`${url.replace(/\/+$/, "")}${adminPath}/customer/index/index?email=${encodeURIComponent(email)}`, { timeout: 30000 });
+    emit({
+      ok: true,
+      deleted: false,
+      note: "cleanup is best-effort: navigated to the filtered customer grid but did NOT delete. Remove the throwaway customer manually (or via a data fixture) and verify in admin.",
+    });
     process.exit(0);
   } finally {
     await close();
@@ -308,7 +351,8 @@ async function openPage(backend, opts = {}) {
     const context = await browser.newContext();
     if (opts.cookieFile && existsSync(opts.cookieFile)) {
       try {
-        const cookies = JSON.parse(require("fs").readFileSync(opts.cookieFile, "utf8"));
+        // ESM has no `require`; use the imported readFileSync (FI-7).
+        const cookies = JSON.parse(readFileSync(opts.cookieFile, "utf8"));
         await context.addCookies(cookies);
       } catch { /* ignore */ }
     }
@@ -325,62 +369,72 @@ async function openPage(backend, opts = {}) {
     };
     return {
       context, page, consoleErrors, captureNetworkErrors,
+      // Persist the post-login cookies so the stateless S4–S6 commands can re-auth (FI-7).
+      saveCookies: async (path) => { writeFileSync(path, JSON.stringify(await context.cookies(), null, 2)); },
       close: async () => { await browser.close().catch(() => {}); },
     };
   }
 
   if (backend.kind === "puppeteer") {
     const browser = await backend.lib.launch({ headless: "new" });
-    const page = await browser.newPage();
-    page.on("console", msg => { if (msg.type() === "error") consoleErrors.push(msg.text()); });
-    page.on("pageerror", err => consoleErrors.push(String(err)));
+    const rawPage = await browser.newPage();
+    if (opts.cookieFile && existsSync(opts.cookieFile)) {
+      try {
+        const cookies = JSON.parse(readFileSync(opts.cookieFile, "utf8"));
+        if (cookies.length) await rawPage.setCookie(...cookies);
+      } catch { /* ignore */ }
+    }
+    rawPage.on("console", msg => { if (msg.type() === "error") consoleErrors.push(msg.text()); });
+    rawPage.on("pageerror", err => consoleErrors.push(String(err)));
+    // Adapt the Puppeteer page to the Playwright surface the commands use (FI-8): Puppeteer
+    // has no page.fill()/waitForLoadState() and uses networkidle0, not networkidle.
+    const page = adaptPuppeteerPage(rawPage);
     return {
       context: null, page, consoleErrors,
-      captureNetworkErrors: () => { const e = []; page.on("response", r => { if (r.status() >= 500) e.push({ url: r.url(), status: r.status() }); }); return e; },
+      captureNetworkErrors: () => { const e = []; rawPage.on("response", r => { if (r.status() >= 500) e.push({ url: r.url(), status: r.status() }); }); return e; },
+      saveCookies: async (path) => { writeFileSync(path, JSON.stringify(await rawPage.cookies(), null, 2)); },
       close: async () => { await browser.close().catch(() => {}); },
     };
   }
 
-  // raw CDP path — intentionally minimal; provides enough surface for the smoke suites' actual
-  // needs (goto + screenshot + status). A fuller implementation can be wired in if needed.
-  return rawCdpPage(consoleErrors);
+  // No real browser-automation backend (Playwright or Puppeteer) is available.
+  //
+  // The previous raw-CDP fallback returned a fake page whose goto() always reported HTTP 200
+  // and whose actions were no-ops — so EVERY browser smoke suite exited 0 (PASS) without a
+  // browser ever running (FI-2). That is worse than not running: it reports green on red.
+  //
+  // Refuse to fake it. Emit an honest "skipped/unavailable" record and exit 78 so the caller
+  // records the suite as NOT RUN (unverified), never as passed.
+  emit({
+    ok: false,
+    skipped: true,
+    reason:
+      "No browser automation backend available. Install one in the project, e.g. " +
+      "`npm i -D playwright && npx playwright install chromium` (or Puppeteer), then re-run. " +
+      "The raw-CDP fallback was removed because it fake-passed smoke suites.",
+  });
+  process.exit(78);
 }
 
-async function rawCdpPage(consoleErrors) {
-  const port = 9222 + Math.floor(Math.random() * 1000);
-  const proc = spawn("google-chrome", [
-    "--headless=new", "--disable-gpu", "--no-sandbox",
-    `--remote-debugging-port=${port}`, "about:blank",
-  ], { stdio: "ignore" });
-
-  // tiny wait for chrome to boot
-  await new Promise(r => setTimeout(r, 1500));
-
-  const fetchJson = async (path) => {
-    const r = await fetch(`http://127.0.0.1:${port}${path}`);
-    return r.json();
+// Wrap a Puppeteer page so the command code (written against the Playwright API) runs
+// unchanged: add fill()/waitForLoadState() and translate Playwright's "networkidle" wait
+// state to Puppeteer's "networkidle0" (FI-8).
+function adaptPuppeteerPage(page) {
+  const normalize = (opts) =>
+    (opts && opts.waitUntil === "networkidle") ? { ...opts, waitUntil: "networkidle0" } : opts;
+  const origGoto = page.goto.bind(page);
+  page.goto = (url, opts) => origGoto(url, normalize(opts));
+  const origWaitNav = page.waitForNavigation.bind(page);
+  page.waitForNavigation = (opts) => origWaitNav(normalize(opts));
+  page.fill = async (sel, val) => {
+    await page.waitForSelector(sel, { timeout: 30000 });
+    await page.$eval(sel, (el) => { el.value = ""; });
+    await page.type(sel, String(val));
   };
-
-  const targets = await fetchJson("/json");
-  const target = targets.find(t => t.type === "page") || targets[0];
-
-  // We expose just enough of the playwright/puppeteer page API to satisfy the commands above.
-  // Anything not implemented here returns a soft no-op so the suite can record "rawCdp limitation".
-  const page = {
-    async goto() { return { status: () => 200 }; },
-    async fill() {},
-    async click() {},
-    async waitForNavigation() {},
-    async waitForLoadState() {},
-    url() { return "about:blank"; },
-    async screenshot() {},
-    on() {},
+  page.waitForLoadState = async (_state, opts) => {
+    try { await page.waitForNetworkIdle(opts || {}); } catch { /* older puppeteer: no-op */ }
   };
-  return {
-    context: null, page, consoleErrors,
-    captureNetworkErrors: () => [],
-    close: async () => { try { proc.kill(); } catch {} },
-  };
+  return page;
 }
 
 // ---------- helpers ----------
@@ -404,11 +458,16 @@ async function countGridRows(page) {
 
 async function applyGridFilter(page, key, val) {
   try {
-    const input = await page.$(`input[name="${key}"]`) || await page.$(`input[data-bind*="${key}"]`);
-    if (!input) return false;
-    await input.fill(String(val));
-    await page.keyboard.press("Enter");
-    return true;
+    // Use page.fill(selector) — works on both backends (the Puppeteer adapter provides it).
+    // ElementHandle.fill() is Playwright-only and crashed Puppeteer (FI-8).
+    for (const sel of [`input[name="${key}"]`, `input[data-bind*="${key}"]`]) {
+      if (await page.$(sel)) {
+        await page.fill(sel, String(val));
+        await page.keyboard.press("Enter");
+        return true;
+      }
+    }
+    return false;
   } catch { return false; }
 }
 

@@ -4,18 +4,18 @@ Magento EAV input types and their requirements.
 
 ## Standard Input Types
 
-| Input type | Backend type | Required backend model | Required source model |
-|-----------|--------------|------------------------|----------------------|
-| text | varchar (default) | (none for ≤ 255 chars) | (none) |
-| textarea | text | (none) | (none) |
-| select | int / varchar | (none for option-based) | Source model required |
-| multiselect | varchar | `Magento\Eav\Model\Entity\Attribute\Backend\ArrayBackend` | Source model required |
-| date | datetime | `Magento\Eav\Model\Entity\Attribute\Backend\Datetime` | (none) |
-| boolean | int | (none) | `Magento\Eav\Model\Entity\Attribute\Source\Boolean` |
-| price | decimal | `Magento\Catalog\Model\Product\Attribute\Backend\Price` | (none) |
-| image | varchar | `Magento\Catalog\Model\Product\Attribute\Backend\Image` | (none) |
-| media_image | varchar | `Magento\Catalog\Model\Product\Attribute\Backend\Media` | (none) |
-| weight | decimal | `Magento\Catalog\Model\Product\Attribute\Backend\Weight` | (none) |
+| Input type  | Backend type      | Required backend model                                    | Required source model                               |
+|-------------|-------------------|-----------------------------------------------------------|-----------------------------------------------------|
+| text        | varchar (default) | (none for ≤ 255 chars)                                    | (none)                                              |
+| textarea    | text              | (none)                                                    | (none)                                              |
+| select      | int / varchar     | (none for option-based)                                   | Source model required                               |
+| multiselect | varchar           | `Magento\Eav\Model\Entity\Attribute\Backend\ArrayBackend` | Source model required                               |
+| date        | datetime          | `Magento\Eav\Model\Entity\Attribute\Backend\Datetime`     | (none)                                              |
+| boolean     | int               | (none)                                                    | `Magento\Eav\Model\Entity\Attribute\Source\Boolean` |
+| price       | decimal           | `Magento\Catalog\Model\Product\Attribute\Backend\Price`   | (none)                                              |
+| image       | varchar           | `Magento\Catalog\Model\Product\Attribute\Backend\Image`   | (none)                                              |
+| media_image | varchar           | `Magento\Catalog\Model\Product\Attribute\Backend\Media`   | (none)                                              |
+| weight      | decimal           | `Magento\Catalog\Model\Product\Attribute\Backend\Weight`  | (none)                                              |
 
 ## Custom Source Model (Select / Multiselect)
 

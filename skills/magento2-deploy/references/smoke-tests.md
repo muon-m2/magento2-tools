@@ -88,11 +88,19 @@ Pass: 200, 302, 404 (if module doesn't expose a public route). Fail: 500.
 
 ### `cron`
 
+There is no `bin/magento cron:status` command. Verify cron health without mutating state:
+
 ```bash
-{magento_cli} cron:status
+# 1. The OS crontab that drives Magento cron is installed:
+crontab -l 2>/dev/null | grep -q "bin/magento cron:run" && echo "crontab installed" || echo "crontab MISSING"
+# 2. Cron has run recently — inspect the cron_schedule table (rows in the last ~10 min):
+{magento_cli} setup:db:status >/dev/null 2>&1 && echo "db reachable; check cron_schedule via DB client"
 ```
 
-Pass: output includes every cron job declared in the deployed modules' `crontab.xml`.
+Pass: the crontab entry is installed and `cron_schedule` shows recent `success`/`pending`
+rows. To confirm a newly declared job is registered, check Admin → System → Cron (Scheduled
+Tasks) or query `cron_schedule` for the job code — the merged `crontab.xml` jobs appear there
+after the first cron tick.
 
 ### `queue`
 

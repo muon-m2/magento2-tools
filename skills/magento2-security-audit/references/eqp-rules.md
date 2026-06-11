@@ -1,72 +1,87 @@
-# Marketplace EQP Rules
+# Marketplace coding-standard checks
 
-Magento Marketplace's Extension Quality Program ships static rules every extension must
-pass. The audit skill reuses them. See https://devdocs.magento.com/marketplace/eqp/ for
-the canonical reference.
+Adobe Commerce Marketplace gates extension publishing on its Extension Quality Program
+(EQP). The publicly runnable part of EQP is the **Magento coding standard** — a PHP_CodeSniffer
+ruleset — plus PHPStan/PHPMD. There is **no** single `magento-marketplace-eqp` or
+`m2-coding-standard` binary; those names were fabricated in an earlier version of this doc.
+The authoritative tooling is below.
 
-## Tool Detection
+Reference: <https://developer.adobe.com/commerce/php/coding-standards/> and the Marketplace
+seller guides at <https://developer.adobe.com/commerce/marketplace/guides/sellers/>.
 
-Preferred:
+## Tool detection
+
+Primary — the Magento coding standard via PHPCS (install `magento/magento-coding-standard`
+as a dev dependency, which registers the `Magento2` standard):
+
 ```bash
-{ctx.runner} vendor/bin/magento-marketplace-eqp analyse {ctx.magento_root}/app/code/{Vendor}/{Module}
+{ctx.runner} vendor/bin/phpcs --standard=Magento2 {ctx.magento_root}/app/code/{Vendor}/{Module}
 ```
 
-Fallback:
+Complementary static analysis (run when present):
+
 ```bash
-{ctx.runner} vendor/bin/m2-coding-standard {ctx.magento_root}/app/code/{Vendor}/{Module}
+{ctx.runner} vendor/bin/phpstan analyse {ctx.magento_root}/app/code/{Vendor}/{Module}
+{ctx.runner} vendor/bin/phpmd {ctx.magento_root}/app/code/{Vendor}/{Module} text cleancode,codesize
 ```
 
-If neither is installed, skip Phase 5 and report it.
+Note: the older `magento/marketplace-eqp` (MEQP2) standard is archived/deprecated — the
+`Magento2` standard in `magento/magento-coding-standard` is its successor and the one
+Marketplace uses today. If `vendor/bin/phpcs` and the `Magento2` standard are not installed,
+skip this phase and report it (do not silently pass).
 
-## Selected Rules
+## Representative sniffs
 
-| Rule ID | Description | Severity |
-|---------|-------------|---------|
-| EQP-1   | Forbidden function (`eval`, `exec`, `system`, `passthru`) | Critical |
-| EQP-2   | `goto` keyword used | High |
-| EQP-3   | Direct DB query without prepared statement | Critical |
-| EQP-4   | `file_get_contents` on user-controlled URL | High |
-| EQP-5   | `curl_exec` without SSL verification | High |
-| EQP-6   | `chmod 777` in setup script | High |
-| EQP-7   | `serialize()` of user input | Critical |
-| EQP-8   | `error_reporting(0)` | Medium |
-| EQP-9   | Use of `@` error suppressor | Medium |
-| EQP-10  | Missing `declare(strict_types=1)` | Low |
-| EQP-11  | Module without `composer.json` | Medium |
-| EQP-12  | `LICENSE.txt` missing | Low |
-| EQP-13  | README missing | Low |
-| EQP-14  | Module without unit tests | Medium |
+These are real sniff codes from the `Magento2` standard. The list is representative, not
+exhaustive — the authoritative set is whatever `vendor/bin/phpcs --standard=Magento2`
+reports. Map each PHPCS message to a finding using its sniff code as the `subcategory`.
 
-## Mapping to Findings Schema
+| Sniff code                                         | Catches                                                    | Typical severity |
+|----------------------------------------------------|------------------------------------------------------------|------------------|
+| `Magento2.Security.InsecureFunction`               | `eval`, `exec`, `system`, `passthru`, `shell_exec`         | Critical         |
+| `Magento2.Security.LanguageConstruct.DirectOutput` | direct `echo`/`print` of unescaped data                    | High             |
+| `Magento2.Security.Superglobal`                    | direct `$_GET`/`$_POST`/`$_REQUEST` access                 | High             |
+| `Magento2.SQL.RawQuery`                            | raw SQL string instead of the query builder                | Critical         |
+| `Magento2.Functions.DiscouragedFunction`           | `serialize`, `mt_rand`, `error_reporting`, `@` suppression | Medium           |
+| `Magento2.Legacy.*`                                | Magento 1 / deprecated API usage                           | Medium           |
+| `Magento2.CodeAnalysis.EmptyBlock`                 | empty catch/loop blocks                                    | Low              |
+
+Severity is the PHPCS error/warning level adjusted to context per the shared severity
+scale — do not treat the table above as fixed; calibrate (a raw query inside
+`ResourceConnection::query()` is expected, not a finding).
+
+## Mapping to findings schema
 
 ```json
 {
-  "id": "security-audit-2026-05-24-eqp-001",
+  "id": "security-audit-2026-05-24-mcs-001",
   "severity": "critical",
-  "category": "eqp",
-  "subcategory": "EQP-1",
-  "title": "Forbidden function: eval() used",
+  "category": "coding-standard",
+  "subcategory": "Magento2.Security.InsecureFunction",
+  "title": "Insecure function: eval() used",
   "evidence": [
-    { "file": "Helper/DynamicCallback.php", "line": 47 }
+    { "file": "Service/DynamicCallback.php", "line": 47 }
   ],
-  "recommendation": "Replace eval() with a fixed-name callback registry; eval() in production is forbidden by EQP.",
-  "verification": "Re-run audit; rule EQP-1 should no longer match."
+  "recommendation": "Replace eval() with a fixed-name callback registry; eval() is rejected by the Magento2 coding standard and by Marketplace EQP.",
+  "verification": "Re-run vendor/bin/phpcs --standard=Magento2; the sniff should no longer report."
 }
 ```
 
-## EQP vs General Security Findings
+## Coding-standard vs general security findings
 
-EQP findings are a subset of security findings — they're the items Magento explicitly
-gates Marketplace publishing on. A module not aiming for Marketplace can still benefit
-from EQP — many of the rules catch real defects.
+These findings are a subset of the security audit — they are the items Marketplace gates
+publishing on. A module not aiming for Marketplace still benefits, because many sniffs catch
+real defects.
 
-## Suppressing False Positives
+## Suppressing false positives
 
-Some EQP rules over-trigger:
+Some sniffs over-trigger:
 
-- EQP-9 (`@` operator): `@unlink()` in cleanup paths is sometimes the right answer.
-  Suppress with a `// phpcs:ignore` comment + justification.
-- EQP-3 (direct DB query): Magento's resource model uses raw SQL in places; if you're
-  inside `ResourceConnection::query()`, the rule may false-positive.
+- `Magento2.Functions.DiscouragedFunction` for `@unlink()` in cleanup paths — sometimes the
+  right answer. Suppress with `// phpcs:ignore Magento2.Functions.DiscouragedFunction` + a
+  justification on the line.
+- `Magento2.SQL.RawQuery` inside a resource model's `ResourceConnection::query()` — may be a
+  false positive.
 
-Suppression requires an inline comment explaining why. Blanket disabling EQP is rejected.
+Suppression requires an inline `// phpcs:ignore <Sniff>` comment explaining why. Blanket
+`phpcs:disable` of the whole standard is rejected.

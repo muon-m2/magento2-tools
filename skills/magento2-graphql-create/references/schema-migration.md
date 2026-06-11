@@ -92,10 +92,15 @@ public deployments.
 
 ## Testing Schema Compatibility
 
-Magento ships a schema diff tool (when available):
+Magento has no built-in GraphQL schema-diff command. To catch unintended breaking
+changes before a release, compare the schema across versions yourself:
 
-```
-{ctx.magento_cli} dev:graphql:schema-diff before.graphqls after.graphqls
-```
+- **Diff the SDL in version control** — `schema.graphqls` files are committed, so a
+  plain `git diff` between the release tag and `HEAD` over `**/schema.graphqls` surfaces
+  removed/renamed fields, type changes, and newly-required arguments.
+- **Compare introspection output** — run the GraphQL introspection query against the old
+  and new builds and diff the results, which also captures fields added by other modules
+  that merge into the same types.
 
-Run before any release to catch unintended breaking changes.
+Treat any removal, rename, type change, or optional→required argument change as breaking
+(see the Breaking Changes list above).

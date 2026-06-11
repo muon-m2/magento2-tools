@@ -12,12 +12,14 @@ ensure no compliance gaps appear at the seams between agents.
 ## When to Use Parallel Create
 
 Authorize parallel create when:
+
 - Module has ≥ 4 declared surfaces
 - Estimated PHP file count ≥ 30
 - The user explicitly requests parallel or concurrent generation
 - Surfaces are largely independent (e.g., REST API + admin UI have minimal shared files)
 
 Do NOT use parallel create when:
+
 - Module is a simple 1–2 surface module
 - Surfaces share heavy DI wiring (agents would race on `di.xml`)
 - The user wants to review each surface incrementally
@@ -26,13 +28,13 @@ Do NOT use parallel create when:
 
 ## Agent Split
 
-| Agent | Surfaces assigned | Model | Primary files |
-|---|---|---|---|
-| **The Architect** | `persistence`, `service_contracts` | Opus | `Api/`, `Api/Data/`, `Model/`, `Model/ResourceModel/`, `etc/db_schema.xml` |
-| **The Builder** | `admin_config`, `rest_api`, `graphql` | Sonnet | `etc/webapi.xml`, `etc/schema.graphqls`, `Model/Resolver/`, `etc/adminhtml/system.xml`, `etc/config.xml` |
-| **The Sentinel** | `admin_ui` (controllers + ACL) | Opus | `Controller/Adminhtml/`, `etc/acl.xml`, `etc/adminhtml/routes.xml` |
-| **The Presenter** | `admin_ui` (templates), `frontend_ui` | Sonnet | `view/`, layout XML, `ViewModel/`, `etc/frontend/routes.xml` |
-| **The Scribe** | tests, i18n, docs | Sonnet | `Test/Unit/`, `i18n/en_US.csv`, `README.md`, `CHANGELOG.md` |
+| Agent             | Surfaces assigned                     | Model  | Primary files                                                                                            |
+|-------------------|---------------------------------------|--------|----------------------------------------------------------------------------------------------------------|
+| **The Architect** | `persistence`, `service_contracts`    | Opus   | `Api/`, `Api/Data/`, `Model/`, `Model/ResourceModel/`, `etc/db_schema.xml`                               |
+| **The Builder**   | `admin_config`, `rest_api`, `graphql` | Sonnet | `etc/webapi.xml`, `etc/schema.graphqls`, `Model/Resolver/`, `etc/adminhtml/system.xml`, `etc/config.xml` |
+| **The Sentinel**  | `admin_ui` (controllers + ACL)        | Opus   | `Controller/Adminhtml/`, `etc/acl.xml`, `etc/adminhtml/routes.xml`                                       |
+| **The Presenter** | `admin_ui` (templates), `frontend_ui` | Sonnet | `view/`, layout XML, `ViewModel/`, `etc/frontend/routes.xml`                                             |
+| **The Scribe**    | tests, i18n, docs                     | Sonnet | `Test/Unit/`, `i18n/en_US.csv`, `README.md`, `CHANGELOG.md`                                              |
 
 ---
 
@@ -51,6 +53,7 @@ Do NOT use parallel create when:
 ## Agent Prompt Requirements
 
 Each agent prompt must be self-contained. Include:
+
 - `{module_path}`, `{Vendor}`, `{ModuleName}`, `{module_lower}`
 - Assigned surfaces and the exact file list from `references/surfaces.md`
 - Entity names, service method signatures, and config paths (resolved in Step 2)
@@ -67,6 +70,7 @@ appear in the prompt.
 ## Model Selection
 
 Use the model IDs current in your environment's CLAUDE.md or system context. As of 2026-05:
+
 - `claude-opus-4-7` → The Architect, The Sentinel (architecture, DI wiring, security patterns)
 - `claude-sonnet-4-6` → The Builder, The Presenter, The Scribe (implementation, templates, tests)
 
@@ -77,6 +81,7 @@ Check CLAUDE.md for updated IDs before spawning agents — model names change ac
 ## Post-Merge Verification
 
 After collecting all agent outputs:
+
 1. Run `${CLAUDE_SKILL_DIR}/scripts/verify-created.sh` on the merged module path.
 2. Check `etc/di.xml` for duplicate type/preference entries from multiple agents.
 3. Verify all controller `ADMIN_RESOURCE` values match the ACL IDs in `etc/acl.xml`.
@@ -88,6 +93,7 @@ After collecting all agent outputs:
 ## Conflict Resolution
 
 When two agents produce overlapping content for the same file:
+
 1. **The more specific file wins.** `etc/adminhtml/di.xml` takes precedence over `etc/di.xml` for
    admin-only DI entries.
 2. **Merge don't replace for XML configuration.** Combine `<type>`, `<preference>`, and `<plugin>`

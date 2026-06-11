@@ -10,8 +10,14 @@ use Magento\Framework\Setup\Patch\DataPatchInterface;
 /**
  * Data patch: {description}.
  *
- * Patches are idempotent — Magento tracks applied patches in `patch_list` and will not
- * re-apply this class. Do not implement self-skipping logic.
+ * Idempotency policy (single rule, with one exception):
+ * - DEFAULT: Magento records applied patches in `patch_list` and never re-applies the same
+ *   class, so a plain data patch does NOT need self-skipping logic — adding it is redundant.
+ * - EXCEPTION — EAV attribute patches: `EavSetup::addAttribute()` is not safe to run twice
+ *   (and may run again after a partial failure or a manually-created attribute), so those
+ *   patches DO guard with `EavConfig::getAttribute()`. That is why the `magento2-eav-attribute`
+ *   templates short-circuit while this generic patch does not — the two are consistent, not
+ *   contradictory.
  */
 class {PatchName} implements DataPatchInterface
 {

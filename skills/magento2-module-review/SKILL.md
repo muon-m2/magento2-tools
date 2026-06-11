@@ -56,7 +56,8 @@ missing tool or unavailable Magento runtime is an environment limitation, not a 
     - Prefer safe file-only commands first: PHP lint, XML lint, JSON validation, Composer validation, grep-pattern
       scans.
     - Run Magento/PHP tooling only if present: PHPCS, PHPMD, PHPStan, Psalm, PHPUnit, Rector dry-run, Semgrep.
-    - Use `${CLAUDE_SKILL_DIR}/scripts/static-tool-probe.sh` to list available tools and suggested commands without assuming they exist.
+    - Use `${CLAUDE_SKILL_DIR}/scripts/static-tool-probe.sh` to list available tools and suggested commands without
+      assuming they exist.
     - Use `${CLAUDE_SKILL_DIR}/scripts/discover-module.sh <module-path>` for a quick source inventory.
     - Use `${CLAUDE_SKILL_DIR}/scripts/collect-evidence.sh <module-path>` for grep-based risk and surface scans.
     - **Script output:** summarise grep/tool output to the top 30 most relevant file:line references before proceeding.
@@ -77,7 +78,8 @@ missing tool or unavailable Magento runtime is an environment limitation, not a 
     - For HTML output: use `templates/report.html`. Load this file only when the user requests HTML.
     - For JSON output (default when invoked from another skill or with `--format=json`):
       build the findings array per `magento2-context/references/findings-schema.md`, then
-      pipe it through `${CLAUDE_SKILL_DIR}/scripts/emit-json.sh`. Writes to `.docs/reviews/{Vendor}_{Module}-review-{date}.json`.
+      pipe it through `${CLAUDE_SKILL_DIR}/scripts/emit-json.sh`. Writes to
+      `.docs/reviews/{Vendor}_{Module}-review-{date}.json`.
     - For SARIF output (CI / GitHub Code Scanning): run `${CLAUDE_SKILL_DIR}/scripts/emit-sarif.sh` on the JSON
       output. Writes alongside the JSON file with `.sarif` extension.
     - Update `Reviewer:` to `Claude Code using magento2-module-review` and include the
@@ -106,9 +108,13 @@ code change. Read `references/diff-mode.md` for the full algorithm.
 
 ## Quick Review Mode
 
-Use when the user requests a quick review, or after the step-1 profile check when the user confirms. A module qualifies for quick review when it has **fewer than 20 PHP files AND none of** `webapi.xml`, `etc/schema.graphqls`, `etc/frontend/routes.xml`, or `etc/adminhtml/routes.xml` present — any of these files warrants a full review regardless of size.
+Use when the user requests a quick review, or after the step-1 profile check when the user confirms. A module qualifies
+for quick review when it has **fewer than 20 PHP files AND none of** `webapi.xml`, `etc/schema.graphqls`,
+`etc/frontend/routes.xml`, or `etc/adminhtml/routes.xml` present — any of these files warrants a full review regardless
+of size.
 
-Cover all **Tier 1 areas** (matching the checklist) plus a registration sanity check. Do not include Testing (Tier 2) in quick reviews.
+Cover all **Tier 1 areas** (matching the checklist) plus a registration sanity check. Do not include Testing (Tier 2) in
+quick reviews.
 
 - **Security:** ACL, CSRF, escaping, input validation, secrets, SQL safety.
 - **Persistence and setup:** declarative schema, parameterised queries, idempotent patches, schema whitelist.

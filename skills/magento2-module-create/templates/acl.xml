@@ -1,8 +1,10 @@
 <?xml version="1.0"?>
 <!--
     ACL resource tree.
-    ::main  — used as ADMIN_RESOURCE on all admin controllers.
+    ::main   — used as ADMIN_RESOURCE on all admin controllers.
     ::config — used as <resource> in system.xml sections.
+    ::view   — read access (GET routes in webapi.xml).
+    ::manage — write access (POST/PUT/DELETE routes in webapi.xml).
     Add further child resources for fine-grained role control.
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -11,11 +13,17 @@
         <resources>
             <resource id="Magento_Backend::admin">
                 <resource id="{Vendor}_{ModuleName}::main"
-                          title="{ModuleName}"
-                          sortOrder="100">
+                        title="{ModuleName}"
+                        sortOrder="100">
+                    <resource id="{Vendor}_{ModuleName}::view"
+                            title="View {ModuleName}"
+                            sortOrder="10"/>
+                    <resource id="{Vendor}_{ModuleName}::manage"
+                            title="Manage {ModuleName}"
+                            sortOrder="20"/>
                     <resource id="{Vendor}_{ModuleName}::config"
-                              title="{ModuleName} Configuration"
-                              sortOrder="10"/>
+                            title="{ModuleName} Configuration"
+                            sortOrder="30"/>
                 </resource>
             </resource>
         </resources>

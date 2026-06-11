@@ -2,23 +2,25 @@
 
 ## Bump Detection (Conventional Commits)
 
-| Commit prefix | Bump |
-|---------------|------|
-| `feat:` | minor |
-| `fix:` | patch |
-| `perf:` | patch |
-| `refactor:` | patch |
-| `docs:` | none (auto-skipped from CHANGELOG) |
-| `test:` | none |
-| `chore:` | none |
-| `feat!:` or `fix!:` (with `!`) | major |
-| `BREAKING CHANGE:` in body | major |
+| Commit prefix                  | Bump                               |
+|--------------------------------|------------------------------------|
+| `feat:`                        | minor                              |
+| `fix:`                         | patch                              |
+| `perf:`                        | patch                              |
+| `refactor:`                    | patch                              |
+| `docs:`                        | none (auto-skipped from CHANGELOG) |
+| `test:`                        | none                               |
+| `chore:`                       | none                               |
+| `feat!:` or `fix!:` (with `!`) | major                              |
+| `BREAKING CHANGE:` in body     | major                              |
 
 ## Walk Algorithm
 
 ```
-1. List commits since last tag matching {Vendor}_{Module}-*:
-   git log {lastTag}..HEAD --pretty=format:"%H %s%n%b%n---"
+1. List commits since last tag matching {Vendor}_{Module}-*, scoped to THIS module's
+   path so sibling modules in the same repo don't bleed in:
+   git log {lastTag}..HEAD -- {module_path} --pretty=format:"%H %s%n%b%n---"
+   ({module_path} is e.g. app/code/{Vendor}/{Module})
 2. Classify each. The highest bump wins:
    - any major → major bump
    - else any minor → minor bump
@@ -47,6 +49,7 @@ contains a pre-release identifier.
 ## Initial Release (`0.x.y`)
 
 For a brand-new module:
+
 - Start at `0.1.0`.
 - Bump minor for `feat:` commits.
 - Bump patch for everything else.

@@ -30,15 +30,15 @@ Other examples:
 
 ## Workflow Overrides for Diff Mode
 
-| Step             | Override                                                                 |
-|------------------|--------------------------------------------------------------------------|
-| Scope (step 1)   | Run `${CLAUDE_SKILL_DIR}/scripts/diff-scope.sh <module-path> <ref>` to get the file list     |
-| Architecture map | Build only for files in the diff (skip whole-module mapping)             |
-| Tool passes      | Run PHPCS/PHPMD/PHPStan only on changed files (use the file list)        |
-| Checklist tiers  | Only checklist items touching changed files apply                        |
-| Findings         | Restricted to changed files; cross-file findings are noted with "diff"   |
-| Report mode      | Report scope reads "Diff against `<ref>` — N files"                      |
-| JSON `mode`      | Set to `"diff"` and include `"diffRef": "<ref>"` in the `target` block   |
+| Step             | Override                                                                                 |
+|------------------|------------------------------------------------------------------------------------------|
+| Scope (step 1)   | Run `${CLAUDE_SKILL_DIR}/scripts/diff-scope.sh <module-path> <ref>` to get the file list |
+| Architecture map | Build only for files in the diff (skip whole-module mapping)                             |
+| Tool passes      | Run PHPCS/PHPMD/PHPStan only on changed files (use the file list)                        |
+| Checklist tiers  | Only checklist items touching changed files apply                                        |
+| Findings         | Restricted to changed files; cross-file findings are noted with "diff"                   |
+| Report mode      | Report scope reads "Diff against `<ref>` — N files"                                      |
+| JSON `mode`      | Set to `"diff"` and include `"diffRef": "<ref>"` in the `target` block                   |
 
 ## Detection Rules
 

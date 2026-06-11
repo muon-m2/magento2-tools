@@ -53,6 +53,7 @@ rm -rf generated/code generated/metadata
 ```
 
 If a second run also fails:
+
 - If `--snapshot`: restore `generated/` from snapshot. The deploy is partial; flag
   for manual resolution.
 - If no snapshot: report. Manual intervention required.

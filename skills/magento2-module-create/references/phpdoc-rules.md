@@ -11,20 +11,20 @@ PHPDoc is required on **every public method in every generated PHP file** — no
 and `Service/` classes. This includes controllers, observers, plugins, ViewModels, cron jobs, consumers,
 data patches, and repository implementations.
 
-| Location | Class docblock | Constructor docblock | Public method docblock |
-|---|---|---|---|
-| `Api/` interfaces | Required + `@api` | N/A (interfaces have no constructor) | Required |
-| `Api/Data/` DTOs | Required + `@api` | Required | Required |
-| `Service/` classes | Required | Required | Required |
-| `Model/` classes | Required | Required | Required |
-| `Model/ResourceModel/` | Required | Required | Required |
-| `Controller/` classes | Required | Required | Required (`execute()`) |
-| `Observer/` classes | Required | Required | Required (`execute()`) |
-| `Plugin/` classes | Required | Required | Required (before/after/around methods) |
-| `ViewModel/` classes | Required | Required | Required |
-| `Cron/` classes | Required | Required | Required (`execute()`) |
-| `Model/Consumer/` | Required | Required | Required (`process()`) |
-| `Test/Unit/` | Required (brief) | Required | Required only for `setUp()` and helper methods; `test*` methods are exempt |
+| Location               | Class docblock    | Constructor docblock                 | Public method docblock                                                     |
+|------------------------|-------------------|--------------------------------------|----------------------------------------------------------------------------|
+| `Api/` interfaces      | Required + `@api` | N/A (interfaces have no constructor) | Required                                                                   |
+| `Api/Data/` DTOs       | Required + `@api` | Required                             | Required                                                                   |
+| `Service/` classes     | Required          | Required                             | Required                                                                   |
+| `Model/` classes       | Required          | Required                             | Required                                                                   |
+| `Model/ResourceModel/` | Required          | Required                             | Required                                                                   |
+| `Controller/` classes  | Required          | Required                             | Required (`execute()`)                                                     |
+| `Observer/` classes    | Required          | Required                             | Required (`execute()`)                                                     |
+| `Plugin/` classes      | Required          | Required                             | Required (before/after/around methods)                                     |
+| `ViewModel/` classes   | Required          | Required                             | Required                                                                   |
+| `Cron/` classes        | Required          | Required                             | Required (`execute()`)                                                     |
+| `Model/Consumer/`      | Required          | Required                             | Required (`process()`)                                                     |
+| `Test/Unit/`           | Required (brief)  | Required                             | Required only for `setUp()` and helper methods; `test*` methods are exempt |
 
 ---
 
@@ -40,6 +40,7 @@ class ExportProcessor
 ```
 
 Rules:
+
 - One-line summary, ending with a period.
 - Do not repeat the class name in the summary.
 - Add `@api` on all interfaces in `Api/`. Do not add `@api` on concrete classes.
@@ -66,6 +67,7 @@ public function __construct(
 ```
 
 Rules:
+
 - Every injected dependency needs a `@param` tag with FQCN.
 - No `@return` tag on constructors.
 - For promoted readonly properties, the `@param` docblock on the constructor covers the property type —
@@ -96,13 +98,15 @@ public function getById(int $id): \Full\Class\Name
 - **Scalar types** (`int`, `string`, `bool`, `float`, `array`, `null`): short form is acceptable, e.g. `@param int $id`.
 - **Union types**: `@param string|null $name` or `@param \Vendor\Module\Api\Data\OrderInterface|null $order`.
 - **Nullable objects**: `@param \Vendor\Module\Api\Data\OrderInterface|null $order` — include `|null`.
-- **No description needed** when the parameter name makes the purpose obvious; add description only for non-obvious constraints.
+- **No description needed** when the parameter name makes the purpose obvious; add description only for non-obvious
+  constraints.
 - Do not duplicate what the type declaration already expresses.
 
 ### `@return` Tag Rules
 
 - **Always present** on non-void public methods.
-- `@return void` may be omitted (PHPCS allows this on void returns), but include it on `execute()` methods for explicitness.
+- `@return void` may be omitted (PHPCS allows this on void returns), but include it on `execute()` methods for
+  explicitness.
 - Object return types use FQCN with leading backslash.
 - `@return $this` for fluent-setter methods in concrete classes.
 - `@return static` for fluent-setter methods in interfaces (allows chaining in subclasses).
@@ -111,7 +115,8 @@ public function getById(int $id): \Full\Class\Name
 ### `@throws` Tag Rules
 
 - Include `@throws` only for exceptions that **callers are expected to catch**.
-- Do not include `@throws` for exceptions that only indicate programming errors (e.g. `\InvalidArgumentException` when the cause is a code defect, not a runtime condition).
+- Do not include `@throws` for exceptions that only indicate programming errors (e.g. `\InvalidArgumentException` when
+  the cause is a code defect, not a runtime condition).
 - Use FQCN: `@throws \Magento\Framework\Exception\CouldNotSaveException`.
 - List one `@throws` tag per distinct exception type — do not group them.
 
@@ -133,6 +138,7 @@ public function getById(int $entityId): \Vendor\Module\Api\Data\OrderInterface
 ```
 
 Use full PHPDoc instead when the implementation:
+
 - Changes the documented behaviour relative to the interface contract.
 - Adds side effects not documented in the interface.
 - Declares additional `@throws` not declared on the interface.
@@ -156,13 +162,13 @@ redundant and should be omitted.
 
 ## Magento-Specific Annotations
 
-| Annotation | Where | When |
-|---|---|---|
-| `@api` | Interface class docblock | Every interface in `Api/` — signals stability guarantee |
-| `@deprecated` | Class or method docblock | When replacing; include `@see NewClass::method` |
-| `@internal` | Class or method docblock | For non-public contracts not in `Api/` |
-| `@see` | Any docblock | When pointing to a related class, method, or URL |
-| `@SuppressWarnings(PHPMD.CouplingBetweenObjects)` | Class docblock | Orchestration classes with > 5 deps; must include inline justification comment |
+| Annotation                                        | Where                    | When                                                                           |
+|---------------------------------------------------|--------------------------|--------------------------------------------------------------------------------|
+| `@api`                                            | Interface class docblock | Every interface in `Api/` — signals stability guarantee                        |
+| `@deprecated`                                     | Class or method docblock | When replacing; include `@see NewClass::method`                                |
+| `@internal`                                       | Class or method docblock | For non-public contracts not in `Api/`                                         |
+| `@see`                                            | Any docblock             | When pointing to a related class, method, or URL                               |
+| `@SuppressWarnings(PHPMD.CouplingBetweenObjects)` | Class docblock           | Orchestration classes with > 5 deps; must include inline justification comment |
 
 ---
 
@@ -171,7 +177,8 @@ redundant and should be omitted.
 Apply these before writing any docblock:
 
 1. **Skip the description** when the method name + return type already express the full contract.
-   Example: `getEntityId(): ?int` — `Get entity ID.` adds no information; it is still required by PHPCS but keep it that terse.
+   Example: `getEntityId(): ?int` — `Get entity ID.` adds no information; it is still required by PHPCS but keep it that
+   terse.
 
 2. **Skip `@param` descriptions** when the parameter name is self-documenting.
    Example: `@param int $entityId` needs no prose; `@param int $timeout` might need `Timeout in seconds.`
@@ -188,12 +195,12 @@ Apply these before writing any docblock:
 
 ## Common Mistakes to Avoid
 
-| Wrong | Correct |
-|---|---|
-| `@param OrderInterface $entity` (no leading `\`, not FQCN) | `@param \Vendor\Module\Api\Data\OrderInterface $entity` |
-| `@return $this` in an interface setter | `@return static` |
-| `@throws \Exception` (generic) | `@throws \Magento\Framework\Exception\CouldNotSaveException` |
-| Docblock on a `private` method | Omit unless the logic is genuinely non-obvious |
-| `/** @var string */` on a `private string $name` property | Omit — type declaration covers it |
-| `@api` on a concrete class | `@api` is only for interfaces |
-| Duplicate `@param` + inline description for the same thing | One or the other |
+| Wrong                                                      | Correct                                                      |
+|------------------------------------------------------------|--------------------------------------------------------------|
+| `@param OrderInterface $entity` (no leading `\`, not FQCN) | `@param \Vendor\Module\Api\Data\OrderInterface $entity`      |
+| `@return $this` in an interface setter                     | `@return static`                                             |
+| `@throws \Exception` (generic)                             | `@throws \Magento\Framework\Exception\CouldNotSaveException` |
+| Docblock on a `private` method                             | Omit unless the logic is genuinely non-obvious               |
+| `/** @var string */` on a `private string $name` property  | Omit — type declaration covers it                            |
+| `@api` on a concrete class                                 | `@api` is only for interfaces                                |
+| Duplicate `@param` + inline description for the same thing | One or the other                                             |

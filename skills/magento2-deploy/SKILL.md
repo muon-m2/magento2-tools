@@ -1,12 +1,12 @@
 ---
 name: magento2-deploy
 description:
-    Deploy one or more Magento 2 modules with pre-flight validation, ordered execution,
-    smoke testing, and rollback on failure. Use when the user wants to deploy changes,
-    enable a new module, run setup:upgrade after a code change, or roll back a previous
-    deploy. Supports environment targets (local, staging, production) and produces a
-    deploy report. Used by magento2-feature-implement, magento2-bug-fix, and
-    magento2-module-upgrade for their D* deploy step.
+  Deploy one or more Magento 2 modules with pre-flight validation, ordered execution,
+  smoke testing, and rollback on failure. Use when the user wants to deploy changes,
+  enable a new module, run setup:upgrade after a code change, or roll back a previous
+  deploy. Supports environment targets (local, staging, production) and produces a
+  deploy report. Used by magento2-feature-implement, magento2-bug-fix, and
+  magento2-module-upgrade for their D* deploy step.
 ---
 
 # Magento 2 Deploy
@@ -46,17 +46,17 @@ requires `bin/magento`."
 Run **without modifying state**. See `references/pre-flight-checks.md` for the full
 catalogue. Required by default:
 
-| Check | Command | When required |
-|-------|---------|---------------|
-| Module files exist | `find {module-path} -name registration.php` | All deploys |
-| Composer validate | `composer validate --no-check-publish` per module composer.json | All deploys |
-| PHPCS Magento2 | `{runner} vendor/bin/phpcs --standard=Magento2 {modules}` | If `--strict` |
-| PHPStan level 8 | `{runner} vendor/bin/phpstan analyse --level=8 {modules}` | If `--strict` |
-| Unit tests | `{runner} vendor/bin/phpunit {modules}/Test/Unit` | All deploys |
-| Disk space | `df -h $(pwd)` | All deploys (warn at < 1GB) |
-| Git working tree clean | `git status --porcelain` | Production only |
-| No pending DB declarations | `{magento_cli} setup:db:status` | All deploys |
-| Composer install dry-run | `composer install --no-dev --dry-run` | Production only |
+| Check                      | Command                                                         | When required               |
+|----------------------------|-----------------------------------------------------------------|-----------------------------|
+| Module files exist         | `find {module-path} -name registration.php`                     | All deploys                 |
+| Composer validate          | `composer validate --no-check-publish` per module composer.json | All deploys                 |
+| PHPCS Magento2             | `{runner} vendor/bin/phpcs --standard=Magento2 {modules}`       | If `--strict`               |
+| PHPStan level 8            | `{runner} vendor/bin/phpstan analyse --level=8 {modules}`       | If `--strict`               |
+| Unit tests                 | `{runner} vendor/bin/phpunit {modules}/Test/Unit`               | All deploys                 |
+| Disk space                 | `df -h $(pwd)`                                                  | All deploys (warn at < 1GB) |
+| Git working tree clean     | `git status --porcelain`                                        | Production only             |
+| No pending DB declarations | `{magento_cli} setup:db:status`                                 | All deploys                 |
+| Composer install dry-run   | `composer install --no-dev --dry-run`                           | Production only             |
 
 Any required check failing aborts the deploy with a clear report. Run via
 `${CLAUDE_SKILL_DIR}/scripts/preflight.sh`.
@@ -108,15 +108,31 @@ Run each command in order via `${CLAUDE_SKILL_DIR}/scripts/execute-plan.sh` or b
 Triggered only on failure during Phase 3. See `references/rollback-recipes.md` for the
 authoritative table.
 
-| Failed step | Rollback recipe |
-|-------------|-----------------|
-| `module:enable` | `module:disable {modules}` |
-| `setup:upgrade` | `git revert <deploy commit>` then re-run `setup:upgrade` |
-| `setup:di:compile` | Restore `generated/` from snapshot (if `--snapshot` was set) |
-| `setup:static-content:deploy` | Re-run from previous version's git ref |
-| `cache:flush` | Idempotent — no rollback needed |
-| `indexer:reindex` | Mark indexers invalid; re-run after the underlying issue is fixed |
-| `queue:consumers:start` | `queue:consumers:stop {consumer}`; clear bad messages |
+| Failed step                   | Rollback recipe                                                                            |
+|-------------------------------|--------------------------------------------------------------------------------------------|
+| `module:enable`               | `module:disable {modules}`                                                                 |
+| `setup:upgrade`               | Restore the DB dump (see below), `git revert <deploy commit>`, then re-run `setup:upgrade` |
+| `setup:di:compile`            | Restore `generated/` from snapshot (if `--snapshot` was set)                               |
+| `setup:static-content:deploy` | Re-run from previous version's git ref                                                     |
+| `cache:flush`                 | Idempotent — no rollback needed                                                            |
+| `indexer:reindex`             | Mark indexers invalid; re-run after the underlying issue is fixed                          |
+| `queue:consumers:start`       | `queue:consumers:stop {consumer}`; clear bad messages                                      |
+
+**`setup:upgrade` rollback is lossy without a DB backup.** Reverting code and re-running
+`setup:upgrade` does NOT undo schema or data changes already applied:
+
+- Applied **data patches** are recorded in `patch_list` and will be neither re-applied nor
+  reverted by `setup:upgrade` (unless they implement `PatchRevertableInterface` and the
+  module is uninstalled).
+- **Declarative-schema** column/table drops are destructive — the data is gone and cannot
+  be recovered from code.
+
+To roll the database back you need a dump taken *before* the deploy: run the snapshot with
+`--include-db` (writes `db-{ts}.sql.gz`) and restore it before re-running `setup:upgrade`:
+
+```
+gunzip < db-{ts}.sql.gz | MYSQL_PWD=<pass> mysql -h <host> -P <port> -u <user> <dbname>
+```
 
 Rollback is best-effort. Report exactly what was rolled back and what wasn't, with file
 paths and commands for manual completion.
@@ -125,16 +141,16 @@ paths and commands for manual completion.
 
 Run smoke tests appropriate to the modules deployed. See `references/smoke-tests.md`.
 
-| Surface | Smoke |
-|---------|-------|
-| Any | `{magento_cli} module:status` shows all expected modules enabled |
-| Any | `{magento_cli} setup:db:status` shows "Magento Database is up to date" |
-| `service_contracts` + `rest_api` | `curl -s {host}/rest/V1/{vendor}/{route}/` returns 200/401 (not 500) |
-| `graphql` | `curl -s -X POST {host}/graphql -d '{"query":"{__schema{queryType{name}}}"}'` returns 200 |
-| `admin_ui` | `curl -s {host}/admin/` returns 302 (login redirect) |
-| `frontend_ui` | `curl -s {host}/{vendor_lower}_{module_lower}/{route}/` returns expected status |
-| `cron` | `{magento_cli} cron:status` shows new jobs registered |
-| `queue` | `{magento_cli} queue:consumers:list` shows new consumers registered |
+| Surface                          | Smoke                                                                                     |
+|----------------------------------|-------------------------------------------------------------------------------------------|
+| Any                              | `{magento_cli} module:status` shows all expected modules enabled                          |
+| Any                              | `{magento_cli} setup:db:status` shows "Magento Database is up to date"                    |
+| `service_contracts` + `rest_api` | `curl -s {host}/rest/V1/{vendor}/{route}/` returns 200/401 (not 500)                      |
+| `graphql`                        | `curl -s -X POST {host}/graphql -d '{"query":"{__schema{queryType{name}}}"}'` returns 200 |
+| `admin_ui`                       | `curl -s {host}/admin/` returns 302 (login redirect)                                      |
+| `frontend_ui`                    | `curl -s {host}/{vendor_lower}_{module_lower}/{route}/` returns expected status           |
+| `cron`                           | crontab installed (`crontab -l \| grep cron:run`) + `cron_schedule` has recent rows (no `cron:status` command exists) |
+| `queue`                          | `{magento_cli} queue:consumers:list` shows new consumers registered                       |
 
 A smoke failure does NOT trigger rollback (the deploy completed) but is reported as a
 "needs investigation" finding. Run via `${CLAUDE_SKILL_DIR}/scripts/smoke.sh`.
@@ -173,7 +189,8 @@ Write to `.docs/deployments/{YYYY-MM-DD-HHMMSS}-{env}.md` AND the JSON sibling. 
 - `${CLAUDE_SKILL_DIR}/scripts/preflight.sh` — run pre-flight checks; emit JSON pass/fail summary.
 - `${CLAUDE_SKILL_DIR}/scripts/execute-plan.sh` — execute a plan file step-by-step, log per-step results.
 - `${CLAUDE_SKILL_DIR}/scripts/smoke.sh` — run smoke tests for given module list.
-- `${CLAUDE_SKILL_DIR}/scripts/snapshot.sh` — create a pre-deploy snapshot of `generated/`, `var/`, optionally `vendor/`.
+- `${CLAUDE_SKILL_DIR}/scripts/snapshot.sh` — create a pre-deploy snapshot of `generated/`, `var/`, optionally
+  `vendor/` (`--include-vendor`) and the database (`--include-db`, required for a non-lossy `setup:upgrade` rollback).
 
 ## Inputs
 
@@ -181,17 +198,20 @@ Write to `.docs/deployments/{YYYY-MM-DD-HHMMSS}-{env}.md` AND the JSON sibling. 
 /magento2-deploy [--env=local|staging|production] [--strict] [--auto] [--snapshot] [--full] [--validate-only] <Vendor>_<Module>...
 ```
 
-| Flag | Default | Meaning |
-|------|---------|---------|
-| `--env` | `local` | Target environment. `production` requires interactive confirm. |
-| `--strict` | off | Require PHPCS + PHPStan to pass in pre-flight. |
-| `--auto` | off | Skip approval gate before Phase 3. Rejected on production unless `--i-know-what-im-doing`. |
-| `--snapshot` | off (local/staging) / prompted (prod) | Snapshot before deploy for rollback. |
-| `--full` | off (local/staging) / on (prod) | Run optional steps (maintenance, static-deploy, di:compile). |
-| `--validate-only` | off | Run **only** Phase 0 (context) + Phase 1 (pre-flight) + Phase 2 (plan). Skip Phase 3 onwards. Exit 0 if all required checks pass, 1 otherwise. Safe for release / CI gating. |
-| `--i-know-what-im-doing` | off | Required for `--auto --env=production` combination. |
+| Flag                     | Default                               | Meaning                                                                                                                                                                      |
+|--------------------------|---------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `--env`                  | `local`                               | Target environment. `production` requires interactive confirm.                                                                                                               |
+| `--strict`               | off                                   | Require PHPCS + PHPStan to pass in pre-flight.                                                                                                                               |
+| `--auto`                 | off                                   | Skip approval gate before Phase 3. Rejected on production unless `--i-know-what-im-doing`.                                                                                   |
+| `--snapshot`             | off (local/staging) / prompted (prod) | Snapshot before deploy for rollback.                                                                                                                                         |
+| `--full`                 | off (local/staging) / on (prod)       | Run optional steps (maintenance, static-deploy, di:compile).                                                                                                                 |
+| `--validate-only`        | off                                   | Run **only** Phase 0 (context) + Phase 1 (pre-flight) + Phase 2 (plan). Skip Phase 3 onwards. Exit 0 if all required checks pass, 1 otherwise. Safe for release / CI gating. |
+| `--i-know-what-im-doing` | off                                   | Required for `--auto --env=production` combination.                                                                                                                          |
 
-**Implementation note for `--validate-only`:** when this flag is set, the skill MUST exit after writing the validation report. No `setup:upgrade`, no cache flush, no static-content:deploy, no maintenance toggling. The validation report follows the same `.docs/deployments/{timestamp}-{env}.{md,json}` layout but with `"mode": "validate-only"` in the JSON and a `Validation only — no deploy executed` banner in the markdown.
+**Implementation note for `--validate-only`:** when this flag is set, the skill MUST exit after writing the validation
+report. No `setup:upgrade`, no cache flush, no static-content:deploy, no maintenance toggling. The validation report
+follows the same `.docs/deployments/{timestamp}-{env}.{md,json}` layout but with `"mode": "validate-only"` in the JSON
+and a `Validation only — no deploy executed` banner in the markdown.
 
 ## Outputs
 
@@ -224,10 +244,10 @@ Write to `.docs/deployments/{YYYY-MM-DD-HHMMSS}-{env}.md` AND the JSON sibling. 
 
 ## Related Skills
 
-| Caller | Use |
-|--------|-----|
-| `magento2-feature-implement` | Phase 5 D1 task |
-| `magento2-bug-fix` | Phase 6 (optional) |
-| `magento2-module-upgrade` | After upgrade is patched |
-| `magento2-release` | Phase 2 (validate only — `--strict` pre-flight) |
-| Direct user | `/magento2-deploy --env=staging Acme_ModuleA Acme_ModuleB` |
+| Caller                       | Use                                                        |
+|------------------------------|------------------------------------------------------------|
+| `magento2-feature-implement` | Phase 5 D1 task                                            |
+| `magento2-bug-fix`           | Phase 6 (optional)                                         |
+| `magento2-module-upgrade`    | After upgrade is patched                                   |
+| `magento2-release`           | Phase 2 (validate only — `--strict` pre-flight)            |
+| Direct user                  | `/magento2-deploy --env=staging Acme_ModuleA Acme_ModuleB` |

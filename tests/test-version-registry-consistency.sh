@@ -18,7 +18,7 @@ fi
 
 if ! command -v python3 >/dev/null 2>&1; then
     echo "skip: python3 not on PATH"
-    exit 0
+    exit 77
 fi
 
 python3 <<'PY'
@@ -59,6 +59,10 @@ self_ver_bash_re   = re.compile(r'SKILL_VERSION(?:=\$\{SKILL_VERSION:-|=)([0-9]+
 self_ver_doc_re    = re.compile(r'SKILL_VERSION\s+default:\s*([0-9]+\.[0-9]+\.[0-9]+)')
 # Python literal fallback inside emitter scripts: os.environ.get('SKILL_VERSION', 'X.Y.Z').
 self_ver_py_re     = re.compile(r"os\.environ\.get\(\s*['\"]SKILL_VERSION['\"]\s*,\s*['\"]([0-9]+\.[0-9]+\.[0-9]+)['\"]")
+# JSON literal emitted by a resolver/emitter script: "skillVersion": "X.Y.Z".
+# Scoped to the owning skill's scripts/ dir so example JSON in docs (which may show
+# other skills' versions for illustration) is not flagged. This is the TEST-3 fix.
+self_ver_json_re   = re.compile(r'"skillVersion"\s*:\s*"([0-9]+\.[0-9]+\.[0-9]+)"')
 
 def owning_skill(path):
     # path like skills/<skill>/...
@@ -124,6 +128,14 @@ for root, dirs, files in os.walk("skills"):
                                     f"{path}:{lineno} Python SKILL_VERSION fallback '{v}' "
                                     f"!= registry '{own}@{current[own]}'"
                                 )
+                        if f"{os.sep}scripts{os.sep}" in path:
+                            for m in self_ver_json_re.finditer(line):
+                                v = m.group(1)
+                                if v != current[own]:
+                                    problems.append(
+                                        f"{path}:{lineno} \"skillVersion\" literal '{v}' "
+                                        f"!= registry '{own}@{current[own]}'"
+                                    )
         except OSError:
             continue
 

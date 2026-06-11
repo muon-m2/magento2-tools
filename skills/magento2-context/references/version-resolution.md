@@ -6,12 +6,12 @@ and `framework_constraint`.
 ## `edition` and `magento_version`
 
 1. **`src/composer.json`** — read `require`:
-   - `magento/product-community-edition` present → `edition = "open-source"`,
-     `magento_version` = the constraint value (stripped of operators: `2.4.7-p1`).
-   - `magento/product-enterprise-edition` present → `edition = "commerce"`,
-     `magento_version` = the constraint value.
-   - Else fall through.
-   - `resolution_source.edition` = `"src/composer.json:magento/product-{edition}-edition"`.
+    - `magento/product-community-edition` present → `edition = "open-source"`,
+      `magento_version` = the constraint value (stripped of operators: `2.4.7-p1`).
+    - `magento/product-enterprise-edition` present → `edition = "commerce"`,
+      `magento_version` = the constraint value.
+    - Else fall through.
+    - `resolution_source.edition` = `"src/composer.json:magento/product-{edition}-edition"`.
 
 2. **Magento CLI** — `{magento_cli} --version` if runner available.
    Parse the output (`Magento CLI 2.4.7-p1`).
@@ -50,10 +50,10 @@ This is the **actual installed** PHP version, distinct from the constraint.
 
 ## Edge Cases
 
-| Case | Behaviour |
-|------|-----------|
-| Both community and enterprise editions in composer.json | Prefer enterprise; record both in `resolution_source`. |
-| `composer.json` constraint uses an alias (e.g. `dev-main as 2.4.7`) | Use the right-hand version. |
-| `magento_version` looks invalid (no major/minor/patch) | Warn but accept; downstream skills can validate. |
-| Magento CLI version mismatches composer.json | Trust composer.json; warn user. |
-| PHP probe fails (extension missing, etc.) | `php_version = null`; downstream skills know to skip PHP-specific checks. |
+| Case                                                                | Behaviour                                                                 |
+|---------------------------------------------------------------------|---------------------------------------------------------------------------|
+| Both community and enterprise editions in composer.json             | Prefer enterprise; record both in `resolution_source`.                    |
+| `composer.json` constraint uses an alias (e.g. `dev-main as 2.4.7`) | Use the right-hand version.                                               |
+| `magento_version` looks invalid (no major/minor/patch)              | Warn but accept; downstream skills can validate.                          |
+| Magento CLI version mismatches composer.json                        | Trust composer.json; warn user.                                           |
+| PHP probe fails (extension missing, etc.)                           | `php_version = null`; downstream skills know to skip PHP-specific checks. |

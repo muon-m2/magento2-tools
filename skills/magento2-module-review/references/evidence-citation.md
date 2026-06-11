@@ -19,17 +19,18 @@ Evidence: `Model/ResourceModel/Report.php:89–104` — raw SQL built by string 
 
 ## XML Structure
 
-Cite the nearest named ancestor element (type, id, name, or for attribute) so the location is unambiguous without a line number:
+Cite the nearest named ancestor element (type, id, name, or for attribute) so the location is unambiguous without a line
+number:
 
 ```
-Evidence: `etc/di.xml` — <type name="Muon\OrderGrid\Model\Service"> configures a concrete Session
+Evidence: `etc/di.xml` — <type name="Acme\OrderGrid\Model\Service"> configures a concrete Session
           dependency without a Proxy, causing full session bootstrap on every DI graph instantiation.
 ```
 
 For `webapi.xml`:
 
 ```
-Evidence: `etc/webapi.xml` — <route url="/V1/muon/orders" method="GET"> declares resource="anonymous";
+Evidence: `etc/webapi.xml` — <route url="/V1/acme/orders" method="GET"> declares resource="anonymous";
           endpoint returns full order data including customer email.
 ```
 
@@ -63,7 +64,7 @@ Cite the declaration point first, then the consumption point:
 
 ```
 Evidence: Declaration — `etc/di.xml:23` configures <preference for="Magento\Catalog\Api\ProductRepositoryInterface"
-          type="Muon\Catalog\Model\ProductRepository">.
+          type="Acme\Catalog\Model\ProductRepository">.
           Impact — `Model/Service/SyncService.php:15` injects the interface; the concrete substitution overrides
           all third-party plugins registered on the original implementation.
 ```
@@ -74,7 +75,7 @@ Cite the `config.xml` or `system.xml` field that sets the default:
 
 ```
 Evidence: `etc/config.xml:18` — <api_key>hardcoded_default_value</api_key> under path
-          muon_integration/settings/api_key. Any store that does not reconfigure this key
+          acme_integration/settings/api_key. Any store that does not reconfigure this key
           sends requests with a shared credential.
 ```
 

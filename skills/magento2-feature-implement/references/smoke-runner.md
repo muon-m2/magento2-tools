@@ -14,11 +14,11 @@ Never assume a tool exists; degrade explicitly.
 | Probe | How to detect | If missing |
 |-------|---------------|------------|
 | Base URL | `CLAUDE.md` line `Base URL:` → else `{magento} config:show web/secure/base_url` → else ask | Halt 6B with "no base URL — smoke cannot run". |
-| Admin URL fragment | `{runner} php -r "echo (require 'app/etc/env.php')['backend']['frontName'] ?? 'admin';"` | Default `/admin` and warn. |
+| Admin URL fragment | `{runner} php -r "echo (require '{ctx.magento_root}/app/etc/env.php')['backend']['frontName'] ?? 'admin';"` (layout-aware path — bare `app/etc/env.php` is wrong in a `src/` layout) | Default `/admin` and warn. Pass it to the browser driver as `--admin-path=/<frontName>`. |
 | Admin user | `CLAUDE.md` line `Smoke admin user:` → else env `M2_SMOKE_ADMIN_USER` → else prompt once | Halt S3 only; other suites continue. |
-| Admin password | `CLAUDE.md` line `Smoke admin pass:` → else env `M2_SMOKE_ADMIN_PASS` → else prompt once (echo suppressed) | Halt S3 only. |
+| Admin password | env `M2_SMOKE_ADMIN_PASS` → else prompt once (echo suppressed). **Do NOT read the password from `CLAUDE.md`** — that file is committed; a password there leaks into version control. (A `Smoke admin pass:` line in CLAUDE.md, if present, must be ignored and the user warned.) | Halt S3 only. |
 | HTTP client | `curl --version` → fallback `{runner} php -r "echo function_exists('curl_init') ? 'php' : 'no';"` | Skip S2; record explicit limitation. |
-| Headless browser | `npx --no-install playwright --version` → fallback `npx --no-install puppeteer --version` → fallback `google-chrome --version` (raw CDP mode) | Skip S3–S7; record explicit limitation. |
+| Headless browser | `npx --no-install playwright --version` → fallback `npx --no-install puppeteer --version` | Skip S3–S7; record explicit limitation (the raw-CDP fallback was removed — it fake-passed). |
 | Node | `node --version` | Skip browser-dependent suites. |
 | jq | `jq --version` | Optional — fall back to raw JSON in report. |
 
@@ -66,14 +66,19 @@ It exposes one command per suite step:
 node scripts/smoke-browser.mjs <command> [options]
 ```
 
+Auth is cookie-file based (there is no `--token` flag): `admin-login` saves the session
+cookies with `--save-cookies=<file>`, and the S4–S6 commands re-load them via
+`--admin-cookie-file=<file>`. Pass `--admin-path=/<frontName>` when the admin uses a custom
+front name.
+
 | Command | Purpose | Output |
 |---------|---------|--------|
-| `admin-login --url=… --user=… --pass=…` | Drive S3 | `{ ok, status, consoleErrors[], screenshot }` JSON to stdout |
-| `stores-config-walk --url=… --token=… --sections=a/b/c,d/e/f` | Drive S4 | per-section result |
-| `grid --url=… --route=/admin/customer/index/index --filter='name:Smith'` | Drive S5 per grid | row count, filter applied/cleared |
+| `admin-login --url=…/admin --user=… --pass=… --save-cookies=admin.json` | Drive S3 + save session | `{ ok, status, adminPath, cookiesSaved, consoleErrors[] }` |
+| `stores-config-walk --url=… --admin-cookie-file=admin.json --sections=a/b/c,d/e/f` | Drive S4 (loads sections; no field write) | per-section status |
+| `grid --url=… --admin-cookie-file=admin.json --route=/{admin}/customer/index/index --filter='name:Smith'` | Drive S5 per grid | row count, `filterApplied` (no clear) |
 | `visit --url=… --route=/path --click=#cta --screenshot=out.png` | Drive S6 per route | render status, console errors |
 | `customer-flow --url=… --email=smoke+{uuid}@example.test --pass=…` | Drive S7 | each step result |
-| `cleanup --url=… --customer-email=…` | S9 cleanup | deletion confirmation |
+| `cleanup --url=… --admin-cookie-file=admin.json --customer-email=…` | S9 cleanup (navigates to grid; `deleted:false`) | best-effort note |
 
 The wrapper:
 

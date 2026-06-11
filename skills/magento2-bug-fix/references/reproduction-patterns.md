@@ -62,11 +62,13 @@ Common groups: `default`, `index`, `consumers`, `catalog_event`. Inspect `cronta
 for the failing job's group.
 
 To trigger a specific cron job:
+
 ```
 {ctx.runner} php -r "..." # invoke the cron class directly with required deps
 ```
 
 Or, in Magento 2.4.5+:
+
 ```
 {ctx.magento_cli} cron:run --bootstrap=standaloneProcessStarted=1 --group={group}
 ```
@@ -81,6 +83,7 @@ This runs one message and exits — perfect for reproducing a consumer crash wit
 flooding the queue.
 
 For RabbitMQ, send a test message via the management API or `rabbitmqadmin`:
+
 ```
 rabbitmqadmin publish exchange={ex} routing_key={topic} payload='{...}'
 ```
@@ -99,6 +102,7 @@ repeatable reproduction.
 ## Browser Reproduction
 
 For frontend bugs not captured by curl (KO, JS), record:
+
 - Browser + version
 - Steps (1, 2, 3...)
 - Network HAR file path (if user can share)
@@ -145,9 +149,13 @@ After 2 attempts:
 1. Stop. Do not guess at the cause.
 2. Report what was tried, what was observed.
 3. Ask the user for:
-   - Exact env where they saw it
-   - Any preconditions you might have missed
-   - HAR file, screen recording, or shell session
+    - Exact env where they saw it
+    - Any preconditions you might have missed
+    - HAR file, screen recording, or shell session
 
-Do not proceed to Phase 3 (RCA) without a deterministic reproduction. Speculative
-RCAs lead to wrong fixes.
+Do not proceed to Phase 3 (RCA) without a reproduction. Speculative RCAs lead to wrong
+fixes. Note: a **failing automated test that captures the defect counts as a valid
+reproduction** — per the SKILL, the test encodes the reproduction. A manual click-path is
+not required when a unit/integration test reliably fails on the bug and passes once it is
+fixed. "Deterministic" here means the *test* fails reliably, not that the bug must be
+hand-triggered.

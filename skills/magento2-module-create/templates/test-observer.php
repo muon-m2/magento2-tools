@@ -31,9 +31,11 @@ class {DescriptiveName}ObserverTest extends TestCase
         $observer = $this->createMock(Observer::class);
         $observer->method('getEvent')->willReturn($event);
 
-        // No exception expected on happy path.
+        // Happy path must not log an error. expects($this->never()) IS the assertion,
+        // verified at teardown — so this is not an assertion-free test.
+        $this->logger->expects($this->never())->method('error');
+
         $this->subject->execute($observer);
-        $this->expectNotToPerformAssertions();
     }
 
     public function testExecuteLogsExceptionAndContinues(): void
@@ -41,10 +43,11 @@ class {DescriptiveName}ObserverTest extends TestCase
         $observer = $this->createMock(Observer::class);
         $observer->method('getEvent')->willThrowException(new \RuntimeException('boom'));
 
+        // The exception thrown while handling the event must be logged exactly once.
+        // This expectation is the assertion; do NOT add expectNotToPerformAssertions().
         $this->logger->expects($this->once())->method('error');
 
-        // Observer must NOT re-throw by default — see template comment.
+        // Observer must NOT re-throw by default — if it did, this call would error the test.
         $this->subject->execute($observer);
-        $this->expectNotToPerformAssertions();
     }
 }

@@ -116,6 +116,7 @@ config is needed — Magento resolves the constructor args automatically.
 ## Reference
 
 Magento core source models (good examples):
+
 - `Magento\Catalog\Model\Product\Type` — product type source
 - `Magento\Eav\Model\Entity\Attribute\Source\Boolean` — Yes/No
 - `Magento\Cms\Model\Page\Source\PageLayout` — option list from config

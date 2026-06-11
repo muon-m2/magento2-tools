@@ -3,10 +3,10 @@
 Date: {YYYY-MM-DD}
 Status: {Complete | Partial | Failed}
 Skill versions:
-  - magento2-module-upgrade@1.0.0
-  - magento2-module-review@2.2.0
-  - magento2-test-generate@1.0.0
-  - magento2-context@1.3.0
+  - magento2-module-upgrade@1.1.0
+  - magento2-module-review@2.2.1
+  - magento2-test-generate@1.1.0
+- magento2-context@1.4.0
 
 ## Scope
 
@@ -16,12 +16,13 @@ Skill versions:
 
 ## Scanners Run
 
-| Scanner | Available | Findings |
-|---------|-----------|----------|
-| Rector | yes | 18 (12 auto-fixed, 6 manual) |
-| PHPStan | yes | 4 errors at level 8 |
-| m2-coding-standard | no | — |
-| PHPCompatibility | yes | 2 PHP 8.2 issues |
+| Scanner                         | Available                        | Findings                     |
+|---------------------------------|----------------------------------|------------------------------|
+| Adobe UCT (`uct upgrade:check`) | no (Open Source — edition-gated) | —                            |
+| Rector                          | yes                              | 18 (12 auto-fixed, 6 manual) |
+| PHPStan                         | yes                              | 4 errors at level 8          |
+| phpcs --standard=Magento2       | no                               | —                            |
+| PHPCompatibility                | yes                              | 2 PHP 8.2 issues             |
 
 ## Findings
 

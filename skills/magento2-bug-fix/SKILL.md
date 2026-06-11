@@ -59,17 +59,17 @@ Goal: have enough information to attempt reproduction.
 
 1. Parse the user's bug description.
 2. Ask for any of the following that's missing (one batch — do not interrupt later):
-   - **Symptom**: visible failure?
-   - **Trigger**: action that causes it?
-   - **Scope**: customer-facing / admin / REST / GraphQL / cron / queue / CLI?
-   - **Environment**: production / staging / local; Magento version; module list.
-   - **Error**: exact error message or stack trace.
-   - **First seen**: date / commit / deploy.
+    - **Symptom**: visible failure?
+    - **Trigger**: action that causes it?
+    - **Scope**: customer-facing / admin / REST / GraphQL / cron / queue / CLI?
+    - **Environment**: production / staging / local; Magento version; module list.
+    - **Error**: exact error message or stack trace.
+    - **First seen**: date / commit / deploy.
 3. Pull relevant log files. Defaults (resolved against `{ctx.magento_root}`):
-   - `var/log/system.log`
-   - `var/log/exception.log`
-   - `var/log/debug.log`
-   - Any module-specific log mentioned in the symptom.
+    - `var/log/system.log`
+    - `var/log/exception.log`
+    - `var/log/debug.log`
+    - Any module-specific log mentioned in the symptom.
 4. Grep logs for the symptom signature.
 
 Save the initial collection notes to `.docs/bug-fixes/{slug}/collect.md`.
@@ -102,11 +102,11 @@ Goal: locate the exact code line(s) responsible.
 3. Identify the first frame where behaviour diverges from intent.
 4. Read the surrounding code, `git blame`, and recent commits.
 5. Write the RCA per `references/rca-format.md`:
-   - **Defect location**: `file:line`
-   - **Defect description**: what's wrong, in plain English
-   - **Why**: history (last-touched commit, original intent)
-   - **Proposed fix**: minimal change description (do not write code yet)
-   - **Regression test plan**: which test class, what assertion
+    - **Defect location**: `file:line`
+    - **Defect description**: what's wrong, in plain English
+    - **Why**: history (last-touched commit, original intent)
+    - **Proposed fix**: minimal change description (do not write code yet)
+    - **Regression test plan**: which test class, what assertion
 6. Save RCA to `.docs/bug-fixes/{slug}/rca.md`.
 7. Present RCA. **Wait for explicit approval** ("proceed", "yes", "approved").
 
@@ -157,6 +157,7 @@ refactor.
 ### Phase 7 — Report
 
 Save report per `templates/report.md` to `.docs/bug-fixes/{slug}/report.md`:
+
 - Symptom
 - Reproduction recipe (path)
 - Root cause (link to RCA)
@@ -173,24 +174,24 @@ Optional: open a PR. Same shape as `magento2-feature-implement` PR step.
 Classify at the start of Phase 7 (do not let classification gate Phase 6 — the fix is
 already in):
 
-| Class | Definition | Default deploy timing |
-|-------|-----------|----------------------|
-| Critical | Production down, data loss, security breach | Immediate |
-| High | Major functional break on common path | Next deploy window |
-| Medium | Edge case with workaround | Bundled with next feature deploy |
-| Low | Cosmetic / minor inconvenience | Discretionary |
+| Class    | Definition                                  | Default deploy timing            |
+|----------|---------------------------------------------|----------------------------------|
+| Critical | Production down, data loss, security breach | Immediate                        |
+| High     | Major functional break on common path       | Next deploy window               |
+| Medium   | Edge case with workaround                   | Bundled with next feature deploy |
+| Low      | Cosmetic / minor inconvenience              | Discretionary                    |
 
 ## Edge Cases
 
-| Case | Behaviour |
-|------|-----------|
-| Bug in vendor/ third-party module | RCA proceeds; fix proposed as a plugin/observer in a project module, not as a vendor edit. |
-| Bug in Magento core | Same: plugin/observer in a project module. Never edit `vendor/magento/`. |
-| Bug spans ≥ 2 modules | Per-task commits; RCA covers each module separately; one report. |
-| Bug can't be reproduced | Phase 2 fails after 2 attempts; report "cannot reproduce" with all evidence collected. |
-| Fix requires a **schema** change (`db_schema.xml`) | Stop; redirect to `magento2-feature-implement --mode=extend`. Bug-fix is for code-only changes. |
+| Case                                                              | Behaviour                                                                                                                      |
+|-------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------|
+| Bug in vendor/ third-party module                                 | RCA proceeds; fix proposed as a plugin/observer in a project module, not as a vendor edit.                                     |
+| Bug in Magento core                                               | Same: plugin/observer in a project module. Never edit `vendor/magento/`.                                                       |
+| Bug spans ≥ 2 modules                                             | Per-task commits; RCA covers each module separately; one report.                                                               |
+| Bug can't be reproduced                                           | Phase 2 fails after 2 attempts; report "cannot reproduce" with all evidence collected.                                         |
+| Fix requires a **schema** change (`db_schema.xml`)                | Stop; redirect to `magento2-feature-implement --mode=extend`. Bug-fix is for code-only changes.                                |
 | Fix requires a **data** repair (correct corrupted rows, backfill) | Stays in-skill: write an idempotent data patch via `magento2-data-migration`; the regression test asserts the corrected state. |
-| Bug is in a config file only | Config/XSD-validation waiver applies (see Core Rules); document why no PHPUnit test in the RCA. |
+| Bug is in a config file only                                      | Config/XSD-validation waiver applies (see Core Rules); document why no PHPUnit test in the RCA.                                |
 
 ## Inputs
 
@@ -199,6 +200,7 @@ already in):
 ```
 
 Optional flags:
+
 - `--module=<Vendor>_<Module>` — constrain RCA to a single module.
 - `--log=<path>` — additional log file beyond the defaults.
 - `--no-deploy` — skip Phase 6.
@@ -218,7 +220,8 @@ Plus per-task git commits per `references/commit-format.md`.
 
 ## Reference Files
 
-- `references/log-targets.md` — default Magento log paths by install layout.
+- `references/log-targets.md` — bug-fix log-collection specifics; defers to the shared
+  `magento2-debug/references/log-locations.md` for the canonical log-path catalogue.
 - `references/reproduction-patterns.md` — HTTP / CLI / cron / queue / GraphQL recipes.
 - `references/stack-trace-reading.md` — how to follow a Magento stack trace through plugins.
 - `references/rca-format.md` — RCA document structure and required sections.
@@ -236,12 +239,12 @@ Plus per-task git commits per `references/commit-format.md`.
 
 ## Related Skills
 
-| Phase | Skill |
-|-------|-------|
-| 0 | `magento2-context` |
-| 4 | `magento2-data-migration` (only when the fix is a data repair) |
-| 5 | `magento2-module-review` (with `--diff`) |
-| 6 | `magento2-deploy` (if user authorizes) |
+| Phase         | Skill                                                                                |
+|---------------|--------------------------------------------------------------------------------------|
+| 0             | `magento2-context`                                                                   |
+| 4             | `magento2-data-migration` (only when the fix is a data repair)                       |
+| 5             | `magento2-module-review` (with `--diff`)                                             |
+| 6             | `magento2-deploy` (if user authorizes)                                               |
 | (alternative) | `magento2-debug` — when reproduction fails and you need to investigate logs/DI graph |
 
 This skill **does not** invoke `magento2-module-create` (no new modules) or

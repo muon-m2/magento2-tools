@@ -93,7 +93,8 @@ type Query {
 }
 ```
 
-`SearchResultPageInfo` is provided by Magento core (`Magento\Search\Model\GraphQl\Type\Output\SearchResultPageInfo`).
+`SearchResultPageInfo` is a GraphQL type provided by Magento core's schema — reference it
+directly in SDL. It is a declared GraphQL type, not a PHP class, so no FQCN is involved.
 
 ## @resolver Directive
 

@@ -16,7 +16,59 @@ protected function setUp(): void
 
 ## Fixtures
 
-Use Magento's fixture annotations:
+### Attribute-first (Magento 2.4.5+, PHPUnit 10+) — preferred
+
+Magento 2.4.5 introduced PHP-attribute equivalents of the legacy fixture annotations.
+On Magento 2.4.5 and newer, prefer attributes — they are type-checked, refactor-safe,
+and required once you move to PHPUnit 10+ where doc-comment metadata is deprecated:
+
+```php
+use Magento\TestFramework\Fixture\DataFixture;
+use Magento\TestFramework\Fixture\DbIsolation;
+use Magento\TestFramework\Fixture\AppArea;
+use Magento\Customer\Test\Fixture\Customer;
+use Magento\Catalog\Test\Fixture\Product;
+
+#[
+    AppArea('frontend'),
+    DbIsolation(true),
+    DataFixture(Customer::class, as: 'customer'),
+    DataFixture(Product::class, ['price' => 10], as: 'product'),
+]
+public function testRepositorySave(): void
+{
+    // Resolve created fixtures by their `as` alias:
+    $customer = $this->fixtures->get('customer');
+    $product = $this->fixtures->get('product');
+    // ...
+}
+```
+
+Inject the fixture registry in `setUp()`:
+
+```php
+use Magento\TestFramework\Fixture\DataFixtureStorageManager;
+use Magento\TestFramework\Fixture\DataFixtureStorage;
+
+private DataFixtureStorage $fixtures;
+
+protected function setUp(): void
+{
+    $om = Bootstrap::getObjectManager();
+    $this->fixtures = $om->get(DataFixtureStorageManager::class)->getStorage();
+    // ... other dependencies
+}
+```
+
+`#[DataFixture]` references a fixture **class** (implementing
+`Magento\TestFramework\Fixture\DataFixtureInterface`) rather than a `_files/*.php`
+script. Magento ships many ready-made fixtures (`Customer`, `Product`, `Category`,
+`Order`, ...) under each module's `Test/Fixture/` namespace.
+
+### Legacy annotations (Magento < 2.4.5 fallback)
+
+Older Magento (or PHPUnit 9) does not support the attributes above. Use the
+doc-comment annotations instead — still supported in 2.4.x but slated for removal:
 
 ```php
 /**
@@ -28,8 +80,29 @@ Use Magento's fixture annotations:
 public function testRepositorySave(): void { ... }
 ```
 
-`@magentoDbIsolation enabled` wraps the test in a DB transaction that's rolled back at
-teardown. Use this for every integration test that mutates state.
+Pick one style per file — do not mix attributes and annotations on the same method.
+`@magentoDbIsolation enabled` / `#[DbIsolation(true)]` wraps the test in a DB
+transaction that's rolled back at teardown. Use it for every integration test that
+mutates state.
+
+### Data providers
+
+`@dataProvider` is deprecated in PHPUnit 10+. On Magento 2.4.5+ use the
+`#[DataProvider]` attribute (and `#[TestWith]` for inline cases):
+
+```php
+use PHPUnit\Framework\Attributes\DataProvider;
+
+#[DataProvider('nameCasesProvider')]
+public function testNormalisesName(string $input, string $expected): void { ... }
+
+public static function nameCasesProvider(): array
+{
+    return [['  a ', 'a'], ['B', 'B']];
+}
+```
+
+Note the provider method must be `public static` under PHPUnit 10+.
 
 ## Fixture file format
 

@@ -62,6 +62,7 @@ data-bind="[^"]*\$t\(['"](.+?)['"]\)
 ## Phtml
 
 `.phtml` files use PHP rules. Look for both:
+
 - `<?= __('...') ?>`
 - `<?php echo __('...'); ?>` (legacy)
 - Inline JS as above

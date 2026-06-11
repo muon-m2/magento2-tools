@@ -5,12 +5,12 @@ column. Off by default; opt in with `--machine-translate`.
 
 ## Supported Providers
 
-| Provider | Env var | Quality |
-|----------|---------|---------|
-| DeepL | `DEEPL_API_KEY` | Best for European languages |
-| Google Cloud Translation | `GOOGLE_API_KEY` | Wide language coverage |
-| OpenAI | `OPENAI_API_KEY` | Best for context-aware translation |
-| Local LLM (Ollama) | `OLLAMA_HOST` | Privacy; quality varies |
+| Provider                 | Env var          | Quality                            |
+|--------------------------|------------------|------------------------------------|
+| DeepL                    | `DEEPL_API_KEY`  | Best for European languages        |
+| Google Cloud Translation | `GOOGLE_API_KEY` | Wide language coverage             |
+| OpenAI                   | `OPENAI_API_KEY` | Best for context-aware translation |
+| Local LLM (Ollama)       | `OLLAMA_HOST`    | Privacy; quality varies            |
 
 The skill detects the first available provider via env vars; user can override with
 `--provider=deepl|google|openai|ollama`.
@@ -37,6 +37,7 @@ counts post-translation and re-tries on mismatch (max 3 attempts).
 ## Cost Management
 
 For a module with 500 phrases × 20 locales:
+
 - DeepL Pro: $25 / 1M characters → ~$1 per locale
 - Google: $20 / 1M characters → ~$1 per locale
 - OpenAI gpt-4o-mini: ~$5 per locale
