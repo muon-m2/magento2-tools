@@ -6,9 +6,11 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.2.0] — 2026-06-12 — project-root artifacts, approval-gate hardening, PER-CS/Magento2 templates
 
-Artifact-location and approval-gate corrections to the feature workflow.
+Artifact-location and approval-gate corrections to the feature workflow, a PER-CS-3.0 coding-style
+baseline with Magento-2 precedence, and a full PHP-template compliance pass (generated PHP now
+passes `phpcs --standard=Magento2` with zero errors).
 
 ### Artifact location — `.docs/` anchored at the project root
 - `.docs/` artifacts are now explicitly anchored at the **project working directory**
