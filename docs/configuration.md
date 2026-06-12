@@ -118,8 +118,9 @@ JSON artifacts are stable enough for trend tracking — diff successive
 | Info | Positive observation, skipped check, context |
 
 Domain calibrations: security findings are bumped by PCI/GDPR impact
-(`magento2-security-audit/references/severity-security.md`); performance findings are
-weighted by impact at scale (`magento2-performance-audit/references/severity-perf.md`).
+(`skills/magento2-security-audit/references/severity-security.md`); performance
+findings are weighted by impact at scale
+(`skills/magento2-performance-audit/references/severity-perf.md`).
 
 ## Production safety switches
 
