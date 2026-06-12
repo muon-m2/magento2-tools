@@ -127,6 +127,9 @@ Flags:
 .docs/audits/perf-{scope}-{date}.md      # LLM deliverable, written in Phase 5
 ```
 
+`.docs/` is anchored at the project root (`{ctx.docs_root}`), never under `{ctx.magento_root}`,
+`app/code`, or a module dir. See the **Artifact location** rule in `magento2-context/SKILL.md`.
+
 ## Reference Files
 
 - `references/perf-checklist.md` — full static-check catalogue.

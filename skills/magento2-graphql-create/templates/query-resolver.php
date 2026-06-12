@@ -12,13 +12,28 @@ use Magento\Framework\GraphQl\Query\ResolverInterface;
 use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
 use {Vendor}\{Module}\Api\{Entity}RepositoryInterface;
 
-final class Get{Entity} implements ResolverInterface
+class Get{Entity} implements ResolverInterface
 {
+    /**
+     * Constructor.
+     *
+     * @param \{Vendor}\{Module}\Api\{Entity}RepositoryInterface $repository
+     */
     public function __construct(
         private readonly {Entity}RepositoryInterface $repository,
     ) {
     }
 
+    /**
+     * Resolve a single {Entity} by id.
+     *
+     * @param \Magento\Framework\GraphQl\Config\Element\Field $field
+     * @param mixed $context
+     * @param \Magento\Framework\GraphQl\Schema\Type\ResolveInfo $info
+     * @param array|null $value
+     * @param array|null $args
+     * @return array
+     */
     public function resolve(Field $field, $context, ResolveInfo $info, ?array $value = null, ?array $args = null)
     {
         if (empty($args['id'])) {

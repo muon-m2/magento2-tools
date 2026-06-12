@@ -15,8 +15,15 @@ use {Vendor}\{Module}\Service\Importer\{Entity}Importer;
  * Source: etc/data/{file_name}.csv (alongside the module's etc folder).
  * Re-run safety: This patch is idempotent via the importer's per-row dedup.
  */
-final class Import{Entity}Seed implements DataPatchInterface
+class Import{Entity}Seed implements DataPatchInterface
 {
+    /**
+     * Constructor.
+     *
+     * @param \Magento\Framework\Setup\ModuleDataSetupInterface $moduleDataSetup
+     * @param \Magento\Framework\Module\Dir\Reader $moduleReader
+     * @param \{Vendor}\{Module}\Service\Importer\{Entity}Importer $importer
+     */
     public function __construct(
         private readonly ModuleDataSetupInterface $moduleDataSetup,
         private readonly Reader $moduleReader,
@@ -24,6 +31,11 @@ final class Import{Entity}Seed implements DataPatchInterface
     ) {
     }
 
+    /**
+     * Apply the data patch by importing the bundled source file.
+     *
+     * @return self
+     */
     public function apply(): self
     {
         $connection = $this->moduleDataSetup->getConnection();
@@ -39,6 +51,8 @@ final class Import{Entity}Seed implements DataPatchInterface
     }
 
     /**
+     * Get the patches this patch depends on.
+     *
      * @return array<int, class-string>
      */
     public static function getDependencies(): array
@@ -47,6 +61,8 @@ final class Import{Entity}Seed implements DataPatchInterface
     }
 
     /**
+     * Get the aliases for this patch.
+     *
      * @return array<int, string>
      */
     public function getAliases(): array

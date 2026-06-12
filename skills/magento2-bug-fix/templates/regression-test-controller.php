@@ -23,7 +23,7 @@ use {Vendor}\{Module}\Controller\{Area}\{Controller};
  * If a {Controller}Test already exists, add testRegression{ShortDescription}() there
  * instead and delete this file; otherwise rename the class to {Controller}Test.
  */
-final class {Controller}RegressionTest extends TestCase
+class {Controller}RegressionTest extends TestCase
 {
     /** @var RequestInterface&MockObject */
     private MockObject $request;
@@ -34,8 +34,12 @@ final class {Controller}RegressionTest extends TestCase
     /** @var RedirectFactory&MockObject */
     private MockObject $redirectFactory;
 
+    /** @var {Controller} */
     private {Controller} $subject;
 
+    /**
+     * Builds the controller under test with mocked framework dependencies.
+     */
     protected function setUp(): void
     {
         $this->request = $this->createMock(RequestInterface::class);

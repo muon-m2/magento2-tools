@@ -8,6 +8,9 @@ use Magento\TestFramework\TestCase\GraphQlAbstract;
 
 class {Entity}QueryTest extends GraphQlAbstract
 {
+    /**
+     * Asserts the GraphQL query returns the expected response shape.
+     */
     public function testQueryReturnsShape(): void
     {
         $query = <<<QUERY
@@ -25,6 +28,9 @@ QUERY;
         self::assertSame(1, $response['{vendor_lower}{Entity}']['id']);
     }
 
+    /**
+     * Asserts the GraphQL query surfaces an input error as an exception.
+     */
     public function testQueryInputErrorThrows(): void
     {
         $query = <<<QUERY

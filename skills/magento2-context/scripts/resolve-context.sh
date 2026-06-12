@@ -459,15 +459,17 @@ cat > "$CACHE_TMP" <<EOF
 {
   "schemaVersion": "1.0",
   "skill": "magento2-context",
-  "skillVersion": "1.4.0",
+  "skillVersion": "1.6.0",
   "resolvedAt": "${TIMESTAMP}",
   "cacheKey": $(json_or_null "$CACHE_KEY"),
 
   "vendor": $(json_or_null "$VENDOR"),
   "vendor_lower": $(json_or_null "$VENDOR_LOWER"),
 
+  "project_root": ".",
   "magento_root": "${MAGENTO_ROOT}",
   "module_dir": "${MODULE_DIR}",
+  "docs_root": ".docs",
   "edition": $(json_or_null "$EDITION"),
   "magento_version": $(json_or_null "$MAGENTO_VERSION"),
 

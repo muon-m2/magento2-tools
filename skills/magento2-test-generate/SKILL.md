@@ -136,6 +136,9 @@ Write to `.docs/tests/{Vendor}_{Module}-coverage-{date}.md`:
 .docs/tests/{Vendor}_{Module}-coverage-{date}.md
 ```
 
+`.docs/` is anchored at the project root (`{ctx.docs_root}`), never under `{ctx.magento_root}`,
+`app/code`, or a module dir. See the **Artifact location** rule in `magento2-context/SKILL.md`.
+
 ## Reference Files
 
 - `references/test-types.md` — when each type is required.

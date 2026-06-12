@@ -17,14 +17,24 @@ use {Vendor}\{ModuleName}\Observer\{DescriptiveName}Observer;
 class {DescriptiveName}ObserverTest extends TestCase
 {
     private LoggerInterface&MockObject $logger;
+
+    /**
+     * @var {DescriptiveName}Observer
+     */
     private {DescriptiveName}Observer $subject;
 
+    /**
+     * Sets up the logger mock and the observer under test.
+     */
     protected function setUp(): void
     {
         $this->logger  = $this->createMock(LoggerInterface::class);
         $this->subject = new {DescriptiveName}Observer($this->logger);
     }
 
+    /**
+     * Asserts the observer handles the event without logging an error.
+     */
     public function testExecuteHandlesEvent(): void
     {
         $event = $this->createMock(Event::class);
@@ -38,6 +48,9 @@ class {DescriptiveName}ObserverTest extends TestCase
         $this->subject->execute($observer);
     }
 
+    /**
+     * Asserts the observer logs the exception once and does not re-throw.
+     */
     public function testExecuteLogsExceptionAndContinues(): void
     {
         $observer = $this->createMock(Observer::class);

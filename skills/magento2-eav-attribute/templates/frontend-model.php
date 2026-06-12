@@ -13,7 +13,7 @@ use Magento\Framework\DataObject;
  * Transforms the stored value before display. Use only when the displayed value
  * differs from the stored value (e.g. format date, mask sensitive data).
  */
-final class {AttributeCode} extends AbstractFrontend
+class {AttributeCode} extends AbstractFrontend
 {
     /**
      * Get the value for display.

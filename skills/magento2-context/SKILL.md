@@ -26,6 +26,13 @@ to `.claude/.cache/magento2-context.json`.
   `resolution_source` so future skills can dispute a wrong value with evidence.
 - **One JSON object out.** Output a single JSON document — no prose around it (other than
   a one-line preamble saying "Context resolved.").
+- **Artifact location is the project root.** All `.docs/` artifacts produced by any
+  `magento2-*` skill (reviews, audits, blueprints, plans, reports, i18n, deploy logs)
+  are written under `{project_root}/.docs/`, where `{project_root}` is the working
+  directory the session runs from — the directory that contains `{magento_root}`.
+  Never write `.docs/` under `{magento_root}`, `app/code`, or any module directory,
+  even if a step changes the shell's cwd. When `magento_root` is `"src"`, `.docs/`
+  is a sibling of `src/`, not `src/.docs/`.
 
 ## Workflow
 
@@ -49,15 +56,17 @@ to `.claude/.cache/magento2-context.json`.
 {
   "schemaVersion": "1.0",
   "skill": "magento2-context",
-  "skillVersion": "1.3.0",
+  "skillVersion": "1.6.0",
   "resolvedAt": "2026-05-26T14:30:00Z",
   "cacheKey": "lock:sha256-...;json:sha256-...;claude:sha256-...",
 
   "vendor": "Acme",
   "vendor_lower": "acme",
 
+  "project_root": ".",
   "magento_root": "src",
   "module_dir": "src/app/code",
+  "docs_root": ".docs",
   "edition": "open-source",
   "magento_version": "2.4.7-p1",
 
@@ -109,6 +118,15 @@ to `.claude/.cache/magento2-context.json`.
 
 ### Field reference
 
+- `project_root` — the working directory the session runs from, expressed relative to
+  itself (`.`). All `.docs/` artifacts are anchored here. It is the parent of
+  `{magento_root}`; when Magento is installed at the repo root, `project_root` and
+  `magento_root` coincide but `.docs/` still sits beside `app/code`, never inside it.
+- `magento_root` — directory holding the Magento installation relative to
+  `{project_root}` (e.g. `"src"` or `"."`). Used to locate `app/code`, `app/etc`, etc.
+  Never use it to anchor `.docs/`.
+- `docs_root` — resolved path to the artifact directory, `{project_root}/.docs`. Skills
+  and scripts write under this path; they must not join it with `{magento_root}`.
 - `runner` — command prefix that places subsequent argv inside a PHP-capable
   environment. Empty string for bare host PHP; non-empty (e.g. `docker compose exec ...`)
   for containerized projects. Downstream `${RUNNER} php -r '...'` works in both cases.
@@ -154,6 +172,8 @@ Force a refresh by deleting `.claude/.cache/magento2-context.json` or passing `-
 - `references/theme-detection.md` — Luma / Hyva / custom theme detection.
 - `references/tool-probe.md` — opt-in tool detection rules.
 - `references/naming.md` — authoritative naming conventions (consumed by all builder skills).
+- `references/php-coding-style.md` — PER-CS 3.0 baseline + Magento-2-precedence rule for all
+  generated/modified PHP (consumed by every builder skill and by `magento2-module-review`).
 - `references/severity.md` — shared severity scale (consumed by all findings-producing skills).
 - `references/skill-versioning.md` — current skill versions + bump rules; consumed by every artefact-producing skill.
 - `references/findings-schema.md` — shared JSON + SARIF schema for finding-producing skills (review, security-audit,

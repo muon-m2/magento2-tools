@@ -4,7 +4,11 @@ Use this reference during the maintainability and standards pass.
 
 ## Code Style
 
-- Follow Magento Coding Standard and PSR-12-compatible formatting where applicable.
+- Baseline is **PER-CS 3.0**; the **Magento 2 coding standard takes precedence on any conflict**
+  (it is the `--standard=Magento2` enforcement gate). See
+  `magento2-context/references/php-coding-style.md` for the precedence rule and the known
+  Magento-wins cases. A PER-CS deviation that the Magento 2 standard explicitly requires (e.g.
+  `declare(strict_types=1)`, FQCN PHPDoc tags) is correct, not a finding.
 - Use `declare(strict_types=1);` consistently when the module targets modern PHP/Magento versions that support it.
 - Keep imports explicit and remove unused imports.
 - Use fully qualified names intentionally; avoid noisy inline FQCNs when an import improves readability.

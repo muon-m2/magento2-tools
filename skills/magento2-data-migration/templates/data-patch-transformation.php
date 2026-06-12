@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace {Vendor}\{Module}\Setup\Patch\Data;
 
-use Magento\Framework\Setup\ModuleDataSetupInterface;use Magento\Framework\Setup\Patch\DataPatchInterface;
+use Magento\Framework\Setup\ModuleDataSetupInterface;
+use Magento\Framework\Setup\Patch\DataPatchInterface;
 
 /**
  * Transform {description}.
@@ -13,16 +14,25 @@ use Magento\Framework\Setup\ModuleDataSetupInterface;use Magento\Framework\Setup
  * pagination) so memory stays flat regardless of table size, the destination is checked
  * before each insert, and ONLY the ids actually processed in a chunk are marked migrated.
  */
-final class Transform{From}To{To} implements DataPatchInterface
+class Transform{From}To{To} implements DataPatchInterface
 {
-    private
-    const BATCH_SIZE = 500;
+    private const BATCH_SIZE = 500;
 
+    /**
+     * Constructor.
+     *
+     * @param \Magento\Framework\Setup\ModuleDataSetupInterface $moduleDataSetup
+     */
     public function __construct(
         private readonly ModuleDataSetupInterface $moduleDataSetup,
     ) {
     }
 
+    /**
+     * Apply the data patch by transforming source rows into the destination table.
+     *
+     * @return self
+     */
     public function apply(): self
     {
         $connection = $this->moduleDataSetup->getConnection();
@@ -93,6 +103,8 @@ final class Transform{From}To{To} implements DataPatchInterface
     }
 
     /**
+     * Get the patches this patch depends on.
+     *
      * @return array<int, class-string>
      */
     public static function getDependencies(): array
@@ -101,6 +113,8 @@ final class Transform{From}To{To} implements DataPatchInterface
     }
 
     /**
+     * Get the aliases for this patch.
+     *
      * @return array<int, string>
      */
     public function getAliases(): array

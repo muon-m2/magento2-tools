@@ -70,6 +70,8 @@ class Add{AttributeCode}CategoryAttribute implements DataPatchInterface
     }
 
     /**
+     * Patches this patch depends on.
+     *
      * @return string[]
      */
     public static function getDependencies(): array
@@ -78,6 +80,8 @@ class Add{AttributeCode}CategoryAttribute implements DataPatchInterface
     }
 
     /**
+     * Aliases for this patch.
+     *
      * @return string[]
      */
     public function getAliases(): array

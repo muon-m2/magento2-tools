@@ -84,6 +84,11 @@ checklist with zero post-creation fixes required.
       config paths, ACL IDs, route handles, event names.
     - Apply `references/composer-metadata.md` rules to `composer.json`.
     - Apply these rules to **every generated PHP file**:
+        - **Coding style:** follow PER-CS 3.0 as the baseline; where it conflicts with the
+          Magento 2 coding standard or framework requirements, Magento 2 wins. `--standard=Magento2`
+          PHPCS is the enforcement gate. See `magento2-context/references/php-coding-style.md`.
+          (The specific Magento-precedence cases below — `strict_types`, PHPDoc FQCN, naming — are
+          where Magento overrides the PER-CS default.)
         - `<?php` on line 1, blank line, then `declare(strict_types=1);`.
         - Namespace `{Vendor}\{ModuleName}` plus sub-namespace matching the directory path.
         - All constructor parameters and return types explicitly typed; no missing type hints.

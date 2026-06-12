@@ -20,7 +20,7 @@ class {TargetShortName}{Method}Plugin
      * Example: before plugin that validates / transforms arguments.
      *
      * @param \{TargetNamespace} $subject
-     * @param mixed ...$args
+     * @param mixed $args
      * @return array
      */
     public function before{Method}(

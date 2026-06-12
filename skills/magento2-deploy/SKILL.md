@@ -221,6 +221,9 @@ and a `Validation only — no deploy executed` banner in the markdown.
 .docs/deployments/{timestamp}-{env}.snapshot.tar.gz   # Optional snapshot for rollback
 ```
 
+`.docs/` is anchored at the project root (`{ctx.docs_root}`), never under `{ctx.magento_root}`,
+`app/code`, or a module dir. See the **Artifact location** rule in `magento2-context/SKILL.md`.
+
 ## Acceptance Criteria
 
 - Aborts on any required pre-flight failure with a clear list of failed checks.

@@ -12,8 +12,11 @@
 #   SCOPE               "module" | "site"  (default: module)
 #   SCAN_ROOT           default: src/app/code
 #   INCLUDE_RUNTIME     "1" to include runtime-checks.sh output (default: off)
-#   OUTPUT_DIR          default: .docs/audits
-#   SKILL_VERSION       default: 1.1.0
+#   DOCS_ROOT           default: .docs — project-root artifact dir ({ctx.docs_root}).
+#                       Pass an absolute or project-root path so an in-`src/` cwd cannot
+#                       redirect output into the Magento tree. See magento2-context/SKILL.md.
+#   OUTPUT_DIR          default: {DOCS_ROOT}/audits
+#   SKILL_VERSION       default: 1.1.1
 #
 # Output:
 #   Writes {OUTPUT_DIR}/perf-{SCOPE}-{YYYY-MM-DD}.json + .sarif. Stdout echoes the JSON.
@@ -26,8 +29,9 @@ set -uo pipefail
 SCOPE="${SCOPE:-module}"
 SCAN_ROOT="${SCAN_ROOT:-$([[ -d app/code ]] && echo app/code || echo src/app/code)}"
 INCLUDE_RUNTIME="${INCLUDE_RUNTIME:-0}"
-OUTPUT_DIR="${OUTPUT_DIR:-.docs/audits}"
-SKILL_VERSION="${SKILL_VERSION:-1.1.0}"
+DOCS_ROOT="${DOCS_ROOT:-.docs}"
+OUTPUT_DIR="${OUTPUT_DIR:-${DOCS_ROOT}/audits}"
+SKILL_VERSION="${SKILL_VERSION:-1.1.1}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 EMIT_JSON="${SCRIPT_DIR}/../../magento2-module-review/scripts/emit-json.sh"
@@ -135,7 +139,7 @@ export SKILL_VERSION
 export OUTPUT_KIND="performance"
 export OUTPUT_BASENAME="perf-${SCOPE}-${DATE}"
 export OUTPUT_DIR
-export SKILL_VERSIONS_JSON="[\"magento2-performance-audit@${SKILL_VERSION}\",\"magento2-context@1.4.0\"]"
+export SKILL_VERSIONS_JSON="[\"magento2-performance-audit@${SKILL_VERSION}\",\"magento2-context@1.6.0\"]"
 
 bash "$EMIT_JSON" > /dev/null
 

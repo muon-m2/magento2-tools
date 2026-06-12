@@ -138,6 +138,14 @@ Save every blueprint to:
 .docs/{FeatureName}/blueprint.md
 ```
 
+This path is anchored at the **project working directory** (`{ctx.docs_root}` =
+`{project_root}/.docs`), per the **Artifact location** rule in `magento2-context/SKILL.md`.
+Never write it under `{ctx.magento_root}` (e.g. `src/`), `app/code`, or a module directory.
+
+**Save before present.** The blueprint must be written to disk and confirmed to exist *before*
+it is shown to the user — never present a blueprint that lives only in the chat. The user
+reviews the file. After saving, cite the path in the message.
+
 Add a status line as the first line of the file (before the title):
 
 ```

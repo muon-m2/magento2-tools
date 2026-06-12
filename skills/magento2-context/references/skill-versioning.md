@@ -9,26 +9,77 @@ skills evolve.
 
 | Skill                      | Version | Bumped when                                                         |
 |----------------------------|---------|---------------------------------------------------------------------|
-| magento2-context           | 1.4.0   | JSON schema changes, new resolution rules, new tool probes          |
-| magento2-module-create     | 1.6.0   | New template added, surface added, naming rule changed              |
-| magento2-module-review     | 2.2.1   | New checklist category, severity calibration change, new JSON field |
-| magento2-feature-implement | 2.4.0   | New phase, new approval gate, mode added, template structure change |
-| magento2-bug-fix           | 1.0.1   | Workflow phase change, RCA format change                            |
+| magento2-context           | 1.6.0   | JSON schema changes, new resolution rules, new tool probes          |
+| magento2-module-create     | 1.7.0   | New template added, surface added, naming rule changed              |
+| magento2-module-review     | 2.2.3   | New checklist category, severity calibration change, new JSON field |
+| magento2-feature-implement | 2.5.0   | New phase, new approval gate, mode added, template structure change |
+| magento2-bug-fix           | 1.0.2   | Workflow phase change, RCA format change                            |
 | magento2-deploy            | 1.2.0   | Deploy plan template change, rollback recipe change                 |
-| magento2-test-generate     | 1.1.0   | Generator pattern change, new test type added                       |
+| magento2-test-generate     | 1.1.1   | Generator pattern change, new test type added                       |
 | magento2-module-upgrade    | 1.1.0   | New deprecation map, BC-break detection rules                       |
 | magento2-security-audit    | 1.2.0   | New CVE source, new pattern, severity calibration change            |
-| magento2-performance-audit | 1.1.0   | New pattern, new runtime check, severity calibration change         |
+| magento2-performance-audit | 1.1.1   | New pattern, new runtime check, severity calibration change         |
 | magento2-debug             | 1.2.0   | New mode added, output format change                                |
-| magento2-eav-attribute     | 1.1.1   | New entity type supported, new input type, template change          |
-| magento2-graphql-create    | 1.0.1   | New resolver pattern, schema-migration rule change                  |
+| magento2-eav-attribute     | 1.1.2   | New entity type supported, new input type, template change          |
+| magento2-graphql-create    | 1.0.2   | New resolver pattern, schema-migration rule change                  |
 | magento2-frontend-create   | 1.0.1   | New theme detection rule, new component pattern                     |
-| magento2-data-migration    | 1.1.0   | New idempotency strategy, new importer pattern                      |
+| magento2-data-migration    | 1.1.1   | New idempotency strategy, new importer pattern                      |
 | magento2-release           | 1.1.0   | New tag convention, new publish target                              |
 | magento2-i18n              | 1.2.0   | New extraction pattern, new placeholder rule                        |
 
-## Changelog (last update: 2026-06-11)
+## Changelog (last update: 2026-06-12)
 
+- **PHP template PER-CS / Magento-2 compliance pass** — audited all 64 PHP templates with the
+  authoritative `Magento2` PHPCS standard + PSR-12 (PER-CS proxy). Result: **0 Magento2 errors**
+  (was 19+`final`), category-C annotation/commenting warnings cut 137 → 10 (the residual 10 are
+  intersection-typed mock properties — a `Magento2.Commenting.ClassPropertyPHPDocFormatting` sniff
+  limitation, deliberately left). Changes:
+  - Real formatting fixes: multiple-`use`-on-one-line split, `private`-keyword-split joined, broken
+    method-body indentation corrected (`magento2-module-create`, `magento2-data-migration`,
+    `magento2-test-generate`).
+  - PHPDoc added/repaired across templates: multi-line method docblocks, short descriptions +
+    blank-line-before-tags, missing `@param`, `@var` on plain-typed test properties; complex
+    array-shape `@param` types simplified to sniff-parseable `array` + description.
+  - **`final` removed** from all 19 template classes (`Magento2.PHP.FinalImplementation` is an
+    error — Magento prohibits `final` for extensibility).
+  - `php-coding-style.md` gains a `final`/`_construct`/static precedence rows + a *Known Sniff
+    Limitations* section; `magento2-module-create/references/phpdoc-rules.md` reconciled (test
+    methods get brief docblocks; plain-typed test props get `@var`; intersection-typed left).
+  - `magento2-bug-fix 1.0.1 → 1.0.2`, `magento2-data-migration 1.1.0 → 1.1.1`,
+    `magento2-eav-attribute 1.1.1 → 1.1.2`, `magento2-graphql-create 1.0.1 → 1.0.2`,
+    `magento2-test-generate 1.1.0 → 1.1.1`; folded into the unreleased `magento2-context 1.6.0`
+    and `magento2-module-create 1.7.0`.
+- **magento2-context 1.5.0 → 1.6.0** — new shared reference `references/php-coding-style.md`:
+  PER-CS 3.0 is the baseline coding style for all generated/modified PHP, with the Magento 2
+  coding standard taking precedence on any conflict; `--standard=Magento2` PHPCS stays the single
+  enforcement gate (guidance-only — no second ruleset). Listed in the context Reference Files and
+  consumed by every builder skill and by `magento2-module-review`.
+- **magento2-module-create 1.6.0 → 1.7.0** — Step 4 generation rules now state the PER-CS-3.0
+  baseline + Magento-2-precedence coding style for every generated PHP file, pointing at the
+  shared `php-coding-style.md`.
+- **magento2-module-review 2.2.2 → 2.2.3** — code-style review lens updated: PER-CS 3.0 baseline
+  with Magento-2 precedence (`phpdoc-code-style.md`); a PER-CS deviation the Magento 2 standard
+  requires is no longer a finding.
+  (Builder skills `magento2-graphql-create`, `magento2-eav-attribute`, `magento2-data-migration`,
+  `magento2-bug-fix`, `magento2-frontend-create` gained a one-line pointer to the shared rule
+  without a version bump — same pattern as the `.docs` anchoring pointers.)
+- **magento2-context 1.4.0 → 1.5.0** — artifact-location anchoring. New `project_root` and
+  `docs_root` JSON fields plus an **Artifact location** Core Rule: every `.docs/` artifact is
+  written under `{project_root}/.docs`, never under `{magento_root}`/`app/code`, even if a step
+  changes the shell cwd. `resolve-context.sh` now emits the two fields; `findings-schema.md`
+  states the same anchor for the finding-producers.
+- **magento2-feature-implement 2.4.0 → 2.5.0** — save-before-present + plan/task gating.
+  `blueprint.md` (Phase 2) and `plan.md` (Phase 4) are now written to disk and confirmed to
+  exist *before* they are presented for review and before the approval gate — the user reviews
+  the file, not just the chat. Detailed task records (`tasks.md` / `tasks/`) are written only
+  *after* the plan is approved (Phase 4 step 9). `.docs/` is anchored at the project root per
+  magento2-context, never inside the Magento tree. Phase 5 flips the status line in both
+  `blueprint.md` and `plan.md`; `task-breakdown-guide.md` corrected to match the new ordering.
+- **magento2-module-review 2.2.1 → 2.2.2** — `emit-json.sh` honours a `DOCS_ROOT` env var
+  (default `.docs`) so findings always land under the project-root `.docs/`, never under an
+  in-`src/` cwd inside the Magento tree. Default behaviour is unchanged.
+- **magento2-performance-audit 1.1.0 → 1.1.1** — `build-findings.sh` honours the same
+  `DOCS_ROOT` anchor as `emit-json.sh`.
 - **magento2-context 1.3.0 → 1.4.0** — hub runner contract fix plus a portability and
   layout-awareness pass:
   - CTX-1: in bare-PHP mode `runner` now serialises as the empty string `""` instead of JSON

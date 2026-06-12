@@ -22,12 +22,20 @@ use {Vendor}\{Module}\Api\{Entity}RepositoryInterface;
  */
 #[AppArea('adminhtml')]
 #[DbIsolation(true)]
-final class {Entity}RepositoryTest extends TestCase
+class {Entity}RepositoryTest extends TestCase
 {
+    /** @var {Entity}RepositoryInterface */
     private {Entity}RepositoryInterface $repository;
+
+    /** @var {Entity}InterfaceFactory */
     private {Entity}InterfaceFactory $factory;
+
+    /** @var SearchCriteriaBuilder */
     private SearchCriteriaBuilder $searchCriteriaBuilder;
 
+    /**
+     * Resolves the repository, factory and search criteria builder from the object manager.
+     */
     protected function setUp(): void
     {
         $om = Bootstrap::getObjectManager();
@@ -36,6 +44,9 @@ final class {Entity}RepositoryTest extends TestCase
         $this->searchCriteriaBuilder = $om->get(SearchCriteriaBuilder::class);
     }
 
+    /**
+     * Asserts a save/load/list/delete round trip through the repository.
+     */
     public function testRoundTrip(): void
     {
         $entity = $this->factory->create();

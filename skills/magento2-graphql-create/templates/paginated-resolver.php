@@ -11,16 +11,32 @@ use Magento\Framework\GraphQl\Query\ResolverInterface;
 use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
 use {Vendor}\{Module}\Api\{Entity}RepositoryInterface;
 
-final class List{Entity} implements ResolverInterface
+class List{Entity} implements ResolverInterface
 {
     private const MAX_PAGE_SIZE = 100;
 
+    /**
+     * Constructor.
+     *
+     * @param \{Vendor}\{Module}\Api\{Entity}RepositoryInterface $repository
+     * @param \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder
+     */
     public function __construct(
         private readonly {Entity}RepositoryInterface $repository,
         private readonly SearchCriteriaBuilder $searchCriteriaBuilder,
     ) {
     }
 
+    /**
+     * Resolve a paginated list of {Entity} records.
+     *
+     * @param \Magento\Framework\GraphQl\Config\Element\Field $field
+     * @param mixed $context
+     * @param \Magento\Framework\GraphQl\Schema\Type\ResolveInfo $info
+     * @param array|null $value
+     * @param array|null $args
+     * @return array
+     */
     public function resolve(Field $field, $context, ResolveInfo $info, ?array $value = null, ?array $args = null)
     {
         $currentPage = (int) ($args['currentPage'] ?? 1);

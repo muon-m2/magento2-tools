@@ -29,8 +29,15 @@ class {EntityName}RepositoryTest extends TestCase
     private CollectionFactory&MockObject $collectionFactory;
     private {EntityName}SearchResultsInterfaceFactory&MockObject $searchResultsFactory;
     private CollectionProcessorInterface&MockObject $collectionProcessor;
+
+    /**
+     * @var {EntityName}Repository
+     */
     private {EntityName}Repository $subject;
 
+    /**
+     * Sets up the dependency mocks and the repository under test.
+     */
     protected function setUp(): void
     {
         $this->resource              = $this->createMock({EntityName}Resource::class);
@@ -48,6 +55,9 @@ class {EntityName}RepositoryTest extends TestCase
         );
     }
 
+    /**
+     * Asserts getById returns the loaded entity for a valid id.
+     */
     public function testGetByIdReturnsEntity(): void
     {
         $entity = $this->createMock({EntityName}Model::class);
@@ -60,6 +70,9 @@ class {EntityName}RepositoryTest extends TestCase
         $this->assertSame($entity, $result);
     }
 
+    /**
+     * Asserts getById throws a no-such-entity exception when the entity is not found.
+     */
     public function testGetByIdThrowsWhenEntityNotFound(): void
     {
         $entity = $this->createMock({EntityName}Model::class);
@@ -72,6 +85,9 @@ class {EntityName}RepositoryTest extends TestCase
         $this->subject->getById(999);
     }
 
+    /**
+     * Asserts getList returns populated search results for the given criteria.
+     */
     public function testGetListReturnsSearchResults(): void
     {
         $criteria = $this->createMock(SearchCriteriaInterface::class);

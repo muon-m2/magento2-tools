@@ -21,6 +21,9 @@ Generate data patches, importer services, and transformation scripts.
   DB transaction (where possible).
 - **Reversible when feasible.** Patches that delete data must document the rollback path
   (or refuse to delete without `--allow-destructive`).
+- **Coding style.** Generated PHP follows PER-CS 3.0 as the baseline, with the Magento 2 coding
+  standard taking precedence on any conflict; `--standard=Magento2` PHPCS is the gate. See
+  `magento2-context/references/php-coding-style.md`.
 
 ## Workflow
 

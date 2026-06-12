@@ -12,14 +12,30 @@ use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
 use {Vendor}\{Module}\Api\Data\{Entity}InterfaceFactory;
 use {Vendor}\{Module}\Api\{Entity}RepositoryInterface;
 
-final class Create{Entity} implements ResolverInterface
+class Create{Entity} implements ResolverInterface
 {
+    /**
+     * Constructor.
+     *
+     * @param \{Vendor}\{Module}\Api\Data\{Entity}InterfaceFactory $factory
+     * @param \{Vendor}\{Module}\Api\{Entity}RepositoryInterface $repository
+     */
     public function __construct(
         private readonly {Entity}InterfaceFactory $factory,
         private readonly {Entity}RepositoryInterface $repository,
     ) {
     }
 
+    /**
+     * Resolve the create {Entity} mutation.
+     *
+     * @param \Magento\Framework\GraphQl\Config\Element\Field $field
+     * @param mixed $context
+     * @param \Magento\Framework\GraphQl\Schema\Type\ResolveInfo $info
+     * @param array|null $value
+     * @param array|null $args
+     * @return array
+     */
     public function resolve(Field $field, $context, ResolveInfo $info, ?array $value = null, ?array $args = null)
     {
         if ($context->getExtensionAttributes()->getIsCustomer() === false) {

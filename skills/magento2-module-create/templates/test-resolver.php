@@ -21,14 +21,24 @@ use {Vendor}\{ModuleName}\Model\Resolver\{EntityName};
 class {EntityName}Test extends TestCase
 {
     private {EntityName}RepositoryInterface&MockObject $repository;
+
+    /**
+     * @var {EntityName}
+     */
     private {EntityName} $resolver;
 
+    /**
+     * Sets up the repository mock and the resolver under test.
+     */
     protected function setUp(): void
     {
         $this->repository = $this->createMock({EntityName}RepositoryInterface::class);
         $this->resolver   = new {EntityName}($this->repository);
     }
 
+    /**
+     * Asserts the resolver returns the entity data for a valid id.
+     */
     public function testResolveReturnsEntityData(): void
     {
         $entity = $this->createMock({EntityName}Interface::class);
@@ -48,6 +58,9 @@ class {EntityName}Test extends TestCase
         $this->assertSame('Test', $result['name']);
     }
 
+    /**
+     * Asserts the resolver throws an input exception when the id is missing.
+     */
     public function testResolveThrowsWhenIdMissing(): void
     {
         $this->expectException(GraphQlInputException::class);
@@ -57,6 +70,9 @@ class {EntityName}Test extends TestCase
         $this->resolver->resolve($field, null, $info, null, []);
     }
 
+    /**
+     * Asserts the resolver throws a GraphQL no-such-entity exception when the entity is not found.
+     */
     public function testResolveThrowsWhenEntityNotFound(): void
     {
         $this->repository

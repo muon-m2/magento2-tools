@@ -29,6 +29,12 @@ the full implementation from analysis through tested, reviewed, reported deliver
   "approved", "ok", or equivalent. In `hotfix` and `extend` mode only the blueprint gate applies.
 - **Blueprint first.** Save the blueprint before building the module schema. The module schema
   derives from the blueprint — not from assumptions.
+- **Save before present.** Every review artifact (`blueprint.md` in Phase 2, `plan.md` in Phase 4)
+  must be **written to disk and confirmed to exist** before it is presented to the user — never
+  present one from memory. After writing, verify the file is on disk (e.g. read it back) and cite
+  its path in the message. The user reviews the file, not just the chat. Task records
+  (`tasks.md` / `tasks/`) are the exception: they are written only **after** the plan is approved,
+  not at presentation time.
 - **Ask once.** Gather all clarifying questions in a single batch during Phase 1. Never interrupt
   mid-execution with more questions unless a blocking ambiguity is discovered.
 - **Review every module.** After creating or modifying any module, invoke `magento2-module-review`.
@@ -63,14 +69,20 @@ the full implementation from analysis through tested, reviewed, reported deliver
 
 Every feature gets its own subfolder under `.docs/`. Create it at the start of Phase 2.
 
+**Location.** `.docs/` is anchored at the **project working directory** (`{ctx.docs_root}` =
+`{project_root}/.docs`), as defined by the **Artifact location** rule in
+`magento2-context/SKILL.md`. Never create it under `{ctx.magento_root}` (e.g. `src/`),
+`app/code`, or any module directory. When `magento_root` is `src`, the folder is
+`./.docs/{FeatureName}/`, a sibling of `src/` — not `src/.docs/{FeatureName}/`.
+
 ```
-.docs/
+.docs/                        # at the project root — never inside the Magento tree
 └── {FeatureName}/
-    ├── blueprint.md          # Feature blueprint — Phase 2
-    ├── plan.md               # Execution plan: diagrams + resumable checkbox list — Phase 4
-    ├── tasks.md              # Flat task records — used when the feature has ≤ 5 tasks
+    ├── blueprint.md          # Feature blueprint — saved for review in Phase 2, before the blueprint gate
+    ├── plan.md               # Execution plan: diagrams + resumable checkbox list — saved for review in Phase 4, before the plan gate
+    ├── tasks.md              # Flat task records (≤ 5 tasks) — written ONLY after the plan is approved
     │   OR
-    ├── tasks/                # One file per task — used when the feature has > 5 tasks
+    ├── tasks/                # One file per task (> 5 tasks) — written ONLY after the plan is approved
     │   ├── M1-{title}.md
     │   ├── R1-{title}.md
     │   └── ...
@@ -178,15 +190,18 @@ skill treats the request as a new feature.
 2. Use `templates/feature-blueprint.md` as the structural base.
 3. Fill in all 12 sections. Do not skip any — use "None" or "N/A" with a brief justification when
    a section genuinely does not apply.
-4. Create the feature folder `.docs/{FeatureName}/` if it does not exist.
-   Save the blueprint to `.docs/{FeatureName}/blueprint.md` with status:
-   `Status: Awaiting Approval`
-5. Present the complete blueprint to the user.
+4. Create the feature folder `{ctx.docs_root}/{FeatureName}/` if it does not exist (anchored at the
+   project root per the **Artifact location** rule — never under `{ctx.magento_root}`).
+   **Write** the blueprint to `.docs/{FeatureName}/blueprint.md` with `Status: Awaiting Approval`
+   as the first line. This file MUST exist on disk before step 5 — do not present a blueprint that
+   has not been saved (per the **Save before present** rule).
+5. **Confirm the file is on disk** (read it back), then present the complete blueprint to the user
+   and cite its path: *"Blueprint saved to `.docs/{FeatureName}/blueprint.md` — review there or below."*
 6. Before accepting approval, scan section 12 (Open Questions). If any question is marked blocking
    and unresolved, present it inline with the blueprint and wait for an answer before proceeding.
    This is the one permitted exception to the "ask once" rule from Phase 1.
 7. **Wait for explicit approval.** Do not proceed to Phase 3 until the user approves the blueprint.
-   If the user requests changes, revise and save again before presenting.
+   If the user requests changes, revise, save again, and re-confirm on disk before presenting.
 
 ---
 
@@ -217,27 +232,37 @@ skill treats the request as a new feature.
    and acceptance criteria.
 5. Produce the execution flow diagram (Mermaid `flowchart TD`) and the dependency graph
    (Mermaid `graph LR`).
-6. Present the complete task list including:
+6. **Write `plan.md` to disk for review — before presenting and before the approval gate.**
+   Save the execution plan to `.docs/{FeatureName}/plan.md` with `Status: Awaiting Approval` as
+   the first line. The plan must include:
+    - Implementation flow diagram (Mermaid `flowchart TD`)
+    - Task dependency graph (Mermaid `graph LR`)
+    - Module schema diagram (Mermaid `graph TD` from Phase 3)
+    - The full task list and summary table (task count, module counts, total estimate)
+    - **Current State** checklist — every task as an unchecked checkbox: `- [ ] {ID}: {Title}`.
+
+   Per the **Save before present** rule, this file MUST exist on disk before step 7. **Do not**
+   write the detailed task records (`tasks.md` / `tasks/`) yet — those are created only after the
+   plan is approved (step 9).
+7. **Confirm `plan.md` is on disk** (read it back), then present the plan to the user, citing the
+   path: *"Plan saved to `.docs/{FeatureName}/plan.md` — review there or below."* Present:
     - Module schema (from Phase 3)
     - Implementation flow diagram
     - Task dependency graph
     - Full task list
     - Summary table (task count, module counts, total estimate)
-7. Print the approval prompt verbatim:
+8. Print the approval prompt verbatim:
    > **Plan ready for approval.**
    > Tasks: {N} | Modules to create: {N} | Modules to modify: {N}
    > Estimated total effort: {sum}
    >
    > Reply **"proceed"** to begin implementation, or describe any changes to the plan.
-8. **Wait for explicit approval.** Do not write any code until the user approves.
-   Once approved:
+9. **Wait for explicit approval.** Do not write any code and do not create the task records until
+   the user approves. If the user requests changes, revise `plan.md`, re-confirm on disk, and
+   present again. Once approved:
     - Update the blueprint status line to `Status: Approved` in `.docs/{FeatureName}/blueprint.md`.
-    - Save the execution plan to `.docs/{FeatureName}/plan.md`. The plan must include:
-        - Implementation flow diagram (Mermaid `flowchart TD`)
-        - Task dependency graph (Mermaid `graph LR`)
-        - Module schema diagram (Mermaid `graph TD` from Phase 3)
-        - **Current State** checklist — every task as an unchecked checkbox: `- [ ] {ID}: {Title}`.
-    - Save the detailed task records to:
+    - Update the `plan.md` status line to `Status: Approved`.
+    - **Now** save the detailed task records (this is the first time they are written to disk):
         - `.docs/{FeatureName}/tasks.md` if the feature has ≤ 5 tasks (single flat file).
         - `.docs/{FeatureName}/tasks/` if the feature has > 5 tasks (one file per task named
           `{ID}-{kebab-title}.md`). Each task file must contain: what is included, which files
@@ -249,7 +274,8 @@ skill treats the request as a new feature.
 
 **Goal:** implement all tasks in dependency order.
 
-**At Phase 5 start:** update the blueprint status line to `Status: In Progress`.
+**At Phase 5 start:** update the status line to `Status: In Progress` in both
+`.docs/{FeatureName}/blueprint.md` and `.docs/{FeatureName}/plan.md`.
 
 **Resuming a partial run:** if `.docs/{FeatureName}/plan.md` exists with `Status: In Progress`,
 read `plan.md` and identify completed tasks by their checked `[x]` checkboxes in the Current State

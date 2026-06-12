@@ -14,6 +14,8 @@ use {Vendor}\{ModuleName}\Model\ResourceModel\{EntityName} as {EntityName}Resour
 class Collection extends AbstractCollection
 {
     /**
+     * Initialize the collection with its model and resource model classes.
+     *
      * @return void
      */
     protected function _construct(): void

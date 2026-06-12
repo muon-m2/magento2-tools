@@ -23,10 +23,14 @@ use {Vendor}\{Module}\{SubNamespace}\{ClassUnderTest};
  * @magentoAppArea {frontend|adminhtml|webapi_rest}
  * @magentoDataFixture {Vendor}_{Module}::Test/Integration/_files/{fixture}.php
  */
-final class {ClassUnderTest}RegressionTest extends TestCase
+class {ClassUnderTest}RegressionTest extends TestCase
 {
+    /** @var {ClassUnderTest} */
     private {ClassUnderTest} $subject;
 
+    /**
+     * Instantiates the class under test from the integration object manager.
+     */
     protected function setUp(): void
     {
         $this->subject = Bootstrap::getObjectManager()->create({ClassUnderTest}::class);

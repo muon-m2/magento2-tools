@@ -11,17 +11,25 @@ use PHPUnit\Framework\TestCase;
 /**
  * @magentoDbIsolation enabled
  */
-final class SchemaTest extends TestCase
+class SchemaTest extends TestCase
 {
+    /** @var ResourceConnection */
     private ResourceConnection $resource;
 
+    /**
+     * Resolves the resource connection from the object manager.
+     */
     protected function setUp(): void
     {
         $this->resource = Bootstrap::getObjectManager()->get(ResourceConnection::class);
     }
 
     /**
+     * Asserts the declared schema table exists after setup:upgrade.
+     *
      * @dataProvider tablesProvider
+     *
+     * @param string $table
      */
     public function testTableExists(string $table): void
     {
@@ -31,6 +39,11 @@ final class SchemaTest extends TestCase
         );
     }
 
+    /**
+     * Provides the schema table names to assert against.
+     *
+     * @return array
+     */
     public static function tablesProvider(): array
     {
         return [

@@ -41,6 +41,8 @@ class {PatchName} implements SchemaPatchInterface
     }
 
     /**
+     * Return the patch class names that must run before this one.
+     *
      * @return string[]
      */
     public static function getDependencies(): array
@@ -49,6 +51,8 @@ class {PatchName} implements SchemaPatchInterface
     }
 
     /**
+     * Return the former class names this patch has been known by.
+     *
      * @return string[]
      */
     public function getAliases(): array

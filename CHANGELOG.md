@@ -6,6 +6,53 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+Artifact-location and approval-gate corrections to the feature workflow.
+
+### Artifact location — `.docs/` anchored at the project root
+- `.docs/` artifacts are now explicitly anchored at the **project working directory**
+  (`{project_root}/.docs`) and never written under `{magento_root}`/`app/code`, even when a
+  step changes the shell cwd. The context hub gains `project_root` and `docs_root` JSON fields
+  and an **Artifact location** Core Rule; `findings-schema.md` and every standalone `.docs`
+  writer (review, bug-fix, i18n, eav-attribute, test-generate, module-upgrade, deploy,
+  performance-audit, debug) point to it. (`magento2-context` 1.4.0 → 1.5.0.)
+- `emit-json.sh` and `build-findings.sh` gain a `DOCS_ROOT` knob (default `.docs`) so an
+  in-`src/` cwd cannot redirect findings into the Magento tree. (`magento2-module-review`
+  2.2.1 → 2.2.2; `magento2-performance-audit` 1.1.0 → 1.1.1.)
+
+### Feature workflow — save-before-present and plan/task gating (`magento2-feature-implement` 2.4.0 → 2.5.0)
+- **Blueprint always saved before review:** Phase 2 now writes `blueprint.md` to disk and
+  confirms it exists *before* presenting it, and cites the path. No more presenting a blueprint
+  that lives only in the chat.
+- **`plan.md` saved for review before the approval gate:** Phase 4 writes `plan.md`
+  (`Status: Awaiting Approval`) and confirms it on disk *before* presenting it — the user
+  reviews the file. Detailed task records (`tasks.md` / `tasks/`) are written **only after** the
+  plan is approved. `task-breakdown-guide.md` corrected to match the new ordering.
+
+### Coding style — PER-CS 3.0 baseline with Magento 2 precedence
+- New shared reference `magento2-context/references/php-coding-style.md`: generated/modified PHP
+  follows **PER Coding Style (PER-CS) 3.0** as the baseline; where it conflicts with the Magento 2
+  coding standard or framework requirements, **Magento 2 wins**. `--standard=Magento2` PHPCS
+  remains the single enforcement gate — this is generation/review guidance, not a second ruleset.
+  Wired into `magento2-module-create` (Step 4 generation rules) and `magento2-module-review`
+  (`phpdoc-code-style.md` lens), with one-line pointers from graphql-create, eav-attribute,
+  data-migration, bug-fix, and frontend-create. (`magento2-context` 1.5.0 → 1.6.0;
+  `magento2-module-create` 1.6.0 → 1.7.0; `magento2-module-review` 2.2.2 → 2.2.3.)
+
+### PHP templates — PER-CS / Magento-2 compliance
+- Audited all 64 PHP templates with the authoritative `Magento2` PHPCS standard and PSR-12
+  (PER-CS proxy). Generated PHP now passes `--standard=Magento2` with **0 errors** (was 19+).
+  Fixes: split multiple-`use`-on-one-line, joined `private`-keyword splits, corrected broken
+  method-body indentation; added/repaired PHPDoc (multi-line method docblocks, short descriptions,
+  missing `@param`, `@var` on plain-typed test properties); simplified unparseable array-shape
+  `@param` types; **removed `final`** from all 19 template classes (Magento prohibits `final`).
+  Residual: 10 warnings on intersection-typed mock properties — a known sniff limitation,
+  documented in `php-coding-style.md` (*Known Sniff Limitations*), left intentionally.
+  (`magento2-bug-fix` 1.0.1 → 1.0.2, `magento2-data-migration` 1.1.0 → 1.1.1,
+  `magento2-eav-attribute` 1.1.1 → 1.1.2, `magento2-graphql-create` 1.0.1 → 1.0.2,
+  `magento2-test-generate` 1.1.0 → 1.1.1.)
+
 ## [1.1.0] — 2026-06-12 — skill-library hardening pass
 
 A broad correctness, consistency, and portability pass across the skill suite, grouped by
