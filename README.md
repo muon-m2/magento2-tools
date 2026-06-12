@@ -28,10 +28,47 @@ one repo. Skills are then invoked namespaced, e.g. `magento2-tools:magento2-bug-
 On folder-trust, Claude Code offers to install the marketplace and enables the plugin —
 zero manual steps for teammates.
 
+## First steps (try it on your project)
+
+New to the toolkit? Open any Magento 2 project in Claude Code and try these — all
+read-only, nothing is modified:
+
+```
+# 1. Let the toolkit learn your project (vendor, runner, versions, theme, tools)
+Resolve the Magento 2 project context
+
+# 2. Severity-ranked review of one of your modules, with file:line evidence
+Quick review of the module app/code/<Vendor>/<Module>
+
+# 3. One-page health snapshot: indexers, caches, queues, cron, versions
+/magento2-tools:magento2-debug snapshot
+```
+
+Skills are triggered by plain language (*"fix this checkout bug"*, *"scaffold a module
+for order export"*) or invoked explicitly with flags
+(`/magento2-tools:magento2-deploy --env=staging Acme_OrderExport`). Code-writing skills
+always stop at an approval gate (blueprint, RCA, deploy plan, release push) before
+changing anything; reports land in your project's `.docs/` folder. The full
+walkthrough lives in [docs/getting-started.md](docs/getting-started.md).
+
+## Documentation
+
+Developer documentation lives in [`docs/`](docs/README.md):
+
+| Doc | What it covers |
+|-----|----------------|
+| [Getting started](docs/getting-started.md) | Install, first run, safety model, first commands for first-time users |
+| [Daily workflows](docs/daily-workflows.md) | Day-to-day recipes: bug fixes, features, reviews, tests, deploys, audits, releases |
+| [New project guide](docs/new-project-guide.md) | Bootstrapping a new Magento 2 project with the toolkit, from `CLAUDE.md` to first release |
+| [Flows and scenarios](docs/flows-and-scenarios.md) | Architecture, per-skill phase flows with diagrams, approval-gate map, artifact map, end-to-end scenarios |
+| [Skills reference](docs/skills-reference.md) | Per-skill quick reference: invocation, flags, phases, outputs |
+| [Configuration](docs/configuration.md) | Context resolver, overrides, `CLAUDE.md` hints, CI integration (validate-only deploys, SARIF) |
+
 ## Skills
 
 17 skills under `skills/`, each self-contained (`SKILL.md` + `references/` + `scripts/`
-+ `templates/`).
++ `templates/`). Per-skill flags, phases, and outputs are documented in
+[docs/skills-reference.md](docs/skills-reference.md).
 
 | Skill | Purpose |
 |-------|---------|
