@@ -75,6 +75,8 @@ skills evolve.
   *after* the plan is approved (Phase 4 step 9). `.docs/` is anchored at the project root per
   magento2-context, never inside the Magento tree. Phase 5 flips the status line in both
   `blueprint.md` and `plan.md`; `task-breakdown-guide.md` corrected to match the new ordering.
+  Per-task files renamed `{ID}-{kebab-title}.md` → `{NNN}-{ID}-{kebab-title}.md`, where `{NNN}`
+  is a zero-padded execution-order index (parallel-wave tasks share the same `{NNN}`).
 - **magento2-module-review 2.2.1 → 2.2.2** — `emit-json.sh` honours a `DOCS_ROOT` env var
   (default `.docs`) so findings always land under the project-root `.docs/`, never under an
   in-`src/` cwd inside the Magento tree. Default behaviour is unchanged.

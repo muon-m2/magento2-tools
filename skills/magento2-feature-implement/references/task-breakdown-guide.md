@@ -78,8 +78,26 @@ records below come after the user approves.
 **≤ 5 tasks** — save all task records to a single flat file: `.docs/{FeatureName}/tasks.md`.
 
 **> 5 tasks** — save each task to its own file inside `.docs/{FeatureName}/tasks/`, named
-`{ID}-{kebab-title}.md` (e.g. `M1-create-xyz-core.md`, `R1-review-xyz-core.md`). The folder
-allows individual tasks to be read and updated in isolation during long-running implementations.
+`{NNN}-{ID}-{kebab-title}.md` (e.g. `001-M1-create-xyz-core.md`, `002-R1-review-xyz-core.md`).
+The folder allows individual tasks to be read and updated in isolation during long-running
+implementations, and the `{NNN}` prefix sorts them into execution order.
+
+`{NNN}` is the **zero-padded execution-order index** (`001`, `002`, `003`, …) taken from the
+dependency order: the first wave of tasks (no unmet dependencies) is `001`, the next wave `002`,
+and so on. Tasks expected to run **in parallel** (same wave — marked `Parallel: yes`, with no
+dependency between them) share the **same** `{NNN}`. Two tasks with index `003` are a parallel
+group; index `004` only starts after every `003` task completes. The index encodes the same
+ordering as the dependency graph in `plan.md` — keep them in sync.
+
+```
+tasks/
+├── 001-M1-create-xyz-core.md
+├── 002-R1-review-xyz-core.md
+├── 003-X1-extend-checkout.md     # 003-X1 and 003-X2 run in parallel
+├── 003-X2-extend-customer.md
+├── 004-T1-test-xyz-core.md
+└── ...
+```
 
 ---
 
