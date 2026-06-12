@@ -21,6 +21,9 @@ Frontend-specific scaffolding `magento2-module-create` doesn't cover.
   the source files.
 - **Append-safe.** Never overwrite an existing `requirejs-config.js` or `email_templates.xml`
   — append/merge.
+- **Coding style.** Any generated PHP (blocks, ViewModels) follows PER-CS 3.0 as the baseline,
+  with the Magento 2 coding standard taking precedence on any conflict; `--standard=Magento2`
+  PHPCS is the gate. See `magento2-context/references/php-coding-style.md`.
 
 ## Workflow
 

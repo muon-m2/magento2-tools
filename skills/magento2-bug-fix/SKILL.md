@@ -40,6 +40,10 @@ root-cause analysis, the minimal fix, a regression test, and review across eight
   `vendor/magento/` or any third-party module is forbidden.
 - **Per-task commits.** Each phase that modifies files commits independently with the
   `[bug-fix]` prefix. See `references/commit-format.md`.
+- **Coding style.** Patched/added PHP follows PER-CS 3.0 as the baseline, with the Magento 2
+  coding standard taking precedence on any conflict; `--standard=Magento2` PHPCS is the gate.
+  See `magento2-context/references/php-coding-style.md`. (Stay within the minimal-change rule —
+  do not restyle surrounding code.)
 
 ## Workflow
 
@@ -215,6 +219,9 @@ Optional flags:
 ├── rca.md          # Phase 3 RCA
 └── report.md       # Phase 7 final report
 ```
+
+`.docs/` is anchored at the project root (`{ctx.docs_root}`), never under `{ctx.magento_root}`,
+`app/code`, or a module dir. See the **Artifact location** rule in `magento2-context/SKILL.md`.
 
 Plus per-task git commits per `references/commit-format.md`.
 

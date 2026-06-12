@@ -9,7 +9,7 @@ use Magento\Framework\View\Element\Block\ArgumentInterface;
 use {Vendor}\{ModuleName}\Api\{EntityName}RepositoryInterface;
 
 /**
- * {Name} view model.
+ * Supplies {entity} list data to templates so blocks stay logic-free and unit-testable.
  */
 class {Name}ViewModel implements ArgumentInterface
 {

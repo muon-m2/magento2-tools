@@ -17,6 +17,10 @@ use PHPUnit\Framework\TestCase;
 class {ServiceName}ServiceTest extends TestCase
 {
     private {EntityName}RepositoryInterface&MockObject $repository;
+
+    /**
+     * @var {ServiceName}Service
+     */
     private {ServiceName}Service $subject;
 
     protected function setUp(): void

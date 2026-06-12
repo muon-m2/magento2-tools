@@ -123,6 +123,9 @@ Flags:
 {ctx.magento_root}/app/code/{Vendor}/{Module}/UPGRADE.md   # Consumer notice (always present after upgrade)
 ```
 
+`.docs/` is anchored at the project root (`{ctx.docs_root}`), never under `{ctx.magento_root}`,
+`app/code`, or a module dir. See the **Artifact location** rule in `magento2-context/SKILL.md`.
+
 ## Reference Files
 
 - `references/magento-version-matrix.md` — known BC breaks by Magento version.

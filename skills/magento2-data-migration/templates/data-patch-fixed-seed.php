@@ -13,7 +13,7 @@ use Magento\Framework\Setup\Patch\DataPatchInterface;
  * Re-run safety: This patch is idempotent. Rows already present (matched by
  * `unique_key`) are skipped.
  */
-final class Seed{Entity}Defaults implements DataPatchInterface
+class Seed{Entity}Defaults implements DataPatchInterface
 {
     private const ROWS = [
         ['code' => 'pending', 'label' => 'Pending', 'sort_order' => 10],
@@ -21,11 +21,21 @@ final class Seed{Entity}Defaults implements DataPatchInterface
         ['code' => 'rejected', 'label' => 'Rejected', 'sort_order' => 30],
     ];
 
+    /**
+     * Constructor.
+     *
+     * @param \Magento\Framework\Setup\ModuleDataSetupInterface $moduleDataSetup
+     */
     public function __construct(
         private readonly ModuleDataSetupInterface $moduleDataSetup,
     ) {
     }
 
+    /**
+     * Apply the data patch by seeding the fixed reference rows.
+     *
+     * @return self
+     */
     public function apply(): self
     {
         $connection = $this->moduleDataSetup->getConnection();
@@ -48,6 +58,8 @@ final class Seed{Entity}Defaults implements DataPatchInterface
     }
 
     /**
+     * Get the patches this patch depends on.
+     *
      * @return array<int, class-string>
      */
     public static function getDependencies(): array
@@ -56,6 +68,8 @@ final class Seed{Entity}Defaults implements DataPatchInterface
     }
 
     /**
+     * Get the aliases for this patch.
+     *
      * @return array<int, string>
      */
     public function getAliases(): array

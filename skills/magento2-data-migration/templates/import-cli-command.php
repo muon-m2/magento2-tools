@@ -14,8 +14,14 @@ use {Vendor}\{Module}\Service\Importer\{Entity}Importer;
 /**
  * CLI: bin/magento {vendor}:{module}:import <source-path> [--dry-run]
  */
-final class Import{Entity}Command extends Command
+class Import{Entity}Command extends Command
 {
+    /**
+     * Constructor.
+     *
+     * @param \{Vendor}\{Module}\Service\Importer\{Entity}Importer $importer
+     * @param string|null $name
+     */
     public function __construct(
         private readonly {Entity}Importer $importer,
         ?string $name = null,
@@ -23,6 +29,11 @@ final class Import{Entity}Command extends Command
         parent::__construct($name);
     }
 
+    /**
+     * Configure the command name, description, arguments and options.
+     *
+     * @return void
+     */
     protected function configure(): void
     {
         $this->setName('{vendor_lower}:{module_lower}:import')
@@ -31,6 +42,13 @@ final class Import{Entity}Command extends Command
              ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Report what would be imported without writing');
     }
 
+    /**
+     * Execute the import command.
+     *
+     * @param \Symfony\Component\Console\Input\InputInterface $input
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @return int
+     */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $source = (string) $input->getArgument('source');

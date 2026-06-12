@@ -14,8 +14,16 @@ use Magento\Framework\Setup\Patch\DataPatchInterface;
 /**
  * Add {AttributeCode} attribute to customer_address entity.
  */
-final class Add{AttributeCode}AddressAttribute implements DataPatchInterface
+class Add{AttributeCode}AddressAttribute implements DataPatchInterface
 {
+    /**
+     * Constructor.
+     *
+     * @param \Magento\Framework\Setup\ModuleDataSetupInterface $moduleDataSetup
+     * @param \Magento\Customer\Setup\CustomerSetupFactory $customerSetupFactory
+     * @param \Magento\Eav\Model\Entity\Attribute\SetFactory $attributeSetFactory
+     * @param \Magento\Eav\Model\Config $eavConfig
+     */
     public function __construct(
         private readonly ModuleDataSetupInterface $moduleDataSetup,
         private readonly CustomerSetupFactory $customerSetupFactory,

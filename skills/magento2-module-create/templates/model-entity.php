@@ -20,6 +20,8 @@ use {Vendor}\{ModuleName}\Model\ResourceModel\{EntityName} as {EntityName}Resour
 class {EntityName} extends AbstractExtensibleModel implements {EntityName}Interface
 {
     /**
+     * Initialize the model with its resource model class.
+     *
      * @return void
      */
     protected function _construct(): void

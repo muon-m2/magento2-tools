@@ -11,6 +11,9 @@ class {Entity}ApiTest extends WebapiAbstract
     private const RESOURCE_PATH = '/V1/{vendor_lower}/{route}';
     private const SERVICE_NAME = '{vendor}{Module}{Entity}RepositoryV1';
 
+    /**
+     * Asserts the REST getById endpoint returns the expected payload shape.
+     */
     public function testGetByIdReturnsExpectedShape(): void
     {
         $id = 1;
@@ -25,6 +28,9 @@ class {Entity}ApiTest extends WebapiAbstract
         self::assertSame($id, $response['id']);
     }
 
+    /**
+     * Asserts the REST getById endpoint reports a missing entity as not found.
+     */
     public function testGetByIdNotFoundReturns404(): void
     {
         $info = [

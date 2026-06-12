@@ -26,6 +26,8 @@ class {EntityName} implements ResolverInterface
     }
 
     /**
+     * Resolve the {EntityName} GraphQL field by loading the entity for the requested ID.
+     *
      * @param \Magento\Framework\GraphQl\Config\Element\Field $field
      * @param mixed $context
      * @param \Magento\Framework\GraphQl\Schema\Type\ResolveInfo $info

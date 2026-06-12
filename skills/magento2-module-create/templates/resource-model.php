@@ -12,6 +12,8 @@ use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
 class {EntityName} extends AbstractDb
 {
     /**
+     * Initialize the resource model with its main table and primary key.
+     *
      * @return void
      */
     protected function _construct(): void

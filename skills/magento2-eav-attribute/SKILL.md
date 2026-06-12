@@ -27,6 +27,9 @@ indexer integration.
 - **Generate companions only when needed.** Source model only for select/multiselect;
   backend model only for date/image/price/multiselect/non-trivial; frontend model only
   when explicitly requested.
+- **Coding style.** Generated PHP follows PER-CS 3.0 as the baseline, with the Magento 2 coding
+  standard taking precedence on any conflict; `--standard=Magento2` PHPCS is the gate. See
+  `magento2-context/references/php-coding-style.md`.
 
 ## Workflow
 
@@ -118,6 +121,9 @@ Brief Markdown saved to `.docs/eav-attributes/{Vendor}_{Module}-{code}-{date}.md
 
 .docs/eav-attributes/{Vendor}_{Module}-{code}-{date}.md
 ```
+
+`.docs/` is anchored at the project root (`{ctx.docs_root}`), never under `{ctx.magento_root}`,
+`app/code`, or a module dir. See the **Artifact location** rule in `magento2-context/SKILL.md`.
 
 ## Reference Files
 

@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace {Vendor}\{ModuleName}\Observer;
 
-use Psr\Log\LoggerInterface;use Magento\Framework\Event\Observer;use Magento\Framework\Event\ObserverInterface;
+use Magento\Framework\Event\Observer;
+use Magento\Framework\Event\ObserverInterface;
+use Psr\Log\LoggerInterface;
 
 /**
  * Observer for the {event_name} event.

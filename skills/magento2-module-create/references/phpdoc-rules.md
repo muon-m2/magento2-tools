@@ -24,7 +24,7 @@ data patches, and repository implementations.
 | `ViewModel/` classes   | Required          | Required                             | Required                                                                   |
 | `Cron/` classes        | Required          | Required                             | Required (`execute()`)                                                     |
 | `Model/Consumer/`      | Required          | Required                             | Required (`process()`)                                                     |
-| `Test/Unit/`           | Required (brief)  | Required                             | Required only for `setUp()` and helper methods; `test*` methods are exempt |
+| `Test/Unit/`           | Required (brief)  | Required                             | Required on every method incl. `test*` — a brief multi-line summary; the `Magento2.Annotation.MethodAnnotationStructure` sniff (an error gate) flags any method without a docblock |
 
 ---
 
@@ -156,7 +156,14 @@ private $criteriaBuilder;
 ```
 
 When using PHP 8.x typed property declarations (e.g. `private readonly Foo $foo`), the `@var` tag is
-redundant and should be omitted.
+redundant and should be omitted **in production code** (promoted constructor properties never need it).
+
+**Exception — test classes.** The `Magento2.Commenting.ClassPropertyPHPDocFormatting` sniff requires a
+docblock on declared class properties, so in `Test/` classes add a brief `/** @var Type */` to
+**plain single-typed** properties. **Intersection-typed** mock properties (`Foo&MockObject $x`) are the
+exception-to-the-exception: that sniff mis-handles intersection types and flags them even with a correct
+`@var`, so keep the modern intersection type and leave them as-is (see the *Known Sniff Limitations*
+section in `magento2-context/references/php-coding-style.md`).
 
 ---
 

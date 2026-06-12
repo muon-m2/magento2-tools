@@ -15,14 +15,24 @@ use {Vendor}\{ModuleName}\Plugin\{TargetShortName}{Method}Plugin;
 class {TargetShortName}{Method}PluginTest extends TestCase
 {
     private {TargetShortName}&MockObject $subjectMock;
+
+    /**
+     * @var {TargetShortName}{Method}Plugin
+     */
     private {TargetShortName}{Method}Plugin $plugin;
 
+    /**
+     * Sets up the plugin subject mock and the plugin under test.
+     */
     protected function setUp(): void
     {
         $this->subjectMock = $this->createMock({TargetShortName}::class);
         $this->plugin      = new {TargetShortName}{Method}Plugin();
     }
 
+    /**
+     * Asserts the before plugin returns the arguments unchanged.
+     */
     public function testBefore{Method}ReturnsArguments(): void
     {
         $args = ['arg1', 'arg2'];
@@ -30,6 +40,9 @@ class {TargetShortName}{Method}PluginTest extends TestCase
         $this->assertSame($args, $result);
     }
 
+    /**
+     * Asserts the after plugin returns the result unchanged.
+     */
     public function testAfter{Method}ReturnsResultUnchanged(): void
     {
         $input = 'value';

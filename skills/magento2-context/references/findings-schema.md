@@ -13,10 +13,10 @@ requires updating this schema and the JSON emitter.
 {
   "schemaVersion": "1.0",
   "skill": "magento2-module-review",
-  "skillVersion": "2.2.1",
+  "skillVersion": "2.2.3",
   "skillVersions": [
-    "magento2-module-review@2.2.1",
-    "magento2-context@1.4.0"
+    "magento2-module-review@2.2.3",
+    "magento2-context@1.6.0"
   ],
   "outputKind": "review",
   "target": {
@@ -187,6 +187,10 @@ JSON output:
 .docs/audits/perf-{scope}-{YYYY-MM-DD}.json
 .docs/upgrades/{Vendor}_{Module}-{from}-to-{to}-{YYYY-MM-DD}.json
 ```
+
+All paths are anchored at the project root (`{ctx.docs_root}` = `{project_root}/.docs`) —
+never under `{ctx.magento_root}`, `app/code`, or a module directory. See the **Artifact
+location** rule in `magento2-context/SKILL.md`.
 
 SARIF output: same path, `.sarif` extension.
 

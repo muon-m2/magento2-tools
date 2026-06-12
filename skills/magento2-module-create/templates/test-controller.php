@@ -19,14 +19,24 @@ use PHPUnit\Framework\TestCase;
 class {ActionName}Test extends TestCase
 {
     private ResultFactory&MockObject $resultFactory;
+
+    /**
+     * @var {ActionName}
+     */
     private {ActionName} $subject;
 
+    /**
+     * Sets up the result factory mock and the controller under test.
+     */
     protected function setUp(): void
     {
         $this->resultFactory = $this->createMock(ResultFactory::class);
         $this->subject       = new {ActionName}($this->resultFactory);
     }
 
+    /**
+     * Asserts the controller returns a page result interface.
+     */
     public function testExecuteReturnsPageResult(): void
     {
         $title = $this->createMock(Title::class);

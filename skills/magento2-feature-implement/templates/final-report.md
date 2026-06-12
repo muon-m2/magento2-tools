@@ -6,10 +6,10 @@ Implemented by: Claude Code using `magento2-feature-implement`
 Blueprint: `.docs/{FeatureName}/blueprint.md`
 Skill versions:
 
-- magento2-feature-implement@2.4.0
-  - magento2-module-create@1.6.0
-  - magento2-module-review@2.2.1
-- magento2-context@1.4.0
+- magento2-feature-implement@2.5.0
+  - magento2-module-create@1.7.0
+  - magento2-module-review@2.2.3
+- magento2-context@1.6.0
 
 ---
 

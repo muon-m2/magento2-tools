@@ -20,7 +20,7 @@ use PHPUnit\Framework\TestCase;
  * If a {ClassUnderTest}Test already exists, add testRegression{ShortDescription}() there
  * instead and delete this file; otherwise rename the class to {ClassUnderTest}Test.
  */
-final class {ClassUnderTest}RegressionTest extends TestCase
+class {ClassUnderTest}RegressionTest extends TestCase
 {
     /** @var {Dep1Type}&MockObject */
     private MockObject $dep1;
@@ -28,8 +28,12 @@ final class {ClassUnderTest}RegressionTest extends TestCase
     /** @var {Dep2Type}&MockObject */
     private MockObject $dep2;
 
+    /** @var {ClassUnderTest} */
     private {ClassUnderTest} $subject;
 
+    /**
+     * Builds the class under test with mocked dependencies.
+     */
     protected function setUp(): void
     {
         $this->dep1 = $this->createMock(\{Dep1FQCN}::class);

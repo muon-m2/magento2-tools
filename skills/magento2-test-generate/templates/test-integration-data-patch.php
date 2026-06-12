@@ -12,16 +12,20 @@ use {Vendor}\{Module}\Setup\Patch\Data\{Patch};
 /**
  * @magentoDbIsolation enabled
  */
-final class {Patch}Test extends TestCase
+class {Patch}Test extends TestCase
 {
     // Replace with the table the patch writes to (use the raw table name, not the alias).
-    private
-    const SEEDED_TABLE = '{vendor_lower}_{module_lower}_entity';
+    private const SEEDED_TABLE = '{vendor_lower}_{module_lower}_entity';
 
+    /** @var {Patch} */
     private {Patch} $patch;
-    private
-    ResourceConnection $resource;
 
+    /** @var ResourceConnection */
+    private ResourceConnection $resource;
+
+    /**
+     * Resolves the patch under test and the resource connection from the object manager.
+     */
     protected function setUp(): void
     {
         $om = Bootstrap::getObjectManager();
@@ -29,6 +33,9 @@ final class {Patch}Test extends TestCase
         $this->resource = $om->get(ResourceConnection::class);
     }
 
+    /**
+     * Asserts re-applying the patch does not duplicate seeded rows.
+     */
     public function testApplyIsIdempotent(): void
     {
         // First apply seeds the data.
@@ -51,11 +58,17 @@ final class {Patch}Test extends TestCase
         );
     }
 
+    /**
+     * Asserts getDependencies() returns an array.
+     */
     public function testGetDependenciesReturnsArray(): void
     {
         self::assertIsArray({Patch}::getDependencies());
     }
 
+    /**
+     * Asserts getAliases() honours its array contract.
+     */
     public function testGetAliasesReturnsArray(): void
     {
         // getAliases() may legitimately be non-empty when a patch supersedes an
@@ -63,12 +76,17 @@ final class {Patch}Test extends TestCase
         self::assertIsArray($this->patch->getAliases());
     }
 
+    /**
+     * Counts the rows currently present in the seeded table.
+     *
+     * @return int
+     */
     private function countSeededRows(): int
-{
-    $connection = $this->resource->getConnection();
-    $table = $this->resource->getTableName(self::SEEDED_TABLE);
-    $select = $connection->select()->from($table, ['cnt' => 'COUNT(*)']);
+    {
+        $connection = $this->resource->getConnection();
+        $table = $this->resource->getTableName(self::SEEDED_TABLE);
+        $select = $connection->select()->from($table, ['cnt' => 'COUNT(*)']);
 
-    return (int)$connection->fetchOne($select);
+        return (int)$connection->fetchOne($select);
     }
 }

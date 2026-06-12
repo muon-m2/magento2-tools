@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace {Vendor}\{ModuleName}\Api;
 
 /**
- * {EntityName} repository interface.
+ * Service contract for persisting, retrieving, listing, and deleting {EntityName} entities.
  *
  * @api
  */

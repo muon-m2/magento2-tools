@@ -27,6 +27,9 @@ Schema-first GraphQL generation. Produces:
   header via `ContextInterface`.
 - **Append, don't replace.** When `etc/schema.graphqls` exists, append new types/fields
   rather than rewriting.
+- **Coding style.** Generated PHP follows PER-CS 3.0 as the baseline, with the Magento 2 coding
+  standard taking precedence on any conflict; `--standard=Magento2` PHPCS is the gate. See
+  `magento2-context/references/php-coding-style.md`.
 
 ## Workflow
 

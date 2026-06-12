@@ -4,18 +4,25 @@ declare(strict_types=1);
 
 namespace {Vendor}\{Module}\Service\Importer;
 
-use Psr\Log\LoggerInterface;use Magento\Framework\App\ResourceConnection;
+use Magento\Framework\App\ResourceConnection;
+use Psr\Log\LoggerInterface;
 
 /**
  * Bulk importer for {entity} from a CSV source.
  *
  * Processes rows in chunks. Idempotent on unique_key.
  */
-final class {Entity}Importer
+class {Entity}Importer
 {
     private const CHUNK_SIZE = 500;
     private const UNIQUE_KEY = 'unique_key';
 
+    /**
+     * Constructor.
+     *
+     * @param \Magento\Framework\App\ResourceConnection $resource
+     * @param \Psr\Log\LoggerInterface $logger
+     */
     public function __construct(
         private readonly ResourceConnection $resource,
         private readonly LoggerInterface $logger,
@@ -23,6 +30,9 @@ final class {Entity}Importer
     }
 
     /**
+     * Import rows from the given CSV source file.
+     *
+     * @param string $sourcePath
      * @return array{processed: int, skipped: int, failed: int}
      */
     public function import(string $sourcePath): array
@@ -74,8 +84,10 @@ final class {Entity}Importer
     }
 
     /**
-     * @param array<int, array<string, mixed>> $rows
-     * @param array{processed: int, skipped: int, failed: int} $stats
+     * Insert a chunk of rows, deduplicating by unique key and updating stats.
+     *
+     * @param array $rows Rows to insert; each an associative array of column => value.
+     * @param array $stats Running totals updated in place: processed, skipped, failed.
      */
     private function processChunk(array $rows, array &$stats): void
     {

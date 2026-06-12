@@ -5,8 +5,8 @@ Status: Awaiting Approval
 Blueprint: `.docs/{FeatureName}/blueprint.md`
 Skill versions:
 
-- magento2-feature-implement@2.4.0
-- magento2-context@1.4.0
+- magento2-feature-implement@2.5.0
+- magento2-context@1.6.0
 
 ---
 

@@ -97,6 +97,9 @@ Via `${CLAUDE_SKILL_DIR}/scripts/validate-csv.sh`:
 .docs/i18n/{Vendor}_{Module}-{date}.md
 ```
 
+`.docs/` is anchored at the project root (`{ctx.docs_root}`), never under `{ctx.magento_root}`,
+`app/code`, or a module dir. See the **Artifact location** rule in `magento2-context/SKILL.md`.
+
 ## Reference Files
 
 - `references/extraction-patterns.md` — all translatable patterns + extraction regex.

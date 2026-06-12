@@ -71,6 +71,10 @@ Estimate is informational only. Do not block execution on estimates.
 
 ## Task Structure: Single File vs Folder
 
+Task records are written **only after the plan is approved** (Phase 4 step 9) — not while the
+plan is being presented for review. `plan.md` is saved earlier for review (see below); the task
+records below come after the user approves.
+
 **≤ 5 tasks** — save all task records to a single flat file: `.docs/{FeatureName}/tasks.md`.
 
 **> 5 tasks** — save each task to its own file inside `.docs/{FeatureName}/tasks/`, named
@@ -81,8 +85,10 @@ allows individual tasks to be read and updated in isolation during long-running 
 
 ## Execution Plan Format (plan.md)
 
-Save the execution plan to `.docs/{FeatureName}/plan.md` after Phase 4 approval. This file is
-the single source of truth for resuming interrupted runs.
+Save the execution plan to `.docs/{FeatureName}/plan.md` **for review before the approval gate**
+(Phase 4 step 6), with `Status: Awaiting Approval`; flip it to `Status: Approved` once the user
+approves. This file is the single source of truth for resuming interrupted runs. Its path is
+anchored at the project root (`{ctx.docs_root}`), never under `{ctx.magento_root}`.
 
 Required structure:
 
@@ -90,7 +96,7 @@ Required structure:
 # {Feature Name} — Execution Plan
 
 Date: {YYYY-MM-DD}
-Status: Approved | In Progress | Complete
+Status: Awaiting Approval | Approved | In Progress | Complete
 Blueprint: .docs/{FeatureName}/blueprint.md
 
 ---

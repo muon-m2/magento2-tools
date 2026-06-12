@@ -7,7 +7,7 @@ The `snapshot` mode produces a single Markdown document for paste-into-ticket.
 ```markdown
 # Magento Snapshot — {YYYY-MM-DD HH:MM UTC}
 
-Skill versions: magento2-debug@1.2.0, magento2-context@1.4.0
+Skill versions: magento2-debug@1.2.0, magento2-context@1.6.0
 Magento mode: {production|developer|default}
 Maintenance flag: {enabled|disabled}
 
@@ -95,7 +95,9 @@ When relevant:
 ## Output Behaviour
 
 - Always print to conversation.
-- With `--save`: also write to `.docs/debug/snapshot-{date}.md`.
+- With `--save`: also write to `.docs/debug/snapshot-{date}.md`. `.docs/` is anchored at the
+  project root (`{ctx.docs_root}`), never under `{ctx.magento_root}` — see the **Artifact
+  location** rule in `magento2-context/SKILL.md`.
 
 ## Failure Handling
 

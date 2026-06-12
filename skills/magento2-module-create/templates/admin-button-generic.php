@@ -35,7 +35,7 @@ class GenericButton
      * Generate an admin URL for the given route.
      *
      * @param string $route
-     * @param array<string, mixed> $params
+     * @param array $params
      * @return string
      */
     public function getUrl(string $route = '', array $params = []): string

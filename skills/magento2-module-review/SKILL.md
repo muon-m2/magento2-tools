@@ -79,7 +79,9 @@ missing tool or unavailable Magento runtime is an environment limitation, not a 
     - For JSON output (default when invoked from another skill or with `--format=json`):
       build the findings array per `magento2-context/references/findings-schema.md`, then
       pipe it through `${CLAUDE_SKILL_DIR}/scripts/emit-json.sh`. Writes to
-      `.docs/reviews/{Vendor}_{Module}-review-{date}.json`.
+      `.docs/reviews/{Vendor}_{Module}-review-{date}.json` — anchored at the project root
+      (`{ctx.docs_root}`), never under `{ctx.magento_root}`. Pass `DOCS_ROOT={ctx.docs_root}`
+      to `emit-json.sh` so an in-`src/` cwd cannot redirect output into the Magento tree.
     - For SARIF output (CI / GitHub Code Scanning): run `${CLAUDE_SKILL_DIR}/scripts/emit-sarif.sh` on the JSON
       output. Writes alongside the JSON file with `.sarif` extension.
     - Update `Reviewer:` to `Claude Code using magento2-module-review` and include the
