@@ -6,7 +6,7 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
-## [1.1.0] — unreleased — skill-library hardening pass
+## [1.1.0] — 2026-06-12 — skill-library hardening pass
 
 A broad correctness, consistency, and portability pass across the skill suite, grouped by
 workstream below. (Issue-ID labels such as `CTX-1` / `EAV-1` come from an internal audit.)
@@ -113,6 +113,13 @@ workstream below. (Issue-ID labels such as `CTX-1` / `EAV-1` come from an intern
   job and `workflow_dispatch`. `scanner_errors` documented in `findings-schema.md`.
 - Plugin unit version bumped 1.0.0 → 1.1.0 (`plugin.json` + `marketplace.json`).
 
+### Documentation
+- New developer documentation set under `docs/`: getting started, daily workflows,
+  new-project guide, flows & scenarios (with Mermaid phase diagrams, approval-gate map,
+  artifact map, end-to-end scenarios), per-skill reference, and configuration/CI guide.
+- `README.md` gained a "First steps" quickstart for first-time users and a Documentation
+  section linking the new docs. (PRs #2, #3.)
+
 ### Workstream F — Consistency, dedup & stale references
 - Purged stale slash-command names (`/validate`, `/deploy`, `/module-review`, `/observer`) and
   the non-existent `frontend-create (augment)` routing; unified the commit-format rule
@@ -142,6 +149,8 @@ workstream below. (Issue-ID labels such as `CTX-1` / `EAV-1` come from an intern
   statement — `dev:di:info` is unrelated to logs).
 
 ### Workstream G — Portability & layout/runner awareness
+- Context tool probe made layout- and runner-aware (`magento2-context` 1.2.0 → 1.3.0;
+  landed after the 1.0.0 tag, predates the 1.4.0 work below).
 - **CTX-4:** the context resolver is macOS/BSD-safe (SHA-256 fallback chain; awk instead of
   GNU `sed \U`; literal-tab escaping) — it previously hard-exited on stock macOS.
 - **CTX-5/6/7/8/3:** root detected before vendor; layout-aware bare `magento_cli`; Commerce
@@ -170,7 +179,7 @@ workstream below. (Issue-ID labels such as `CTX-1` / `EAV-1` come from an intern
   implementation (read-only, context-aware).
 - **H11:** README + CHANGELOG refreshed (`M2_CACHE_TTL`, the new harness checks).
 
-## [1.0.0] — unreleased
+## [1.0.0] — 2026-05-29
 
 First packaged release: the `magento2-*` skills collection as an installable Claude Code
 plugin distributed via the `muon-m2` marketplace (this repo).
