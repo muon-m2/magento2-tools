@@ -75,15 +75,16 @@ Four pieces keep the 17 skills consistent:
    `{ctx.*}` values and never re-resolve them independently. Missing tools are `null` —
    honest gaps, never invented paths.
 2. **The findings schema and severity scale.**
-   `magento2-context/references/findings-schema.md` and `references/severity.md` define
+   `skills/magento2-context/references/findings-schema.md` and
+   `skills/magento2-context/references/severity.md` define
    one finding shape and one Critical/High/Medium/Low/Info scale. Review, security
    audit, performance audit, and module upgrade all emit it, through the shared
    `emit-json.sh` / `emit-sarif.sh` scripts owned by `magento2-module-review`.
 3. **The `.docs/` artifact convention.** Every skill writes its durable outputs to a
    predictable folder in *your* project (see [artifact map](#artifact-map)).
-4. **Naming and placeholders.** `magento2-context/references/naming.md` is the single
-   naming authority; templates share a placeholder registry enforced by the repo's
-   contract tests.
+4. **Naming and placeholders.** `skills/magento2-context/references/naming.md` is the
+   single naming authority; templates share a placeholder registry enforced by the
+   repo's contract tests.
 
 ---
 
