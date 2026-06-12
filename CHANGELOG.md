@@ -29,6 +29,10 @@ Artifact-location and approval-gate corrections to the feature workflow.
   (`Status: Awaiting Approval`) and confirms it on disk *before* presenting it — the user
   reviews the file. Detailed task records (`tasks.md` / `tasks/`) are written **only after** the
   plan is approved. `task-breakdown-guide.md` corrected to match the new ordering.
+- **Per-task files carry an execution-order prefix:** `{ID}-{kebab-title}.md` →
+  `{NNN}-{ID}-{kebab-title}.md`, where `{NNN}` is a zero-padded index (`001`, `002`, …) from the
+  dependency order. Tasks in the same parallel wave share the same `{NNN}`, so the folder sorts
+  into execution order and surfaces parallel groups at a glance.
 
 ### Coding style — PER-CS 3.0 baseline with Magento 2 precedence
 - New shared reference `magento2-context/references/php-coding-style.md`: generated/modified PHP

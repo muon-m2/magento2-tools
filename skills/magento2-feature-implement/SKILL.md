@@ -83,8 +83,10 @@ Every feature gets its own subfolder under `.docs/`. Create it at the start of P
     ├── tasks.md              # Flat task records (≤ 5 tasks) — written ONLY after the plan is approved
     │   OR
     ├── tasks/                # One file per task (> 5 tasks) — written ONLY after the plan is approved
-    │   ├── M1-{title}.md
-    │   ├── R1-{title}.md
+    │   ├── 001-M1-{title}.md  # {NNN} = execution-order index; same NNN ⇒ runs in parallel
+    │   ├── 002-R1-{title}.md
+    │   ├── 003-X1-{title}.md  # 003-X1 and 003-X2 share index 003 → parallel wave
+    │   ├── 003-X2-{title}.md
     │   └── ...
     ├── report.md             # Final implementation report — Phase 7
     ├── guides/               # Development guides (HTML) — generated when applicable
@@ -265,8 +267,14 @@ skill treats the request as a new feature.
     - **Now** save the detailed task records (this is the first time they are written to disk):
         - `.docs/{FeatureName}/tasks.md` if the feature has ≤ 5 tasks (single flat file).
         - `.docs/{FeatureName}/tasks/` if the feature has > 5 tasks (one file per task named
-          `{ID}-{kebab-title}.md`). Each task file must contain: what is included, which files
-          will change and why, execution estimate, dependencies, and possible risks.
+          `{NNN}-{ID}-{kebab-title}.md`). `{NNN}` is the zero-padded execution-order index
+          (`001`, `002`, `003`, …) derived from the dependency order in `plan.md`: assign `001`
+          to the first wave (tasks with no unmet dependencies), `002` to the next wave, and so on.
+          Tasks expected to run in parallel (same wave — `Parallel: yes`, no dependency between
+          them) share the **same** `{NNN}`. So the prefix sorts the folder into execution order
+          and reveals parallel groups at a glance (e.g. `003-X1-extend-checkout.md` and
+          `003-X2-extend-customer.md` run together). Each task file must contain: what is included,
+          which files will change and why, execution estimate, dependencies, and possible risks.
 
 ---
 
