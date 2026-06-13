@@ -6,7 +6,10 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.3.0] — 2026-06-12 — review findings route to the owning skill
+
+Deterministic remediation routing for `magento2-module-review`: acting on review findings now
+dispatches each item to the skill that owns the work instead of fixing everything inline.
 
 ### Review fix-routing — findings route to the owning skill (`magento2-module-review` 2.2.3 → 2.3.0)
 - New **Fix Routing** table in `magento2-module-review`: when the user proceeds with review
