@@ -11,7 +11,7 @@ skills evolve.
 |----------------------------|---------|---------------------------------------------------------------------|
 | magento2-context           | 1.6.0   | JSON schema changes, new resolution rules, new tool probes          |
 | magento2-module-create     | 1.7.0   | New template added, surface added, naming rule changed              |
-| magento2-module-review     | 2.2.3   | New checklist category, severity calibration change, new JSON field |
+| magento2-module-review     | 2.3.0   | New checklist category, severity calibration change, new JSON field, fix-routing change |
 | magento2-feature-implement | 2.5.0   | New phase, new approval gate, mode added, template structure change |
 | magento2-bug-fix           | 1.0.2   | Workflow phase change, RCA format change                            |
 | magento2-deploy            | 1.2.0   | Deploy plan template change, rollback recipe change                 |
@@ -29,6 +29,13 @@ skills evolve.
 
 ## Changelog (last update: 2026-06-12)
 
+- **magento2-module-review 2.2.3 → 2.3.0** — new **Fix Routing** table: when the user asks to act
+  on findings or report recommendations, each item routes deterministically to the owning skill
+  (`magento2-bug-fix` for defects, `magento2-feature-implement --mode=extend` for behaviour/schema
+  changes, `magento2-test-generate` for coverage gaps, audit/builder skills for the rest); step 6
+  fixes inline only style/PHPDoc-class items and now covers Low severity explicitly. Both report
+  templates require each Recommended Next Step to name its executing skill. Diff-mode reviews
+  invoked from another skill return findings to the caller (no routing recursion).
 - **PHP template PER-CS / Magento-2 compliance pass** — audited all 64 PHP templates with the
   authoritative `Magento2` PHPCS standard + PSR-12 (PER-CS proxy). Result: **0 Magento2 errors**
   (was 19+`final`), category-C annotation/commenting warnings cut 137 → 10 (the residual 10 are

@@ -7,7 +7,7 @@ Module path: `<path>`
 Reviewer: Claude Code using `magento2-module-review`
 Skill versions:
 
-- magento2-module-review@2.2.3
+- magento2-module-review@2.3.0
 - magento2-context@1.6.0
 
 ## Executive Summary
@@ -95,8 +95,11 @@ Include this section only when subagents were explicitly authorized and used.
 
 ## Recommended Next Steps
 
-1. <Highest-value next step>
-2. <Next step>
+Name the executing skill for every step, per the Fix Routing table in `SKILL.md`. Use
+`inline` only for style/PHPDoc-class items.
+
+1. <Highest-value next step> — via `<magento2-* skill or inline>`
+2. <Next step> — via `<magento2-* skill or inline>`
 
 ## Environment Limitations
 

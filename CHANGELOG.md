@@ -6,6 +6,22 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Review fix-routing — findings route to the owning skill (`magento2-module-review` 2.2.3 → 2.3.0)
+- New **Fix Routing** table in `magento2-module-review`: when the user proceeds with review
+  findings or recommendations, each item is routed deterministically — behavioural and security
+  defects to `magento2-bug-fix`, functionality/schema changes to `magento2-feature-implement`
+  (`--mode=extend`), coverage gaps to `magento2-test-generate`, and performance/security-scoping/
+  data/upgrade/i18n/frontend items to their audit or builder skills. Inline fixing in step 6 is
+  reserved for style/PHPDoc-class items and now explicitly includes Low severity (previously
+  Low findings were silently dropped from fix passes).
+- Both report templates (`report-template.md`, `report.html`) require every Recommended Next
+  Step to name its executing skill, so reports stay actionable across sessions.
+- Diff-mode reviews invoked from `magento2-feature-implement` / `magento2-bug-fix` /
+  `magento2-module-upgrade` return findings to the calling skill — the caller owns remediation,
+  preventing routing recursion.
+
 ## [1.2.0] — 2026-06-12 — project-root artifacts, approval-gate hardening, PER-CS/Magento2 templates
 
 Artifact-location and approval-gate corrections to the feature workflow, a PER-CS-3.0 coding-style

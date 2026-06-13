@@ -4,7 +4,7 @@ Date: {YYYY-MM-DD}
 Status: {Complete | Partial | Failed}
 Skill versions:
   - magento2-module-upgrade@1.1.0
-  - magento2-module-review@2.2.3
+  - magento2-module-review@2.3.0
   - magento2-test-generate@1.1.1
 - magento2-context@1.6.0
 

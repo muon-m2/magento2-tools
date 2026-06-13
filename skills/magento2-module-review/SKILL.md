@@ -88,12 +88,45 @@ missing tool or unavailable Magento runtime is an environment limitation, not a 
       `Skill versions:` block from `references/report-template.md`.
 
 6. If fixes are requested.
-    - Fix in severity order: Critical first, then High, then Medium.
+    - First route every finding and recommendation per the **Fix Routing** table below. Invoke the
+      routed skill for each item it owns; only items the table marks inline are fixed in this skill.
+    - Fix inline items in severity order: Critical first, then High, then Medium, then Low. Do not
+      silently drop any severity level — anything not fixed is listed as residual risk in the v2 report.
     - Keep each change scoped to its confirmed finding. Do not clean up surrounding code.
     - After each fix, rerun the best available static check on the modified file before proceeding to the
       next finding. If a fix introduces a new finding, report it to the user rather than fixing it silently.
     - Add/update tests for behaviour changes.
-    - Create a v2 report summarising resolved findings and residual risk.
+    - Create a v2 report summarising resolved findings, items delegated to other skills (naming the
+      skill per item), and residual risk.
+
+## Fix Routing
+
+When the user asks to act on findings or report recommendations, route each item to the skill that
+owns that work before touching code. The mapping is deterministic — do not pick the executing skill
+ad-hoc.
+
+| Finding / recommendation                                                              | Executed by                                        |
+|----------------------------------------------------------------------------------------|----------------------------------------------------|
+| Behavioural defect: wrong output, crash, exception, broken controller/API/cron/queue    | `magento2-bug-fix`                                 |
+| Security defect with localised evidence: SQLi, XSS/escaping, CSRF, ACL gap, secret      | `magento2-bug-fix`                                 |
+| Security exposure needing site-wide or cross-module scoping first                       | `magento2-security-audit`, then `magento2-bug-fix` |
+| New or changed functionality, or any `db_schema.xml` change                             | `magento2-feature-implement` (`--mode=extend`)     |
+| Missing or insufficient test coverage                                                   | `magento2-test-generate`                           |
+| Performance defect, localised, code-only change (N+1 at file:line, missing cache)       | `magento2-bug-fix`                                 |
+| Unlocalised slowness symptom (no confirmed file:line)                                   | `magento2-performance-audit`, then `magento2-bug-fix` |
+| Data repair: corrupted rows, backfill, reseed                                           | `magento2-data-migration`                          |
+| Deprecated API usage, BC break, framework/PHP version-constraint findings               | `magento2-module-upgrade`                          |
+| Missing translations or hardcoded user-facing strings                                   | `magento2-i18n`                                    |
+| New theme, RequireJS/Knockout, LESS, or email-template scaffolding                      | `magento2-frontend-create`                         |
+| Style, PHPDoc, naming, comments, dead code (typically Low)                              | Inline — step 6 of this skill                      |
+
+- Default rows: any other confirmed defect routes to `magento2-bug-fix`; any other recommendation
+  that adds behaviour routes to `magento2-feature-implement`.
+- Invoke the routed skill with the finding's evidence (`file:line`) and the report path so it does
+  not re-derive the diagnosis.
+- Exception — invoked from another skill: when this review ran in diff mode on behalf of
+  `magento2-feature-implement`, `magento2-bug-fix`, or `magento2-module-upgrade`, return findings
+  to the calling skill instead of routing; the caller owns remediation.
 
 ## Diff Mode
 
