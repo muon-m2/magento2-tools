@@ -22,6 +22,8 @@ root-cause analysis, the minimal fix, a regression test, and review across eight
   write the minimal production code to make it pass. The test encodes the reproduction;
   the patch exists only to turn it green. Reach for a non-TDD flow only when the bug is
   genuinely untestable (see the regression-test rule below), and document why.
+  The shared red → green → refactor loop and the behaviour/boilerplate line live in
+  `magento2-context/references/tdd-discipline.md` — this skill applies it to defect remediation.
 - **One approval gate.** Do not change any production code until the user approves the
   root cause + proposed fix in Phase 3.
 - **Minimal change.** The diff must affect only what the bug demands. No surrounding

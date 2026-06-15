@@ -174,6 +174,9 @@ Force a refresh by deleting `.claude/.cache/magento2-context.json` or passing `-
 - `references/naming.md` — authoritative naming conventions (consumed by all builder skills).
 - `references/php-coding-style.md` — PER-CS 3.0 baseline + Magento-2-precedence rule for all
   generated/modified PHP (consumed by every builder skill and by `magento2-module-review`).
+- `references/tdd-discipline.md` — shared test-first (red → green → refactor) discipline + the
+  behaviour/boilerplate line (consumed by `magento2-bug-fix`, `magento2-feature-implement`,
+  `magento2-data-migration`, `magento2-eav-attribute`).
 - `references/severity.md` — shared severity scale (consumed by all findings-producing skills).
 - `references/skill-versioning.md` — current skill versions + bump rules; consumed by every artefact-producing skill.
 - `references/findings-schema.md` — shared JSON + SARIF schema for finding-producing skills (review, security-audit,

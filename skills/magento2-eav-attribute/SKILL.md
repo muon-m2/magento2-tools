@@ -27,6 +27,12 @@ indexer integration.
 - **Generate companions only when needed.** Source model only for select/multiselect;
   backend model only for date/image/price/multiselect/non-trivial; frontend model only
   when explicitly requested.
+- **Test-first for the attribute effect.** Write the failing integration test before the patch
+  (red → green → refactor) and **watch it fail for the right reason**. It asserts the attribute
+  exists after the patch runs with the declared **scope** (`is_global`), `frontend_input`, and
+  any backend/source model wiring — plus **idempotency** (patch runs twice → no duplicate, no
+  error). Behaviour-bearing source/backend models get a test-first **unit** test (e.g. the source
+  model's `toOptionArray()`). See `magento2-context/references/tdd-discipline.md`.
 - **Coding style.** Generated PHP follows PER-CS 3.0 as the baseline, with the Magento 2 coding
   standard taking precedence on any conflict; `--standard=Magento2` PHPCS is the gate. See
   `magento2-context/references/php-coding-style.md`.
@@ -76,9 +82,20 @@ Present the file plan:
 
 Wait for "proceed."
 
-### Phase 3 — Generate
+### Phase 3 — Test First, then Generate
 
-Use the entity-specific template:
+**3A — Write the failing test (RED).** Before any patch code, add an integration test under
+`Test/Integration/` that loads the attribute (via the entity's attribute repository / EAV config)
+and asserts it exists with the declared scope, input type, and backend/source wiring, plus
+idempotency (running the patch twice does not duplicate or error). Follow
+`magento2-context/references/tdd-discipline.md` and the integration patterns in
+`magento2-test-generate/references/integration-patterns.md`. Run it and **confirm it fails for
+the right reason** (attribute absent), not a setup error. If no Magento test DB is available,
+follow the *tiered fallback*: for an attribute with a behavioural source/backend model, write a
+test-first unit test of that model; record the integration gap in the Phase 5 report.
+
+**3B — Generate the patch (GREEN).** Write the minimal patch to turn 3A green, using the
+entity-specific template:
 
 - `templates/eav-add-product-attribute-patch.php`
 - `templates/eav-add-customer-attribute-patch.php`
@@ -94,6 +111,8 @@ Plus companion templates as needed:
 ### Phase 4 — Verify
 
 - `php -l` on every generated file.
+- Run the Phase 3A test with `{ctx.runner} vendor/bin/phpunit` and confirm it now **passes**
+  (it failed before 3B); run the affected module's suite to confirm nothing else broke.
 - `composer validate` if composer.json was modified.
 - Verify dependencies in `getDependencies()` reference existing classes.
 
@@ -102,6 +121,7 @@ Plus companion templates as needed:
 Brief Markdown saved to `.docs/eav-attributes/{Vendor}_{Module}-{code}-{date}.md`:
 
 - Files generated
+- Test path + red→green evidence (or the recorded integration gap if no test DB was available)
 - Migration command: `bin/magento setup:upgrade`
 - Reindex hint if attribute is searchable / filterable
 - Cache flush hint
@@ -118,6 +138,7 @@ Brief Markdown saved to `.docs/eav-attributes/{Vendor}_{Module}-{code}-{date}.md
 {ctx.magento_root}/app/code/{Vendor}/{Module}/Setup/Patch/Data/Add{Code}Attribute.php
 {ctx.magento_root}/app/code/{Vendor}/{Module}/Model/Source/{Code}.php          # if applicable
 {ctx.magento_root}/app/code/{Vendor}/{Module}/Model/Attribute/Backend/{Code}.php # if applicable
+{ctx.magento_root}/app/code/{Vendor}/{Module}/Test/Integration/.../Add{Code}AttributeTest.php  # test-first (Phase 3A)
 
 .docs/eav-attributes/{Vendor}_{Module}-{code}-{date}.md
 ```
@@ -133,6 +154,8 @@ Brief Markdown saved to `.docs/eav-attributes/{Vendor}_{Module}-{code}-{date}.md
 - `references/source-model-patterns.md` — standard source model implementations.
 - `references/backend-model-patterns.md` — standard backend model implementations.
 - `references/frontend-impact.md` — listing, sorting, search, layered nav.
+- `magento2-context/references/tdd-discipline.md` — shared test-first loop applied in Phase 3A
+  (integration patterns: `magento2-test-generate/references/integration-patterns.md`).
 
 ## Templates
 
@@ -160,6 +183,10 @@ tracked as a follow-up.)
 ## Acceptance Criteria
 
 - Generated patch is idempotent.
+- An integration test asserting the attribute's scope/input-type/wiring **and** idempotency was
+  written and **watched to fail** before the patch existed, and passes after (or, when no test DB
+  is available, a test-first unit test covers a behavioural source/backend model and the
+  integration gap is recorded).
 - Patch implements `DataPatchInterface` and uses the correct `*SetupFactory` for the
   entity type.
 - Source/backend/frontend model is generated only when actually required.

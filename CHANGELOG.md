@@ -6,6 +6,43 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.5.0] — 2026-06-15 — Test-first discipline widened across the build flow
+
+Test-driven development moves from a single skill (`magento2-bug-fix`) to a shared, opt-in
+discipline used by the feature orchestrator and the data/EAV builders. Tests for behaviour are
+now written *before* the code, watched to fail, then turned green — instead of generated after.
+
+### Shared test-first discipline (`magento2-context` reference — no version bump)
+- New `skills/magento2-context/references/tdd-discipline.md` defines the red → green → refactor
+  loop, the **behaviour/boilerplate line** (what is written test-first vs. exempt scaffold/config),
+  the interface-first seam for bulk-scaffolded code, Magento unit/integration specifics, and a
+  tiered fallback when no test DB is available. `magento2-bug-fix` now points at it as the single
+  source instead of owning the prose.
+- `magento2-context` is **not** version-bumped: adding a cross-cutting reference doc does not
+  change its resolved JSON/schema/probes.
+
+### Opt-in TDD mode for the orchestrator (`magento2-feature-implement` 2.6.0 → 2.7.0)
+- New **TDD mode** — `--tdd` (also `CLAUDE.md: Feature implement: tdd = on` / `MAGENTO2_FI_TDD=1`),
+  default **off**, `spike` mode always exempt. New `references/tdd-mode.md`.
+- Phase 5 `M*`/`X*` behaviour-bearing classes are implemented test-first (scaffold signature →
+  failing test → minimal body). Phase 4 acceptance criteria become the RED test list. The `T*`
+  task becomes a coverage top-up rather than the first author of behaviour tests.
+
+### Test-first data patches (`magento2-data-migration` 1.1.1 → 1.2.0)
+- Phase 2 is now **Test First, then Generate**: a failing integration test asserts post-migration
+  state **and idempotency** (apply twice → identical) before the patch body; tiered unit fallback
+  when no test DB is available; Phase 3 runs the test; new acceptance criterion + test path in the
+  report.
+
+### Test-first EAV attributes (`magento2-eav-attribute` 1.1.2 → 1.2.0)
+- Phase 3 is now **Test First, then Generate**: a failing integration test asserts the attribute's
+  scope/input-type/wiring **and** idempotency before the patch; behavioural source/backend models
+  get a test-first unit test; new acceptance criterion + test path in the report.
+
+### Unchanged by design
+- `magento2-test-generate` keeps its role as the backfiller for modules that have **no** tests.
+- `magento2-module-review` gains no test-first gate, so it stays usable on test-less modules.
+
 ## [1.4.0] — 2026-06-15 — feature-implement keeps plan.md Current State current
 
 Reliable `## Current State` maintenance during `magento2-feature-implement` execution, so
