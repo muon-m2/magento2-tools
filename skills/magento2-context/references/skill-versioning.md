@@ -12,7 +12,7 @@ skills evolve.
 | magento2-context           | 1.6.0   | JSON schema changes, new resolution rules, new tool probes          |
 | magento2-module-create     | 1.7.0   | New template added, surface added, naming rule changed              |
 | magento2-module-review     | 2.3.0   | New checklist category, severity calibration change, new JSON field, fix-routing change |
-| magento2-feature-implement | 2.6.0   | New phase, new approval gate, mode added, template structure change |
+| magento2-feature-implement | 2.7.0   | New phase, new approval gate, mode added, template structure change |
 | magento2-bug-fix           | 1.0.2   | Workflow phase change, RCA format change                            |
 | magento2-deploy            | 1.2.0   | Deploy plan template change, rollback recipe change                 |
 | magento2-test-generate     | 1.1.1   | Generator pattern change, new test type added                       |
@@ -20,15 +20,38 @@ skills evolve.
 | magento2-security-audit    | 1.2.0   | New CVE source, new pattern, severity calibration change            |
 | magento2-performance-audit | 1.1.1   | New pattern, new runtime check, severity calibration change         |
 | magento2-debug             | 1.2.0   | New mode added, output format change                                |
-| magento2-eav-attribute     | 1.1.2   | New entity type supported, new input type, template change          |
+| magento2-eav-attribute     | 1.2.0   | New entity type supported, new input type, template change          |
 | magento2-graphql-create    | 1.0.2   | New resolver pattern, schema-migration rule change                  |
 | magento2-frontend-create   | 1.0.1   | New theme detection rule, new component pattern                     |
-| magento2-data-migration    | 1.1.1   | New idempotency strategy, new importer pattern                      |
+| magento2-data-migration    | 1.2.0   | New idempotency strategy, new importer pattern                      |
 | magento2-release           | 1.1.0   | New tag convention, new publish target                              |
 | magento2-i18n              | 1.2.0   | New extraction pattern, new placeholder rule                        |
 
 ## Changelog (last update: 2026-06-15)
 
+- **Test-first discipline rolled out (move 1 + move 2 data/EAV)** — new shared reference
+  `magento2-context/references/tdd-discipline.md` defines the red → green → refactor loop and the
+  behaviour/boilerplate line once; `magento2-bug-fix` now points at it (one-line pointer, no
+  bump). `magento2-context` itself is **not** bumped — adding a cross-cutting reference doc does
+  not change its resolved JSON/schema/probes (the bump triggers in its row), and a context bump
+  would force-touch the 17 files that pin `magento2-context@1.6.0` for no behavioural reason.
+  - **magento2-feature-implement 2.6.0 → 2.7.0** — opt-in **TDD mode** (`--tdd` /
+    `Feature implement: tdd = on` / `MAGENTO2_FI_TDD=1`, default off; `spike` exempt). New
+    `references/tdd-mode.md`; Phase 5 `M*`/`X*` behaviour is written test-first (signature →
+    failing test → minimal body), Phase 4 acceptance criteria become the RED test list, and `T*`
+    becomes a coverage top-up instead of the first author. Version bumped in the three emitting
+    templates (`feature-blueprint.md`, `final-report.md`, `task-list.md`).
+  - **magento2-data-migration 1.1.1 → 1.2.0** — Phase 2 is now **Test First, then Generate**: a
+    failing integration test asserts post-migration state **and idempotency** (apply twice →
+    identical) before the patch body; tiered unit fallback when no test DB; Phase 3 runs the test;
+    new acceptance criterion + test path in outputs/report.
+  - **magento2-eav-attribute 1.1.2 → 1.2.0** — Phase 3 is now **Test First, then Generate**: a
+    failing integration test asserts the attribute's scope/input-type/wiring **and** idempotency
+    before the patch; behavioural source/backend models get a test-first unit test; tiered
+    fallback; new acceptance criterion + test path in outputs/report.
+  - Untouched by design: `magento2-test-generate` positioning (still the correct backfiller for
+    test-less modules) and `magento2-module-review` (no test-first gate — it must stay usable on
+    modules that legitimately have no tests).
 - **magento2-feature-implement 2.5.0 → 2.6.0** — Phase-5 Current-State maintenance fix. The
   "mark the task `[x]` in `plan.md`" instruction is now a **Per-task completion protocol** woven
   into the per-task execution loop (a closing step on every task type — M/X/R/T/E/G/V/D), framed

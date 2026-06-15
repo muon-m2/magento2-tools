@@ -43,6 +43,12 @@ the full implementation from analysis through tested, reviewed, reported deliver
   Fix all Critical and High findings before continuing to the next task.
 - **Tests must pass.** All unit tests must complete with zero failures before Phase 7. Never mark
   implementation complete with failing tests.
+- **Test-first for behaviour (opt-in).** When TDD mode is on (`--tdd`, CLAUDE.md
+  `Feature implement: tdd = on`, or `MAGENTO2_FI_TDD=1`), behaviour-bearing `M*`/`X*` tasks are
+  implemented test-first (red → green → refactor): write the failing test, watch it fail for the
+  right reason, then write the minimal code to pass. Pure scaffold/config stays generated-then-
+  covered. Off by default; `spike` mode is always exempt. See `references/tdd-mode.md` and the
+  shared loop in `magento2-context/references/tdd-discipline.md`.
 - **Smoke before report.** Phase 6 has two sub-phases: **6A** (unit tests + coverage) and **6B**
   (smoke battery — REST scenarios, admin login, Stores → Config, grids, new routes, customer
   flows, exception.log diff). Phase 7 may not start while any Critical or High smoke finding is
@@ -235,7 +241,9 @@ skill treats the request as a new feature.
 2. Use `templates/task-list.md` as the structural base.
 3. Assign task IDs using the `{TypePrefix}{Number}` format from the guide.
 4. For each task, fill in: type, target, depends on, skill invoked, estimate, description,
-   and acceptance criteria.
+   and acceptance criteria. When TDD mode is on (see Core Rules), a behaviour-bearing task's
+   acceptance criteria are also its **RED test list** — each criterion becomes a failing test
+   written before the task's implementation code (`references/tdd-mode.md`).
 5. Produce the execution flow diagram (Mermaid `flowchart TD`) and the dependency graph
    (Mermaid `graph LR`).
 6. **Write `plan.md` to disk for review — before presenting and before the approval gate.**
@@ -347,10 +355,21 @@ protocol once per task as each one finishes, not once for the whole wave.
 4. Document Medium findings — they will appear in the final report.
 5. → run the **Per-task completion protocol** (mark `[x]` in `plan.md`, save, commit if enabled).
 
+**TDD mode (on):** for each behaviour-bearing class the module adds (`Service`, `Model` with
+logic, `Plugin`, `Observer`, `Console/Command`, `Resolver`, data-patch transforms), scaffold the
+**signature** first (interface + a body that throws `not implemented`), write the failing test
+from the task's acceptance criteria, **watch it fail for the right reason**, then fill the minimal
+body to green before review. Pure scaffold/config (registration, DI, module.xml, plain DTOs,
+db_schema) is exempt. Follow `references/tdd-mode.md` and the loop in
+`magento2-context/references/tdd-discipline.md`.
+
 ### Existing module tasks (X*)
 
 1. Identify the exact files to add or modify.
 2. Apply changes following all rules in `CLAUDE.md` and `magento2-module-create/references/`.
+   **TDD mode (on):** if the change adds behaviour (not pure config/scaffold), write the failing
+   test first and watch it fail for the right reason before applying the production change, per
+   `references/tdd-mode.md` and `magento2-context/references/tdd-discipline.md`.
 3. Run `php -l` on every modified PHP file and `xmllint --noout` on every modified XML file.
    These tools operate on local files and do not require a runner.
 4. Invoke the corresponding review task (R*).
@@ -375,6 +394,11 @@ Args: --types=unit --missing-only {Vendor}_{Module}
 
 `magento2-test-generate` discovers untested classes, writes tests with real assertions, and
 runs `php -l` per generated file. The T* task completes when the generator reports done.
+
+**TDD mode (on):** the behaviour tests were already written test-first inside their `M*`/`X*`
+tasks. Here the T* task **verifies** the suite is green and uses `magento2-test-generate` only to
+**top up** coverage on exempt/boilerplate classes — it does not author the behaviour's first test.
+Do not regenerate or overwrite the test-first tests.
 
 Inline fallback (when the skill is absent):
 
@@ -605,6 +629,7 @@ halt and prompt the user. Record each iteration via `templates/smoke-run-report.
 - `references/final-report-format.md`: report structure (incl. Section 10 — Smoke Test Results).
 - `references/modes.md`: feature/hotfix/extend/spike mode selection, per-mode pipeline overrides, per-mode smoke scope.
 - `references/per-task-commits.md`: opt-in per-task git commit format, scoping, failure handling.
+- `references/tdd-mode.md`: opt-in test-first execution — flag/config/env triple, per-mode applicability, how Phase 5 applies the shared `tdd-discipline.md` loop.
 - `references/smoke-test-guide.md`: Phase 6B suites, severity rubric, fix routing, loop control.
 - `references/smoke-runner.md`: environment probe, REST invocation, headless browser commands, fallbacks.
 - `references/exception-log-baseline.md`: byte-offset baseline + tail-since-offset diff for `var/log/exception.log`.
