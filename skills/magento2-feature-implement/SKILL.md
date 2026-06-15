@@ -22,8 +22,10 @@ the full implementation from analysis through tested, reviewed, reported deliver
 ## Core Rules
 
 - **Mode-driven.** Pick a mode in Phase 1 (`feature`, `hotfix`, `extend`, `spike`).
-  See `references/modes.md`. Default: `feature`. Hotfix and extend short-circuit
-  Phases 3-4.
+  See `references/modes.md`. Default: `feature`. `hotfix` skips Phases 3-4 entirely;
+  `extend` skips Phase 3 only and keeps a **minimal Phase 4** that still writes `plan.md`
+  with a `## Current State` checklist — so every mode that executes tasks has a checklist
+  to maintain and resume from.
 - **Two approval gates.** Do not write any code until the user approves both the feature blueprint
   (after Phase 2) and the task plan (after Phase 4). Affirmative replies: "proceed", "yes", "go",
   "approved", "ok", or equivalent. In `hotfix` and `extend` mode only the blueprint gate applies.
@@ -155,7 +157,9 @@ skill treats the request as a new feature.
 0. **Pick a mode.** Read `references/modes.md`. Choose `feature` (default), `hotfix`,
    `extend`, or `spike` based on the request. State the chosen mode explicitly:
    > Mode: `hotfix`. Skipping Phases 3-4 — small change scope.
-   In `hotfix` and `extend` mode, Phases 3-4 are skipped per the mode reference.
+   In `hotfix` mode, Phases 3-4 are skipped. In `extend` mode, Phase 3 is skipped but a
+   minimal Phase 4 still runs to write `plan.md` (with its `## Current State` checklist) —
+   it is **not** skipped. See `references/modes.md` for the exact per-mode pipeline.
    In `spike` mode, Phases 6-7 are reduced and findings are logged at Info.
 
 1. **Resolve `{Vendor}`** — do not assume a fixed vendor name:
@@ -316,12 +320,32 @@ Work through the approved task list in dependency order. For tasks marked `Paral
 task list, concurrent execution via sub-agents is permitted subject to the rules in
 `references/task-breakdown-guide.md` (Parallel Execution section). For each task:
 
+### Per-task completion protocol (mandatory — closes every task type below)
+
+A task is **not done until its checkbox is flipped in `plan.md`.** This step is part of the
+task, not optional bookkeeping, and is **not** deferred to Phase 6 or 7 — an unchecked
+completed task breaks resume. After a task's acceptance criteria are met, **before starting
+the next task**, run these steps in order:
+
+1. Open `.docs/{FeatureName}/plan.md` and change this task's line in `## Current State`
+   from `- [ ] {ID}: …` to `- [x] {ID}: …`.
+2. Save `plan.md`, then read the line back to confirm the `[x]` landed. If `## Current State`
+   has no line for this task (e.g. a `extend` plan that listed only some tasks), add one as
+   `- [x] {ID}: {Title}` so resume can still see it.
+3. If per-task commits are enabled (see Core Rules), make the commit now.
+4. Do **not** begin the next task until `plan.md` shows `[x]` for the task just finished.
+
+Every task subsection below ends with **"→ run the Per-task completion protocol"** — that is
+the cue to perform these four steps. When tasks run in parallel (same wave), apply the
+protocol once per task as each one finishes, not once for the whole wave.
+
 ### New module tasks (M*)
 
 1. Invoke the `magento2-module-create` skill with the module name and surfaces.
 2. After creation, immediately invoke the `magento2-module-review` skill (the corresponding R* task).
 3. Fix all Critical and High findings before starting the next task.
 4. Document Medium findings — they will appear in the final report.
+5. → run the **Per-task completion protocol** (mark `[x]` in `plan.md`, save, commit if enabled).
 
 ### Existing module tasks (X*)
 
@@ -330,6 +354,7 @@ task list, concurrent execution via sub-agents is permitted subject to the rules
 3. Run `php -l` on every modified PHP file and `xmllint --noout` on every modified XML file.
    These tools operate on local files and do not require a runner.
 4. Invoke the corresponding review task (R*).
+5. → run the **Per-task completion protocol** (mark `[x]` in `plan.md`, save, commit if enabled).
 
 ### Review tasks (R*)
 
@@ -337,6 +362,7 @@ task list, concurrent execution via sub-agents is permitted subject to the rules
 2. Fix all Critical and High findings in the same task — do not defer.
 3. Log Medium findings to the final report.
 4. Mark the R* task complete only when all Critical/High findings are resolved.
+5. → run the **Per-task completion protocol** (mark `[x]` in `plan.md`, save, commit if enabled).
 
 ### Test tasks (T*)
 
@@ -358,6 +384,9 @@ Inline fallback (when the skill is absent):
 3. Do **not** run PHPUnit here — test execution and coverage measurement are handled in Phase 6.
 4. Mark the T* task complete when test files exist, contain real test logic, and pass `php -l`.
 
+→ run the **Per-task completion protocol** (mark `[x]` in `plan.md`, save, commit if enabled) —
+whether the T* task was delegated to `magento2-test-generate` or done inline.
+
 ### EAV attribute tasks (E*)
 
 When the blueprint declares EAV attributes, generate an E* task per attribute and delegate
@@ -372,6 +401,8 @@ The skill produces the `Setup/Patch/Data/Add{Code}Attribute.php` patch, companio
 when needed, and a brief report. After E* completes, an R* review task runs on the
 affected module.
 
+→ run the **Per-task completion protocol** (mark `[x]` in `plan.md`, save, commit if enabled).
+
 ### GraphQL surface tasks (G*)
 
 When the blueprint declares a GraphQL surface with non-trivial design (batch loaders, auth,
@@ -384,6 +415,8 @@ Args: --module={Vendor}_{Module} --operation={query|mutation} --auth={customer|a
 
 The skill produces schema, resolver, batch loader (if applicable), DI, and unit tests.
 Simple GraphQL surfaces continue to use `magento2-module-create`'s graphql templates.
+
+→ run the **Per-task completion protocol** (mark `[x]` in `plan.md`, save, commit if enabled).
 
 ### Validate task (V*)
 
@@ -407,6 +440,8 @@ The validate task is complete only when PHPCS, PHPMD, PHPStan level 8, and PHPUn
 every new and modified module. Record which tools were skipped due to unavailability — these are
 environment limitations, not failures.
 
+→ run the **Per-task completion protocol** (mark `[x]` in `plan.md`, save, commit if enabled).
+
 ### Deploy task (D*)
 
 Delegate to `magento2-deploy`. Invoke via the `Skill` tool with the module list and the
@@ -421,6 +456,8 @@ Args: --env=local {Vendor}_{ModuleA} {Vendor}_{ModuleB}
 
 Per-task commit (when enabled): D* tasks make no commit (no files change). Record the
 deploy report path returned by `magento2-deploy` in `plan.md` next to the D* task.
+
+→ run the **Per-task completion protocol** to mark `[x]` in `plan.md` (no commit for D*).
 
 If `magento2-deploy` is unavailable, state the unavailability explicitly and offer the
 equivalent commands as manual next steps for the user to run themselves:
@@ -439,12 +476,17 @@ unit tests.
 
 **At Phase 6 start (every iteration):**
 
-1. If `plan.md` is missing the `## Smoke Iterations` block (i.e. the plan was written before
+1. **Reconcile `## Current State`.** Before anything else, verify every Phase 5 task whose work
+   is actually complete is marked `[x]` in `plan.md`. A run that reaches Phase 6 has finished
+   all Phase 5 tasks, so any Phase 5 task still showing `- [ ]` here is missed bookkeeping, not
+   pending work: flip it to `- [x]` and save. This is a safety net for the Per-task completion
+   protocol — it should already be a no-op.
+2. If `plan.md` is missing the `## Smoke Iterations` block (i.e. the plan was written before
    this skill version), append it with `Count: 0 / 5` and add the applicable `S*` task
    checkboxes to `## Current State`. Save `plan.md` immediately. This is a one-time migration
    for in-flight features.
-2. Increment the smoke-iteration counter in `plan.md` under `## Smoke Iterations`.
-3. If the counter would exceed 5, halt and print the halt prompt from
+3. Increment the smoke-iteration counter in `plan.md` under `## Smoke Iterations`.
+4. If the counter would exceed 5, halt and print the halt prompt from
    `references/smoke-test-guide.md` §Halt Prompt. Wait for explicit user reply
    (`retry` / `accept-known-issues <IDs>` / `abort`). Do not loop again automatically.
 

@@ -67,8 +67,8 @@ Pipeline:
 | 1 | Collect: target module + surface + intent |
 | 2 | Mini-blueprint: surface, files added, interactions |
 | 3 | **SKIPPED** |
-| 4 | Task list: one M*/X* task + R* + T* + V* |
-| 5 | Execute via `magento2-module-create --augment` for the new files |
+| 4 | Task list (minimal): one M*/X* task + R* + T* + V*, **written to `plan.md` with a `## Current State` checklist**. Phase 4 is **not** skipped in `extend` — only Phase 3 is. |
+| 5 | Execute via `magento2-module-create --augment` for the new files; mark each task `[x]` in `plan.md` `## Current State` on completion — SKILL.md Phase 5 *Per-task completion protocol*. |
 | 6 | Test: 6A unit tests; 6B reduced smoke per the same rules as `hotfix` mode — S1 + S8 + only the suites for the added surface. |
 | 7 | Report |
 
@@ -118,7 +118,11 @@ Hotfix mode collapses Phase 5 to a single task. The execute loop is:
 5. Fix Critical/High; log Medium.
 6. Commit with prefix `[hotfix]`.
 
-No M*, R*, T* task breakdown — the change is a single unit.
+No M*, R*, T* task breakdown — the change is a single unit. `hotfix` skips Phase 4, so there is
+no `plan.md` / `## Current State` to maintain and no resume bookkeeping applies; the Per-task
+completion protocol is an `extend`/`feature`-mode concern. (If a hotfix grows past 3 files or
+needs a new module, escalate to `feature` mode per the Escalation Rules — that mode does write
+`plan.md`.)
 
 ## Escalation Rules
 

@@ -5,7 +5,7 @@ Status: Awaiting Approval
 Blueprint: `.docs/{FeatureName}/blueprint.md`
 Skill versions:
 
-- magento2-feature-implement@2.5.0
+- magento2-feature-implement@2.6.0
 - magento2-context@1.6.0
 
 ---
@@ -84,7 +84,9 @@ graph TD
 
 ## Current State
 
-<!-- Mark each task [x] immediately after it completes. Used to resume interrupted runs. -->
+<!-- Mark each task [x] immediately after it completes, before starting the next task, per
+SKILL.md Phase 5 "Per-task completion protocol". This section drives resume — an unchecked
+completed task makes a resumed run redo work. -->
 
 - [ ] M1: Create `{Vendor}_{ModuleA}`
 - [ ] R1: Review `{Vendor}_{ModuleA}`
