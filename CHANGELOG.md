@@ -6,7 +6,10 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.4.0] — 2026-06-15 — feature-implement keeps plan.md Current State current
+
+Reliable `## Current State` maintenance during `magento2-feature-implement` execution, so
+interrupted runs resume correctly instead of redoing completed work.
 
 ### `plan.md` Current State is kept up to date during execution (`magento2-feature-implement` 2.5.0 → 2.6.0)
 - The "mark each task `[x]` in `plan.md`" rule is now a **Per-task completion protocol** woven
