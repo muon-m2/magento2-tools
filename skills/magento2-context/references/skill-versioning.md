@@ -12,7 +12,7 @@ skills evolve.
 | magento2-context           | 1.6.0   | JSON schema changes, new resolution rules, new tool probes          |
 | magento2-module-create     | 1.7.0   | New template added, surface added, naming rule changed              |
 | magento2-module-review     | 2.3.0   | New checklist category, severity calibration change, new JSON field, fix-routing change |
-| magento2-feature-implement | 2.5.0   | New phase, new approval gate, mode added, template structure change |
+| magento2-feature-implement | 2.6.0   | New phase, new approval gate, mode added, template structure change |
 | magento2-bug-fix           | 1.0.2   | Workflow phase change, RCA format change                            |
 | magento2-deploy            | 1.2.0   | Deploy plan template change, rollback recipe change                 |
 | magento2-test-generate     | 1.1.1   | Generator pattern change, new test type added                       |
@@ -27,8 +27,18 @@ skills evolve.
 | magento2-release           | 1.1.0   | New tag convention, new publish target                              |
 | magento2-i18n              | 1.2.0   | New extraction pattern, new placeholder rule                        |
 
-## Changelog (last update: 2026-06-12)
+## Changelog (last update: 2026-06-15)
 
+- **magento2-feature-implement 2.5.0 → 2.6.0** — Phase-5 Current-State maintenance fix. The
+  "mark the task `[x]` in `plan.md`" instruction is now a **Per-task completion protocol** woven
+  into the per-task execution loop (a closing step on every task type — M/X/R/T/E/G/V/D), framed
+  as a gate: do not start the next task until the checkbox is flipped and saved. Previously the
+  rule lived only in the Folder-Structure preamble and the resume paragraph, so a normal (and
+  especially an `extend`-mode) run dropped the update and `## Current State` never advanced.
+  Also: the `extend`/Phase-4 contradiction is resolved — `extend` skips Phase 3 only and keeps a
+  minimal Phase 4 that writes `plan.md` with a `## Current State` checklist (SKILL.md previously
+  said `extend` skipped Phases 3-4, leaving nothing to maintain); `modes.md` extend/hotfix
+  pipelines now name the protocol; Phase 6 start gains a Current-State reconciliation safety net.
 - **magento2-module-review 2.2.3 → 2.3.0** — new **Fix Routing** table: when the user asks to act
   on findings or report recommendations, each item routes deterministically to the owning skill
   (`magento2-bug-fix` for defects, `magento2-feature-implement --mode=extend` for behaviour/schema

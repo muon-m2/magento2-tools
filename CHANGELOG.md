@@ -6,6 +6,24 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### `plan.md` Current State is kept up to date during execution (`magento2-feature-implement` 2.5.0 → 2.6.0)
+- The "mark each task `[x]` in `plan.md`" rule is now a **Per-task completion protocol** woven
+  directly into the Phase 5 per-task execution loop. Every task type (M/X/R/T/E/G/V/D) ends with
+  an explicit "→ run the Per-task completion protocol" step, framed as a gate: a task is not done
+  until its checkbox is flipped and `plan.md` saved, and the next task does not start until then.
+  Previously the rule lived only in the Feature-Folder preamble and the resume paragraph, so a
+  normal run — and especially an `extend`-mode run — finished tasks without ever advancing
+  `## Current State`, which then broke resume.
+- Resolved an `extend`-mode contradiction: `SKILL.md` said `extend` skipped Phases 3-4 (so no
+  `plan.md` / `## Current State` was maintained), while `references/modes.md` kept a shortened
+  Phase 4. `extend` now skips **Phase 3 only** and keeps a minimal Phase 4 that writes `plan.md`
+  with a `## Current State` checklist. `modes.md` extend/hotfix pipelines name the protocol
+  (hotfix has no `plan.md`, by design).
+- Added a Current-State **reconciliation safety net** at Phase 6 start: any completed Phase 5
+  task still shown unchecked is flipped to `[x]` before the smoke loop runs.
+
 ## [1.3.0] — 2026-06-12 — review findings route to the owning skill
 
 Deterministic remediation routing for `magento2-module-review`: acting on review findings now
