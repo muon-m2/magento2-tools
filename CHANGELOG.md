@@ -6,6 +6,23 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.5.1] — 2026-06-15 — Docs: test-first discipline across the developer docs
+
+Documentation-only release. Developer docs under `docs/` now cover the v1.5.0 test-first
+changes. No skill, template, or behaviour changes — skill versions are unchanged.
+
+- **Configuration** — documents the `MAGENTO2_FI_TDD` env var and the
+  `Feature implement: tdd = on` `CLAUDE.md` hint.
+- **Skills reference** — `--tdd` opt-in on `magento2-feature-implement`; the
+  `magento2-data-migration` and `magento2-eav-attribute` phase lists now show the
+  test-first RED→GREEN steps; `tdd-discipline.md` listed among the shared `magento2-context`
+  references; `magento2-test-generate` framed as the backfiller for existing code.
+- **Flows and scenarios** — test-first added to the shared-infrastructure list and the
+  feature-implementation flow; new **Test-first builders (data-migration, eav-attribute)**
+  section with a red → green → refactor diagram; a TDD note in Scenario 1.
+- **Daily workflows / New project guide / Getting started** — TDD-mode recipe, test-first
+  EAV/data-patch recipes, backfiller-vs-test-first framing, and a house-style safety note.
+
 ## [1.5.0] — 2026-06-15 — Test-first discipline widened across the build flow
 
 Test-driven development moves from a single skill (`magento2-bug-fix`) to a shared, opt-in
