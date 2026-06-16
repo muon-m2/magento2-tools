@@ -6,7 +6,7 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.6.0] — 2026-06-16 — Plan vs. task-record split in the feature orchestrator
 
 ### `plan.md` / task-record de-duplication (`magento2-feature-implement` 2.7.0 → 2.8.0)
 
