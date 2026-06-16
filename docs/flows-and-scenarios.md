@@ -85,6 +85,13 @@ Four pieces keep the 17 skills consistent:
 4. **Naming and placeholders.** `skills/magento2-context/references/naming.md` is the
    single naming authority; templates share a placeholder registry enforced by the
    repo's contract tests.
+5. **The test-first discipline.**
+   `skills/magento2-context/references/tdd-discipline.md` defines one red → green →
+   refactor loop and the **behaviour/boilerplate line** (what is written test-first vs.
+   exempt scaffold/config), plus the interface-first seam and a tiered fallback for when
+   no test DB is available. It is consumed by `magento2-bug-fix` (always), by
+   `magento2-feature-implement` under TDD mode, and by `magento2-data-migration` and
+   `magento2-eav-attribute` (test-first by default for the data/attribute effect).
 
 ---
 
@@ -124,6 +131,15 @@ fixed before the next task), `T*` tests (→ `magento2-test-generate`), `E*` EAV
 attribute (→ `magento2-eav-attribute`), `G*` GraphQL (→ `magento2-graphql-create`),
 `V*` validate (PHPCS + PHPMD + PHPStan L8 + PHPUnit), `D*` deploy
 (→ `magento2-deploy`), `S*` smoke suites.
+
+**Test-first (TDD mode, opt-in):** with `--tdd` (or `Feature implement: tdd = on` /
+`MAGENTO2_FI_TDD=1`; default off, `spike` exempt), Phase 5 implements behaviour-bearing
+`M*`/`X*` classes test-first — scaffold the signature, write the failing test from the
+task's acceptance criteria, watch it fail for the right reason, then fill the minimal
+body to green. The `T*` task then becomes a coverage top-up (via `magento2-test-generate`
+on exempt/boilerplate classes) rather than the first author of behaviour tests. Pure
+scaffold/config (registration, DI, `module.xml`, plain DTOs, `db_schema`) stays
+generated-then-covered. See `magento2-context/references/tdd-discipline.md`.
 
 **Smoke fix routing (S9):** new `exception.log` groups are triaged by
 `magento2-debug`, defects go to `magento2-bug-fix`, slow pages/N+1 to
@@ -169,6 +185,40 @@ edited; per-phase `[bug-fix]` commits on the bugfix branch; the skill never push
 Redirects: schema changes → `magento2-feature-implement --mode=extend`; data repairs →
 idempotent patch via `magento2-data-migration` (stays in-skill); hard-to-reproduce
 investigation → `magento2-debug`.
+
+The red → green → refactor loop bug-fix applies is the shared
+`magento2-context/references/tdd-discipline.md` — the same discipline the test-first
+builders below use.
+
+---
+
+## Test-first builders (data-migration, eav-attribute)
+
+Two builder skills are **test-first by default** (no flag needed): the test for the
+data/attribute effect is written and watched to fail before the patch that satisfies it.
+
+```mermaid
+flowchart LR
+    P1[Plan<br/>migration class / attribute spec] --> P2[RED — failing test<br/>integration asserts state +<br/>idempotency apply-twice,<br/>unit fallback when no test DB]
+    P2 -->|fails for the right reason| P3[GREEN — minimal patch<br/>DataPatchInterface / EAV patch]
+    P3 --> P4[Verify<br/>run the test → now passes,<br/>php -l + module suite] --> P5[Report<br/>test path + red → green evidence]
+    P2 -.->|passes already, wrong test| P2
+```
+
+- **`magento2-data-migration`** (Phase 2 *Test First, then Generate*): the integration
+  test asserts post-migration state **and idempotency** (apply twice → identical rows, no
+  duplicates, no error). Idempotency is the skill's headline guarantee, so it is pinned by
+  a test rather than by inspection.
+- **`magento2-eav-attribute`** (Phase 3 *Test First, then Generate*): the integration test
+  asserts the attribute exists after the patch with the declared **scope** (`is_global`),
+  `frontend_input`, and backend/source wiring, plus idempotency; behavioural source/backend
+  models get a test-first unit test.
+- **Tiered fallback:** when no Magento test DB is available, both degrade honestly — a
+  test-first *unit* test of the idempotency guard / behavioural model, with the integration
+  gap recorded in the report — rather than skipping the discipline.
+
+These complement, not replace, `magento2-test-generate`, which remains the backfiller for
+modules whose code already exists (including ones with no tests at all).
 
 ---
 
@@ -345,7 +395,9 @@ tests under each module's `Test/` tree, translations under each module's `i18n/`
    suites. **You approve.**
 4. Execution: module created (every file review-clean on creation), reviewed, grid
    change applied and lint-checked, tests generated and passing, PHPCS/PHPStan/PHPUnit
-   green, deployed via `magento2-deploy`.
+   green, deployed via `magento2-deploy`. *(With `--tdd` on, the service/observer
+   behaviour is written test-first instead — failing test from the acceptance criteria,
+   then the minimal body — and `T1` only tops up coverage on the boilerplate.)*
 5. Smoke: REST scenario places an order with a note; admin grid renders; checkout flow
    completes; `exception.log` diff is clean. Suppose the grid 500s — the finding is
    triaged by `magento2-debug`, fixed by `magento2-bug-fix`, re-deployed, and the loop

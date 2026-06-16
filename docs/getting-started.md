@@ -91,6 +91,10 @@ Before you run anything, know the ground rules every skill follows:
 - **Production is double-gated.** Deploys to production require an explicit
   `--env=production` flag *and* an interactive confirmation. Smoke tests refuse to run
   against production unless your `CLAUDE.md` contains `Allow smoke on production: true`.
+- **Behaviour is tested first.** Bug fixes, EAV attributes, and data patches are
+  test-first by default (write the failing test, watch it fail, then the minimal code);
+  feature work becomes test-first with `--tdd`. A shared red → green → refactor discipline
+  keeps it consistent across skills.
 - **`vendor/` is never edited.** Fixes for core or third-party bugs are implemented as
   plugins/observers/preferences in your own modules.
 - **Honest gaps.** A missing tool or unavailable Magento CLI is reported as an

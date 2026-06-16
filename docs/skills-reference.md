@@ -26,7 +26,10 @@ rarely invoked directly.
 - **Honest gaps:** missing tools are `null`; `runner` is `""` for bare PHP,
   `runner_kind` is `null` only when no PHP environment exists at all.
 - **Also owns the shared references:** naming conventions, severity scale, findings
-  schema (JSON/SARIF), placeholder registry, skill version registry.
+  schema (JSON/SARIF), placeholder registry, skill version registry, and the shared
+  **test-first (TDD) discipline** (`references/tdd-discipline.md` — the red → green →
+  refactor loop and the behaviour/boilerplate line, consumed by bug-fix,
+  feature-implement, data-migration, and eav-attribute).
 - **Scripts:** `scripts/resolve-context.sh` (emit JSON without an LLM pass),
   `scripts/probe-tools.sh`.
 
@@ -62,10 +65,12 @@ models only when the input type requires them. Refuses legacy `InstallData.php`.
 - **Invocation:** `--entity=product --code=acme_color --label="Acme Color"
   --type=select --module=Acme_Catalog`; missing inputs (scope, required,
   search/filter/grid flags, apply-to) asked in one batch.
-- **Phases:** resolve inputs → plan (gate) → generate from entity-specific template →
-  verify (`php -l`, deps exist) → report.
-- **Outputs:** `Setup/Patch/Data/Add{Code}Attribute.php` (+ companions);
-  `.docs/eav-attributes/{Module}-{code}-{date}.md`.
+- **Phases:** resolve inputs → plan (gate) → **test-first** (Phase 3A: a failing
+  integration test asserts the attribute's scope/input-type/wiring *and* idempotency;
+  behavioural source/backend models get a unit test) → generate (3B, minimal patch to
+  green) → verify (`php -l`, deps exist, runs the test) → report.
+- **Outputs:** `Setup/Patch/Data/Add{Code}Attribute.php` (+ companions,
+  `Test/Integration/…`); `.docs/eav-attributes/{Module}-{code}-{date}.md`.
 - **Related:** called by `magento2-feature-implement` (E* tasks); owns the canonical
   EAV patch templates (module-create's are the simpler variant).
 
@@ -106,9 +111,11 @@ SELECT→INSERT→DELETE, keyset-paginated). Destructive patches require
 
 - **Invocation:** `--type=seed|import|transform` + source flags.
 - **Phases:** plan (migration class, source, idempotency strategy, rollback need) →
-  generate → verify → report.
+  **test-first** (Phase 2A: a failing integration test asserts post-migration state
+  *and idempotency* — apply twice → identical; tiered unit fallback when no test DB) →
+  generate (2B, minimal patch to green) → verify (runs the test) → report.
 - **Outputs:** `Setup/Patch/Data/{Name}.php` (+ `Service/Importer/…`,
-  `Console/Command/…`); `.docs/migrations/{name}-{date}.md`.
+  `Console/Command/…`, `Test/Integration/…`); `.docs/migrations/{name}-{date}.md`.
 
 ---
 
@@ -139,7 +146,11 @@ emitters.
 ### magento2-test-generate
 
 Discovers coverage gaps and generates unit / integration / REST+GraphQL API / Jasmine /
-MFTF tests with real assertions. Purely additive — never modifies source.
+MFTF tests with real assertions. Purely additive — never modifies source. It is the
+**backfiller** for code that already exists (including modules with *no* tests); for
+*new* behaviour the owning skill writes the test first (see `magento2-context`'s
+`tdd-discipline.md`), and under feature-implement TDD mode this skill tops up coverage
+on exempt/boilerplate classes rather than authoring the first behaviour test.
 
 - **Invocation:** `[--types=unit,integration,api,js,mftf] [--target-coverage=80]
   [--missing-only] [--overwrite] <Vendor>_<Module>`.
@@ -206,7 +217,10 @@ Resumable via `.docs/{FeatureName}/plan.md` checkboxes.
 - **Invocation:** any "add/build/implement" request; resume with an explicit
   *"resume ./.docs/{FeatureName}"*.
 - **Opt-ins:** per-task commits via `--per-task-commits`, a `CLAUDE.md` line, or
-  `MAGENTO2_FI_PER_TASK_COMMITS=1`; production smoke only with
+  `MAGENTO2_FI_PER_TASK_COMMITS=1`; **test-first (TDD) mode** via `--tdd`,
+  `Feature implement: tdd = on`, or `MAGENTO2_FI_TDD=1` (default off, `spike` exempt) —
+  behaviour-bearing `M*`/`X*` tasks are written test-first (Phase 4 acceptance criteria
+  become the RED test list, `T*` becomes a coverage top-up); production smoke only with
   `Allow smoke on production: true` in `CLAUDE.md`.
 - **Outputs:** `.docs/{FeatureName}/` — blueprint, plan, task records, smoke reports,
   final report, optional HTML guides.
