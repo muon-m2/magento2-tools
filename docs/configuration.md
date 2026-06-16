@@ -49,6 +49,7 @@ Env vars win over `.claude/m2.json`:
 | `M2_MAGENTO_ROOT` | auto-detect (`.` or `src`) | Magento root inside the repo. |
 | `M2_CACHE_TTL` | `86400` (24h) | Context cache TTL in seconds; `0` disables caching. |
 | `MAGENTO2_FI_PER_TASK_COMMITS` | unset | `1` enables per-task git commits in `magento2-feature-implement`. |
+| `MAGENTO2_FI_TDD` | unset | `1` turns on **test-first (TDD) mode** in `magento2-feature-implement`: behaviour-bearing `M*`/`X*` tasks are implemented test-first (write the failing test, watch it fail, then the minimal code). Off by default; `spike` mode always exempt. |
 
 ## `.claude/m2.json`
 
@@ -67,6 +68,7 @@ Skills read your project's `CLAUDE.md` for these lines:
 | `Vendor prefix: **Acme**` | context resolver (and feature-implement fallback) | Vendor for all generated namespaces, tables, ACLs, routes |
 | `Allow smoke on production: true` | feature-implement smoke runner | Permits Phase 6B smoke tests against a production base URL (refused otherwise) |
 | `Feature implement: per-task commits = on` | feature-implement | Same as `MAGENTO2_FI_PER_TASK_COMMITS=1` / `--per-task-commits` |
+| `Feature implement: tdd = on` | feature-implement | Same as `MAGENTO2_FI_TDD=1` / `--tdd` — behaviour tasks implemented test-first (red → green → refactor) |
 | MySQL slow-log path | performance-audit / debug | Where to read the slow query log when non-default |
 
 `CLAUDE.md` participates in the context cache key, so editing it takes effect on the

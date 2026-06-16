@@ -102,6 +102,14 @@ full picture):
 **Modes:** `hotfix` and `extend` skip phases 3–4 (only the blueprint gate applies);
 `spike` reduces phases 6–7. State the mode if you want one: *"hotfix: …"*.
 
+**Test-first (TDD mode):** opt in with `--tdd` (or `Feature implement: tdd = on` in
+`CLAUDE.md`, or `MAGENTO2_FI_TDD=1`; default off, `spike` exempt). Behaviour-bearing
+classes (services, models with logic, plugins, observers, resolvers, console commands)
+are then implemented test-first — the task's acceptance criteria become failing tests
+written *before* the code, watched to fail, then turned green — while pure scaffold/config
+stays generated-then-covered. The `T*` task becomes a coverage top-up rather than the
+first author of the behaviour tests.
+
 **Resuming:** interrupted runs are resumable because `plan.md` tracks every task as a
 checkbox. Say *"resume ./.docs/{FeatureName}"* — the skill picks up at the first
 unchecked task without re-asking for approvals you already gave. (Without an explicit
@@ -145,6 +153,11 @@ when invoked from another skill — the SARIF uploads straight into GitHub Code 
 ```
 /magento2-tools:magento2-test-generate --types=unit,api Acme_OrderExport
 ```
+
+This skill is the **backfiller** for code that already exists — including modules with no
+tests at all. (For *new* behaviour, the owning skill writes the test first: bug-fix always,
+feature-implement under `--tdd`, and data-migration/eav-attribute by default. See
+[Flows and scenarios](flows-and-scenarios.md#test-first-builders-data-migration-eav-attribute).)
 
 Discovery first: `coverage-gap.sh` finds source classes without tests and surfaces
 warranting non-unit tests (persistence → integration, `webapi.xml`/`schema.graphqls` →
@@ -225,11 +238,15 @@ When findings need action, the skill points you onward: defects →
 ```
 
 Missing inputs (scope, required, search/filter/grid flags, apply-to types…) are asked
-once; you approve the file plan; the skill generates an **idempotent**
+once; you approve the file plan. The skill is **test-first**: before writing the patch
+it generates a failing integration test asserting the attribute's scope, input type, and
+backend/source wiring **plus idempotency** (running the patch twice doesn't duplicate or
+error), watches it fail, then writes the minimal **idempotent**
 `Setup/Patch/Data/Add{Code}Attribute.php` (guarded by `EavSetup::getAttribute()`, safe
-to re-run) plus companion source/backend/frontend models *only when the input type
-needs them*, using the correct setup factory per entity. Never legacy
-`InstallData.php`.
+to re-run) to turn it green — plus companion source/backend/frontend models *only when
+the input type needs them* (behavioural ones get a test-first unit test), using the
+correct setup factory per entity. Never legacy `InstallData.php`. When no Magento test DB
+is available it falls back to a test-first unit test and records the integration gap.
 
 **Artifacts:** the patch + companions in your module;
 `.docs/eav-attributes/{Vendor}_{Module}-{code}-{date}.md` with the
@@ -273,11 +290,16 @@ and `email_templates.xml` are appended/merged, never overwritten.
 
 Three shapes: fixed seed (< 100 rows inline in a data patch), bulk import (chunked
 importer service + optional `bin/magento {vendor}:{module}:import --dry-run` CLI), and
-transformation (SELECT → INSERT → DELETE in a transaction, keyset-paginated). Every
-patch implements `DataPatchInterface`, is idempotent, and documents its rollback path —
-destructive patches refuse to run without `--allow-destructive`.
+transformation (SELECT → INSERT → DELETE in a transaction, keyset-paginated). The skill
+is **test-first**: before the patch it writes a failing integration test asserting the
+post-migration state **and idempotency** (apply twice → identical state, no duplicates),
+watches it fail, then writes the minimal patch to turn it green. Every patch implements
+`DataPatchInterface`, is idempotent, and documents its rollback path — destructive
+patches refuse to run without `--allow-destructive`. Without a Magento test DB it falls
+back to a test-first unit test of the idempotency guard and records the gap.
 
-**Artifacts:** `.docs/migrations/{name}-{date}.md`.
+**Artifacts:** `Test/Integration/…` test + `.docs/migrations/{name}-{date}.md` (with the
+red → green evidence).
 
 ---
 

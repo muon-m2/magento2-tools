@@ -39,6 +39,7 @@ Other recognized hints (all optional — see [Configuration](configuration.md)):
 | `Vendor prefix: **Acme**` | Vendor for all generated code |
 | `Allow smoke on production: true` | Lets feature smoke tests run against production (default: refused) |
 | `Feature implement: per-task commits = on` | One focused git commit per completed feature task |
+| `Feature implement: tdd = on` | Implement feature behaviour test-first (red → green → refactor); default off |
 
 ## Step 2 — Environment overrides (only if detection needs help)
 
@@ -124,12 +125,21 @@ Everything lands in `.docs/{FeatureName}/` — blueprint, resumable plan, task r
 report. If a session is interrupted, *"resume ./.docs/{FeatureName}"* picks up exactly
 where it stopped.
 
+To make the orchestrator implement behaviour **test-first**, add `--tdd` (or set
+`Feature implement: tdd = on` in `CLAUDE.md` to make it the team default). The acceptance
+criteria in the plan then become failing tests written before each behaviour class, while
+scaffolding and config stay generated-then-covered. It's the same red → green → refactor
+loop `magento2-bug-fix` already uses — see
+[Flows and scenarios](flows-and-scenarios.md#feature-implementation-flow).
+
 See [Flows and scenarios](flows-and-scenarios.md#feature-implementation-flow) for the
 full phase diagram.
 
 ## Step 7 — Establish the testing baseline
 
-If you hand-wrote any code outside the orchestrator, backfill tests:
+`magento2-test-generate` is the **backfiller** for code that already exists. If you
+hand-wrote code outside the orchestrator (or are adopting the toolkit on a module that has
+no tests), backfill it:
 
 ```
 /magento2-tools:magento2-test-generate Acme_OrderExport
@@ -138,6 +148,11 @@ If you hand-wrote any code outside the orchestrator, backfill tests:
 Discovery shows what's missing per test type (unit / integration / API / Jasmine /
 MFTF); you approve the plan; generated tests contain real assertions and are run before
 the skill reports done. Coverage reports go to `.docs/tests/`.
+
+For *new* work going forward, prefer **test-first** instead of backfilling: bug fixes are
+test-first always, EAV attributes and data patches are test-first by default, and
+feature work is test-first under `--tdd` (Step 6). Backfilling stays the right tool for
+existing, untested code.
 
 ## Step 8 — Wire CI
 
@@ -184,5 +199,6 @@ one module per release invocation.
 - [ ] Quality tools installed as the project matures (`phpcs` + `magento/magento-coding-standard`, `phpstan`, `phpunit`) — skills use them automatically once present
 - [ ] CI: `--validate-only` deploy gate + SARIF upload
 - [ ] Conventional commits adopted
+- [ ] Decide on test-first: set `Feature implement: tdd = on` in `CLAUDE.md` to make feature behaviour test-first by default (bug-fix / EAV / data patches already are)
 - [ ] Decide whether `.docs/` (skill reports) is committed or ignored — committing it
       gives the team a shared history of blueprints, RCAs, deploys, and audits
