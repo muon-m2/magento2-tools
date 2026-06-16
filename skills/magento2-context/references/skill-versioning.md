@@ -26,8 +26,21 @@ skills evolve.
 | magento2-data-migration    | 1.2.0   | New idempotency strategy, new importer pattern                      |
 | magento2-release           | 1.1.0   | New tag convention, new publish target                              |
 | magento2-i18n              | 1.2.0   | New extraction pattern, new placeholder rule                        |
+| magento2-adminhtml-form    | 1.0.0   | New template/surface added, field-type pattern, controller change   |
 
 ## Changelog (last update: 2026-06-16)
+
+- **New skill `magento2-adminhtml-form` 1.0.0 (unreleased)** — generator for adminhtml
+  UI-component edit forms: declarative `{entity}_form.xml` + `DataProvider`
+  (`AbstractDataProvider` + `DataPersistorInterface`) + New/Edit/Save/Delete controllers +
+  required button blocks, wired to an existing listing. 17 templates, 10 references,
+  `scripts/verify-form.sh`. Built test-first (RED baseline of unaided gaps → templates → GREEN via
+  the repo template-lint harness). Bakes in the five-name **blank-form naming contract**, flat-post
+  Save (empty id → `null`), `acl.xml` **without** the invalid `translate` attribute, canonical
+  WYSIWYG/toggle fields, and Open-Source-vs-Adobe-Commerce gating (staging/B2B/Page Builder). Fills
+  the adminhtml gap between `magento2-module-create` (basic admin stub) and
+  `magento2-frontend-create` (storefront-only). Not yet bundled in a plugin release
+  (`plugin.json` stays 1.6.0).
 
 - **`plan.md` / task-record de-duplication (`magento2-feature-implement` 2.7.0 → 2.8.0)** —
   detailed task records no longer appear in both `plan.md` and the task files. `plan.md` is now

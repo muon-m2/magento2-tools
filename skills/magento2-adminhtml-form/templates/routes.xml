@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!--
+  Adminhtml route for {Vendor}\{Module} entity {Entity}.
+  Target: {Vendor}/{Module}/etc/adminhtml/routes.xml  (merge if the file already exists)
+  URLs resolve as admin/{vendor_lower}_{entity}/<controller>/<action>.
+  The route id (not the frontName) is what */*/ relative paths and layout handles use.
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:App/etc/routes.xsd">
+    <router id="admin">
+        <route id="{vendor_lower}_{entity}" frontName="{vendor_lower}_{entity}">
+            <module name="{Vendor}_{Module}"/>
+        </route>
+    </router>
+</config>

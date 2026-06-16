@@ -66,7 +66,7 @@ Developer documentation lives in [`docs/`](docs/README.md):
 
 ## Skills
 
-17 skills under `skills/`, each self-contained (`SKILL.md` + `references/` + `scripts/`
+18 skills under `skills/`, each self-contained (`SKILL.md` + `references/` + `scripts/`
 + `templates/`). Per-skill flags, phases, and outputs are documented in
 [docs/skills-reference.md](docs/skills-reference.md).
 
@@ -89,6 +89,7 @@ Developer documentation lives in [`docs/`](docs/README.md):
 | `magento2-data-migration` | Idempotent data patches / importers. |
 | `magento2-release` | Version bump, changelog, tag, publish. |
 | `magento2-i18n` | Translation extraction / locale management. |
+| `magento2-adminhtml-form` | Scaffold an adminhtml UI-component edit form (form XML + DataProvider + New/Edit/Save/Delete + button blocks). |
 
 ### Dependency graph
 
