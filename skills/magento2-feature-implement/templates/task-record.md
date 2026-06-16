@@ -1,129 +1,24 @@
-# {Feature Name} — Execution Plan
+# Task Records
 
-Date: {YYYY-MM-DD}
-Status: Awaiting Approval
-Blueprint: `.docs/{FeatureName}/blueprint.md`
-Skill versions:
+The **detailed** task records for a feature. These are the single source of task detail —
+the same content must **never** be copied into `plan.md`. `plan.md` carries only the resumable
+`## Current State` checklist (IDs + titles); the records below carry the full scope.
 
-- magento2-feature-implement@2.7.0
-- magento2-context@1.6.0
+**When written:** **before** the Phase 4 approval gate (SKILL.md Phase 4 step 6), alongside
+`plan.md`, so the user can review the full task detail before approving. Kept out of `plan.md`
+itself — no duplication.
 
----
+**Where written:**
 
-## Implementation Flow
+- **≤ 5 tasks** — all records in a single flat file: `.docs/{FeatureName}/tasks.md`.
+- **> 5 tasks** — one record per file under `.docs/{FeatureName}/tasks/`, named
+  `{NNN}-{ID}-{kebab-title}.md`, where `{NNN}` is the zero-padded execution-order index
+  (`001`, `002`, …; same `{NNN}` ⇒ parallel wave). See `references/task-breakdown-guide.md`
+  §"Task Structure: Single File vs Folder".
 
-```mermaid
-flowchart TD
-    A([Start: User request]) --> B[Phase 1: Elicit & Analyze]
-    B --> C[Phase 2: Feature Blueprint]
-    C --> D{User approves blueprint?}
-    D -- No --> C
-    D -- Yes --> E[Phase 3: Module Schema]
-    E --> F[Phase 4: Task Breakdown]
-    F --> G{User approves plan?}
-    G -- No --> F
-    G -- Yes --> H[Phase 5: Execute tasks]
-    H --> I[Phase 6A: Unit + Coverage]
-    I --> I2{Unit tests pass?}
-    I2 -- No --> K1[Fix unit failures]
-    K1 --> I
-    I2 -- Yes --> SM[Phase 6B: Smoke battery S1..S9]
-    SM --> SM2{Critical or High?}
-    SM2 -- No --> L[Phase 7: Final report]
-    SM2 -- Yes --> CNT{Iteration < 5?}
-    CNT -- Yes --> FIX[Delegate fixes via magento2-* skill]
-    FIX --> I
-    CNT -- No --> HALT([Halt: ask user — retry / accept / abort])
-    L --> M([Done])
-```
-
----
-
-## Task Dependency Graph
-
-```mermaid
-graph LR
-    M1[M1: Create {Vendor}_{ModuleA}] --> R1[R1: Review {Vendor}_{ModuleA}]
-    R1 --> M2[M2: Create {Vendor}_{ModuleB}]
-    M2 --> R2[R2: Review {Vendor}_{ModuleB}]
-    R1 --> T1[T1: Tests {ModuleA}]
-    R2 --> T2[T2: Tests {ModuleB}]
-    T1 --> V1[V1: Validate all]
-    T2 --> V1
-    V1 --> D1[D1: Deploy]
-    D1 --> S1[S1: Baseline & probe]
-    S1 --> S2[S2: REST scenarios]
-    S2 --> S3[S3: Admin login]
-    S3 --> S4[S4: Stores Config]
-    S4 --> S5[S5: Admin grids]
-    S5 --> S6[S6: New routes]
-    S6 --> S7[S7: Customer flows]
-    S7 --> S8[S8: exception.log diff]
-    S8 --> S9{S9: Critical/High?}
-    S9 -- No --> P1[P1: Final report]
-    S9 -- Yes / iter<5 --> FIX[Fix via magento2-* skill]
-    FIX --> D1
-    S9 -- Yes / iter==5 --> HALT([Halt: ask user])
-```
-
-<!-- Expand or replace with the actual task graph for this feature. -->
-
----
-
-## Module Schema
-
-<!-- Paste the Mermaid module dependency diagram from Phase 3 here. -->
-
-```mermaid
-graph TD
-    A[{Vendor}_{ModuleA}<br/>surfaces: core, persistence, service_contracts] --> B[{Vendor}_{ModuleB}<br/>surfaces: core, rest_api]
-    A --> C[{Vendor}_{ModuleC}<br/>surfaces: core, admin_ui]
-```
-
----
-
-## Current State
-
-<!-- Mark each task [x] immediately after it completes, before starting the next task, per
-SKILL.md Phase 5 "Per-task completion protocol". This section drives resume — an unchecked
-completed task makes a resumed run redo work. -->
-
-- [ ] M1: Create `{Vendor}_{ModuleA}`
-- [ ] R1: Review `{Vendor}_{ModuleA}`
-- [ ] M2: Create `{Vendor}_{ModuleB}`
-- [ ] R2: Review `{Vendor}_{ModuleB}`
-- [ ] X1: Modify `{Vendor}_{ExistingModule}`
-- [ ] R3: Review `{Vendor}_{ExistingModule}`
-- [ ] T1: Unit Tests — `{Vendor}_{ModuleA}`
-- [ ] T2: Unit Tests — `{Vendor}_{ModuleB}`
-- [ ] V1: Validate All
-- [ ] D1: Deploy
-- [ ] S1: Smoke baseline & probe (Phase 6B)
-- [ ] S2: Smoke — REST API scenarios
-- [ ] S3: Smoke — Admin login
-- [ ] S4: Smoke — Stores → Configuration walk
-- [ ] S5: Smoke — Admin grids (Customers, Catalog Products, Sales Orders + new)
-- [ ] S6: Smoke — New / changed routes
-- [ ] S7: Smoke — Customer storefront flows
-- [ ] S8: Smoke — exception.log diff
-- [ ] S9: Smoke — Triage & report
-- [ ] P1: Final Report
-
----
-
-## Smoke Iterations
-
-Count: 0 / 5
-Last run: —
-Outcome: —
-
-<!-- Maintained by the skill during Phase 6B. Increment Count BEFORE each Phase 6 entry. -->
-
----
-
-## Task List
-
-<!-- One task record per task. Copy and expand the template below for each task. -->
+**Format:** the canonical record format lives in `references/task-breakdown-guide.md`
+§"Task Record Format". Copy one block per task and fill it in. The filled examples below
+cover every task type (M/R/X/T/V/D/S/P) — use them as a structural reference.
 
 ---
 
@@ -479,19 +374,3 @@ Acceptance criteria:
 - Deviations from blueprint documented.
 - Tradeoffs section populated.
 - Report saved to `.docs/{FeatureName}/report.md`.
-
----
-
-## Summary
-
-| Metric | Value |
-|--------|-------|
-| Total tasks | {N} |
-| Modules to create | {N} |
-| Modules to modify | {N} |
-| Estimated effort | {S+M+L total} |
-
----
-
-**Plan ready for approval.**
-Reply **"proceed"** to begin implementation, or describe any changes to the plan.

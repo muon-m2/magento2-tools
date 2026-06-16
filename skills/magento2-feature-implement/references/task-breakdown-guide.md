@@ -71,9 +71,10 @@ Estimate is informational only. Do not block execution on estimates.
 
 ## Task Structure: Single File vs Folder
 
-Task records are written **only after the plan is approved** (Phase 4 step 9) — not while the
-plan is being presented for review. `plan.md` is saved earlier for review (see below); the task
-records below come after the user approves.
+Task records are written **before the Phase 4 approval gate** (Phase 4 step 6), alongside
+`plan.md`, so the user can review the full task detail before approving. They are still kept
+**out** of `plan.md` itself — the plan stays an index; the detail lives only in the files below.
+On a change-request, revise both `plan.md` and the affected records and keep them in sync.
 
 **≤ 5 tasks** — save all task records to a single flat file: `.docs/{FeatureName}/tasks.md`.
 

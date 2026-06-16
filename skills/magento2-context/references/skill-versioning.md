@@ -12,7 +12,7 @@ skills evolve.
 | magento2-context           | 1.6.0   | JSON schema changes, new resolution rules, new tool probes          |
 | magento2-module-create     | 1.7.0   | New template added, surface added, naming rule changed              |
 | magento2-module-review     | 2.3.0   | New checklist category, severity calibration change, new JSON field, fix-routing change |
-| magento2-feature-implement | 2.7.0   | New phase, new approval gate, mode added, template structure change |
+| magento2-feature-implement | 2.8.0   | New phase, new approval gate, mode added, template structure change |
 | magento2-bug-fix           | 1.0.2   | Workflow phase change, RCA format change                            |
 | magento2-deploy            | 1.2.0   | Deploy plan template change, rollback recipe change                 |
 | magento2-test-generate     | 1.1.1   | Generator pattern change, new test type added                       |
@@ -27,7 +27,20 @@ skills evolve.
 | magento2-release           | 1.1.0   | New tag convention, new publish target                              |
 | magento2-i18n              | 1.2.0   | New extraction pattern, new placeholder rule                        |
 
-## Changelog (last update: 2026-06-15)
+## Changelog (last update: 2026-06-16)
+
+- **`plan.md` / task-record de-duplication (`magento2-feature-implement` 2.7.0 → 2.8.0)** —
+  detailed task records no longer appear in both `plan.md` and the task files. `plan.md` is now
+  strictly the resumable **index** (Mermaid diagrams + `## Current State` checklist + Smoke
+  Iterations + summary); the **detailed records** (type, target, deps, included changes, risks,
+  acceptance criteria) live only in `tasks.md` (≤ 5 tasks) / `tasks/` (> 5 tasks). The
+  `task-list.md` template was renamed to `templates/plan.md` (index only) and a new
+  `templates/task-record.md` holds the detailed records. Records are now written **before** the
+  Phase 4 approval gate, alongside `plan.md`, so the user reviews full task detail before
+  approving — the old "records written only after approval" carve-out is removed and everything
+  follows one save-before-present rule. New placeholder tokens `{ID}` / `{NNN}` / `{kebab-title}`
+  registered in `placeholder-schema.md`. Version bumped in the three emitting templates
+  (`feature-blueprint.md`, `plan.md`, `final-report.md`).
 
 - **Test-first discipline rolled out (move 1 + move 2 data/EAV)** — new shared reference
   `magento2-context/references/tdd-discipline.md` defines the red → green → refactor loop and the
@@ -226,7 +239,7 @@ flag them as drift.
 
 Bumping a skill means editing this file AND updating any template strings that emit the
 version (`templates/feature-blueprint.md`, `templates/final-report.md`,
-`templates/task-list.md`, `references/report-template.md`, `templates/report.html`).
+`templates/plan.md`, `references/report-template.md`, `templates/report.html`).
 
 ## Why This Matters
 

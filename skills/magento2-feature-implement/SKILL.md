@@ -34,9 +34,10 @@ the full implementation from analysis through tested, reviewed, reported deliver
 - **Save before present.** Every review artifact (`blueprint.md` in Phase 2, `plan.md` in Phase 4)
   must be **written to disk and confirmed to exist** before it is presented to the user — never
   present one from memory. After writing, verify the file is on disk (e.g. read it back) and cite
-  its path in the message. The user reviews the file, not just the chat. Task records
-  (`tasks.md` / `tasks/`) are the exception: they are written only **after** the plan is approved,
-  not at presentation time.
+  its path in the message. The user reviews the file, not just the chat. This applies to the
+  detailed task records too (`tasks.md` / `tasks/`): they are written **before** the Phase 4
+  approval gate, alongside `plan.md`, so the user can review the full task detail — not just the
+  index — before approving. They are still kept **out** of `plan.md` itself (no duplication).
 - **Ask once.** Gather all clarifying questions in a single batch during Phase 1. Never interrupt
   mid-execution with more questions unless a blocking ambiguity is discovered.
 - **Review every module.** After creating or modifying any module, invoke `magento2-module-review`.
@@ -88,9 +89,9 @@ Every feature gets its own subfolder under `.docs/`. Create it at the start of P
 └── {FeatureName}/
     ├── blueprint.md          # Feature blueprint — saved for review in Phase 2, before the blueprint gate
     ├── plan.md               # Execution plan: diagrams + resumable checkbox list — saved for review in Phase 4, before the plan gate
-    ├── tasks.md              # Flat task records (≤ 5 tasks) — written ONLY after the plan is approved
+    ├── tasks.md              # Flat task records (≤ 5 tasks) — written for review before the plan gate
     │   OR
-    ├── tasks/                # One file per task (> 5 tasks) — written ONLY after the plan is approved
+    ├── tasks/                # One file per task (> 5 tasks) — written for review before the plan gate
     │   ├── 001-M1-{title}.md  # {NNN} = execution-order index; same NNN ⇒ runs in parallel
     │   ├── 002-R1-{title}.md
     │   ├── 003-X1-{title}.md  # 003-X1 and 003-X2 share index 003 → parallel wave
@@ -238,7 +239,9 @@ skill treats the request as a new feature.
 **Goal:** produce a detailed, approved implementation plan.
 
 1. Load `references/task-breakdown-guide.md`.
-2. Use `templates/task-list.md` as the structural base.
+2. Use `templates/plan.md` as the structural base for `plan.md`. The **detailed task records**
+   are written separately, from `templates/task-record.md` (step 6, before the approval gate) —
+   they are never embedded in `plan.md`.
 3. Assign task IDs using the `{TypePrefix}{Number}` format from the guide.
 4. For each task, fill in: type, target, depends on, skill invoked, estimate, description,
    and acceptance criteria. When TDD mode is on (see Core Rules), a behaviour-bearing task's
@@ -246,47 +249,59 @@ skill treats the request as a new feature.
    written before the task's implementation code (`references/tdd-mode.md`).
 5. Produce the execution flow diagram (Mermaid `flowchart TD`) and the dependency graph
    (Mermaid `graph LR`).
-6. **Write `plan.md` to disk for review — before presenting and before the approval gate.**
-   Save the execution plan to `.docs/{FeatureName}/plan.md` with `Status: Awaiting Approval` as
-   the first line. The plan must include:
+6. **Write `plan.md` AND the detailed task records to disk for review — before presenting and
+   before the approval gate.**
+   First, save the execution plan to `.docs/{FeatureName}/plan.md` with `Status: Awaiting Approval`
+   as the first line. The plan must include:
     - Implementation flow diagram (Mermaid `flowchart TD`)
     - Task dependency graph (Mermaid `graph LR`)
     - Module schema diagram (Mermaid `graph TD` from Phase 3)
-    - The full task list and summary table (task count, module counts, total estimate)
+    - The summary table (task count, module counts, total estimate)
     - **Current State** checklist — every task as an unchecked checkbox: `- [ ] {ID}: {Title}`.
 
-   Per the **Save before present** rule, this file MUST exist on disk before step 7. **Do not**
-   write the detailed task records (`tasks.md` / `tasks/`) yet — those are created only after the
-   plan is approved (step 9).
-7. **Confirm `plan.md` is on disk** (read it back), then present the plan to the user, citing the
-   path: *"Plan saved to `.docs/{FeatureName}/plan.md` — review there or below."* Present:
+   `plan.md` is the resumable **index** — diagrams, the Current State checklist, and the summary.
+   It holds **no** detailed task records.
+
+   Then, save the **detailed task records** using `templates/task-record.md` as the structural
+   base, so the user can review the full task detail before approving:
+    - `.docs/{FeatureName}/tasks.md` if the feature has ≤ 5 tasks (single flat file), or
+    - `.docs/{FeatureName}/tasks/` if the feature has > 5 tasks (one file per task named
+      `{NNN}-{ID}-{kebab-title}.md`). `{NNN}` is the zero-padded execution-order index
+      (`001`, `002`, `003`, …) derived from the dependency order in `plan.md`: assign `001`
+      to the first wave (tasks with no unmet dependencies), `002` to the next wave, and so on.
+      Tasks expected to run in parallel (same wave — `Parallel: yes`, no dependency between
+      them) share the **same** `{NNN}`. So the prefix sorts the folder into execution order
+      and reveals parallel groups at a glance (e.g. `003-X1-extend-checkout.md` and
+      `003-X2-extend-customer.md` run together).
+
+   Each task record must contain: what is included, which files will change and why, execution
+   estimate, dependencies, and possible risks. Per the **Save before present** rule, `plan.md`
+   and the task records MUST all exist on disk before step 7.
+7. **Confirm `plan.md` and the task records are on disk** (read them back), then present the plan
+   to the user, citing the paths so they can review the full detail in the files: *"Plan saved to
+   `.docs/{FeatureName}/plan.md`; detailed task records in `.docs/{FeatureName}/tasks.md` (or
+   `tasks/`) — review there or below."* Present inline:
     - Module schema (from Phase 3)
     - Implementation flow diagram
     - Task dependency graph
-    - Full task list
+    - Current State checklist (every task ID + title)
     - Summary table (task count, module counts, total estimate)
+
+   The detailed records are reviewed in the file(s); reproduce them inline only if the user asks.
 8. Print the approval prompt verbatim:
    > **Plan ready for approval.**
    > Tasks: {N} | Modules to create: {N} | Modules to modify: {N}
    > Estimated total effort: {sum}
    >
    > Reply **"proceed"** to begin implementation, or describe any changes to the plan.
-9. **Wait for explicit approval.** Do not write any code and do not create the task records until
-   the user approves. If the user requests changes, revise `plan.md`, re-confirm on disk, and
+9. **Wait for explicit approval.** Do not write any code until the user approves. The `plan.md`
+   and task records already exist on disk (step 6) for review. If the user requests changes, revise
+   **both** `plan.md` and the affected task records, keep them in sync, re-confirm on disk, and
    present again. Once approved:
     - Update the blueprint status line to `Status: Approved` in `.docs/{FeatureName}/blueprint.md`.
     - Update the `plan.md` status line to `Status: Approved`.
-    - **Now** save the detailed task records (this is the first time they are written to disk):
-        - `.docs/{FeatureName}/tasks.md` if the feature has ≤ 5 tasks (single flat file).
-        - `.docs/{FeatureName}/tasks/` if the feature has > 5 tasks (one file per task named
-          `{NNN}-{ID}-{kebab-title}.md`). `{NNN}` is the zero-padded execution-order index
-          (`001`, `002`, `003`, …) derived from the dependency order in `plan.md`: assign `001`
-          to the first wave (tasks with no unmet dependencies), `002` to the next wave, and so on.
-          Tasks expected to run in parallel (same wave — `Parallel: yes`, no dependency between
-          them) share the **same** `{NNN}`. So the prefix sorts the folder into execution order
-          and reveals parallel groups at a glance (e.g. `003-X1-extend-checkout.md` and
-          `003-X2-extend-customer.md` run together). Each task file must contain: what is included,
-          which files will change and why, execution estimate, dependencies, and possible risks.
+    - No further record-writing is needed here — the detailed task records were written in step 6;
+      just ensure they reflect any last-round revisions before Phase 5 begins.
 
 ---
 
@@ -634,7 +649,8 @@ halt and prompt the user. Record each iteration via `templates/smoke-run-report.
 - `references/smoke-runner.md`: environment probe, REST invocation, headless browser commands, fallbacks.
 - `references/exception-log-baseline.md`: byte-offset baseline + tail-since-offset diff for `var/log/exception.log`.
 - `templates/feature-blueprint.md`: feature blueprint template.
-- `templates/task-list.md`: task list and Mermaid diagrams template (incl. `S*` examples).
+- `templates/plan.md`: execution-plan (`plan.md`) template — Mermaid diagrams, Current State checklist, Smoke Iterations, summary. No detailed task records.
+- `templates/task-record.md`: detailed task-record template for `tasks.md` / `tasks/` (incl. `S*` examples) — written for review before the plan approval gate.
 - `templates/final-report.md`: implementation report template (incl. Section 10).
 - `templates/smoke-run-report.md`: per-iteration smoke run report template.
 - `templates/smoke-scenarios.md`: REST scenarios template.
