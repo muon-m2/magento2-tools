@@ -12,11 +12,14 @@ use Magento\Framework\View\Element\UiComponent\Control\ButtonProviderInterface;
 class DeleteButton extends GenericButton implements ButtonProviderInterface
 {
     /**
-     * @return array
+     * @inheritDoc
+     *
+     * @return array<string, mixed>
      */
-    public function getButtonData()
+    public function getButtonData(): array
     {
-        if (!$this->get{Entity}Id()) {
+        $entityId = $this->get{Entity}Id();
+        if ($entityId === null) {
             return [];
         }
 
@@ -26,7 +29,7 @@ class DeleteButton extends GenericButton implements ButtonProviderInterface
             'on_click' => sprintf(
                 "deleteConfirm('%s', '%s')",
                 __('Are you sure you want to delete this?'),
-                $this->getUrl('*/*/delete', ['{entity}_id' => $this->get{Entity}Id()])
+                $this->getUrl('*/*/delete', ['{entity}_id' => $entityId])
             ),
             'sort_order' => 20,
         ];

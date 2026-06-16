@@ -3,19 +3,20 @@
  * "Delete" admin controller for {Vendor}\{Module} entity {Entity}.
  * Target: {Vendor}/{Module}/Controller/Adminhtml/{Entity}/Delete.php
  *
- * POST-only (mass/row delete posts). Verify the repository method name matches the actual
- * interface (deleteById vs delete).
+ * Reached via the DeleteButton's deleteConfirm() GET navigation; the admin secret URL key
+ * provides CSRF protection for admin GET actions. Verify the repository method name matches the
+ * actual interface (deleteById vs delete).
  */
 declare(strict_types=1);
 
 namespace {Vendor}\{Module}\Controller\Adminhtml\{Entity};
 
 use Magento\Backend\App\Action;
-use Magento\Framework\App\Action\HttpPostActionInterface;
+use Magento\Framework\App\Action\HttpGetActionInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
 use {Vendor}\{Module}\Api\{Entity}RepositoryInterface;
 
-class Delete extends Action implements HttpPostActionInterface
+class Delete extends Action implements HttpGetActionInterface
 {
     public const ADMIN_RESOURCE = '{Vendor}_{Module}::{entity}';
 
@@ -56,7 +57,7 @@ class Delete extends Action implements HttpPostActionInterface
         } catch (NoSuchEntityException $e) {
             $this->messageManager->addErrorMessage(__('This {Entity} no longer exists.'));
         } catch (\Exception $e) {
-            $this->messageManager->addErrorMessage($e->getMessage());
+            $this->messageManager->addExceptionMessage($e, __('Something went wrong while deleting the {Entity}.'));
             return $resultRedirect->setPath('*/*/edit', ['{entity}_id' => $id]);
         }
 

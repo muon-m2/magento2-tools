@@ -7,7 +7,7 @@
 | `new` | `NewAction.php` (class `NewAction`) | `HttpGetActionInterface` | forwards to `edit` (`New` is reserved) |
 | `edit` | `Edit.php` | `HttpGetActionInterface` | renders the form page; 404-redirects a missing id |
 | `save` | `Save.php` | `HttpPostActionInterface` | persists; redirect Back or Save-and-Continue |
-| `delete` | `Delete.php` | `HttpPostActionInterface` | deletes by id |
+| `delete` | `Delete.php` | `HttpGetActionInterface` | deletes by id (reached via the DeleteButton's `deleteConfirm()` GET navigation; the admin secret URL key is the CSRF guard) |
 
 All extend `Magento\Backend\App\Action` and declare
 `public const ADMIN_RESOURCE = '{Vendor}_{Module}::{entity}'`. See `templates/controller-*.php`.

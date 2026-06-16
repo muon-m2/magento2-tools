@@ -4,7 +4,8 @@
 #
 # Usage: verify-form.sh <module_root> [Entity]
 #   <module_root>  e.g. src/app/code/Acme/Faq
-# Exits non-zero on the first invalid file. Tools that are absent are skipped with a notice.
+# Scans every file and exits non-zero if any are invalid (it does not stop at the first).
+# Tools that are absent are skipped with a notice.
 set -uo pipefail
 
 MODULE_ROOT="${1:?usage: verify-form.sh <module_root> [Entity]}"

@@ -14,6 +14,7 @@ namespace {Vendor}\{Module}\Controller\Adminhtml\{Entity};
 use Magento\Backend\App\Action;
 use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\App\Request\DataPersistorInterface;
+use Magento\Framework\Data\Form\FormKey\Validator as FormKeyValidator;
 use Magento\Framework\Exception\NoSuchEntityException;
 use {Vendor}\{Module}\Model\{Entity}Factory;
 use {Vendor}\{Module}\Api\{Entity}RepositoryInterface;
@@ -38,21 +39,29 @@ class Save extends Action implements HttpPostActionInterface
     private $dataPersistor;
 
     /**
+     * @var FormKeyValidator
+     */
+    private $formKeyValidator;
+
+    /**
      * @param Action\Context $context
      * @param {Entity}RepositoryInterface ${entity}Repository
      * @param {Entity}Factory ${entity}Factory
      * @param DataPersistorInterface $dataPersistor
+     * @param FormKeyValidator $formKeyValidator
      */
     public function __construct(
         Action\Context $context,
         {Entity}RepositoryInterface ${entity}Repository,
         {Entity}Factory ${entity}Factory,
-        DataPersistorInterface $dataPersistor
+        DataPersistorInterface $dataPersistor,
+        FormKeyValidator $formKeyValidator
     ) {
         parent::__construct($context);
         $this->{entity}Repository = ${entity}Repository;
         $this->{entity}Factory = ${entity}Factory;
         $this->dataPersistor = $dataPersistor;
+        $this->formKeyValidator = $formKeyValidator;
     }
 
     /**
@@ -64,6 +73,12 @@ class Save extends Action implements HttpPostActionInterface
     {
         /** @var \Magento\Backend\Model\View\Result\Redirect $resultRedirect */
         $resultRedirect = $this->resultRedirectFactory->create();
+
+        if (!$this->formKeyValidator->validate($this->getRequest())) {
+            $this->messageManager->addErrorMessage(__('Invalid form key. Please try again.'));
+            return $resultRedirect->setPath('*/*/');
+        }
+
         $data = $this->getRequest()->getPostValue();
 
         if (!$data) {

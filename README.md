@@ -66,8 +66,8 @@ Developer documentation lives in [`docs/`](docs/README.md):
 
 ## Skills
 
-18 skills under `skills/`, each self-contained (`SKILL.md` + `references/` + `scripts/`
-+ `templates/`). Per-skill flags, phases, and outputs are documented in
+18 skills under `skills/`, each self-contained (`SKILL.md` + `references/` +
+`scripts/` + `templates/`). Per-skill flags, phases, and outputs are documented in
 [docs/skills-reference.md](docs/skills-reference.md).
 
 | Skill | Purpose |
