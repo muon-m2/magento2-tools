@@ -108,8 +108,8 @@ Every feature gets its own subfolder under `.docs/`. Create it at the start of P
 **plan.md** is the single source of truth for resuming interrupted runs. It must always contain:
 
 - The implementation flow diagram (Mermaid `flowchart TD`)
-- The task dependency graph (Mermaid `graph LR`)
 - The module schema diagram (Mermaid `graph TD`)
+- The task dependency graph (Mermaid `graph LR`)
 - A **Current State** section listing every task as a checkbox (`- [ ]` pending / `- [x]` done).
 
 After each task completes in Phase 5, mark its checkbox `[x]` in `plan.md` and save immediately.
@@ -251,13 +251,13 @@ skill treats the request as a new feature.
    (Mermaid `graph LR`).
 6. **Write `plan.md` AND the detailed task records to disk for review — before presenting and
    before the approval gate.**
-   First, save the execution plan to `.docs/{FeatureName}/plan.md` with `Status: Awaiting Approval`
-   as the first line. The plan must include:
+   First, save the execution plan to `.docs/{FeatureName}/plan.md` with a `Status: Awaiting Approval`
+   line in its header (see `templates/plan.md`). The plan must include, in this order:
     - Implementation flow diagram (Mermaid `flowchart TD`)
-    - Task dependency graph (Mermaid `graph LR`)
     - Module schema diagram (Mermaid `graph TD` from Phase 3)
-    - The summary table (task count, module counts, total estimate)
+    - Task dependency graph (Mermaid `graph LR`)
     - **Current State** checklist — every task as an unchecked checkbox: `- [ ] {ID}: {Title}`.
+    - The summary table (task count, module counts, total estimate)
 
    `plan.md` is the resumable **index** — diagrams, the Current State checklist, and the summary.
    It holds **no** detailed task records.
@@ -281,8 +281,8 @@ skill treats the request as a new feature.
    to the user, citing the paths so they can review the full detail in the files: *"Plan saved to
    `.docs/{FeatureName}/plan.md`; detailed task records in `.docs/{FeatureName}/tasks.md` (or
    `tasks/`) — review there or below."* Present inline:
-    - Module schema (from Phase 3)
     - Implementation flow diagram
+    - Module schema (from Phase 3)
     - Task dependency graph
     - Current State checklist (every task ID + title)
     - Summary table (task count, module counts, total estimate)

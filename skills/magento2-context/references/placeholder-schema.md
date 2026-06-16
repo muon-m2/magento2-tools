@@ -53,7 +53,8 @@ Names used inside generated PHP/XML. Examples: `{ClassUnderTest}`, `{ServiceName
 
 ## Value / content tokens (docs, reports, examples)
 
-Free-form values that authors fill in: `{N}`, `{slug}`, `{route}`, `{url}`, `{description}`,
+Free-form values that authors fill in: `{N}`, `{sum}` (estimated-effort total), `{slug}`,
+`{route}`, `{url}`, `{description}`,
 `{Description}`, `{ShortDescription}`, `{purpose}`, `{reason}`, `{notes}`, `{Title}`,
 `{Name}` / `{name}`, `{version}` / `{ver}`, `{Severity}`, `{date}`, `{DATE}`, `{YYYY-MM-DD}`,
 `{timestamp}`, `{uuid}`, `{author}`, `{commit}`, `{env}`, `{path}` / `{Path}`, `{file}` /
@@ -258,6 +259,7 @@ route
 runner
 slug
 source_table
+sum
 surface
 target_short_lower
 target_table

@@ -39,6 +39,18 @@ flowchart TD
 
 ---
 
+## Module Schema
+
+<!-- Paste the Mermaid module dependency diagram from Phase 3 here. -->
+
+```mermaid
+graph TD
+    A[{Vendor}_{ModuleA}<br/>surfaces: core, persistence, service_contracts] --> B[{Vendor}_{ModuleB}<br/>surfaces: core, rest_api]
+    A --> C[{Vendor}_{ModuleC}<br/>surfaces: core, admin_ui]
+```
+
+---
+
 ## Task Dependency Graph
 
 ```mermaid
@@ -67,18 +79,6 @@ graph LR
 ```
 
 <!-- Expand or replace with the actual task graph for this feature. -->
-
----
-
-## Module Schema
-
-<!-- Paste the Mermaid module dependency diagram from Phase 3 here. -->
-
-```mermaid
-graph TD
-    A[{Vendor}_{ModuleA}<br/>surfaces: core, persistence, service_contracts] --> B[{Vendor}_{ModuleB}<br/>surfaces: core, rest_api]
-    A --> C[{Vendor}_{ModuleC}<br/>surfaces: core, admin_ui]
-```
 
 ---
 
@@ -132,7 +132,7 @@ Outcome: —
 | Total tasks | {N} |
 | Modules to create | {N} |
 | Modules to modify | {N} |
-| Estimated effort | {S+M+L total} |
+| Estimated effort | {sum} |
 
 ---
 
