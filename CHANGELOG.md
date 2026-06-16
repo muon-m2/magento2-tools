@@ -6,7 +6,7 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.7.0] — 2026-06-16 — `magento2-adminhtml-form`: adminhtml UI-component form generator
 
 ### New skill: `magento2-adminhtml-form` 1.0.0
 
@@ -25,9 +25,8 @@ team's recurring pain point: hand-rolling a new admin edit form and hitting sile
 - Bakes in the five-name blank-form **naming contract**, flat-post Save (empty id → `null`),
   `acl.xml` **without** the invalid `translate` attribute, canonical WYSIWYG/toggle fields, and
   Open-Source-vs-Adobe-Commerce gating (content staging / B2B / Page Builder).
-- Registered in `skill-versioning.md` (1.0.0) and the README skills table (now 18 skills). Not yet
-  bundled in a tagged plugin release — `plugin.json` / `marketplace.json` stay at 1.6.0 until the
-  next `magento2-release`.
+- Registered in `skill-versioning.md` (1.0.0) and the README skills table (now 18 skills). Shipped
+  in plugin **1.7.0** — `plugin.json` / `marketplace.json` bumped 1.6.0 → 1.7.0.
 
 ## [1.6.0] — 2026-06-16 — Plan vs. task-record split in the feature orchestrator
 
