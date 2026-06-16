@@ -6,6 +6,29 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### New skill: `magento2-adminhtml-form` 1.0.0
+
+Generator for adminhtml UI-component edit forms — fills the admin-forms gap between
+`magento2-module-create` (basic admin stub) and `magento2-frontend-create` (storefront-only). The
+team's recurring pain point: hand-rolling a new admin edit form and hitting silent "blank form" /
+"save does nothing" failures.
+
+- Declarative `view/adminhtml/ui_component/{entity}_form.xml` + `DataProvider`
+  (`AbstractDataProvider` + `DataPersistorInterface`, `getData()` keyed by entity id) +
+  New/Edit/Save/Delete controllers + the required button blocks, wired to an existing listing.
+  Optional modifier/Pool, WYSIWYG, toggle, dynamic-rows, and image/file uploader surfaces.
+- 17 templates, 10 reference docs, `scripts/verify-form.sh`. Built test-first: a RED baseline
+  captured an unaided agent's failure modes, the templates were written to eliminate exactly those,
+  and GREEN was verified via the repo template-lint harness (`php -l` + `xmllint` on every template).
+- Bakes in the five-name blank-form **naming contract**, flat-post Save (empty id → `null`),
+  `acl.xml` **without** the invalid `translate` attribute, canonical WYSIWYG/toggle fields, and
+  Open-Source-vs-Adobe-Commerce gating (content staging / B2B / Page Builder).
+- Registered in `skill-versioning.md` (1.0.0) and the README skills table (now 18 skills). Not yet
+  bundled in a tagged plugin release — `plugin.json` / `marketplace.json` stay at 1.6.0 until the
+  next `magento2-release`.
+
 ## [1.6.0] — 2026-06-16 — Plan vs. task-record split in the feature orchestrator
 
 ### `plan.md` / task-record de-duplication (`magento2-feature-implement` 2.7.0 → 2.8.0)

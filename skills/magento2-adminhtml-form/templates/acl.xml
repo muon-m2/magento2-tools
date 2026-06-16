@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!--
+  ACL resource guarding the {Entity} admin controllers (referenced by ADMIN_RESOURCE and menu).
+  Target: {Vendor}/{Module}/etc/acl.xml  (MERGE into an existing acl.xml; do not clobber)
+
+  acl.xsd allows ONLY id, title, sortOrder, disabled on <resource>. Adding translate="..."
+  fails xmllint — that attribute belongs on menu.xml <add>, not here.
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Acl/etc/acl.xsd">
+    <acl>
+        <resources>
+            <resource id="Magento_Backend::admin">
+                <resource id="Magento_Backend::content">
+                    <resource id="{Vendor}_{Module}::{entity}" title="{Entity}" sortOrder="10"/>
+                </resource>
+            </resource>
+        </resources>
+    </acl>
+</config>

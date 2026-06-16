@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<!--
+  Edit/New page layout for {Vendor}\{Module} entity {Entity}.
+  Target: {Vendor}/{Module}/view/adminhtml/layout/{vendor_lower}_{entity}_{entity}_edit.xml
+
+  Handle = <route_id>_<controller>_<action> = {vendor_lower}_{entity}_{entity}_edit.
+  NewAction forwards to edit, so this single handle covers both screens.
+  No storefront handles (e.g. <update handle="styles"/>) — admin forms don't use them.
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceContainer name="content">
+            <uiComponent name="{entity}_form"/>
+        </referenceContainer>
+    </body>
+</page>

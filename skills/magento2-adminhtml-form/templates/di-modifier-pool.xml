@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<!--
+  OPTIONAL: wires the modifier pool into the {Entity} form DataProvider.
+  Target: {Vendor}/{Module}/etc/adminhtml/di.xml  (merge into existing di.xml)
+  Only include when using the modifier surface — the DataProvider must then extend
+  Magento\Ui\DataProvider\ModifierPoolDataProvider (which accepts the `pool` argument).
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="{Vendor}\{Module}\Model\{Entity}\DataProvider">
+        <arguments>
+            <argument name="pool" xsi:type="object">{Vendor}{Module}{Entity}FormModifierPool</argument>
+        </arguments>
+    </type>
+    <virtualType name="{Vendor}{Module}{Entity}FormModifierPool" type="Magento\Ui\DataProvider\Modifier\Pool">
+        <arguments>
+            <argument name="modifiers" xsi:type="array">
+                <item name="{entity}_modifier" xsi:type="array">
+                    <item name="class" xsi:type="string">{Vendor}\{Module}\Ui\{Entity}\Form\Modifier\{Entity}Modifier</item>
+                    <item name="sortOrder" xsi:type="string">10</item>
+                </item>
+            </argument>
+        </arguments>
+    </virtualType>
+</config>

@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!--
+  Admin menu entry for {Vendor}\{Module} entity {Entity}.
+  Target: {Vendor}/{Module}/etc/adminhtml/menu.xml  (merge if it already exists)
+  Points at the listing index controller; adjust the parent to taste
+  (Magento_Backend::content / ::stores / ::marketing). menu.xsd DOES allow translate.
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+    <menu>
+        <add id="{Vendor}_{Module}::{entity}"
+             title="{Entity}"
+             translate="title"
+             module="{Vendor}_{Module}"
+             sortOrder="50"
+             parent="Magento_Backend::content"
+             action="{vendor_lower}_{entity}/{entity}/index"
+             resource="{Vendor}_{Module}::{entity}"/>
+    </menu>
+</config>
