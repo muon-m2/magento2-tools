@@ -6,6 +6,25 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### `plan.md` / task-record de-duplication (`magento2-feature-implement` 2.7.0 → 2.8.0)
+
+The execution plan and the detailed task records no longer overlap. `plan.md` is now strictly the
+resumable **index** — Mermaid diagrams, the `## Current State` checklist, the Smoke Iterations
+block, and the summary table. The **detailed task records** (type, target, dependencies, included
+changes, risks, acceptance criteria) live only in `tasks.md` (≤ 5 tasks) or `tasks/` (> 5 tasks).
+
+- The `templates/task-list.md` template was renamed to `templates/plan.md` (index only); a new
+  `templates/task-record.md` holds the detailed records.
+- Records are now written **before** the Phase 4 approval gate, alongside `plan.md`, so the user
+  reviews the full task detail before approving. The previous "records written only after approval"
+  carve-out is removed — `plan.md` and the task records both follow one save-before-present rule,
+  and on a change-request both are revised in sync.
+- New placeholder tokens `{ID}` / `{NNN}` / `{kebab-title}` registered in `placeholder-schema.md`.
+- Version bumped in the three emitting templates (`feature-blueprint.md`, `plan.md`,
+  `final-report.md`).
+
 ## [1.5.1] — 2026-06-15 — Docs: test-first discipline across the developer docs
 
 Documentation-only release. Developer docs under `docs/` now cover the v1.5.0 test-first

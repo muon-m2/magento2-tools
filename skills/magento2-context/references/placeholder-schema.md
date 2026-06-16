@@ -53,7 +53,8 @@ Names used inside generated PHP/XML. Examples: `{ClassUnderTest}`, `{ServiceName
 
 ## Value / content tokens (docs, reports, examples)
 
-Free-form values that authors fill in: `{N}`, `{slug}`, `{route}`, `{url}`, `{description}`,
+Free-form values that authors fill in: `{N}`, `{sum}` (estimated-effort total), `{slug}`,
+`{route}`, `{url}`, `{description}`,
 `{Description}`, `{ShortDescription}`, `{purpose}`, `{reason}`, `{notes}`, `{Title}`,
 `{Name}` / `{name}`, `{version}` / `{ver}`, `{Severity}`, `{date}`, `{DATE}`, `{YYYY-MM-DD}`,
 `{timestamp}`, `{uuid}`, `{author}`, `{commit}`, `{env}`, `{path}` / `{Path}`, `{file}` /
@@ -69,7 +70,9 @@ Free-form values that authors fill in: `{N}`, `{slug}`, `{route}`, `{url}`, `{de
 `{invalidArgs}` / `{reproducedArgs}` / `{reproducedReturn}` / `{methodUnderTest}` /
 `{target_short_lower}` / `{method_lower}` / `{Dep1Type}` / `{Dep2FQCN}` / `{Dep2Type}`,
 `{args}`, `{action}`, `{default}`, `{new}` / `{previous}` / `{planned}`, `{SHA1}` / `{SHA2}`,
-`{OtherPatch}` / `{Patch}`, `{modules}`, `{MODULE_PATH}`, `{PLACEHOLDER}`.
+`{OtherPatch}` / `{Patch}`, `{modules}`, `{MODULE_PATH}`, `{ID}` (task ID),
+`{NNN}` (zero-padded execution-order index), `{kebab-title}` (kebab-cased task title; used in
+`tasks/` file names), `{PLACEHOLDER}`.
 
 ## Report-template section markers (UPPER_CASE)
 
@@ -128,6 +131,7 @@ FeatureName
 From
 Group
 HIGH_COUNT
+ID
 Interface
 Item
 JobName
@@ -145,6 +149,7 @@ ModuleB
 ModuleC
 ModuleName
 N
+NNN
 NEXT_STEPS
 Name
 ObserverName
@@ -216,6 +221,7 @@ from_magento
 from_php
 ids
 invalidArgs
+kebab-title
 line
 magento
 magento_cli
@@ -253,6 +259,7 @@ route
 runner
 slug
 source_table
+sum
 surface
 target_short_lower
 target_table
