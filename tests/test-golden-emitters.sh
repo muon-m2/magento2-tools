@@ -41,17 +41,17 @@ SKILL_VERSION="2.3.0" \
 SKILL_VERSIONS_JSON='["magento2-module-review@2.3.0","magento2-context@1.6.0"]' \
 OUTPUT_DIR="$WORK" \
 OUTPUT_BASENAME="golden" \
-bash "$EMIT_JSON" > "$WORK/emit-json.raw.json" 2>/dev/null || {
-    echo "FAIL: emit-json.sh exited non-zero"; exit 1; }
+bash "$EMIT_JSON" > "$WORK/emit-json.raw.json" 2>"$WORK/emit-json.err" || {
+    echo "FAIL: emit-json.sh exited non-zero:"; sed 's/^/    /' "$WORK/emit-json.err" >&2; exit 1; }
 
 # 2. Normalize the runAt timestamp value.
-sed 's#"runAt": "[^"]*"#"runAt": "'"$PLACEHOLDER"'"#' \
+sed 's#"runAt": "[^"]*"#"runAt": "'"$PLACEHOLDER"'"#g' \
     "$WORK/emit-json.raw.json" > "$WORK/emit-json.norm.json"
 
 # 3. Feed the normalized JSON into emit-sarif.sh; capture stdout (the SARIF).
 OUTPUT_DIR="$WORK" bash "$EMIT_SARIF" "$WORK/emit-json.norm.json" \
-    > "$WORK/emit-sarif.out.sarif" 2>/dev/null || {
-    echo "FAIL: emit-sarif.sh exited non-zero"; exit 1; }
+    > "$WORK/emit-sarif.out.sarif" 2>"$WORK/emit-sarif.err" || {
+    echo "FAIL: emit-sarif.sh exited non-zero:"; sed 's/^/    /' "$WORK/emit-sarif.err" >&2; exit 1; }
 
 JSON_GOLDEN="$GOLDEN_DIR/emit-json.expected.json"
 SARIF_GOLDEN="$GOLDEN_DIR/emit-sarif.expected.sarif"
