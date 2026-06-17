@@ -28,7 +28,9 @@ while IFS=: read -r cmd skill; do
     if [ ! -f "$f" ]; then echo "FAIL: missing command file $f"; FAIL=1; continue; fi
     [ "$(head -1 "$f")" = "---" ] || { echo "FAIL: $f missing YAML frontmatter"; FAIL=1; }
     grep -qE '^description: +.+' "$f" || { echo "FAIL: $f missing non-empty description"; FAIL=1; }
+    grep -qE '^argument-hint:' "$f" || { echo "FAIL: $f missing argument-hint"; FAIL=1; }
     grep -qF "magento2-tools:$skill"'`' "$f" || { echo "FAIL: $f does not route to magento2-tools:$skill"; FAIL=1; }
+    grep -qF '$ARGUMENTS' "$f" || { echo "FAIL: $f does not forward \$ARGUMENTS"; FAIL=1; }
     [ -d "skills/$skill" ] || { echo "FAIL: $f routes to non-existent skill $skill"; FAIL=1; }
 done <<EOF
 $EXPECTED
