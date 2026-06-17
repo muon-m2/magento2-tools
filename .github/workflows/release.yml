@@ -1,0 +1,38 @@
+name: release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install php-cli and xmllint
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends php-cli libxml2-utils
+
+      - name: Contract test gate
+        run: bash tests/run-all.sh
+
+      - name: Build release notes
+        id: notes
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          bash scripts/release-notes.sh "$VERSION" > "$RUNNER_TEMP/notes.md"
+          echo "title=$(bash scripts/release-notes.sh --title "$VERSION")" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REL_TITLE: ${{ steps.notes.outputs.title }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" --title "$REL_TITLE" --notes-file "$RUNNER_TEMP/notes.md"
