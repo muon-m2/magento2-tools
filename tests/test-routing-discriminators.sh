@@ -23,8 +23,11 @@ check() { # skill ref...
     local skill="$1"; shift
     local d ref
     d="$(desc "$skill")"
+    if [ -z "$d" ]; then
+        echo "FAIL: magento2-$skill — could not extract description frontmatter"; FAIL=1; return
+    fi
     for ref in "$@"; do
-        printf '%s' "$d" | grep -q "$ref" \
+        printf '%s' "$d" | grep -qF "$ref" \
             || { echo "FAIL: magento2-$skill description must reference '$ref'"; FAIL=1; }
     done
 }
