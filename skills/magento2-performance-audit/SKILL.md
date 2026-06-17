@@ -5,7 +5,8 @@ description:
     slowness, wants a pre-launch performance check, suspects N+1 queries, or wants to
     review caching/indexer/queue behaviour. Produces severity-ranked findings in Markdown,
     JSON, and SARIF. Combines static analysis with optional runtime checks; never assumes
-    a running Magento instance.
+    a running Magento instance. Produces actionable, severity-ranked findings — vs the lighter
+    read-only slow-query inspection in magento2-debug.
 ---
 
 # Magento 2 Performance Audit
