@@ -10,6 +10,13 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **`.docs/` path-guard hook** — a `PreToolUse` hook (`hooks/guard-docs-path.sh`, registered
+  in `hooks/hooks.json`) that blocks `Write`/`Edit` of a `.docs/` artifact anywhere other than
+  `{project_root}/.docs/` in a detected Magento project, enforcing the `magento2-context`
+  artifact-location rule mechanically instead of by prose. No-op in non-Magento repos and on
+  any uncertainty (fails open; no escape hatch). Pure matcher in `hooks/docs-path-matcher.sh`;
+  contract test `tests/test-docs-path-guard.sh`. Plugin-level (not a skill) — no skill-version
+  registry entry; a minor plugin version bump applies at the next release.
 - **Golden-render tests for the shared findings emitters** — `tests/test-golden-emitters.sh`
   pins the full output shape of `emit-json.sh` and `emit-sarif.sh` against checked-in golden
   files under `tests/golden/`, so any regression in the emitted JSON/SARIF structure fails
