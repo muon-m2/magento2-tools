@@ -6,7 +6,7 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.9.0] — 2026-06-17 — slash-command shortcuts, routing disambiguation, release automation, `magento2-adminhtml-listing`
 
 ### Added
 
