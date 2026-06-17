@@ -122,6 +122,28 @@ magento2-i18n              ──► context
 magento2-debug             ──► context, performance-audit, security-audit
 ```
 
+## Commands
+
+Thin slash-command shortcuts for common operations. Each forwards your arguments verbatim to the
+underlying skill — no behaviour changes, and the write commands keep every approval/production
+gate. They are always namespaced:
+
+| Command | Routes to | Use |
+|---------|-----------|-----|
+| `/magento2-tools:context`  | `magento2-context` | resolve project context (`--no-cache`) |
+| `/magento2-tools:snapshot` | `magento2-debug` (snapshot) | one-page health snapshot |
+| `/magento2-tools:review`   | `magento2-module-review` | review a module / `--diff` |
+| `/magento2-tools:security` | `magento2-security-audit` | security audit |
+| `/magento2-tools:perf`     | `magento2-performance-audit` | performance audit |
+| `/magento2-tools:deploy`   | `magento2-deploy` | deploy (gated) |
+| `/magento2-tools:bugfix`   | `magento2-bug-fix` | reproduce → RCA → fix (gated) |
+| `/magento2-tools:feature`  | `magento2-feature-implement` | feature orchestrator (gated) |
+| `/magento2-tools:release`  | `magento2-release` | cut a release (gated) |
+
+The four write commands (`deploy`, `bugfix`, `feature`, `release`) are user-invoked only; the
+read-only five may also be auto-suggested. All arguments/flags are passed straight through to the
+skill, which is the source of truth for behaviour and gates.
+
 ## Per-project environment overrides
 
 `magento2-context` auto-detects the runner (Docker vs bare PHP) and the Magento root.
@@ -149,6 +171,7 @@ detection. Changing any override busts the resolver cache automatically.
   plugin.json        # plugin manifest
   marketplace.json   # this repo doubles as its own marketplace ("muon-m2")
 skills/              # 18 magento2-* skills (auto-discovered by Claude Code)
+commands/            # 9 /magento2-tools:<verb> shortcut commands (auto-discovered)
 hooks/               # PreToolUse guard: keeps .docs/ artifacts at the project root
 tests/               # contract test harness
 ```

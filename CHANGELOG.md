@@ -6,6 +6,17 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **Slash-command shortcuts** — a `commands/` surface with 9 thin pass-through commands
+  (`/magento2-tools:context|snapshot|review|security|perf|deploy|bugfix|feature|release`) that
+  forward arguments verbatim to the matching skill. Read-only commands are auto-invokable; the
+  four write commands (`deploy`/`bugfix`/`feature`/`release`) are user-only
+  (`disable-model-invocation: true`) and never weaken a skill's approval/production gates.
+  Contract test: `tests/test-command-routing.sh`. No skill behaviour changes.
+
 ## [1.8.0] — 2026-06-17 — `.docs/` path-guard hook, golden emitter tests, deferral policy
 
 ### Added
