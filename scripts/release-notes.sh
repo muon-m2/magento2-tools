@@ -19,20 +19,34 @@ CHANGELOG="$ROOT/CHANGELOG.md"
 
 command -v python3 >/dev/null 2>&1 || { echo "release-notes: python3 required" >&2; exit 2; }
 
-# 1. both manifests must be at <version>
-for f in .claude-plugin/plugin.json .claude-plugin/marketplace.json; do
-    ok="$(python3 - "$ROOT/$f" "$VERSION" <<'PY'
-import json, sys
-doc = json.load(open(sys.argv[1], encoding="utf-8")); want = sys.argv[2]
-vers = []
-if isinstance(doc.get("version"), str): vers.append(doc["version"])
-for p in (doc.get("plugins") or []):
-    if isinstance(p.get("version"), str): vers.append(p["version"])
-print("yes" if want in vers else "no")
+# 1. both manifests must be at <version> — matched by the plugin's NAME (not "any entry"),
+#    mirroring tests/test-plugin-marketplace-sync.sh.
+verdict="$(python3 - "$ROOT" "$VERSION" <<'PY'
+import json, os, sys
+root, want = sys.argv[1], sys.argv[2]
+def load(rel):
+    with open(os.path.join(root, rel), encoding="utf-8") as fh:
+        return json.load(fh)
+try:
+    plugin = load(".claude-plugin/plugin.json")
+    market = load(".claude-plugin/marketplace.json")
+except Exception as exc:
+    print(f"err:cannot read manifest: {exc}"); sys.exit(0)
+name = plugin.get("name")
+if plugin.get("version") != want:
+    print(f"err:plugin.json {name} is at {plugin.get('version')}, not {want}"); sys.exit(0)
+entries = [p for p in (market.get("plugins") or []) if p.get("name") == name]
+if not entries:
+    print(f"err:marketplace.json has no plugin entry named {name}"); sys.exit(0)
+if entries[0].get("version") != want:
+    print(f"err:marketplace.json {name} is at {entries[0].get('version')}, not {want}"); sys.exit(0)
+print("ok")
 PY
-)" || { echo "release-notes: cannot read $ROOT/$f" >&2; exit 3; }
-    [ "$ok" = "yes" ] || { echo "release-notes: $f is not at version $VERSION" >&2; exit 3; }
-done
+)"
+if [ "$verdict" != "ok" ]; then
+    echo "release-notes: ${verdict#err:}" >&2
+    exit 3
+fi
 
 # 2. a CHANGELOG section for <version> must exist
 [ -f "$CHANGELOG" ] || { echo "release-notes: $CHANGELOG not found" >&2; exit 4; }

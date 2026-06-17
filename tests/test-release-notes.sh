@@ -34,6 +34,13 @@ printf '{\n  "plugins": [ { "name": "magento2-tools", "version": "9.9.9" } ]\n}\
 out="$(RELEASE_NOTES_ROOT="$tmp" bash "$H" 9.9.9 2>/dev/null)" || { echo "FAIL: fixture happy path non-zero"; FAIL=1; }
 printf '%s' "$out" | grep -q 'thing' || { echo "FAIL: fixture body missing expected content"; FAIL=1; }
 
+# 5. name-matching: a DIFFERENT plugin entry at the wanted version must NOT satisfy the
+#    magento2-tools check (regression for the multi-plugin marketplace case).
+printf '{\n  "name": "magento2-tools",\n  "version": "9.9.9"\n}\n' > "$tmp/.claude-plugin/plugin.json"
+printf '{\n  "plugins": [ { "name": "other-plugin", "version": "9.9.9" }, { "name": "magento2-tools", "version": "1.0.0" } ]\n}\n' > "$tmp/.claude-plugin/marketplace.json"
+rc=0; RELEASE_NOTES_ROOT="$tmp" bash "$H" 9.9.9 >/dev/null 2>&1 || rc=$?
+[ "$rc" -eq 3 ] || { echo "FAIL: expected exit 3 (marketplace name-match) got $rc"; FAIL=1; }
+
 [ "$FAIL" -eq 0 ] || { echo "RESULT: FAIL"; exit 1; }
 echo "release-notes: version-assert + changelog extraction verified"
 exit 0
