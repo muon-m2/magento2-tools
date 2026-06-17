@@ -6,6 +6,22 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **Review/audit subagent** — `agents/magento2-reviewer.md`, a read-only first-party agent for
+  Magento module review (whole-module or a single dimension: architecture / security / frontend /
+  testing / performance). `magento2-module-review`'s parallel-review now prefers it (falling back to
+  the generic `claude` type when absent), so the parallel-review story is self-contained instead of
+  depending on a generic agent. Pinned by `tests/test-agent-routing.sh` (valid frontmatter,
+  read-only tools, resolvable references).
+
+### Changed
+
+- README / getting-started "first steps" examples now use the `/magento2-tools:<verb>` command
+  shortcuts (`:snapshot`, `:perf`, `:deploy`) instead of the long-form skill invocations.
+
 ## [1.9.0] — 2026-06-17 — slash-command shortcuts, routing disambiguation, release automation, `magento2-adminhtml-listing`
 
 ### Added

@@ -144,7 +144,7 @@ Findings come back ordered by severity with `file:line` evidence.
 **2. Take a system snapshot:**
 
 ```
-/magento2-tools:magento2-debug snapshot
+/magento2-tools:snapshot
 ```
 
 One Markdown snapshot of indexer status, cache types, queue consumers and backlog,
@@ -154,7 +154,7 @@ ready to paste into a ticket.
 **3. Static performance pass:**
 
 ```
-/magento2-tools:magento2-performance-audit Acme_Checkout
+/magento2-tools:perf Acme_Checkout
 ```
 
 Scans the module source for N+1 loops, full-collection loads, missing block cache
