@@ -27,8 +27,18 @@ skills evolve.
 | magento2-release           | 1.1.0   | New tag convention, new publish target                              |
 | magento2-i18n              | 1.2.0   | New extraction pattern, new placeholder rule                        |
 | magento2-adminhtml-form    | 1.0.0   | New template/surface added, field-type pattern, controller change   |
+| magento2-adminhtml-listing | 1.0.0   | New template/column type, mass-action change, wiring change         |
 
-## Changelog (last update: 2026-06-16)
+## Changelog (last update: 2026-06-17)
+
+- **New skill `magento2-adminhtml-listing` 1.0.0 (unreleased)** — generator for adminhtml
+  UI-component grids/listings: declarative `{entity}_listing.xml` + DataProvider
+  (`AbstractDataProvider` default; optional SearchResult path for joins) + actions column +
+  mass-action controllers + wired `Index` controller. 12 templates, 9 references,
+  `scripts/verify-listing.sh`. Bakes in the 5-place listing naming contract (the empty-grid
+  pitfall). Sibling to `magento2-adminhtml-form`; reuses existing routes/ACL/menu when the
+  form skill already created them. Not yet bundled in a plugin release (`plugin.json` stays at
+  current version).
 
 - **New skill `magento2-adminhtml-form` 1.0.0 (unreleased)** — generator for adminhtml
   UI-component edit forms: declarative `{entity}_form.xml` + `DataProvider`

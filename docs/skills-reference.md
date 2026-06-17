@@ -288,3 +288,45 @@ well-formedness. Optional machine translation.
 - **Invocation:** `[--locales=en_US,de_DE,…] [--machine-translate]
   [--module=<Vendor>_<Module>]`.
 - **Outputs:** updated `i18n/{locale}.csv` files; `.docs/i18n/{Module}-{date}.md`.
+
+---
+
+## Adminhtml UI
+
+### magento2-adminhtml-form
+
+Scaffold an adminhtml UI-component edit form: declarative `{entity}_form.xml`, DataProvider
+(`AbstractDataProvider` + `DataPersistorInterface`), New/Edit/Save/Delete controllers, and
+required button blocks, wired to an existing listing. Bakes in the five-name blank-form
+naming contract. Open Source-compatible; flags Commerce-only features.
+
+- **Invocation:** *"scaffold an admin edit form for Entity in Acme_Module"*;
+  `--module=Acme_Module --entity=Entity`.
+- **Phases:** resolve context → plan (gate) → **test-first** (failing test before form code)
+  → generate (form XML + DataProvider + controllers + buttons) → verify (`php -l`,
+  `xmllint`, phpcs) → report with `setup:upgrade` command.
+- **Outputs:** `view/adminhtml/ui_component/{entity}_form.xml`, `Model/DataProvider.php`,
+  controllers under `Controller/Adminhtml/{Entity}/`, layout XML, `Block/Adminhtml/…`
+  button blocks; `.docs/adminhtml/{Module}-form-{date}.md`.
+- **Related:** sibling `magento2-adminhtml-listing` (the grid); reviewed by
+  `magento2-module-review`; called by `magento2-feature-implement` (M* tasks).
+
+### magento2-adminhtml-listing
+
+Scaffold an adminhtml UI-component grid/listing: declarative `{entity}_listing.xml`,
+DataProvider (`AbstractDataProvider` default; optional SearchResult for joins), columns,
+actions column, mass-action controllers, and an `Index` controller, wired to an existing
+edit form. Bakes in the 5-place listing naming contract (the empty-grid pitfall). Reuses
+existing routes/ACL/menu from `magento2-adminhtml-form` when present.
+
+- **Invocation:** *"scaffold an admin grid for Entity in Acme_Module"*;
+  `--module=Acme_Module --entity=Entity`.
+- **Phases:** resolve context → plan (gate) → **test-first** (failing test before listing
+  code) → generate (listing XML + DataProvider + actions column + mass-action controllers
+  + Index controller) → verify (`php -l`, `xmllint`, phpcs) → report with `setup:upgrade`
+  command.
+- **Outputs:** `view/adminhtml/ui_component/{entity}_listing.xml`, `Model/ResourceModel/{Entity}/Grid/Collection.php`
+  or DataProvider, `Controller/Adminhtml/{Entity}/Index.php` and mass-action controllers,
+  layout XML; `.docs/adminhtml/{Module}-listing-{date}.md`.
+- **Related:** sibling `magento2-adminhtml-form` (the edit form); reviewed by
+  `magento2-module-review`; called by `magento2-feature-implement` (M* tasks).

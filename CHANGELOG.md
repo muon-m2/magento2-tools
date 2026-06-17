@@ -10,6 +10,7 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **New skill `magento2-adminhtml-listing`** — adminhtml UI-component grid/listing generator (the 19th skill), sibling to `magento2-adminhtml-form`. Declarative `ui_component/{entity}_listing.xml` + DataProvider (AbstractDataProvider default; optional SearchResult), columns, actions column, and mass actions, wired to an existing edit form. Bakes in the 5-place listing naming contract (the empty-grid pitfall). 12 templates, 9 references, `verify-listing.sh`.
 - **Slash-command shortcuts** — a `commands/` surface with 9 thin pass-through commands
   (`/magento2-tools:context|snapshot|review|security|perf|deploy|bugfix|feature|release`) that
   forward arguments verbatim to the matching skill. Read-only commands are auto-invokable; the
