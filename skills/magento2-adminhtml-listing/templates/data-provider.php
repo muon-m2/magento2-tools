@@ -10,7 +10,7 @@ use {Vendor}\{ModuleName}\Model\ResourceModel\{EntityName}\CollectionFactory;
 /**
  * Listing (grid) data provider for {EntityName}.
  *
- * Referenced as the dataSource in admin-ui-component-listing.xml. AbstractDataProvider::getData()
+ * Referenced as the dataSource in the listing's {entity}_listing.xml. AbstractDataProvider::getData()
  * returns the GRID shape ($collection->toArray() => ['items' => [...], 'totalRecords' => N]),
  * which is what Magento_Ui/js/grid/provider expects — so getData() is intentionally NOT
  * overridden here. For the single-record edit form use {EntityName}FormDataProvider instead.
