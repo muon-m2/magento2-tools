@@ -1,0 +1,8 @@
+{
+  "vendor": "Acme",
+  "magento_version": "2.4.7-p3",
+  "edition": "open-source",
+  "php_version": "8.2.15",
+  "runner": "docker compose exec -T php",
+  "extra_ignored": "must NOT appear in emitter output"
+}
