@@ -5,7 +5,8 @@ description:
     an idempotent data patch. Use when the user wants to add a product/customer/category
     attribute. Handles scope (global/website/store), input type, backend/source/frontend
     models, indexer registration, form/grid visibility, and admin section assignment.
-    Produces a Setup/Patch/Data/ class that passes magento2-module-review.
+    Produces a Setup/Patch/Data/ class that passes magento2-module-review. For non-EAV or bulk
+    data seeding/migration use magento2-data-migration.
 ---
 
 # Magento 2 EAV Attribute

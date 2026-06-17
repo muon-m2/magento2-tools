@@ -330,3 +330,22 @@ existing routes/ACL/menu from `magento2-adminhtml-form` when present.
   layout XML; `.docs/adminhtml/{Module}-listing-{date}.md`.
 - **Related:** sibling `magento2-adminhtml-form` (the edit form); reviewed by
   `magento2-module-review`; called by `magento2-feature-implement` (M* tasks).
+## Choosing between adjacent skills
+
+Several skills have adjacent triggers. The `description` frontmatter encodes these boundaries so
+Claude routes correctly; they are summarized here for contributors. When you add or reword a
+description, keep its cross-references intact — `tests/test-routing-discriminators.sh` enforces the
+key ones.
+
+| If the request is… | Use | Not |
+|---|---|---|
+| A single admin edit form | `magento2-adminhtml-form` | `magento2-feature-implement` / `magento2-module-create` |
+| A GraphQL query/mutation/type | `magento2-graphql-create` | `magento2-feature-implement` / `magento2-module-create` |
+| A single product/customer/category attribute | `magento2-eav-attribute` | `magento2-module-create` / `magento2-data-migration` |
+| Bulk/reference data seeding, M1 import, transforms | `magento2-data-migration` | `magento2-eav-attribute` |
+| A new module/extension scaffold | `magento2-module-create` | `magento2-feature-implement` (unless multi-surface) |
+| Multi-step / multi-surface / unclear-scope work | `magento2-feature-implement` | the single sub-skills above |
+| Per-module architecture/quality review | `magento2-module-review` | `magento2-security-audit` / `magento2-performance-audit` |
+| Security depth (CVEs, secrets, EQP, cross-module/repo) | `magento2-security-audit` | `magento2-module-review` |
+| Performance depth (N+1, caching, ranked findings) | `magento2-performance-audit` | `magento2-debug` |
+| Read-only log/DI/queue inspection, one session | `magento2-debug` | `magento2-performance-audit` |

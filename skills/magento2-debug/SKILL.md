@@ -5,7 +5,8 @@ description:
     trace plugins or observers for a given event, inspect the DI graph, find slow
     queries, or get a snapshot of indexer/queue/cron state. Read-only by default —
     produces a diagnostic report without modifying code. Mode-driven: logs / trace / di /
-    slow-queries / snapshot / xdebug.
+    slow-queries / snapshot / xdebug. Read-only single-session inspection; for severity-ranked,
+    actionable performance findings (N+1, caching) use magento2-performance-audit.
 ---
 
 # Magento 2 Debug

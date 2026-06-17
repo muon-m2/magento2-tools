@@ -17,6 +17,18 @@ This project adheres to [Semantic Versioning](https://semver.org/).
   four write commands (`deploy`/`bugfix`/`feature`/`release`) are user-only
   (`disable-model-invocation: true`) and never weaken a skill's approval/production gates.
   Contract test: `tests/test-command-routing.sh`. No skill behaviour changes.
+- **Routing disambiguation** — tightened `description` frontmatter on `magento2-feature-implement`
+  (negative guard toward narrower skills), `magento2-module-review` / `magento2-security-audit`
+  (scope boundary), `magento2-debug` / `magento2-performance-audit` (read-only inspection vs
+  severity-ranked findings), `magento2-module-create`, and `magento2-eav-attribute` ↔
+  `magento2-data-migration` (cross-references), so natural-language requests route to the right
+  skill. The `/context` and `/snapshot` command descriptions note explicit-intent use. Pinned by
+  `tests/test-routing-discriminators.sh`. Routing metadata only — no skill-version or behaviour
+  change.
+- **Release automation** — `.github/workflows/release.yml` publishes a GitHub Release when a `v*`
+  tag is pushed: it runs the contract suite, asserts the tag matches `plugin.json` +
+  `marketplace.json`, and uses `scripts/release-notes.sh` to extract the matching CHANGELOG section
+  as the release notes. Version bump / CHANGELOG / tag stay manual. CI/infra only — no skill change.
 
 ## [1.8.0] — 2026-06-17 — `.docs/` path-guard hook, golden emitter tests, deferral policy
 
