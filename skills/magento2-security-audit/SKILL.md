@@ -6,7 +6,8 @@ description:
     secret leakage, or a Marketplace EQP scan. Produces findings ranked by the shared
     severity scale in Markdown, JSON, and SARIF. Combines composer audit, known-Magento-CVE
     matching, secret scanning, Marketplace EQP static rules, and cross-module pattern
-    detection.
+    detection. This is cross-module, dependency-level, and repo-wide depth; for per-module
+    security findings within a general architecture/quality review use magento2-module-review.
 ---
 
 # Magento 2 Security Audit
