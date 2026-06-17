@@ -6,6 +6,18 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **`.docs/` path-guard hook** — a `PreToolUse` hook (`hooks/guard-docs-path.sh`, registered
+  in `hooks/hooks.json`) that blocks `Write`/`Edit` of a `.docs/` artifact anywhere other than
+  `{project_root}/.docs/` in a detected Magento project, enforcing the `magento2-context`
+  artifact-location rule mechanically instead of by prose. No-op in non-Magento repos and on
+  any uncertainty (fails open; no escape hatch). Pure matcher in `hooks/docs-path-matcher.sh`;
+  contract test `tests/test-docs-path-guard.sh`. Plugin-level (not a skill) — no skill-version
+  registry entry; a minor plugin version bump applies at the next release.
+
 ## [1.7.0] — 2026-06-16 — `magento2-adminhtml-form`: adminhtml UI-component form generator
 
 ### New skill: `magento2-adminhtml-form` 1.0.0

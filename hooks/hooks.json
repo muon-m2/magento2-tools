@@ -1,0 +1,17 @@
+{
+  "description": "magento2-tools: block Write/Edit of .docs/ artifacts outside the project-root .docs/ directory (magento2-context artifact-location rule).",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/guard-docs-path.sh\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
