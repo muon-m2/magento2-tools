@@ -46,6 +46,14 @@ root-cause analysis, the minimal fix, a regression test, and review across eight
   coding standard taking precedence on any conflict; `--standard=Magento2` PHPCS is the gate.
   See `magento2-context/references/php-coding-style.md`. (Stay within the minimal-change rule —
   do not restyle surrounding code.)
+- **Process surface is owned — don't defer it.** The reproduce → root-cause → fix loop
+  (Phases 1–3) and the test-first discipline (Phase 4) are domain-tuned, owned surfaces. Do not
+  route them through a generic process skill (`superpowers:systematic-debugging`,
+  `superpowers:test-driven-development`) and do not replace the Phase 5 review with a generic
+  one — each duplicates owned work and lacks the Magento specifics (log paths, stack-trace
+  frames, ACL/escaping/EQP). Unlike `magento2-feature-implement`, bug-fix has **no** sanctioned
+  defer-if-present hand-wave — it is surgical and single-threaded, so there is nothing to defer.
+  The governing policy and the reasons are in `magento2-context/references/process-skills.md`.
 
 ## Workflow
 
