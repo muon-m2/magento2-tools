@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Every script under skills/*/scripts/ must pass `bash -n`.
+# Every script under skills/*/scripts/ and hooks/ must pass `bash -n`.
 set -uo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
@@ -10,6 +10,6 @@ while IFS= read -r script; do
         echo "syntax error in $script"
         FAIL=1
     fi
-done < <(find skills -path '*/scripts/*.sh' -type f)
+done < <(find skills -path '*/scripts/*.sh' -type f; find hooks -name '*.sh' -type f 2>/dev/null)
 
 exit "$FAIL"

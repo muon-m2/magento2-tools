@@ -148,7 +148,8 @@ detection. Changing any override busts the resolver cache automatically.
 .claude-plugin/
   plugin.json        # plugin manifest
   marketplace.json   # this repo doubles as its own marketplace ("muon-m2")
-skills/              # 17 magento2-* skills (auto-discovered by Claude Code)
+skills/              # 18 magento2-* skills (auto-discovered by Claude Code)
+hooks/               # PreToolUse guard: keeps .docs/ artifacts at the project root
 tests/               # contract test harness
 ```
 
@@ -166,7 +167,7 @@ Contract tests cover bash syntax, template lint (PHP/XML/JSON/GraphQL/CSV/JS), S
 frontmatter validity, cross-reference integrity (including `${CLAUDE_SKILL_DIR}` /
 `${CLAUDE_PLUGIN_ROOT}` and `magento2-<skill>/…` cross-refs), context-resolver behaviour
 (bare/docker runner contract + src-layout/override fixtures), plugin↔marketplace version
-sync, and skill-version-registry consistency. CI additionally runs `shellcheck`. Tests that
+sync, skill-version-registry consistency, and golden-output snapshots of the shared findings emitters (`emit-json` / `emit-sarif`). CI additionally runs `shellcheck`. Tests that
 need a missing interpreter exit 77 (SKIP) rather than failing.
 
 ## Versioning
