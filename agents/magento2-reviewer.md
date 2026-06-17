@@ -30,7 +30,7 @@ Read these from the installed plugin so your findings match the rest of the tool
 - The severity scale — `${CLAUDE_PLUGIN_ROOT}/skills/magento2-context/references/severity.md`
   (Critical/High/Medium/Low/Info). Use it verbatim; never invent a level.
 - The review checklist — `${CLAUDE_PLUGIN_ROOT}/skills/magento2-module-review/references/review-checklist.md`
-  and the evidence-citation rules — `.../references/evidence-citation.md`.
+  and the evidence-citation rules — `${CLAUDE_PLUGIN_ROOT}/skills/magento2-module-review/references/evidence-citation.md`.
 - The finding shape — `${CLAUDE_PLUGIN_ROOT}/skills/magento2-context/references/findings-schema.md`.
 
 If a path is unavailable, proceed from your Magento expertise and say so in the report.
