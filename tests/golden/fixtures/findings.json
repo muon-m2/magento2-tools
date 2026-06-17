@@ -1,0 +1,44 @@
+[
+  {
+    "id": "SEC-001",
+    "severity": "critical",
+    "category": "security",
+    "title": "SQL injection in collection filter",
+    "description": "Unsanitized request input concatenated into addFieldToFilter().",
+    "cwe": "CWE-89",
+    "bulletin_url": "https://example.test/advisories/sec-001",
+    "evidence": [
+      { "file": "Model/ResourceModel/Order/Collection.php", "line": 42, "endLine": 45 }
+    ]
+  },
+  {
+    "id": "SEC-002",
+    "severity": "high",
+    "category": "security",
+    "title": "Admin controller missing ACL check"
+  },
+  {
+    "id": "PERF-001",
+    "severity": "medium",
+    "category": "performance",
+    "title": "N+1 query inside listing loop",
+    "description": "Repository->getById called inside a foreach over collection items.",
+    "evidence": [
+      { "file": "Block/Adminhtml/Listing.php", "line": 88 }
+    ]
+  },
+  {
+    "id": "MNT-001",
+    "severity": "low",
+    "category": "maintainability",
+    "title": "Method exceeds length guideline",
+    "description": "export() is 73 lines; extract helpers.",
+    "helpUri": "https://example.test/rules/mnt-001"
+  },
+  {
+    "id": "MNT-002",
+    "severity": "info",
+    "category": "maintainability",
+    "title": "Replace magic number with a named constant"
+  }
+]

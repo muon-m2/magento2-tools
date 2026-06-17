@@ -167,7 +167,7 @@ Contract tests cover bash syntax, template lint (PHP/XML/JSON/GraphQL/CSV/JS), S
 frontmatter validity, cross-reference integrity (including `${CLAUDE_SKILL_DIR}` /
 `${CLAUDE_PLUGIN_ROOT}` and `magento2-<skill>/…` cross-refs), context-resolver behaviour
 (bare/docker runner contract + src-layout/override fixtures), plugin↔marketplace version
-sync, and skill-version-registry consistency. CI additionally runs `shellcheck`. Tests that
+sync, skill-version-registry consistency, and golden-output snapshots of the shared findings emitters (`emit-json` / `emit-sarif`). CI additionally runs `shellcheck`. Tests that
 need a missing interpreter exit 77 (SKIP) rather than failing.
 
 ## Versioning

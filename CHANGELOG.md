@@ -17,6 +17,12 @@ This project adheres to [Semantic Versioning](https://semver.org/).
   any uncertainty (fails open; no escape hatch). Pure matcher in `hooks/docs-path-matcher.sh`;
   contract test `tests/test-docs-path-guard.sh`. Plugin-level (not a skill) — no skill-version
   registry entry; a minor plugin version bump applies at the next release.
+- **Golden-render tests for the shared findings emitters** — `tests/test-golden-emitters.sh`
+  pins the full output shape of `emit-json.sh` and `emit-sarif.sh` against checked-in golden
+  files under `tests/golden/`, so any regression in the emitted JSON/SARIF structure fails
+  loudly (the prior field-probe test only checked three fields). The `runAt` timestamp is
+  normalized; regenerate the goldens after an intentional emitter change with
+  `UPDATE_GOLDEN=1`. Test-only — no skill or behaviour change.
 
 ## [1.7.0] — 2026-06-16 — `magento2-adminhtml-form`: adminhtml UI-component form generator
 

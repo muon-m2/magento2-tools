@@ -1,0 +1,224 @@
+{
+  "$schema": "https://docs.oasis-open.org/sarif/sarif/v2.1.0/cos02/schemas/sarif-schema-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "magento2-module-review",
+          "version": "2.3.0",
+          "informationUri": "https://github.com/muon-m2/magento2-tools",
+          "rules": [
+            {
+              "id": "SEC-001",
+              "name": "security",
+              "shortDescription": {
+                "text": "SQL injection in collection filter"
+              },
+              "fullDescription": {
+                "text": "Unsanitized request input concatenated into addFieldToFilter()."
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "helpUri": "https://example.test/advisories/sec-001",
+              "relationships": [
+                {
+                  "target": {
+                    "id": "CWE-89",
+                    "toolComponent": {
+                      "name": "CWE"
+                    }
+                  },
+                  "kinds": [
+                    "superset"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "SEC-002",
+              "name": "security",
+              "shortDescription": {
+                "text": "Admin controller missing ACL check"
+              },
+              "fullDescription": {
+                "text": "Admin controller missing ACL check"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              }
+            },
+            {
+              "id": "PERF-001",
+              "name": "performance",
+              "shortDescription": {
+                "text": "N+1 query inside listing loop"
+              },
+              "fullDescription": {
+                "text": "Repository->getById called inside a foreach over collection items."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              }
+            },
+            {
+              "id": "MNT-001",
+              "name": "maintainability",
+              "shortDescription": {
+                "text": "Method exceeds length guideline"
+              },
+              "fullDescription": {
+                "text": "export() is 73 lines; extract helpers."
+              },
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "helpUri": "https://example.test/rules/mnt-001"
+            },
+            {
+              "id": "MNT-002",
+              "name": "maintainability",
+              "shortDescription": {
+                "text": "Replace magic number with a named constant"
+              },
+              "fullDescription": {
+                "text": "Replace magic number with a named constant"
+              },
+              "defaultConfiguration": {
+                "level": "note"
+              }
+            }
+          ]
+        }
+      },
+      "invocations": [
+        {
+          "executionSuccessful": true,
+          "endTimeUtc": "1970-01-01T00:00:00Z"
+        }
+      ],
+      "results": [
+        {
+          "ruleId": "SEC-001",
+          "level": "error",
+          "message": {
+            "text": "SQL injection in collection filter"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Model/ResourceModel/Order/Collection.php"
+                },
+                "region": {
+                  "startLine": 42,
+                  "endLine": 45
+                }
+              }
+            }
+          ],
+          "taxa": [
+            {
+              "id": "CWE-89",
+              "toolComponent": {
+                "name": "CWE"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "SEC-002",
+          "level": "error",
+          "message": {
+            "text": "Admin controller missing ACL check"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "unknown"
+                },
+                "region": {
+                  "startLine": 1
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "PERF-001",
+          "level": "warning",
+          "message": {
+            "text": "N+1 query inside listing loop"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Block/Adminhtml/Listing.php"
+                },
+                "region": {
+                  "startLine": 88
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "MNT-001",
+          "level": "note",
+          "message": {
+            "text": "Method exceeds length guideline"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "unknown"
+                },
+                "region": {
+                  "startLine": 1
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "MNT-002",
+          "level": "note",
+          "message": {
+            "text": "Replace magic number with a named constant"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "unknown"
+                },
+                "region": {
+                  "startLine": 1
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "taxonomies": [
+        {
+          "name": "CWE",
+          "organization": "MITRE",
+          "shortDescription": {
+            "text": "Common Weakness Enumeration"
+          },
+          "informationUri": "https://cwe.mitre.org/",
+          "taxa": [
+            {
+              "id": "CWE-89"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
