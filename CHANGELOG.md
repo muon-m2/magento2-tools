@@ -6,7 +6,7 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.8.0] — 2026-06-17 — `.docs/` path-guard hook, golden emitter tests, deferral policy
 
 ### Added
 
@@ -15,14 +15,26 @@ This project adheres to [Semantic Versioning](https://semver.org/).
   `{project_root}/.docs/` in a detected Magento project, enforcing the `magento2-context`
   artifact-location rule mechanically instead of by prose. No-op in non-Magento repos and on
   any uncertainty (fails open; no escape hatch). Pure matcher in `hooks/docs-path-matcher.sh`;
-  contract test `tests/test-docs-path-guard.sh`. Plugin-level (not a skill) — no skill-version
-  registry entry; a minor plugin version bump applies at the next release.
+  contract test `tests/test-docs-path-guard.sh`. Plugin-level — no skill-version-registry change.
 - **Golden-render tests for the shared findings emitters** — `tests/test-golden-emitters.sh`
   pins the full output shape of `emit-json.sh` and `emit-sarif.sh` against checked-in golden
   files under `tests/golden/`, so any regression in the emitted JSON/SARIF structure fails
   loudly (the prior field-probe test only checked three fields). The `runAt` timestamp is
-  normalized; regenerate the goldens after an intentional emitter change with
-  `UPDATE_GOLDEN=1`. Test-only — no skill or behaviour change.
+  normalized; regenerate the goldens with `UPDATE_GOLDEN=1`. Test-only.
+- **Process-skill deferral policy** — new `skills/magento2-context/references/process-skills.md`
+  defines when a `magento2-*` orchestrator may defer to a generic session process skill (and when
+  it must not); `magento2-feature-implement` and `magento2-bug-fix` point at it.
+- **`LICENSE`** — the MIT license text the manifest already declared.
+- **`tests/test-skill-count-consistency.sh`** — pins every "N skills" claim in the README/docs to
+  the actual skill count; the bash-syntax test and CI shellcheck now also scan `hooks/`.
+
+### Fixed
+
+- Skill-count drift in the README and developer docs (now consistently **18 skills**).
+
+### Changed
+
+- Enriched `.claude-plugin/plugin.json` metadata (added `category`, broadened `keywords`).
 
 ## [1.7.0] — 2026-06-16 — `magento2-adminhtml-form`: adminhtml UI-component form generator
 
