@@ -28,7 +28,7 @@ while IFS=: read -r cmd skill; do
     if [ ! -f "$f" ]; then echo "FAIL: missing command file $f"; FAIL=1; continue; fi
     [ "$(head -1 "$f")" = "---" ] || { echo "FAIL: $f missing YAML frontmatter"; FAIL=1; }
     grep -qE '^description: +.+' "$f" || { echo "FAIL: $f missing non-empty description"; FAIL=1; }
-    grep -q "magento2-tools:$skill" "$f" || { echo "FAIL: $f does not route to magento2-tools:$skill"; FAIL=1; }
+    grep -qF "magento2-tools:$skill"'`' "$f" || { echo "FAIL: $f does not route to magento2-tools:$skill"; FAIL=1; }
     [ -d "skills/$skill" ] || { echo "FAIL: $f routes to non-existent skill $skill"; FAIL=1; }
 done <<EOF
 $EXPECTED
@@ -40,6 +40,14 @@ for cmd in deploy bugfix feature release; do
     [ -f "$f" ] || continue
     grep -qE '^disable-model-invocation: +true' "$f" \
         || { echo "FAIL: write command $f must set 'disable-model-invocation: true'"; FAIL=1; }
+done
+
+# 2b. read-only commands must NOT be user-only (auto-invokable)
+for cmd in context snapshot review security perf; do
+    f="$CMD_DIR/$cmd.md"
+    [ -f "$f" ] || continue
+    grep -qE '^disable-model-invocation: +true' "$f" \
+        && { echo "FAIL: read-only command $f must not set 'disable-model-invocation: true'"; FAIL=1; }
 done
 
 # 3. no unexpected command files, and filenames are lowercase-kebab
