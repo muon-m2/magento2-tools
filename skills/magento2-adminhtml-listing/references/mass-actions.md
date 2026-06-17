@@ -51,21 +51,36 @@ When the entity has a status field, add enable and disable actions:
 ```xml
 <action name="enable">
     <settings>
-        <url path="*/*/massStatus"/>
+        <url path="*/*/massEnable"/>
         <label translate="true">Enable</label>
     </settings>
 </action>
 <action name="disable">
     <settings>
-        <url path="*/*/massStatus"/>
+        <url path="*/*/massDisable"/>
         <label translate="true">Disable</label>
     </settings>
 </action>
 ```
 
-Both actions share the `MassStatus` controller; the specific status value (1 or 0) is injected
-via a `di.xml` argument on a virtualType per action if fine-grained control is needed, or the
-controller reads a request param. See `templates/controller-mass-status.php`.
+Magento routes a mass-action controller by its class name (`MassEnable` → `*/*/massEnable`), so
+enable and disable each need their own controller — a single `MassStatus` URL can only carry one
+status. Create `MassEnable` and `MassDisable` as thin subclasses of the shipped `MassStatus` base
+(`templates/controller-mass-status.php`), setting the status (1 / 0) via a `di.xml` argument per
+class:
+
+```xml
+<type name="{Vendor}\{ModuleName}\Controller\Adminhtml\{EntityName}\MassEnable">
+    <arguments><argument name="status" xsi:type="number">1</argument></arguments>
+</type>
+<type name="{Vendor}\{ModuleName}\Controller\Adminhtml\{EntityName}\MassDisable">
+    <arguments><argument name="status" xsi:type="number">0</argument></arguments>
+</type>
+```
+```php
+class MassEnable extends MassStatus {}
+class MassDisable extends MassStatus {}
+```
 
 ## Filter pattern (`Magento\Ui\Component\MassAction\Filter`)
 

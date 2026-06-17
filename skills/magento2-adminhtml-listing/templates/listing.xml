@@ -55,18 +55,19 @@
                 </settings>
             </action>
             <!--
-                Enable/disable mass actions (wire to the MassStatus controller). Uncomment when the
-                entity has a status field; set the value per action via di.xml arguments on
-                Controller\Adminhtml\{EntityName}\MassStatus (status = 1 to enable, 0 to disable):
+                Enable/disable mass actions. Uncomment when the entity has a status field. Each
+                routes to its own controller (Magento routes by class name): create MassEnable and
+                MassDisable as thin subclasses of the shipped MassStatus base, with status 1 / 0 set
+                via a di.xml argument per class. See references/mass-actions.md.
             <action name="enable">
                 <settings>
-                    <url path="*/*/massStatus"/>
+                    <url path="*/*/massEnable"/>
                     <label translate="true">Enable</label>
                 </settings>
             </action>
             <action name="disable">
                 <settings>
-                    <url path="*/*/massStatus"/>
+                    <url path="*/*/massDisable"/>
                     <label translate="true">Disable</label>
                 </settings>
             </action>

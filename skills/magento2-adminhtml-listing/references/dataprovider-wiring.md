@@ -31,8 +31,9 @@ five places agree.
 ### Constructor signature
 
 `AbstractDataProvider` constructor: `($name, $primaryFieldName, $requestFieldName, $meta, $data)`.
-These five arguments are injected by the framework from the `<dataProvider>` XML settings. Assign
-`$this->collection` before `parent::__construct()`. Example:
+These five arguments are injected by the framework from the `<dataProvider>` XML settings. Call
+`parent::__construct()` first (it initialises `$meta`/`$data`), then assign `$this->collection`.
+Example:
 
 ```php
 public function __construct(
