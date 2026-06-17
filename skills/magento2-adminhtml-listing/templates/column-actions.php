@@ -48,17 +48,17 @@ class {EntityName}Actions extends Column
 
         $name = $this->getData('name');
         foreach ($dataSource['data']['items'] as &$item) {
-            $id = (int) ($item['entity_id'] ?? 0);
+            $id = (int) ($item['{entity}_id'] ?? 0);
             if ($id === 0) {
                 continue;
             }
             $item[$name] = [
                 'edit' => [
-                    'href' => $this->urlBuilder->getUrl(self::URL_EDIT, ['id' => $id]),
+                    'href' => $this->urlBuilder->getUrl(self::URL_EDIT, ['{entity}_id' => $id]),
                     'label' => __('Edit'),
                 ],
                 'delete' => [
-                    'href' => $this->urlBuilder->getUrl(self::URL_DELETE, ['id' => $id]),
+                    'href' => $this->urlBuilder->getUrl(self::URL_DELETE, ['{entity}_id' => $id]),
                     'label' => __('Delete'),
                     'confirm' => [
                         'title' => __('Delete'),

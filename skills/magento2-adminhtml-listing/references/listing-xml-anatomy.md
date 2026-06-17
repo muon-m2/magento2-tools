@@ -42,23 +42,23 @@ construction. `scripts/verify-listing.sh` re-checks agreement after generation.
     <deps><dep>{LISTING}.{SOURCE}</dep></deps>
   <dataSource name="{SOURCE}" component="Magento_Ui/js/grid/provider">
     <settings>
-      <storageConfig><param name="indexField">entity_id</param></storageConfig>
+      <storageConfig><param name="indexField">{entity}_id</param></storageConfig>
       <updateUrl path="mui/index/render"/>
     </settings>
     <aclResource>{Vendor}_{Module}::main</aclResource>
     <dataProvider class="…\Ui\DataProvider\{EntityName}DataProvider" name="{SOURCE}">
       <settings>
-        <requestFieldName>id</requestFieldName>
-        <primaryFieldName>entity_id</primaryFieldName>
+        <requestFieldName>{entity}_id</requestFieldName>
+        <primaryFieldName>{entity}_id</primaryFieldName>
       </settings>
     </dataProvider>
   </dataSource>
   <listingToolbar name="listing_top">    ← toolbar widgets
   <columns name="{LISTING}_columns">
     <selectionsColumn name="ids">        ← REQUIRED for mass actions
-    <column name="entity_id">
+    <column name="{entity}_id">
     <actionsColumn name="actions" class="…\Column\{EntityName}Actions">
-      <settings><indexField>entity_id</indexField></settings>
+      <settings><indexField>{entity}_id</indexField></settings>
     </actionsColumn>
   </columns>
 </listing>

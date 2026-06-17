@@ -22,7 +22,7 @@
     <dataSource name="{vendor_lower}_{module_lower}_{entity}_listing_data_source" component="Magento_Ui/js/grid/provider">
         <settings>
             <storageConfig>
-                <param name="indexField" xsi:type="string">entity_id</param>
+                <param name="indexField" xsi:type="string">{entity}_id</param>
             </storageConfig>
             <updateUrl path="mui/index/render"/>
         </settings>
@@ -30,8 +30,8 @@
         <dataProvider class="{Vendor}\{ModuleName}\Ui\DataProvider\{EntityName}DataProvider"
                       name="{vendor_lower}_{module_lower}_{entity}_listing_data_source">
             <settings>
-                <requestFieldName>id</requestFieldName>
-                <primaryFieldName>entity_id</primaryFieldName>
+                <requestFieldName>{entity}_id</requestFieldName>
+                <primaryFieldName>{entity}_id</primaryFieldName>
             </settings>
         </dataProvider>
     </dataSource>
@@ -78,10 +78,10 @@
     <columns name="{vendor_lower}_{module_lower}_{entity}_columns">
         <selectionsColumn name="ids">
             <settings>
-                <indexField>entity_id</indexField>
+                <indexField>{entity}_id</indexField>
             </settings>
         </selectionsColumn>
-        <column name="entity_id">
+        <column name="{entity}_id">
             <settings>
                 <filter>textRange</filter>
                 <label translate="true">ID</label>
@@ -108,7 +108,7 @@
         </column>
         <actionsColumn name="actions" class="{Vendor}\{ModuleName}\Ui\Component\Listing\Column\{EntityName}Actions">
             <settings>
-                <indexField>entity_id</indexField>
+                <indexField>{entity}_id</indexField>
             </settings>
         </actionsColumn>
     </columns>

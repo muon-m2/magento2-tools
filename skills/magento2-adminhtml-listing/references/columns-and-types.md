@@ -60,14 +60,15 @@ The `options` class must implement `Magento\Framework\Data\OptionSourceInterface
 ```xml
 <actionsColumn name="actions" class="{Vendor}\{ModuleName}\Ui\Component\Listing\Column\{EntityName}Actions">
     <settings>
-        <indexField>entity_id</indexField>
+        <indexField>{entity}_id</indexField>
     </settings>
 </actionsColumn>
 ```
 
 The `indexField` setting tells the column which row field carries the row id used to build the
 edit/delete URLs. It must match the `primaryFieldName` declared in the `<dataProvider>` settings
-and the actual primary key column in the data. A mismatch produces blank or broken action URLs.
+and the actual primary key column in the data (e.g. `faq_id` for `faq`). A mismatch produces
+blank or broken action URLs.
 See `templates/column-actions.php` and `references/pairing-with-form.md`.
 
 ## Filter types
@@ -86,7 +87,7 @@ Omit `<filter>` on columns that should not be filterable.
 ```xml
 <selectionsColumn name="ids">
     <settings>
-        <indexField>entity_id</indexField>
+        <indexField>{entity}_id</indexField>
     </settings>
 </selectionsColumn>
 ```
@@ -98,7 +99,7 @@ declare it before any `<column>` elements. See `references/mass-actions.md`.
 ## sortOrder
 
 `sortOrder` controls the column display order within the grid. Use increments of 10 so later
-additions can slot between existing columns without renumbering. The `entity_id` / ID column
+additions can slot between existing columns without renumbering. The `{entity}_id` / ID column
 conventionally gets `sortOrder 10`; domain columns follow.
 
 ## Sources

@@ -8,7 +8,7 @@ mode the templates are built to avoid.
 |---------|-----------|-----|
 | **Empty grid** (toolbar renders, zero rows) | The five-place **naming contract** disagrees — any one of the five `{LISTING}` / `{SOURCE}` strings is misspelled or inconsistent | Make js_config provider / deps dep / dataSource name / dataProvider name / columns spinner all agree exactly; confirm file name = `{LISTING}.xml`. Run `scripts/verify-listing.sh`. See `references/listing-xml-anatomy.md` |
 | **Empty grid (SearchResult path)** | `di.xml` collections map key does not exactly equal `{SOURCE}` | Make the `<item name="…">` value byte-identical to `{SOURCE}`. See `references/grid-collection.md` |
-| **Mass actions inert** | `selectionsColumn` missing — checkboxes never render | Add `<selectionsColumn name="ids"><settings><indexField>entity_id</indexField></settings></selectionsColumn>` as the first child of `<columns>`. See `references/mass-actions.md` |
+| **Mass actions inert** | `selectionsColumn` missing — checkboxes never render | Add `<selectionsColumn name="ids"><settings><indexField>{entity}_id</indexField></settings></selectionsColumn>` as the first child of `<columns>`. See `references/mass-actions.md` |
 | **Broken edit/delete URLs** | `actionsColumn indexField` does not match the primary key column in the data | Set `<indexField>` in `<actionsColumn>` to the same field as `primaryFieldName` in `<dataProvider>` |
 | **Blank content area** (page renders but grid is missing) | Wrong layout handle file name | Name the file `{vendor_lower}_{module_lower}_{entity}_index.xml`; confirm route id matches |
 | **Empty left column (visual artifact)** | `admin-2columns-left` used instead of `admin-1column` | Set `layout="admin-1column"` in `layout-index.xml` |

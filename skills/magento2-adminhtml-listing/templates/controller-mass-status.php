@@ -8,6 +8,7 @@ use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\Controller\ResultInterface;
+use Magento\Framework\Data\Form\FormKey\Validator as FormKeyValidator;
 use Magento\Ui\Component\MassAction\Filter;
 use {Vendor}\{ModuleName}\Model\ResourceModel\{EntityName}\CollectionFactory;
 
@@ -23,12 +24,14 @@ class MassStatus extends Action implements HttpPostActionInterface
      * @param \Magento\Backend\App\Action\Context $context
      * @param \Magento\Ui\Component\MassAction\Filter $filter
      * @param \{Vendor}\{ModuleName}\Model\ResourceModel\{EntityName}\CollectionFactory $collectionFactory
+     * @param \Magento\Framework\Data\Form\FormKey\Validator $formKeyValidator
      * @param int $status
      */
     public function __construct(
         Context $context,
         private readonly Filter $filter,
         private readonly CollectionFactory $collectionFactory,
+        private readonly FormKeyValidator $formKeyValidator,
         private readonly int $status = 1,
     ) {
         parent::__construct($context);
@@ -39,6 +42,11 @@ class MassStatus extends Action implements HttpPostActionInterface
      */
     public function execute(): ResultInterface
     {
+        if (!$this->formKeyValidator->validate($this->getRequest())) {
+            $this->messageManager->addErrorMessage(__('Invalid form key. Please try again.'));
+            return $this->resultRedirectFactory->create()->setPath('*/*/');
+        }
+
         $collection = $this->filter->getCollection($this->collectionFactory->create());
         $count = 0;
         foreach ($collection as $item) {

@@ -11,12 +11,12 @@ Declare `<selectionsColumn name="ids">` as the **first element** inside `<column
 ```xml
 <selectionsColumn name="ids">
     <settings>
-        <indexField>entity_id</indexField>
+        <indexField>{entity}_id</indexField>
     </settings>
 </selectionsColumn>
 ```
 
-The `indexField` must match the primary key column (`entity_id` or equivalent). Without this
+The `indexField` must match the primary key column (`{entity}_id`, e.g. `faq_id`). Without this
 element the checkboxes are never rendered and the entire mass-action system is silently inert —
 the massaction toolbar still appears but nothing can be selected. ([S6])
 
@@ -149,6 +149,21 @@ The massaction toolbar renders and an action can be "submitted", but with no sel
 `Filter` service returns an empty collection and the controller logs "0 records affected." No
 error is shown. Always confirm `<selectionsColumn>` is declared before any `<column>` in the
 `<columns>` block. ([S6])
+
+**(d) Mass-action POST controllers must validate the form key.**
+`MassDelete` and `MassStatus` are `HttpPostActionInterface` controllers that accept a POST from
+the admin grid. Without form-key validation an attacker can forge a cross-site request that bulk-
+deletes or changes records. Inject `Magento\Framework\Data\Form\FormKey\Validator` and call it at
+the top of `execute()` before touching the collection:
+
+```php
+if (!$this->formKeyValidator->validate($this->getRequest())) {
+    $this->messageManager->addErrorMessage(__('Invalid form key. Please try again.'));
+    return $this->resultRedirectFactory->create()->setPath('*/*/');
+}
+```
+
+This mirrors the pattern in `magento2-adminhtml-form`'s `Save` controller.
 
 ## Sources
 - [S6] Adobe — Mass action component: https://developer.adobe.com/commerce/frontend-core/ui-components/components/mass-action/

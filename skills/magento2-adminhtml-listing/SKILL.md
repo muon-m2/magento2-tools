@@ -31,7 +31,7 @@ form. Never the legacy `Magento\Backend\Block\Widget\Grid`.
 - **Default DataProvider is `AbstractDataProvider` + `CollectionFactory`.** `AbstractDataProvider::getData()` already returns the grid shape (`['items' => [...], 'totalRecords' => N]`) — do NOT override `getData()`. Inject `CollectionFactory` and assign `$this->collection`. See `references/dataprovider-wiring.md`.
 - **Optional SearchResult path.** For joins or large grids, swap the PHP DataProvider for the generic `Magento\Framework\View\Element\UiComponent\DataProvider\DataProvider` plus a `di.xml` `CollectionFactory.collections` map pointing to `Grid\Collection extends SearchResult`. The `di-listing.xml` template handles this. See `references/dataprovider-wiring.md` and `references/grid-collection.md`.
 - **`selectionsColumn` is required for mass actions.** Without `<selectionsColumn name="ids">`, the mass-action checkboxes never appear and mass actions are silently inert.
-- **`actionsColumn` must carry the correct `indexField`.** The `indexField` setting in `<actionsColumn>` must match the primary key column (e.g. `entity_id`). A mismatch produces blank or broken edit/delete URLs.
+- **`actionsColumn` must carry the correct `indexField`.** The `indexField` setting in `<actionsColumn>` must match the primary key column (e.g. `faq_id` for `faq`). A mismatch produces blank or broken edit/delete URLs.
 - **Reuse the form's acl/menu/routes when present.** If `magento2-adminhtml-form` already created `etc/adminhtml/routes.xml`, `etc/acl.xml`, and `etc/adminhtml/menu.xml` for the same module, do not overwrite them — merge only the listing's ACL resource if absent. Create them when the listing is standalone.
 - **Layout uses `admin-1column`.** The listing layout (`layout-index.xml`) must declare `layout="admin-1column"` — a full-width grid. `admin-2columns-left` leaves an empty left column.
 - **Never assume a running Magento instance.** Generate files; do not call `bin/magento` or hit the database during generation. `setup:upgrade` is a post-gen command listed in the Phase 5 report.
@@ -54,7 +54,7 @@ Ask for any missing values:
 |-------|---------|-------|
 | Target module | (ask) | Existing `{Vendor}_{Module}`; offer `magento2-module-create` if absent |
 | Entity name | (ask) | PascalCase `{EntityName}` + lowercase `{entity}` (e.g. `Faq`/`faq`) |
-| Primary key column | `entity_id` | The id column referenced by `selectionsColumn` and `actionsColumn` |
+| Primary key column | `{entity}_id` | The id column referenced by `selectionsColumn` and `actionsColumn`; matches the paired form's `getParam('{entity}_id')` |
 | Columns | (ask) | Each: name, label, column type, filter type, sortOrder |
 | Has status field? | (ask) | Enables MassStatus controller + enable/disable mass actions |
 | Paired form? | (ask) | Name of the edit form (used for actions column routes); "none" if standalone |
@@ -112,7 +112,7 @@ Brief Markdown saved to `.docs/adminhtml-listings/{Vendor}_{Module}-{entity}-lis
 ## Inputs
 
 ```
-/magento2-adminhtml-listing --module=Acme_Faq --entity=Faq --primary=entity_id --status --paired-form=acme_faq_faq
+/magento2-adminhtml-listing --module=Acme_Faq --entity=Faq --primary=faq_id --status --paired-form=acme_faq_faq
 ```
 
 ## Outputs
