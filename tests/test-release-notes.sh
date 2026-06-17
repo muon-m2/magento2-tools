@@ -29,8 +29,8 @@ rc=0; RELEASE_NOTES_ROOT="$tmp" bash "$H" 9.9.9 >/dev/null 2>&1 || rc=$?
 [ "$rc" -eq 3 ] || { echo "FAIL: expected exit 3 (version mismatch) got $rc"; FAIL=1; }
 
 # 4. fixture happy path: manifests at 9.9.9 -> exit 0, body contains 'thing'
-sed -i 's/"version": "1.0.0"/"version": "9.9.9"/' "$tmp/.claude-plugin/plugin.json"
-sed -i 's/"version": "1.0.0"/"version": "9.9.9"/' "$tmp/.claude-plugin/marketplace.json"
+printf '{\n  "name": "magento2-tools",\n  "version": "9.9.9"\n}\n' > "$tmp/.claude-plugin/plugin.json"
+printf '{\n  "plugins": [ { "name": "magento2-tools", "version": "9.9.9" } ]\n}\n' > "$tmp/.claude-plugin/marketplace.json"
 out="$(RELEASE_NOTES_ROOT="$tmp" bash "$H" 9.9.9 2>/dev/null)" || { echo "FAIL: fixture happy path non-zero"; FAIL=1; }
 printf '%s' "$out" | grep -q 'thing' || { echo "FAIL: fixture body missing expected content"; FAIL=1; }
 

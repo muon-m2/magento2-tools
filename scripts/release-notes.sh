@@ -23,7 +23,7 @@ command -v python3 >/dev/null 2>&1 || { echo "release-notes: python3 required" >
 for f in .claude-plugin/plugin.json .claude-plugin/marketplace.json; do
     ok="$(python3 - "$ROOT/$f" "$VERSION" <<'PY'
 import json, sys
-doc = json.load(open(sys.argv[1])); want = sys.argv[2]
+doc = json.load(open(sys.argv[1], encoding="utf-8")); want = sys.argv[2]
 vers = []
 if isinstance(doc.get("version"), str): vers.append(doc["version"])
 for p in (doc.get("plugins") or []):

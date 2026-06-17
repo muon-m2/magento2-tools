@@ -28,7 +28,11 @@ jobs:
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
           bash scripts/release-notes.sh "$VERSION" > "$RUNNER_TEMP/notes.md"
-          echo "title=$(bash scripts/release-notes.sh --title "$VERSION")" >> "$GITHUB_OUTPUT"
+          {
+            echo "title<<RELEOF"
+            bash scripts/release-notes.sh --title "$VERSION"
+            echo "RELEOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Create GitHub Release
         env:
