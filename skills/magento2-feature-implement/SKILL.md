@@ -341,7 +341,12 @@ hardcode a specific runner — fall back gracefully and report what was skipped.
 
 Work through the approved task list in dependency order. For tasks marked `Parallel: yes` in the
 task list, concurrent execution via sub-agents is permitted subject to the rules in
-`references/task-breakdown-guide.md` (Parallel Execution section). For each task:
+`references/task-breakdown-guide.md` (Parallel Execution section) — those rules are the authority
+and stand alone. Optionally, if a generic parallel-dispatch process skill is present in the session
+(e.g. `superpowers:dispatching-parallel-agents`), you may prefer its isolation / shared-state
+mechanics on top of them; if absent, the guide's section is complete on its own. See
+`magento2-context/references/process-skills.md` for when deferring to a generic process skill is
+sanctioned — and the surfaces where it is not. For each task:
 
 ### Per-task completion protocol (mandatory — closes every task type below)
 
