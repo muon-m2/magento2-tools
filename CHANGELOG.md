@@ -24,6 +24,10 @@ This project adheres to [Semantic Versioning](https://semver.org/).
   skill. The `/context` and `/snapshot` command descriptions note explicit-intent use. Pinned by
   `tests/test-routing-discriminators.sh`. Routing metadata only — no skill-version or behaviour
   change.
+- **Release automation** — `.github/workflows/release.yml` publishes a GitHub Release when a `v*`
+  tag is pushed: it runs the contract suite, asserts the tag matches `plugin.json` +
+  `marketplace.json`, and uses `scripts/release-notes.sh` to extract the matching CHANGELOG section
+  as the release notes. Version bump / CHANGELOG / tag stay manual. CI/infra only — no skill change.
 
 ## [1.8.0] — 2026-06-17 — `.docs/` path-guard hook, golden emitter tests, deferral policy
 
