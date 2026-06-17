@@ -6,6 +6,17 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **Golden-render tests for the shared findings emitters** — `tests/test-golden-emitters.sh`
+  pins the full output shape of `emit-json.sh` and `emit-sarif.sh` against checked-in golden
+  files under `tests/golden/`, so any regression in the emitted JSON/SARIF structure fails
+  loudly (the prior field-probe test only checked three fields). The `runAt` timestamp is
+  normalized; regenerate the goldens after an intentional emitter change with
+  `UPDATE_GOLDEN=1`. Test-only — no skill or behaviour change.
+
 ## [1.7.0] — 2026-06-16 — `magento2-adminhtml-form`: adminhtml UI-component form generator
 
 ### New skill: `magento2-adminhtml-form` 1.0.0
