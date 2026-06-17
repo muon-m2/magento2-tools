@@ -149,6 +149,7 @@ detection. Changing any override busts the resolver cache automatically.
   plugin.json        # plugin manifest
   marketplace.json   # this repo doubles as its own marketplace ("muon-m2")
 skills/              # 17 magento2-* skills (auto-discovered by Claude Code)
+hooks/               # PreToolUse guard: keeps .docs/ artifacts at the project root
 tests/               # contract test harness
 ```
 
