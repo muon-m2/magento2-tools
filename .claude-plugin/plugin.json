@@ -9,5 +9,21 @@
   "homepage": "https://github.com/muon-m2/magento2-tools",
   "repository": "https://github.com/muon-m2/magento2-tools",
   "license": "MIT",
-  "keywords": ["magento2", "magento", "adobe-commerce", "php", "code-review", "testing"]
+  "category": "development",
+  "keywords": [
+    "magento2",
+    "magento",
+    "adobe-commerce",
+    "php",
+    "code-review",
+    "testing",
+    "scaffolding",
+    "graphql",
+    "hyva",
+    "eav",
+    "security-audit",
+    "performance",
+    "deployment",
+    "ui-component"
+  ]
 }
