@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+    <menu>
+        <add id="{Vendor}_{ModuleName}::main"
+             title="{ModuleName}"
+             module="{Vendor}_{ModuleName}"
+             sortOrder="50"
+             parent="Magento_Backend::stores"
+             resource="{Vendor}_{ModuleName}::main"/>
+        <add id="{Vendor}_{ModuleName}::{entity}"
+             title="{EntityName}s"
+             module="{Vendor}_{ModuleName}"
+             parent="{Vendor}_{ModuleName}::main"
+             sortOrder="10"
+             action="{vendor_lower}_{module_lower}/{entity}/index"
+             resource="{Vendor}_{ModuleName}::main"/>
+    </menu>
+</config>
