@@ -16,6 +16,10 @@ This project adheres to [Semantic Versioning](https://semver.org/).
   four write commands (`deploy`/`bugfix`/`feature`/`release`) are user-only
   (`disable-model-invocation: true`) and never weaken a skill's approval/production gates.
   Contract test: `tests/test-command-routing.sh`. No skill behaviour changes.
+- **Release automation** — `.github/workflows/release.yml` publishes a GitHub Release when a `v*`
+  tag is pushed: it runs the contract suite, asserts the tag matches `plugin.json` +
+  `marketplace.json`, and uses `scripts/release-notes.sh` to extract the matching CHANGELOG section
+  as the release notes. Version bump / CHANGELOG / tag stay manual. CI/infra only — no skill change.
 
 ## [1.8.0] — 2026-06-17 — `.docs/` path-guard hook, golden emitter tests, deferral policy
 

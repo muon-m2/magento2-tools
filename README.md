@@ -174,6 +174,7 @@ skills/              # 18 magento2-* skills (auto-discovered by Claude Code)
 commands/            # 9 /magento2-tools:<verb> shortcut commands (auto-discovered)
 hooks/               # PreToolUse guard: keeps .docs/ artifacts at the project root
 tests/               # contract test harness
+scripts/             # release-notes helper (used by .github/workflows/release.yml)
 ```
 
 Bundled scripts are invoked from SKILL.md as `${CLAUDE_SKILL_DIR}/scripts/<name>` (own
@@ -192,6 +193,15 @@ frontmatter validity, cross-reference integrity (including `${CLAUDE_SKILL_DIR}`
 (bare/docker runner contract + src-layout/override fixtures), plugin↔marketplace version
 sync, skill-version-registry consistency, and golden-output snapshots of the shared findings emitters (`emit-json` / `emit-sarif`). CI additionally runs `shellcheck`. Tests that
 need a missing interpreter exit 77 (SKIP) rather than failing.
+
+## Releasing
+
+Bump `.claude-plugin/plugin.json` + `marketplace.json`, convert the CHANGELOG `[Unreleased]`
+section to `## [X.Y.Z]`, commit `Release vX.Y.Z`, then push an annotated `vX.Y.Z` tag. The tag push
+triggers [`.github/workflows/release.yml`](.github/workflows/release.yml), which runs the contract
+suite, asserts the tag matches both manifest versions, and publishes a GitHub Release with the
+matching CHANGELOG section as its notes (extracted by `scripts/release-notes.sh`). The bump,
+CHANGELOG, and tag stay manual.
 
 ## Versioning
 
