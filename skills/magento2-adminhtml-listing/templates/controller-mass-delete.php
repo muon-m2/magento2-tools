@@ -44,7 +44,6 @@ class MassDelete extends Action implements HttpPostActionInterface
         }
         $this->messageManager->addSuccessMessage(__('A total of %1 record(s) have been deleted.', $deleted));
 
-        $resultRedirect = $this->resultRedirectFactory->create();
-        return $resultRedirect->setPath('*/*/');
+        return $this->resultRedirectFactory->create()->setPath('*/*/');
     }
 }

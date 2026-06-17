@@ -54,6 +54,23 @@
                     <label translate="true">Delete</label>
                 </settings>
             </action>
+            <!--
+                Enable/disable mass actions (wire to the MassStatus controller). Uncomment when the
+                entity has a status field; set the value per action via di.xml arguments on
+                Controller\Adminhtml\{EntityName}\MassStatus (status = 1 to enable, 0 to disable):
+            <action name="enable">
+                <settings>
+                    <url path="*/*/massStatus"/>
+                    <label translate="true">Enable</label>
+                </settings>
+            </action>
+            <action name="disable">
+                <settings>
+                    <url path="*/*/massStatus"/>
+                    <label translate="true">Disable</label>
+                </settings>
+            </action>
+            -->
         </massaction>
         <paging name="listing_paging"/>
     </listingToolbar>
