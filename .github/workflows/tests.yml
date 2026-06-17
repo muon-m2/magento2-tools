@@ -17,7 +17,7 @@ jobs:
       - name: Run shellcheck on skill scripts and tests
         run: |
           shellcheck --version
-          files=$(find skills tests -name '*.sh' -type f | sort)
+          files=$(find skills tests hooks -name '*.sh' -type f | sort)
           echo "Linting:"; echo "$files" | sed 's/^/  /'
           # shellcheck SC1091 (can't follow non-constant source) is expected for the
           # BASH_SOURCE-resolved shared emitters; exclude it.
