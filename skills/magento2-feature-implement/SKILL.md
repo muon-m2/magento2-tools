@@ -5,13 +5,14 @@ description:
   change, build, or implement any Magento 2 functionality — from a simple model change to a
   multi-module integration. Drives the full lifecycle: requirement analysis, blueprint, module
   schema, task breakdown, code generation, review, unit tests, smoke testing, and final report.
-  Requires explicit user approval at two gates (blueprint and task plan) before writing code.
-  Calls magento2-module-create, magento2-module-review, and routes Critical/High findings to
+  Requires approval at two gates before writing code.
+  Calls magento2-module-create, magento2-module-review, and routes findings to
   bug-fix / debug / performance-audit / frontend-create / security-audit.
   Also use to resume, continue, pick up, or finish a feature when the request names a specific
   feature folder under `.docs/` (e.g. "resume ./.docs/CaseManagement"): the skill loads that
   folder's plan.md and resumes from the first unchecked task. Without an explicit
   `.docs/{FeatureName}` path, treat the request as a new feature and start from Phase 1.
+  Single-surface: use magento2-adminhtml-form, magento2-graphql-create, or magento2-eav-attribute.
 ---
 
 # Magento 2 Feature Implement

@@ -4,7 +4,8 @@ description:
     Generate Magento 2 data migration code — data patches for fixed seeds, importers for
     CSV/JSON sources, and transformation scripts. Use when the user needs to seed reference
     data, migrate from Magento 1, import bulk data from external systems, or restructure
-    existing data idempotently. Produces idempotent patches that pass magento2-module-review.
+    existing data idempotently. Produces idempotent patches that pass magento2-module-review. For
+    adding an EAV attribute use magento2-eav-attribute.
 ---
 
 # Magento 2 Data Migration

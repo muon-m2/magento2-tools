@@ -6,7 +6,9 @@ description:
     module where every generated file immediately passes all 12 magento2-module-review categories.
     The skill is surface-driven: it only creates files required for declared surfaces and never
     leaves empty placeholder files. Works without a running Magento instance, Docker, or installed
-    Composer dependencies.
+    Composer dependencies. For a standalone admin form use magento2-adminhtml-form, a GraphQL
+    surface use magento2-graphql-create, or a single EAV attribute use magento2-eav-attribute —
+    this skill scaffolds a new module/extension, not a single sub-surface.
 ---
 
 # Magento 2 Module Create
