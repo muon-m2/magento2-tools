@@ -6,6 +6,14 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.10.2] — 2026-06-18 — per-skill version registry sync (no functional change)
+
+Provenance-only patch. The per-skill version bumps that accompany the [1.10.1] audit-remediation fixes were committed to `main` **after** the `v1.10.1` tag was cut, so this release formalizes them in a tagged release rather than force-moving the already-published `v1.10.1` tag. **No skill behaviour changed since 1.10.1** — this release exists purely so the tagged history and the per-skill provenance registry agree.
+
+### Changed
+
+- Synced `skills/magento2-context/references/skill-versioning.md` (the per-skill version registry) and the `<skill>@<version>` pins it governs to the 1.10.1 remediation: `magento2-context` → 1.6.1, `magento2-module-create` → 1.7.1, `magento2-module-review` → 2.3.1, `magento2-deploy` → 1.2.1, `magento2-security-audit` → 1.2.1, `magento2-test-generate` → 1.1.2, `magento2-eav-attribute` → 1.2.1, `magento2-graphql-create` → 1.0.3, `magento2-release` → 1.1.1, `magento2-adminhtml-listing` → 1.0.1. Skills whose 1.10.1 changes were doc-only (`magento2-i18n`, `magento2-debug`, `magento2-performance-audit`, `magento2-feature-implement`) were intentionally not bumped.
+
 ## [1.10.1] — 2026-06-18 — audit remediation: bug fixes, drift cleanup, regression guards
 
 Correctness pass from an internal optimization & bug-hunt audit. No new skills or user-facing features — existing generators/scripts now produce correct output, and the reference docs match the implementation.
