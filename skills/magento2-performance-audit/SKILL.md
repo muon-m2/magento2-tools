@@ -154,15 +154,9 @@ Flags:
 
 ## Severity
 
-Uses shared scale. Calibration anchors:
-
-| Severity | Example |
-|----------|---------|
-| Critical | Storefront critical path loads full product collection (memory exhaustion at scale) |
-| High | N+1 in checkout totals; missing cache identity on category Block (FPC bypass) |
-| Medium | N+1 in admin grid; non-batched cron iterating > 1000 records |
-| Low | Plugin without explicit sortOrder; ViewModel with light DI |
-| Info | Indexer in update-on-save mode (acceptable but unusual for production) |
+Use the shared five-point scale (`magento2-context/references/severity.md`) with the
+performance-specific calibration anchors, the storefront-vs-admin bias, and the
+profile-backed severity bands in `references/severity-perf.md`.
 
 ## Acceptance Criteria
 
