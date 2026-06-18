@@ -32,6 +32,7 @@ check() { # skill ref...
     done
 }
 
+check cli-command         magento2-module-create
 check feature-implement   magento2-adminhtml-form magento2-graphql-create magento2-eav-attribute
 check system-config       magento2-module-create magento2-adminhtml-form
 check module-create       magento2-adminhtml-form magento2-graphql-create magento2-eav-attribute

@@ -37,6 +37,11 @@ while IFS= read -r tpl; do
         -e 's/{SourceName}/Source/g' \
         -e 's/{FrontendName}/Frontend/g' \
         -e 's/{ServiceName}/Service/g' \
+        -e 's/{CommandClass}/RunCommand/g' \
+        -e 's/{CommandName}/acme:mod:run/g' \
+        -e 's/{command_name}/acme_mod_run/g' \
+        -e 's/{CronJobName}/SyncJob/g' \
+        -e 's/{cron_job_name}/acme_mod_sync/g' \
         -e 's/{ClassName}/Cls/g' \
         -e 's/{TestClassName}/Cls/g' \
         -e 's/{Method}/method/g' \

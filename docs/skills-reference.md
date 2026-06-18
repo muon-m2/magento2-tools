@@ -371,6 +371,28 @@ follow the `{vendor_lower}_{module_lower}/{group}/{field}` convention.
 - **Related:** use `magento2-module-create` first if the module does not exist; for an
   admin **data** edit form use `magento2-adminhtml-form`; reviewed by `magento2-module-review`.
 
+### magento2-cli-command
+
+Add a `bin/magento` console command or a cron job to an **existing** module. Two modes:
+**command** (Symfony `Command` subclass + `CommandList` DI registration + arguments/options
++ `Cli::RETURN_*` exit codes) and **cron** (`crontab.xml` job declaration + job class with
+a delegate service; fixed `<schedule>` or `<config_path>` schedule). Business logic always
+lives in the injected service class.
+
+- **Invocation:** *"add a CLI command to sync orders in Acme_Orders"*;
+  *"add a cron job to Acme_Orders to run every 15 minutes"*;
+  `--mode=command --module=Acme_Orders --class=SyncOrdersCommand --name=acme:orders:sync`;
+  `--mode=cron --module=Acme_Orders --class=SyncOrders --job=acme_orders_sync --schedule="*/15 * * * *"`.
+- **Phases:** resolve context (hard-stop if module absent — offer `magento2-module-create`)
+  → resolve inputs (mode-specific table) → plan (gate) → **test-first** (3A: `CommandTester`
+  unit test for command mode; idempotency + delegate-once test for cron mode) → generate
+  from templates → verify (`php -l`, `xmllint`, `magento2-module-review --diff`) → report.
+- **Outputs:** `Console/Command/{CommandClass}.php` + `etc/di.xml` (command mode) or
+  `Cron/{CronJobName}.php` + `etc/crontab.xml` (cron mode) + unit tests;
+  `.docs/cli-commands/{Module}-{mode}-{slug}-{date}.md`.
+- **Related:** use `magento2-module-create` first if the module does not exist; pair with
+  `magento2-system-config` when the cron schedule should be configurable from admin.
+
 ### magento2-extension-point
 
 Wire behaviour onto an **existing** Magento 2 class without editing it. Three modes:
@@ -403,6 +425,7 @@ key ones.
 
 | If the request is… | Use | Not |
 |---|---|---|
+| Add a bin/magento console command or cron job | `magento2-cli-command` | `magento2-module-create` |
 | Add admin store configuration (system.xml + typed reader) | `magento2-system-config` | `magento2-module-create` / `magento2-adminhtml-form` |
 | Wire behaviour onto an existing class (plugin/observer/preference) | `magento2-extension-point` | `magento2-module-create` / `magento2-feature-implement` |
 | A single admin edit form | `magento2-adminhtml-form` | `magento2-feature-implement` / `magento2-module-create` |

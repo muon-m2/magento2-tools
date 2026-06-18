@@ -63,6 +63,19 @@ Plugin, observer, and preference tokens:
 `{PreferenceForShort}` (unqualified short class/interface name derived from `{PreferenceFor}`; used in `implements`/`extends` after the `use` import),
 `{area}` (area folder name: global/frontend/adminhtml/webapi_rest/graphql/crontab).
 
+## CLI-command tokens (magento2-cli-command)
+
+Console command and cron job generator tokens:
+`{CommandClass}` (PascalCase command class name, e.g. `SyncOrdersCommand`; placed in `Console/Command/`),
+`{CommandName}` (namespaced CLI name, e.g. `acme:orders:sync`; passed to `setName()`),
+`{command_name}` (snake_case DI array key for `CommandList` registration, e.g. `acme_orders_sync_command`),
+`{CronJobName}` (PascalCase cron job class name, e.g. `SyncOrders`; placed in `Cron/`),
+`{cron_job_name}` (snake_case cron job identifier in `crontab.xml`, e.g. `acme_orders_sync`),
+`{CronGroup}` (cron group id in `crontab.xml`, e.g. `default`),
+`{Schedule}` (cron expression string, e.g. `*/15 * * * *`; or replaced by `<config_path>` when schedule comes from admin config).
+
+Note: `{ServiceName}` is already registered under Structural / code tokens above.
+
 ## Theme / frontend tokens
 
 `{component}`, `{component-name-kebab}`, `{module-kebab-case}`, `{module-name-kebab}`,
@@ -132,10 +145,14 @@ CRITICAL_COUNT
 Class
 ClassUnderTest
 Code
+CommandClass
+CommandName
 ConsumerName
 Controller
 ControllerArea
 ControllerName
+CronGroup
+CronJobName
 DATE
 DefaultValue
 Dep1FQCN
@@ -197,6 +214,7 @@ PreferenceFor
 PreferenceForShort
 SHA1
 SHA2
+Schedule
 Section
 SectionId
 SortOrder
@@ -226,10 +244,12 @@ author
 bytes
 code
 col
+command_name
 commit
 component
 component-name-kebab
 consumer_description
+cron_job_name
 ctx.magento_cli
 ctx.magento_root
 ctx.runner
