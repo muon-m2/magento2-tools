@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
+<!-- Admin form page. No layout="admin-2columns-left" (leaves an empty left column) and no
+     <update handle="styles"/> (a storefront-only handle) — matches magento2-adminhtml-form. -->
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd"
-      layout="admin-2columns-left">
-    <update handle="styles"/>
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
         <referenceContainer name="content">
             <uiComponent name="{vendor_lower}_{module_lower}_{entity}_form"/>

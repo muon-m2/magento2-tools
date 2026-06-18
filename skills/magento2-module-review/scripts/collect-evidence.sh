@@ -32,7 +32,10 @@ search_php() {
     if command -v rg >/dev/null 2>&1; then
         rg -n -t php "$pattern" "$module_path" || true
     else
-        grep -RInE --include='*.php' "$pattern" "$module_path" || true
+        # rg's `php` type also covers .phtml templates (the highest XSS-risk surface), so the
+        # grep fallback must include them too — otherwise the escaping/XSS scan skips every
+        # template on hosts without ripgrep.
+        grep -RInE --include='*.php' --include='*.phtml' "$pattern" "$module_path" || true
     fi
 }
 

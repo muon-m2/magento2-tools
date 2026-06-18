@@ -611,6 +611,39 @@ if [ "$ENV" = "production" ]; then
     fi
 fi
 
+# Required (production): branch matches the production target (pre-flight-checks.md).
+# A production deploy must run from the release branch — not a feature branch. PROD_BRANCH
+# overrides the expected branch; with no override we accept main/master or any release/*.
+if [ "$ENV" = "production" ]; then
+    if command -v git >/dev/null 2>&1; then
+        cur_branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo '')"
+        if [ -n "${PROD_BRANCH:-}" ]; then
+            if [ "$cur_branch" = "$PROD_BRANCH" ]; then
+                record "branch-match" "true" "pass" "on production branch ${cur_branch}"
+            else
+                record "branch-match" "true" "fail" "on '${cur_branch}', expected '${PROD_BRANCH}'"
+                FAILED=1
+            fi
+        else
+            case "$cur_branch" in
+                main|master|release/*)
+                    record "branch-match" "true" "pass" "on production branch ${cur_branch}" ;;
+                ""|HEAD)
+                    # `git rev-parse --abbrev-ref HEAD` prints the literal "HEAD" in detached-HEAD
+                    # mode (and "" only when git errored), so both mean "not on a named branch".
+                    record "branch-match" "true" "fail" "detached HEAD or not a git repo; production deploy needs a release branch"
+                    FAILED=1 ;;
+                *)
+                    record "branch-match" "true" "fail" "on '${cur_branch}', expected main/master/release/* (set PROD_BRANCH to override)"
+                    FAILED=1 ;;
+            esac
+        fi
+    else
+        record "branch-match" "true" "fail" "git not available; cannot verify production branch"
+        FAILED=1
+    fi
+fi
+
 # Compose JSON
 joined="$(IFS=','; echo "${RESULTS[*]}")"
 passed_flag="true"

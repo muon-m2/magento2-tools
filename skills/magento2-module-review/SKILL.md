@@ -166,16 +166,11 @@ Read `references/parallel-review.md` before delegating. Parallel review requires
 
 ## Severity
 
-- Critical: exploitable auth/payment/data-loss issue, RCE, secret leak, or deployment-breaking defect.
-- High: security bypass, broken public API, unsafe state mutation, serious data integrity issue, or DI/schema issue
-  likely to break production.
-- Medium: Magento architectural violation, missing validation, maintainability issue likely to cause defects, or
-  insufficient tests for risky logic.
-- Low: style, documentation, naming, minor best-practice gap, optional hardening.
-- Info: positive observation, skipped check, context, or non-blocking recommendation.
-
-Every finding must include impact, evidence, recommendation, and a verification or test suggestion.
-See `references/severity-examples.md` for a Magento-specific calibration matrix.
+Use the shared five-point scale (Critical / High / Medium / Low / Info) defined in
+`magento2-context/references/severity.md` — including its adjustment rules and the
+suspected-but-unconfirmed handling. Every finding must include impact, evidence,
+recommendation, and a verification or test suggestion. See `references/severity-examples.md`
+for the Magento-specific calibration matrix.
 
 ## Reference Files
 

@@ -88,5 +88,6 @@
     }
   ],
   "skipped": [],
-  "tools": {}
+  "tools": {},
+  "scanner_errors": []
 }

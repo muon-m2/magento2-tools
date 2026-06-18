@@ -44,6 +44,10 @@ TYPE_DIRS = [
 ]
 
 untested = []
+# os.walk recurses, so a nested type dir (e.g. Model/Resolver) is also walked when its parent
+# (Model) is processed. TYPE_DIRS lists the more-specific dir first; `seen` keeps each source
+# file classified once under that first match instead of being emitted twice with two types.
+seen = set()
 
 for subdir, kind in TYPE_DIRS:
     src_root = os.path.join(module_path, subdir)
@@ -56,6 +60,9 @@ for subdir, kind in TYPE_DIRS:
             if not name.endswith('.php'):
                 continue
             full = os.path.join(root, name)
+            if full in seen:
+                continue
+            seen.add(full)
             rel = os.path.relpath(full, module_path)
             base = name[:-4]
             test_rel = os.path.join('Test', 'Unit', os.path.relpath(root, module_path), base + 'Test.php')

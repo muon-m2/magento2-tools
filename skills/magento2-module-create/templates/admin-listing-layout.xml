@@ -1,8 +1,10 @@
 <?xml version="1.0"?>
+<!-- Admin grid page. layout="admin-1column" (full-width grid; admin-2columns-left leaves an
+     empty left column) and no <update handle="styles"/> (storefront-only) — matches
+     magento2-adminhtml-listing. -->
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd"
-      layout="admin-2columns-left">
-    <update handle="styles"/>
+      layout="admin-1column">
     <body>
         <referenceContainer name="content">
             <uiComponent name="{vendor_lower}_{module_lower}_{entity}_listing"/>

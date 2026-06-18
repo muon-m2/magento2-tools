@@ -166,15 +166,9 @@ The skill produces **two automation artifacts** and **one LLM deliverable**:
 
 ## Severity Calibration
 
-Uses shared scale. Anchors:
-
-| Severity | Example |
-|----------|---------|
-| Critical | RCE-class CVE in a direct dependency; secret in committed code; payment data path without auth |
-| High | Anonymous REST endpoint returning non-public data; missing CSRF on admin POST; CVE in indirect dependency with no upgrade |
-| Medium | Missing CSP for module loading external JS; weak session cookie flags; `<preference>` on `Customer\Model\Session` |
-| Low | Unused encrypted backend model on a sensitive field; ACL granularity could be finer |
-| Info | EQP style finding; secret scan skipped (tool unavailable) |
+Use the shared five-point scale (`magento2-context/references/severity.md`) with the
+security-specific anchors **and the PCI / GDPR severity bumps** in
+`references/severity-security.md` (the authoritative calibration matrix for this skill).
 
 ## Acceptance Criteria
 

@@ -14,7 +14,7 @@ use Magento\Framework\Setup\Patch\DataPatchInterface;
 /**
  * Add {AttributeCode} attribute to customer_address entity.
  */
-class Add{AttributeCode}AddressAttribute implements DataPatchInterface
+class Add{AttributeCode}Attribute implements DataPatchInterface
 {
     /**
      * Constructor.

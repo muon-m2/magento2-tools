@@ -2,14 +2,21 @@
 
 ## Reading the MySQL Slow Log
 
+The slow-log path is configurable and varies across MySQL/MariaDB and Docker images — never
+assume `/var/log/mysql/slow.log`. Resolve the real path first, then read it:
+
 ```bash
-{ctx.runner} cat /var/log/mysql/slow.log
+# Resolve the configured path (and confirm logging is on).
+SLOW_LOG=$({ctx.runner} mysql -N -e "SHOW VARIABLES LIKE 'slow_query_log_file'" | awk '{print $2}')
+{ctx.runner} mysql -N -e "SHOW VARIABLES LIKE 'slow_query_log'"   # ON/OFF
+
+{ctx.runner} cat "$SLOW_LOG"
 ```
 
-Or via `mysqldumpslow` if available:
+Or via `mysqldumpslow` if available (pass the resolved path):
 
 ```bash
-{ctx.runner} mysqldumpslow -s t -t 20 /var/log/mysql/slow.log
+{ctx.runner} mysqldumpslow -s t -t 20 "$SLOW_LOG"
 ```
 
 Reports queries by total time, in descending order.

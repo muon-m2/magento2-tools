@@ -17,8 +17,8 @@ type Mutation {
 type {Entity} {
     id: ID!
     name: String!
-    status: {Entity}Status!
-    created_at: String!
+    status: {Entity}Status
+    created_at: String
 }
 
 type {Entity}Listing {
