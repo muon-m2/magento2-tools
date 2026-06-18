@@ -46,7 +46,7 @@ Store-configuration generator tokens:
 `{SectionId}` (snake_case section id in system.xml, e.g. `acme_checkout`),
 `{GroupId}` (snake_case group id, e.g. `general`),
 `{FieldId}` (snake_case field id, e.g. `enable_feature`),
-`{ConfigPath}` (full config path `{section}/{group}/{field}`, used in typed reader constants),
+`{FieldTitle}` (human-readable field label shown in admin, e.g. `Enable Feature`),
 `{BackendModelName}` (PascalCase backend model class name, e.g. `SomeBackend`),
 `{DefaultValue}` (default field value written to config.xml, e.g. `1`).
 
@@ -155,6 +155,7 @@ ExistingModule
 FINDINGS_HTML
 FeatureName
 FieldId
+FieldTitle
 From
 Group
 GroupId

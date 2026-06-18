@@ -4,8 +4,9 @@
   Target: {Vendor}/{Module}/etc/acl.xml  (MERGE into existing acl.xml; do not clobber)
 
   The config resource is referenced by the <resource> element inside system.xml's <section>.
-  It nests under {Vendor}_{Module}::main so that granting the module's main resource
-  implicitly grants access to its configuration.
+  It nests under Magento_Config::config so that it appears in the Stores → Configuration
+  ACL section. If you also want granting {Vendor}_{Module}::main to imply config access,
+  additionally declare this resource as a child of {Vendor}_{Module}::main in the same file.
 
   acl.xsd allows ONLY id, title, sortOrder, disabled on <resource>. Do NOT add
   translate="..." — that attribute belongs on menu.xml <add>, not here.

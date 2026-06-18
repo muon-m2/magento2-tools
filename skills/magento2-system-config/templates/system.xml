@@ -27,15 +27,17 @@
                 <!-- select field example — replace type/source_model/backend_model as needed -->
                 <field id="{FieldId}" translate="label comment" type="select" sortOrder="10"
                        showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>{Title}</label>
+                    <label>{FieldTitle}</label>
                     <comment>{description}</comment>
                     <!-- Remove source_model if type is not select/multiselect -->
                     <source_model>{Vendor}\{Module}\Model\Config\Source\{SourceName}</source_model>
                     <!-- Remove backend_model if no custom save/load logic is needed -->
                     <backend_model>{Vendor}\{Module}\Model\Config\Backend\{BackendModelName}</backend_model>
-                    <!-- Remove depends if no conditional visibility is needed -->
+                    <!-- Remove depends if no conditional visibility is needed. The field id
+                         here must be a DIFFERENT sibling field in this group (e.g. an "enable"
+                         toggle) — a field cannot depend on itself. -->
                     <depends>
-                        <field id="{FieldId}">1</field>
+                        <field id="enable">1</field>
                     </depends>
                 </field>
 

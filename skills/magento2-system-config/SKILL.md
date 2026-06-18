@@ -39,7 +39,8 @@ source and backend models, and a typed `Config` reader that wraps `ScopeConfigIn
 Invoke `magento2-context` (or run
 `${CLAUDE_PLUGIN_ROOT}/skills/magento2-context/scripts/resolve-context.sh`); capture the
 JSON as `{ctx}`. Abort if `{ctx.magento_root}` is unresolved. If the target module does
-not exist, offer `magento2-module-create` first.
+not exist, stop and offer `magento2-module-create` first — do not scaffold config into a
+non-existent module.
 
 ### Phase 1 — Resolve Inputs
 
