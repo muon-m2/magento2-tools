@@ -41,12 +41,12 @@ Resolve the Magento 2 project context
 Quick review of the module app/code/<Vendor>/<Module>
 
 # 3. One-page health snapshot: indexers, caches, queues, cron, versions
-/magento2-tools:magento2-debug snapshot
+/magento2-tools:snapshot
 ```
 
 Skills are triggered by plain language (*"fix this checkout bug"*, *"scaffold a module
 for order export"*) or invoked explicitly with flags
-(`/magento2-tools:magento2-deploy --env=staging Acme_OrderExport`). Code-writing skills
+(`/magento2-tools:deploy --env=staging Acme_OrderExport`). Code-writing skills
 always stop at an approval gate (blueprint, RCA, deploy plan, release push) before
 changing anything; reports land in your project's `.docs/` folder. The full
 walkthrough lives in [docs/getting-started.md](docs/getting-started.md).
@@ -176,6 +176,7 @@ detection. Changing any override busts the resolver cache automatically.
   marketplace.json   # this repo doubles as its own marketplace ("muon-m2")
 skills/              # 20 magento2-* skills (auto-discovered by Claude Code)
 commands/            # 9 /magento2-tools:<verb> shortcut commands (auto-discovered)
+agents/              # first-party subagents (read-only Magento reviewer for parallel review)
 hooks/               # PreToolUse guard: keeps .docs/ artifacts at the project root
 tests/               # contract test harness
 scripts/             # release-notes helper (used by .github/workflows/release.yml)

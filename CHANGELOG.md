@@ -11,6 +11,17 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 ### Added
 
 - **New skill `magento2-webapi-create`** — contract-first REST / Web-API generator (the 20th skill), sibling to `magento2-graphql-create`. Generates `webapi.xml` CRUD routes + optional custom-action routes, the `Api/{Entity}RepositoryInterface` service contract + `Api/Data` DTO/search-results interfaces, a full `{Entity}Repository` (`SearchCriteria` via `CollectionProcessor`), `di.xml` preferences, `acl.xml`, and a `WebapiAbstract` functional test. Goes beyond `magento2-module-create`'s webapi stubs with per-route auth scopes (anonymous/self/ACL), exception→HTTP mapping, extension attributes, and SearchCriteria pagination. Assumes the entity model exists (`magento2-module-create`'s job). 8 templates, 6 references.
+- **Review/audit subagent** — `agents/magento2-reviewer.md`, a read-only first-party agent for
+  Magento module review (whole-module or a single dimension: architecture / security / frontend /
+  testing / performance). `magento2-module-review`'s parallel-review now prefers it (falling back to
+  the generic `claude` type when absent), so the parallel-review story is self-contained instead of
+  depending on a generic agent. Pinned by `tests/test-agent-routing.sh` (valid frontmatter,
+  read-only tools, resolvable references).
+
+### Changed
+
+- README / getting-started "first steps" examples now use the `/magento2-tools:<verb>` command
+  shortcuts (`:snapshot`, `:perf`, `:deploy`) instead of the long-form skill invocations.
 
 ## [1.9.0] — 2026-06-17 — slash-command shortcuts, routing disambiguation, release automation, `magento2-adminhtml-listing`
 
