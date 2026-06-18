@@ -9,7 +9,7 @@ use Magento\TestFramework\TestCase\WebapiAbstract;
 class {Entity}ApiTest extends WebapiAbstract
 {
     private const RESOURCE_PATH = '/V1/{vendor_lower}/{route}';
-    private const SERVICE_NAME = '{vendor}{Module}{Entity}RepositoryV1';
+    private const SERVICE_NAME = '{Vendor}{Module}{Entity}RepositoryV1';
 
     /**
      * Asserts the REST getById endpoint returns the expected payload shape.

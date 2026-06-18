@@ -15,7 +15,7 @@ use Magento\Framework\Setup\Patch\DataPatchInterface;
 /**
  * Add category EAV attribute `{attribute_code}`.
  */
-class Add{AttributeCode}CategoryAttribute implements DataPatchInterface
+class Add{AttributeCode}Attribute implements DataPatchInterface
 {
     /**
      * @param \Magento\Framework\Setup\ModuleDataSetupInterface $moduleDataSetup

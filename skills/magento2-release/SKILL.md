@@ -81,6 +81,14 @@ git push origin {tag}
 
 The user types **`release`** to confirm. Anything else cancels.
 
+### Phase 5.5 — Render Release Notes
+
+Render `templates/release-notes.md` from the Phase 1 classified commits to
+`.docs/releases/{Module}-{Version}.md` (under the project-root `.docs/`, never under
+`{magento_root}`). This file is the `--notes-file` source for Phase 6 **and** the durable
+release-notes artefact listed in Outputs, so render it even when Phase 6 is skipped —
+otherwise Phase 6's `gh release create --notes-file …` points at a path nothing created.
+
 ### Phase 6 — GitHub Release (Optional)
 
 If `gh` is available and the user authorizes:

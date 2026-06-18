@@ -27,12 +27,21 @@ record() {
     RESULTS+=("$(printf '{"name":"%s","result":"%s","detail":"%s"}' "$name" "$result" "${detail//\"/\\\"}")")
 }
 
-# Module status
+# Module status — every deployed module must appear individually in the ENABLED list.
+# `module:status` (no flag) prints BOTH the enabled and disabled sections, so a disabled
+# module still matched the old alternation; and the alternation passed if ANY one module
+# matched, not all. `--enabled` lists only enabled module names, one per line, so an exact
+# whole-line match per module is both disabled-safe and all-modules-required.
 if [ -n "${MAGENTO_CLI:-}" ]; then
-    if eval "$MAGENTO_CLI module:status" 2>&1 | grep -qE "$(echo "$MODULES" | tr ' ' '|')"; then
+    enabled_list="$(eval "$MAGENTO_CLI module:status --enabled" 2>&1)"
+    missing=""
+    for mod in $MODULES; do
+        printf '%s\n' "$enabled_list" | grep -qx "$mod" || missing="${missing:+$missing }$mod"
+    done
+    if [ -z "$missing" ]; then
         record "module-status" "pass" "all deployed modules listed as enabled"
     else
-        record "module-status" "fail" "one or more deployed modules not enabled"
+        record "module-status" "fail" "not in enabled list: $missing"
     fi
 
     if eval "$MAGENTO_CLI setup:db:status" 2>&1 | grep -qi "up to date"; then
