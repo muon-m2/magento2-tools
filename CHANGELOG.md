@@ -6,6 +6,32 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.10.1] — 2026-06-18 — audit remediation: bug fixes, drift cleanup, regression guards
+
+Correctness pass from an internal optimization & bug-hunt audit. No new skills or user-facing features — existing generators/scripts now produce correct output, and the reference docs match the implementation.
+
+### Fixed
+
+- **`magento2-graphql-create`** — schema fragment no longer declares `status`/`created_at` as non-null when no resolver returns them (was a runtime "Cannot return null for non-nullable field" on a valid query).
+- **`magento2-module-create`** — admin Save controller loads the record by id on edit instead of always inserting a duplicate, and stashes failed-save input in the data persistor.
+- **`magento2-deploy`** — smoke test checks each module against `module:status --enabled` (was a single alternation over the combined enabled+disabled output → false pass on disabled/partial deploys); production pre-flight now enforces the documented branch-match guardrail (`main`/`master`/`release/*`, `PROD_BRANCH` override, detached-HEAD aware).
+- **`magento2-release`** — the workflow renders the release-notes file before `gh release create` consumes it via `--notes-file` (Phase 6 previously pointed at a path nothing created).
+- **`magento2-eav-attribute`** — category/customer-address patch classes match their output filename (`Add{AttributeCode}Attribute`), fixing a PSR-4 autoload break.
+- **`magento2-test-generate`** — REST API test service name uses PascalCase `{Vendor}` (was a lowercase token → unresolvable SOAP service); coverage-gap no longer double-counts classes under nested type dirs (e.g. `Model/Resolver`).
+- **`magento2-module-review`** — emitted JSON includes the schema-required `scanner_errors` field; the grep evidence fallback also scans `.phtml` (the XSS surface) when ripgrep is absent.
+- **`magento2-security-audit`** — CVE version ranges include `-pN` patch builds at the upper bound (was a false negative on patched installs); emitted `category` values use the shared schema vocabulary; the secret scan covers `app/etc/env.php` (the crypt key).
+- **`magento2-context`** — added the documented composer.json vendor fallback (letters-only, most-frequent `{name}/module-*` prefix; non-letter vendors fall through to the user prompt); SKILL.md cache-key and tools-schema docs now match the resolver.
+- **`magento2-i18n` / `magento2-debug` / `magento2-feature-implement`** — reference docs corrected to match the implementation (separate `<locale>.obsolete.csv`, slow-log path resolution, removal of the dead raw-CDP backend, harness model-name commit trailer).
+
+### Changed
+
+- Hoisted duplicated content to shared references to prevent drift: `magento2-module-create`'s naming reference is now a pointer to the canonical `naming.md`; the audit skills point to the shared severity scale and their own calibration references instead of inlining (and drifting from) them.
+- `magento2-module-create` admin layouts and the listing layout now match the specialist skills — no storefront-only `<update handle="styles"/>`, and the grid uses `admin-1column`.
+
+### Added
+
+- Two contract tests guarding the fixed bug-classes: emitter **schema-conformance** (locks the `scanner_errors` fix) and GraphQL **resolver field-coverage** (locks the non-null-field fix). The suite is now 35 tests.
+
 ## [1.10.0] — 2026-06-17 — `magento2-webapi-create` REST/Web-API skill + review/audit subagent
 
 ### Added
