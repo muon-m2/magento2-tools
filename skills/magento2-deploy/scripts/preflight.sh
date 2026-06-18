@@ -628,7 +628,9 @@ if [ "$ENV" = "production" ]; then
             case "$cur_branch" in
                 main|master|release/*)
                     record "branch-match" "true" "pass" "on production branch ${cur_branch}" ;;
-                "")
+                ""|HEAD)
+                    # `git rev-parse --abbrev-ref HEAD` prints the literal "HEAD" in detached-HEAD
+                    # mode (and "" only when git errored), so both mean "not on a named branch".
                     record "branch-match" "true" "fail" "detached HEAD or not a git repo; production deploy needs a release branch"
                     FAILED=1 ;;
                 *)

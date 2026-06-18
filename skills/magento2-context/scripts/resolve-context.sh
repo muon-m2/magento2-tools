@@ -156,9 +156,11 @@ if [[ -z "$VENDOR" && -d "$MODULE_DIR" ]]; then
 fi
 
 # 3. composer.json `require` package-name inspection (references/vendor-resolution.md step 3).
-# Pick the most frequent "{name}/module-*" vendor prefix; a tie falls through to vendor=null so
-# the LLM resolver asks the user. The composer path is passed to PHP via argv (never spliced
-# into the code literal), so a crafted magento_root cannot break out of the string.
+# Pick the most frequent letters-only "{name}/module-*" vendor prefix; a tie OR a vendor that
+# isn't pure letters (digits/hyphens — not a valid PascalCase Magento vendor per
+# vendor-resolution.md) falls through to vendor=null so the LLM resolver asks the user. The
+# composer path is passed to PHP via argv (never spliced into the code literal), so a crafted
+# magento_root cannot break out of the string.
 if [[ -z "$VENDOR" ]] && command -v php >/dev/null 2>&1; then
     vendor_composer=""
     [[ -f "${MAGENTO_ROOT%/}/composer.json" ]] && vendor_composer="${MAGENTO_ROOT%/}/composer.json"
@@ -169,7 +171,7 @@ if [[ -z "$VENDOR" ]] && command -v php >/dev/null 2>&1; then
             $req = (is_array($d) && isset($d["require"]) && is_array($d["require"])) ? $d["require"] : [];
             $counts = [];
             foreach ($req as $k => $v) {
-                if (preg_match("#^([a-z0-9-]+)/module-#", (string) $k, $m)) {
+                if (preg_match("#^([a-z]+)/module-#", (string) $k, $m)) {
                     $counts[$m[1]] = ($counts[$m[1]] ?? 0) + 1;
                 }
             }
@@ -179,7 +181,7 @@ if [[ -z "$VENDOR" ]] && command -v php >/dev/null 2>&1; then
             if (count($vals) > 1 && $vals[0] === $vals[1]) { exit(0); }
             echo array_key_first($counts);
         ' "$vendor_composer" 2>/dev/null || echo "")
-        if [[ -n "$cand" && "$cand" =~ ^[a-z][a-z0-9-]*$ ]]; then
+        if [[ -n "$cand" && "$cand" =~ ^[a-z]+$ ]]; then
             VENDOR=$(printf '%s' "$cand" | awk '{print toupper(substr($0,1,1)) substr($0,2)}')
             VENDOR_SRC="${vendor_composer}:require (most-frequent {name}/module-* vendor)"
         fi
