@@ -58,7 +58,7 @@ to `.claude/.cache/magento2-context.json`.
   "skill": "magento2-context",
   "skillVersion": "1.6.0",
   "resolvedAt": "2026-05-26T14:30:00Z",
-  "cacheKey": "lock:sha256-...;json:sha256-...;claude:sha256-...",
+  "cacheKey": "lock:sha256-...;json:sha256-...;claude:sha256-...;m2:sha256-...;env:<M2_MAGENTO_ROOT>|<M2_PHP_CONTAINER>",
 
   "vendor": "Acme",
   "vendor_lower": "acme",
@@ -93,13 +93,15 @@ to `.claude/.cache/magento2-context.json`.
     "phpmd": "vendor/bin/phpmd",
     "rector": null,
     "psalm": null,
+    "php-cs-fixer": "vendor/bin/php-cs-fixer",
     "xmllint": "xmllint",
     "composer": "composer",
     "semgrep": null,
     "gitleaks": null,
     "trufflehog": null,
     "node": "node",
-    "pa11y": null
+    "pa11y": null,
+    "gh": "gh"
   },
 
   "resolution_source": {
@@ -157,10 +159,16 @@ The cache becomes stale when any of:
 - `composer.lock` sha256 changes
 - `composer.json` sha256 changes
 - `CLAUDE.md` sha256 changes
+- `.claude/m2.json` sha256 changes (the optional layout/container override file)
+- the `M2_MAGENTO_ROOT` or `M2_PHP_CONTAINER` env override changes
 - `--no-cache` argument supplied
 
-The cache key is composed as `lock:<sha>;json:<sha>;claude:<sha>` and stored on the
-cached JSON; the resolver short-circuits only when the recomputed key is byte-identical.
+The cache key is composed as
+`lock:<sha>;json:<sha>;claude:<sha>;m2:<sha>;env:<M2_MAGENTO_ROOT>|<M2_PHP_CONTAINER>` and
+stored on the cached JSON; the resolver short-circuits only when the recomputed key is
+byte-identical. Separately, a TTL (default 24h; `M2_CACHE_TTL` seconds, `0` disables) bounds
+how long a key-match can serve a possibly-stale *runner* state, since runner availability is
+not part of the key.
 
 Force a refresh by deleting `.claude/.cache/magento2-context.json` or passing `--no-cache`.
 

@@ -59,7 +59,7 @@ Auth tokens are stored only in memory; never written to baseline.txt or any file
 
 ## 3. Browser Driving (S3–S7)
 
-The runner uses `${CLAUDE_SKILL_DIR}/scripts/smoke-browser.mjs` — a thin wrapper around Playwright/Puppeteer/raw-CDP.
+The runner uses `${CLAUDE_SKILL_DIR}/scripts/smoke-browser.mjs` — a thin wrapper around Playwright/Puppeteer.
 It exposes one command per suite step:
 
 ```bash
@@ -93,7 +93,6 @@ The wrapper:
 ```
 if (npx playwright is available)        → Playwright (chromium, headless)
 else if (npx puppeteer is available)    → Puppeteer
-else if (google-chrome is available)    → raw CDP over a spawned `google-chrome --headless --remote-debugging-port=...`
 else                                    → exit 78 (unavailable); skill marks browser suites as skipped
 ```
 

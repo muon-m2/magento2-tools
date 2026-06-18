@@ -67,11 +67,15 @@ Only if user authorizes AND Magento CLI is present:
 | Pending cron | DB query on `cron_schedule` |
 | Queue backlog | `{magento_cli} queue:consumers:list` + RabbitMQ stats |
 | Cache type status | `{magento_cli} cache:status` |
-| Slow queries | MySQL slow log (path configurable in CLAUDE.md) |
+| Slow queries | MySQL slow log — resolve the path via `SHOW VARIABLES LIKE 'slow_query_log_file'`; only when `slow_query_log` is ON |
 | Redis hit rate | `redis-cli INFO stats` |
 | Varnish status | Curl headers |
 
-Run via `${CLAUDE_SKILL_DIR}/scripts/runtime-checks.sh`.
+`${CLAUDE_SKILL_DIR}/scripts/runtime-checks.sh` automates the tool-based probes (indexer,
+cache, queue, Redis) and emits them as findings. The DB (pending cron), slow-log, and
+Varnish rows are run manually when their source is reachable — the script does not emit a
+`slow_query` finding, so do not claim a slow-query result unless the slow log was actually
+read.
 
 ### Phase 4 — Optional: Blackfire / Tideways Integration
 

@@ -35,21 +35,25 @@ UTF-8 without BOM. Magento's loader rejects UTF-16 and BOM-prefixed files.
 
 ## Comments / Obsolete Phrases
 
-Magento doesn't natively support comments. The skill uses a fenced section at the end:
+Magento's translation loader does **not** tolerate comments inside the CSV — every row is
+a live translation key, so an in-file `"# OBSOLETE …"` fence row would be loaded as a real
+(bogus) phrase. The skill therefore moves phrases that no longer appear in the code to a
+**separate sibling file** `{locale}.obsolete.csv`, never into `{locale}.csv`:
 
-```csv
-"Active phrase","Active translation"
-...
-"# OBSOLETE — last seen in commit abc123",""
-"Removed phrase","Old translation"
+```
+i18n/de_DE.csv           # active translations only — loaded by Magento
+i18n/de_DE.obsolete.csv  # phrases dropped from code, retained for reference; NOT loaded
 ```
 
-The `# OBSOLETE` line is a regular row; readers know to ignore everything below.
+`merge-csv.sh` performs this split automatically; the active `{locale}.csv` stays free of
+any comment or fence rows.
 
 ## Sorting
 
-The skill keeps active rows alphabetically by source phrase. Obsolete rows sit below
-the fence.
+`merge-csv.sh` **preserves the existing order** of the active `{locale}.csv` and appends
+newly-discovered phrases at the end (it does not re-sort), so diffs stay minimal and review
+is easy. Obsolete phrases live in the separate `{locale}.obsolete.csv` (see above), not
+below a fence.
 
 ## Missing Translations
 

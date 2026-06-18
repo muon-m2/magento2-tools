@@ -99,8 +99,11 @@ configuration.
 Include the standard trailer at the end of every per-task commit:
 
 ```
-Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>
+Co-Authored-By: {current Claude model, per the harness convention} <noreply@anthropic.com>
 ```
+
+Do **not** hard-code a fixed model name here — use the co-author line the harness specifies
+for the active model (see the rule above and `magento2-bug-fix/references/commit-format.md`).
 
 ## Plan.md Synchronization
 
