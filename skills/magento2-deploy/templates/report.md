@@ -7,8 +7,8 @@ Duration: {N} seconds
 Status: {Success | Failure | Partial (rolled back)}
 Skill versions:
 
-- magento2-deploy@1.2.0
-- magento2-context@1.6.0
+- magento2-deploy@1.2.1
+- magento2-context@1.6.1
 
 ## Modules Deployed
 

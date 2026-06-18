@@ -6,8 +6,8 @@ Runner: `{ctx.runner}`
 Magento CLI: `{ctx.magento_cli}`
 Skill versions:
 
-- magento2-deploy@1.2.0
-- magento2-context@1.6.0
+- magento2-deploy@1.2.1
+- magento2-context@1.6.1
 
 ## Pre-Flight Result
 

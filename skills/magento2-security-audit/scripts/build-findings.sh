@@ -12,7 +12,7 @@
 #   SECRET_ROOT         default: SCAN_ROOT without /code, i.e. the app/ tree (secret scan,
 #                       so app/etc/env.php is covered)
 #   OUTPUT_DIR          default: .docs/audits
-#   SKILL_VERSION       default: 1.2.0
+#   SKILL_VERSION       default: 1.2.1
 #
 # Output:
 #   Writes {OUTPUT_DIR}/security-{SCOPE}-{YYYY-MM-DD}.json to stdout AND saves to file.
@@ -30,7 +30,7 @@ SCAN_ROOT="${SCAN_ROOT:-$([[ -d app/code ]] && echo app/code || echo src/app/cod
 # vendor/module discovery is unaffected.
 SECRET_ROOT="${SECRET_ROOT:-${SCAN_ROOT%/code}}"
 OUTPUT_DIR="${OUTPUT_DIR:-.docs/audits}"
-SKILL_VERSION="${SKILL_VERSION:-1.2.0}"
+SKILL_VERSION="${SKILL_VERSION:-1.2.1}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 EMIT_JSON="${SCRIPT_DIR}/../../magento2-module-review/scripts/emit-json.sh"
@@ -120,7 +120,7 @@ export SKILL_VERSION
 export OUTPUT_KIND="security"
 export OUTPUT_BASENAME="security-${SCOPE}-${DATE}"
 export OUTPUT_DIR
-export SKILL_VERSIONS_JSON="[\"magento2-security-audit@${SKILL_VERSION}\",\"magento2-context@1.6.0\"]"
+export SKILL_VERSIONS_JSON="[\"magento2-security-audit@${SKILL_VERSION}\",\"magento2-context@1.6.1\"]"
 
 bash "$EMIT_JSON" > /dev/null
 

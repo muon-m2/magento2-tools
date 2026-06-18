@@ -7,8 +7,8 @@ Module path: `<path>`
 Reviewer: Claude Code using `magento2-module-review`
 Skill versions:
 
-- magento2-module-review@2.3.0
-- magento2-context@1.6.0
+- magento2-module-review@2.3.1
+- magento2-context@1.6.1
 
 ## Executive Summary
 

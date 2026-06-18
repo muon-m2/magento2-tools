@@ -11,7 +11,7 @@
 #   MODE            "full" | "quick" | "diff" (default: full)
 #   SCOPE           "module" (default) | "site" | "diff" | "vendor"
 #   SKILL_NAME      default: magento2-module-review
-#   SKILL_VERSION  default: 2.3.0
+#   SKILL_VERSION  default: 2.3.1
 #   SKILL_VERSIONS_JSON  Optional JSON array string (e.g. '["foo@1","bar@2"]')
 #                  When set, used verbatim as skillVersions[]; otherwise auto-built.
 #   OUTPUT_KIND     "review" | "security" | "performance" | "upgrade" (default: review)
@@ -125,7 +125,7 @@ tools = read_json(os.environ.get('TOOLS_FILE', ''), {})
 scanner_errors = read_json(os.environ.get('SCANNER_ERRORS_FILE', ''), [])
 
 skill_name = os.environ.get('SKILL_NAME', 'magento2-module-review')
-skill_version = os.environ.get('SKILL_VERSION', '2.3.0')
+skill_version = os.environ.get('SKILL_VERSION', '2.3.1')
 output_kind = os.environ.get('OUTPUT_KIND', 'review')
 
 raw_versions = os.environ.get('SKILL_VERSIONS_JSON', '').strip()
@@ -141,7 +141,7 @@ if raw_versions:
 else:
     skill_versions = [
         f'{skill_name}@{skill_version}',
-        'magento2-context@1.6.0',
+        'magento2-context@1.6.1',
     ]
 
 document = {

@@ -9,28 +9,54 @@ skills evolve.
 
 | Skill                      | Version | Bumped when                                                         |
 |----------------------------|---------|---------------------------------------------------------------------|
-| magento2-context           | 1.6.0   | JSON schema changes, new resolution rules, new tool probes          |
-| magento2-module-create     | 1.7.0   | New template added, surface added, naming rule changed              |
-| magento2-module-review     | 2.3.0   | New checklist category, severity calibration change, new JSON field, fix-routing change |
+| magento2-context           | 1.6.1   | JSON schema changes, new resolution rules, new tool probes          |
+| magento2-module-create     | 1.7.1   | New template added, surface added, naming rule changed              |
+| magento2-module-review     | 2.3.1   | New checklist category, severity calibration change, new JSON field, fix-routing change |
 | magento2-feature-implement | 2.8.0   | New phase, new approval gate, mode added, template structure change |
 | magento2-bug-fix           | 1.0.2   | Workflow phase change, RCA format change                            |
-| magento2-deploy            | 1.2.0   | Deploy plan template change, rollback recipe change                 |
-| magento2-test-generate     | 1.1.1   | Generator pattern change, new test type added                       |
+| magento2-deploy            | 1.2.1   | Deploy plan template change, rollback recipe change                 |
+| magento2-test-generate     | 1.1.2   | Generator pattern change, new test type added                       |
 | magento2-module-upgrade    | 1.1.0   | New deprecation map, BC-break detection rules                       |
-| magento2-security-audit    | 1.2.0   | New CVE source, new pattern, severity calibration change            |
+| magento2-security-audit    | 1.2.1   | New CVE source, new pattern, severity calibration change            |
 | magento2-performance-audit | 1.1.1   | New pattern, new runtime check, severity calibration change         |
 | magento2-debug             | 1.2.0   | New mode added, output format change                                |
-| magento2-eav-attribute     | 1.2.0   | New entity type supported, new input type, template change          |
-| magento2-graphql-create    | 1.0.2   | New resolver pattern, schema-migration rule change                  |
+| magento2-eav-attribute     | 1.2.1   | New entity type supported, new input type, template change          |
+| magento2-graphql-create    | 1.0.3   | New resolver pattern, schema-migration rule change                  |
 | magento2-frontend-create   | 1.0.1   | New theme detection rule, new component pattern                     |
 | magento2-data-migration    | 1.2.0   | New idempotency strategy, new importer pattern                      |
-| magento2-release           | 1.1.0   | New tag convention, new publish target                              |
+| magento2-release           | 1.1.1   | New tag convention, new publish target                              |
 | magento2-i18n              | 1.2.0   | New extraction pattern, new placeholder rule                        |
 | magento2-adminhtml-form    | 1.0.0   | New template/surface added, field-type pattern, controller change   |
-| magento2-adminhtml-listing | 1.0.0   | New template/column type, mass-action change, wiring change         |
+| magento2-adminhtml-listing | 1.0.1   | New template/column type, mass-action change, wiring change         |
 | magento2-webapi-create     | 1.0.0   | New template/route/auth-scope, service-contract change, custom-action pattern |
 
-## Changelog (last update: 2026-06-17)
+## Changelog (last update: 2026-06-18)
+
+- **Plugin 1.10.1 — audit-remediation patch bumps.** A correctness pass (bug fixes + drift
+  cleanup + regression tests) patch-bumped every skill whose scripts/templates actually changed;
+  doc-only changes (e.g. `magento2-i18n`, `magento2-debug`, `magento2-performance-audit`,
+  `magento2-feature-implement`) did **not** bump, per the one-line-pointer precedent. Bumps:
+  - `magento2-context 1.6.0 → 1.6.1` — `resolve-context.sh` gained the documented composer.json
+    `require` vendor fallback (letters-only, most-frequent `{name}/module-*` prefix); SKILL.md
+    cache-key and tools-schema docs reconciled with the resolver.
+  - `magento2-module-create 1.7.0 → 1.7.1` — admin Save controller loads-by-id on edit (was a
+    duplicate-on-edit); admin form/listing layouts match the specialist skills.
+  - `magento2-module-review 2.3.0 → 2.3.1` — `emit-json.sh` emits the schema-required
+    `scanner_errors`; the grep evidence fallback also scans `.phtml`.
+  - `magento2-deploy 1.2.0 → 1.2.1` — `smoke.sh` checks `module:status --enabled` per module;
+    `preflight.sh` enforces the production branch-match guardrail.
+  - `magento2-security-audit 1.2.0 → 1.2.1` — CVE range covers `-pN` patch builds; emitted
+    `category` values use the schema vocabulary; secret scan covers `app/etc/env.php`.
+  - `magento2-test-generate 1.1.1 → 1.1.2` — REST test service name uses PascalCase `{Vendor}`;
+    `coverage-gap.sh` no longer double-counts nested type dirs.
+  - `magento2-eav-attribute 1.2.0 → 1.2.1` — category/customer-address patch class names match
+    the output filename (PSR-4 fix).
+  - `magento2-graphql-create 1.0.2 → 1.0.3` — schema fragment no longer declares non-null fields
+    no resolver returns.
+  - `magento2-release 1.1.0 → 1.1.1` — workflow renders the release-notes file before Phase 6
+    consumes it.
+  - `magento2-adminhtml-listing 1.0.0 → 1.0.1` — listing layout drops the storefront-only
+    `<update handle="styles"/>`; SKILL.md makes the form-reuse route/ACL contract explicit.
 
 - **New skill `magento2-webapi-create` 1.0.0 (unreleased)** — contract-first generator for REST /
   Web-API surfaces over an **existing** entity (sibling to `magento2-graphql-create`). Generates
@@ -81,7 +107,7 @@ skills evolve.
   behaviour/boilerplate line once; `magento2-bug-fix` now points at it (one-line pointer, no
   bump). `magento2-context` itself is **not** bumped — adding a cross-cutting reference doc does
   not change its resolved JSON/schema/probes (the bump triggers in its row), and a context bump
-  would force-touch the 17 files that pin `magento2-context@1.6.0` for no behavioural reason.
+  would force-touch the 17 files that pin `magento2-context@1.6.1` for no behavioural reason.
   - **magento2-feature-implement 2.6.0 → 2.7.0** — opt-in **TDD mode** (`--tdd` /
     `Feature implement: tdd = on` / `MAGENTO2_FI_TDD=1`, default off; `spike` exempt). New
     `references/tdd-mode.md`; Phase 5 `M*`/`X*` behaviour is written test-first (signature →

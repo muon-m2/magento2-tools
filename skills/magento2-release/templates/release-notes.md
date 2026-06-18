@@ -4,9 +4,9 @@ Released: {YYYY-MM-DD}
 Bump: {major | minor | patch}
 Skill versions:
 
-- magento2-release@1.1.0
-- magento2-deploy@1.2.0
-- magento2-context@1.6.0
+- magento2-release@1.1.1
+- magento2-deploy@1.2.1
+- magento2-context@1.6.1
 
 ## Highlights
 

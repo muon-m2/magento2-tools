@@ -492,7 +492,7 @@ cat > "$CACHE_TMP" <<EOF
 {
   "schemaVersion": "1.0",
   "skill": "magento2-context",
-  "skillVersion": "1.6.0",
+  "skillVersion": "1.6.1",
   "resolvedAt": "${TIMESTAMP}",
   "cacheKey": $(json_or_null "$CACHE_KEY"),
 
