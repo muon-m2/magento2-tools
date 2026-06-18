@@ -28,8 +28,19 @@ skills evolve.
 | magento2-i18n              | 1.2.0   | New extraction pattern, new placeholder rule                        |
 | magento2-adminhtml-form    | 1.0.0   | New template/surface added, field-type pattern, controller change   |
 | magento2-adminhtml-listing | 1.0.0   | New template/column type, mass-action change, wiring change         |
+| magento2-webapi-create     | 1.0.0   | New template/route/auth-scope, service-contract change, custom-action pattern |
 
 ## Changelog (last update: 2026-06-17)
+
+- **New skill `magento2-webapi-create` 1.0.0 (unreleased)** — contract-first generator for REST /
+  Web-API surfaces over an **existing** entity (sibling to `magento2-graphql-create`). Generates
+  `webapi.xml` CRUD routes + optional custom-action routes, the `Api/{Entity}RepositoryInterface`
+  service contract + `Api/Data` DTO/search-results interfaces, a full `{Entity}Repository`
+  (`SearchCriteria` via `CollectionProcessor`), `di.xml` preferences, `acl.xml`, and a
+  `WebapiAbstract` functional test. 8 templates, 6 references. Goes beyond `module-create`'s webapi
+  stubs by handling per-route auth scopes (anonymous/self/ACL), exception→HTTP mapping, extension
+  attributes, and SearchCriteria pagination. Assumes the entity model exists (`module-create`'s job);
+  uses the literal `entity_id` PK. Not yet bundled in a plugin release (`plugin.json` unchanged).
 
 - **New skill `magento2-adminhtml-listing` 1.0.0 (unreleased)** — generator for adminhtml
   UI-component grids/listings: declarative `{entity}_listing.xml` + DataProvider

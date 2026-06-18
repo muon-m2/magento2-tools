@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<!--
+    ACL resources the webapi.xml routes reference.
+    ::view   — read access  (GET routes).
+    ::manage — write access (POST/PUT/DELETE + custom-action routes).
+    These ids must match the <resource ref="..."/> values in etc/webapi.xml. If the module already
+    ships an acl.xml (e.g. from magento2-module-create), merge these under the existing tree rather
+    than creating a second <acl> block. Add finer child resources for role-level control.
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Acl/etc/acl.xsd">
+    <acl>
+        <resources>
+            <resource id="Magento_Backend::admin">
+                <resource id="{Vendor}_{ModuleName}::main"
+                        title="{ModuleName}"
+                        sortOrder="100">
+                    <resource id="{Vendor}_{ModuleName}::view"
+                            title="View {ModuleName}"
+                            sortOrder="10"/>
+                    <resource id="{Vendor}_{ModuleName}::manage"
+                            title="Manage {ModuleName}"
+                            sortOrder="20"/>
+                </resource>
+            </resource>
+        </resources>
+    </acl>
+</config>

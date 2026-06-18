@@ -132,3 +132,4 @@ Interactive flow drives the rest.
 | (after Phase 3) | `magento2-module-review --diff` |
 | (after Phase 3) | `magento2-test-generate --types=unit` |
 | (caller) | `magento2-feature-implement` Phase 5 (G* tasks) |
+| (sibling) | `magento2-webapi-create` (REST / Web-API surface for the same entity) |
