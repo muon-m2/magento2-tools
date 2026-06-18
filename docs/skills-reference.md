@@ -389,7 +389,7 @@ lives in the injected service class.
   from templates → verify (`php -l`, `xmllint`, `magento2-module-review --diff`) → report.
 - **Outputs:** `Console/Command/{CommandClass}.php` + `etc/di.xml` (command mode) or
   `Cron/{CronJobName}.php` + `etc/crontab.xml` (cron mode) + unit tests;
-  `.docs/cli-commands/{Module}-{mode}-{slug}-{date}.md`.
+  `.docs/cli-commands/{Vendor}_{Module}-{mode}-{slug}-{date}.md`.
 - **Related:** use `magento2-module-create` first if the module does not exist; pair with
   `magento2-system-config` when the cron schedule should be configurable from admin.
 

@@ -74,8 +74,20 @@ class {CronJobName}Test extends TestCase
         $secondJob = new {CronJobName}($secondMock);
         $secondJob->execute();
 
-        // Both invocations completed without exception — the cron class does not
-        // carry cross-invocation state that would cause the second call to fail.
-        self::assertInstanceOf({CronJobName}::class, $secondJob);
+        // The two expects(self::once()) expectations above ARE the assertions
+        // (PHPUnit verifies them at tear-down): each fresh dispatch delegates exactly
+        // once, proving the cron class carries no cross-invocation state.
+    }
+
+    /**
+     * The same instance can be invoked twice without error (Magento may reuse the
+     * object across scheduled runs in a long-lived process).
+     */
+    public function testSameInstanceToleratesRepeatInvocation(): void
+    {
+        $this->serviceMock->expects(self::exactly(2))->method('execute');
+
+        $this->job->execute();
+        $this->job->execute();
     }
 }
