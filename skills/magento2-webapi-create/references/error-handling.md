@@ -33,12 +33,13 @@ typed framework exceptions above.
 try {
     $this->resource->save($entity);
 } catch (\Throwable $e) {
-    throw new CouldNotSaveException(__('Could not save the entity: %1', $e->getMessage()), $e);
+    throw new CouldNotSaveException(__('Could not save the entity.'), $e);
 }
 ```
 
-Passing `$e` as the previous exception keeps the stack trace for logs while the client sees only the
-localized message.
+Passing `$e` as the previous exception keeps the cause in the logs while the client sees only the
+generic localized message. **Do not** interpolate `$e->getMessage()` into the client-facing text —
+the raw message can carry SQL, file paths, or secrets (see *Message hygiene* below).
 
 **Not-found is a 404, not an empty 200:**
 

@@ -10,9 +10,9 @@ use Magento\TestFramework\TestCase\WebapiAbstract;
 /**
  * Web API functional tests for the {EntityName} REST endpoints.
  *
- * Exercises the CRUD round-trip (POST create -> GET by id -> DELETE) plus a getList read through
- * the REST adapter. Place under the module's Test/Api and run with Magento's api-functional suite
- * (dev/tests/api-functional). See references/webapi-testing.md.
+ * Exercises the CRUD round-trip (POST create -> GET by id -> PUT update -> DELETE) plus a getList
+ * read through the REST adapter. Place under the module's Test/Api and run with Magento's
+ * api-functional suite (dev/tests/api-functional). See references/webapi-testing.md.
  */
 class {EntityName}RepositoryTest extends WebapiAbstract
 {
@@ -96,10 +96,12 @@ class {EntityName}RepositoryTest extends WebapiAbstract
      */
     public function testGetList(): void
     {
+        // Single source of truth: REST encodes the criteria into the query string (the REST adapter
+        // does not auto-append GET request data), SOAP reads the same array — no hand-kept mismatch.
+        $searchCriteria = ['searchCriteria' => ['pageSize' => 10, 'currentPage' => 1]];
         $serviceInfo = [
             'rest' => [
-                'resourcePath' => self::RESOURCE_PATH
-                    . '?searchCriteria[pageSize]=10&searchCriteria[currentPage]=1',
+                'resourcePath' => self::RESOURCE_PATH . '?' . http_build_query($searchCriteria),
                 'httpMethod'   => Request::HTTP_METHOD_GET,
             ],
             'soap' => [
@@ -108,7 +110,6 @@ class {EntityName}RepositoryTest extends WebapiAbstract
                 'operation'      => self::SERVICE_NAME . 'GetList',
             ],
         ];
-        $searchCriteria = ['searchCriteria' => ['pageSize' => 10, 'currentPage' => 1]];
 
         $response = $this->_webApiCall($serviceInfo, $searchCriteria);
 

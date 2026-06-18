@@ -14,7 +14,7 @@ covers both. Tests live under the module's `Test/Api/` and run from `dev/tests/a
 ```php
 $serviceInfo = [
     'rest' => [
-        'resourcePath' => '/V1/{vendor}/{route}',
+        'resourcePath' => '/V1/{vendor_lower}/{route}',
         'httpMethod'   => Request::HTTP_METHOD_POST,
     ],
     'soap' => [
@@ -38,7 +38,7 @@ $response = $this->_webApiCall($serviceInfo, ['entity' => ['name' => 'Test']]);
 
 - **Round-trip:** create (`POST`) → read (`GET /:id`) → update (`PUT /:id`) → delete (`DELETE /:id`),
   asserting the response body and that ids line up. The repository template's test does the
-  create→get→delete path.
+  create→get→update→delete path.
 - **getList envelope:** `items`, `search_criteria`, `total_count` keys present; filters/pagination honored.
 - **Auth:** an unauthenticated or under-privileged call to a protected route is rejected — assert the
   expected status (the framework throws before your method runs).

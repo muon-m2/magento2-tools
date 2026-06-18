@@ -22,8 +22,8 @@ use {Vendor}\{ModuleName}\Model\ResourceModel\{EntityName}\CollectionFactory;
  *
  * The Web API binds routes to {EntityName}RepositoryInterface; this class is wired to it via the
  * preference in etc/di.xml. Exceptions thrown here map to HTTP statuses (see
- * references/error-handling.md). Constructor argument order is the contract that
- * Test/Unit/Model/{EntityName}RepositoryTest mocks against — keep them in sync.
+ * references/error-handling.md). If you add a companion unit test that mocks these dependencies,
+ * keep its constructor argument order in sync with this signature.
  */
 class {EntityName}Repository implements {EntityName}RepositoryInterface
 {
@@ -51,7 +51,9 @@ class {EntityName}Repository implements {EntityName}RepositoryInterface
         try {
             $this->resource->save($entity);
         } catch (\Throwable $e) {
-            throw new CouldNotSaveException(__('Could not save the entity: %1', $e->getMessage()), $e);
+            // Generic client-facing message; chain $e so the real cause is logged, not returned to
+            // the API client (the message can carry SQL/paths). See references/error-handling.md.
+            throw new CouldNotSaveException(__('Could not save the {entity}.'), $e);
         }
         return $entity;
     }
@@ -92,7 +94,8 @@ class {EntityName}Repository implements {EntityName}RepositoryInterface
         try {
             $this->resource->delete($entity);
         } catch (\Throwable $e) {
-            throw new CouldNotDeleteException(__('Could not delete the entity: %1', $e->getMessage()), $e);
+            // Generic client-facing message; chain $e for the logs. See references/error-handling.md.
+            throw new CouldNotDeleteException(__('Could not delete the {entity}.'), $e);
         }
         return true;
     }
