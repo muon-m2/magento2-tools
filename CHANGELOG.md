@@ -6,7 +6,7 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.10.0] — 2026-06-17 — `magento2-webapi-create` REST/Web-API skill + review/audit subagent
 
 ### Added
 
