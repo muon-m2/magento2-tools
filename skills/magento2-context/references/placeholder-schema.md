@@ -49,7 +49,8 @@ Plugin, observer, and preference tokens:
 `{SortOrder}` (integer plugin sort order),
 `{EventName}` (snake_case dispatched event name),
 `{observer_name}` (snake_case observer identifier in events.xml),
-`{PreferenceFor}` (FQCN of the interface/class being replaced),
+`{PreferenceFor}` (FQCN of the interface/class being replaced; used in `use` statement and XML attribute),
+`{PreferenceForShort}` (unqualified short class/interface name derived from `{PreferenceFor}`; used in `implements`/`extends` after the `use` import),
 `{area}` (area folder name: global/frontend/adminhtml/webapi_rest/graphql/crontab).
 
 ## Theme / frontend tokens
@@ -178,6 +179,7 @@ PatchName
 Path
 PluginName
 PreferenceFor
+PreferenceForShort
 SHA1
 SHA2
 Section

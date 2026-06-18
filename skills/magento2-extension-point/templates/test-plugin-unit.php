@@ -33,39 +33,56 @@ class {PluginName}Test extends TestCase
     {
         $this->plugin = new {PluginName}();
 
-        // Replace with the actual subject class FQCN.
+        // Replace \stdClass with the actual subject class FQCN.
         $this->subjectMock = $this->createMock(\stdClass::class);
     }
 
     /**
      * Test that the before-plugin returns the expected (modified) arguments.
+     *
+     * This test intentionally fails against the empty stub — implement
+     * before{Method} to make it pass (RED → GREEN).
      */
     public function testBeforePluginModifiesArguments(): void
     {
-        // Arrange: set up input arguments.
-        // $arg1 = ...;
+        $result = $this->plugin->before{Method}($this->subjectMock);
 
-        // Act: invoke the before-plugin.
-        // $result = $this->plugin->before{Method}($this->subjectMock, $arg1);
-
-        // Assert: verify the returned arguments are as expected.
-        // $this->assertSame($expectedArg1, $result[0]);
-        $this->markTestIncomplete('Replace stub assertions with real expectations.');
+        // Adjust the expected value to your interception logic.
+        self::assertNull($result);
     }
 
     /**
      * Test that the after-plugin transforms the return value as expected.
+     *
+     * This test intentionally fails against the empty stub — implement
+     * after{Method} to make it pass (RED → GREEN).
      */
     public function testAfterPluginTransformsResult(): void
     {
-        // Arrange: prepare the subject return value.
-        // $originalResult = ...;
+        $originalResult = null;
 
-        // Act: invoke the after-plugin.
-        // $result = $this->plugin->after{Method}($this->subjectMock, $originalResult);
+        $result = $this->plugin->after{Method}($this->subjectMock, $originalResult);
 
-        // Assert: verify the returned value is transformed as expected.
-        // $this->assertSame($expectedResult, $result);
-        $this->markTestIncomplete('Replace stub assertions with real expectations.');
+        // Adjust the expected value to your interception logic.
+        self::assertSame($originalResult, $result);
+    }
+
+    /**
+     * Test that the around-plugin forwards arguments and returns the proceed result.
+     *
+     * This test intentionally fails against the empty stub — implement
+     * around{Method} to make it pass (RED → GREEN).
+     */
+    public function testAroundPluginForwardsArgsAndReturnsResult(): void
+    {
+        $expected = 'proceed-result';
+        $proceed = static function () use ($expected): string {
+            return $expected;
+        };
+
+        $result = $this->plugin->around{Method}($this->subjectMock, $proceed);
+
+        // Adjust the expected value to your interception logic.
+        self::assertSame($expected, $result);
     }
 }

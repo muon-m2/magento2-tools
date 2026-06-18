@@ -85,6 +85,7 @@ while IFS= read -r tpl; do
         -e 's/{ObserverName}/TrackOrderSave/g' \
         -e 's/{observer_name}/acme_observer/g' \
         -e 's/{PreferenceFor}/stdClass/g' \
+        -e 's/{PreferenceForShort}/SomePreference/g' \
         -e 's/{SortOrder}/10/g' \
         -e 's/{EventName}/sales_order_save_after/g' \
         -e 's/{area}/frontend/g' \

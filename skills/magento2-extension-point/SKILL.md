@@ -74,10 +74,16 @@ Ask for any missing values in one batch. Required inputs differ by mode:
 
 | Input | Default | Notes |
 |-------|---------|-------|
-| `for` (interface/class FQCN) | (ask) | Interface or class being replaced |
+| `for` (interface/class FQCN) | (ask) | Interface or class being replaced → `{PreferenceFor}` |
 | Replacement class name | (ask) | PascalCase, placed in `Model/` |
 | Area | global | `global`, `frontend`, `adminhtml`, etc. |
 | Module | (ask) | Existing `{Vendor}_{Module}` |
+
+The generator derives `{PreferenceForShort}` as the unqualified short class name from the
+`{PreferenceFor}` FQCN (i.e., the last segment after the final `\`). This short name is
+used in the `implements`/`extends` clause of the generated PHP class after the `use {PreferenceFor};`
+import, so that PHPCS `Magento2` (ReferenceUsedNamesOnly) is satisfied. The FQCN form
+`{PreferenceFor}` is still used as-is in `preference-di.xml` XML attribute values.
 
 See `${CLAUDE_SKILL_DIR}/references/plugin-types.md`,
 `${CLAUDE_SKILL_DIR}/references/observer-events.md`,

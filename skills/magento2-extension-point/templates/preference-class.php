@@ -15,7 +15,7 @@ namespace {Vendor}\{Module}\Model;
 
 use {PreferenceFor};
 
-class {EntityName} implements {PreferenceFor}
+class {EntityName} implements {PreferenceForShort}
 {
     /**
      * Override or extend methods here.

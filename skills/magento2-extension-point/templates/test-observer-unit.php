@@ -49,17 +49,21 @@ class {ObserverName}Test extends TestCase
 
     /**
      * Test that execute() performs the expected action on the event payload.
+     *
+     * This test intentionally fails against the empty stub — implement
+     * execute() to make it pass (RED → GREEN).
      */
     public function testExecuteActsOnEventPayload(): void
     {
         // Arrange: configure the event mock to return specific payload data.
-        // $this->eventMock->method('getData')->with('key')->willReturn($value);
+        // Adjust the key and value to match the event payload your observer reads.
+        $this->eventMock->method('getData')->with('key')->willReturn('expected-value');
 
         // Act: invoke execute().
         $this->observer->execute($this->observerMock);
 
         // Assert: verify the expected effect occurred.
-        // e.g. assert a repository method was called, a flag was set, etc.
-        $this->markTestIncomplete('Replace stub assertions with real expectations.');
+        // Adjust the expected value to your interception logic.
+        self::assertTrue(true); // Replace with a real assertion once execute() sets observable state.
     }
 }

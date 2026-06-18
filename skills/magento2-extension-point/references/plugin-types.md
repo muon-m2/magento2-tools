@@ -11,15 +11,15 @@ Runs **before** the original method. Can modify the incoming arguments.
 public function beforeMethodName(
     SubjectClass $subject,
     ArgType $arg1,
-): array|ArgType {
+): ?array {
     // Return a single modified arg, or an array of modified args.
     // Return null to leave args unchanged (PHP 8 idiom).
     return [$modifiedArg1];
 }
 ```
 
-- **Return value:** array of replacement positional arguments, or `null` / `void` to
-  pass originals through unchanged.
+- **Return value:** `?array` — an array of replacement positional arguments, or `null`
+  to pass originals through unchanged.
 - **Cannot** change what the method returns.
 - Runs even if the method throws.
 

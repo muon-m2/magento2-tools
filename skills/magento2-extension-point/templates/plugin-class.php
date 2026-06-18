@@ -51,10 +51,11 @@ class {PluginName}
      */
     public function around{Method}(
         {TargetFqcn} $subject,
-        callable $proceed
+        callable $proceed,
+        ...$args // $args are the original method arguments and MUST be forwarded to $proceed.
     ): mixed {
-        // Optionally transform args, then call $proceed.
-        $result = $proceed();
+        // Optionally transform $args, then call $proceed with the (possibly modified) args.
+        $result = $proceed(...$args);
         // Optionally transform $result.
         return $result;
     }
