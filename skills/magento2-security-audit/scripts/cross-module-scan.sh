@@ -106,7 +106,7 @@ for job, refs in cron_jobs.items():
         out.append({
             'id': f'security-audit-collision-{fid:03d}',
             'severity': 'medium',
-            'category': 'preference-collision',
+            'category': 'cron-ownership',
             'subcategory': 'cron-name-collision',
             'title': f"Multiple modules register cron job \"{job}\"",
             'evidence': [{'file': p, 'line': 1} for p, _ in refs],

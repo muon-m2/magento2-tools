@@ -10,7 +10,20 @@
 
 set -uo pipefail
 
-SCAN_PATH="${1:-$([[ -d app/code ]] && echo app/code || echo src/app/code)}"
+# Secrets live OUTSIDE app/code too — most importantly the crypt key in app/etc/env.php. Default
+# to the whole `app/` tree (custom code + app/etc + design/i18n) so env.php is covered, but NOT
+# vendor/var/pub/generated (third-party noise). An explicit path argument still wins.
+if [ -n "${1:-}" ]; then
+    SCAN_PATH="$1"
+elif [ -d app/etc ]; then
+    SCAN_PATH="app"
+elif [ -d src/app/etc ]; then
+    SCAN_PATH="src/app"
+elif [ -d app/code ]; then
+    SCAN_PATH="app/code"
+else
+    SCAN_PATH="src/app/code"
+fi
 SCRIPT_DIR="$(dirname "$0")"
 
 if command -v gitleaks >/dev/null 2>&1; then

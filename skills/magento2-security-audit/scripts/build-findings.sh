@@ -8,7 +8,9 @@
 #   TARGET_PATH         e.g. "src/app/code/Acme/OrderS3Export" or "."
 #   SCOPE               "module" | "site" | "vendor"  (default: module)
 #   COMPOSER_LOCK       default: src/composer.lock
-#   SCAN_ROOT           default: src/app/code  (for secret/cross-module scans)
+#   SCAN_ROOT           default: src/app/code  (cross-module scan)
+#   SECRET_ROOT         default: SCAN_ROOT without /code, i.e. the app/ tree (secret scan,
+#                       so app/etc/env.php is covered)
 #   OUTPUT_DIR          default: .docs/audits
 #   SKILL_VERSION       default: 1.2.0
 #
@@ -23,6 +25,10 @@ set -uo pipefail
 SCOPE="${SCOPE:-module}"
 COMPOSER_LOCK="${COMPOSER_LOCK:-$([[ -f composer.lock ]] && echo composer.lock || echo src/composer.lock)}"
 SCAN_ROOT="${SCAN_ROOT:-$([[ -d app/code ]] && echo app/code || echo src/app/code)}"
+# Secret scanning needs to reach app/etc/env.php (the crypt key), which sits OUTSIDE app/code.
+# Derive the `app/` tree from SCAN_ROOT for secret-scan only; cross-module keeps app/code so its
+# vendor/module discovery is unaffected.
+SECRET_ROOT="${SECRET_ROOT:-${SCAN_ROOT%/code}}"
 OUTPUT_DIR="${OUTPUT_DIR:-.docs/audits}"
 SKILL_VERSION="${SKILL_VERSION:-1.2.0}"
 
@@ -65,7 +71,7 @@ run_scanner() {
 }
 
 run_scanner cve "$CVE_OUT" "$CVE_ERR" "${SCRIPT_DIR}/cve-scan.sh" "$COMPOSER_LOCK" || true
-run_scanner secret "$SECRET_OUT" "$SECRET_ERR" "${SCRIPT_DIR}/secret-scan.sh" "$SCAN_ROOT" || true
+run_scanner secret "$SECRET_OUT" "$SECRET_ERR" "${SCRIPT_DIR}/secret-scan.sh" "$SECRET_ROOT" || true
 run_scanner cross-module "$CROSS_OUT" "$CROSS_ERR" "${SCRIPT_DIR}/cross-module-scan.sh" "$SCAN_ROOT" || true
 
 # Build scanner_errors JSON: one entry per scanner that emitted on stderr or crashed.

@@ -119,6 +119,10 @@ if not isinstance(findings, list):
 context = project_context(read_json(os.environ.get('CONTEXT_FILE', ''), {}))
 skipped = read_json(os.environ.get('SKIPPED_FILE', ''), [])
 tools = read_json(os.environ.get('TOOLS_FILE', ''), {})
+# scanner_errors is a required top-level field in findings-schema.md. module-review emits it
+# here (default empty) so its document is schema-valid without relying on a downstream
+# build-findings.sh re-write the way security/perf-audit do.
+scanner_errors = read_json(os.environ.get('SCANNER_ERRORS_FILE', ''), [])
 
 skill_name = os.environ.get('SKILL_NAME', 'magento2-module-review')
 skill_version = os.environ.get('SKILL_VERSION', '2.3.0')
@@ -158,6 +162,7 @@ document = {
     'findings': findings,
     'skipped': skipped,
     'tools': tools,
+    'scanner_errors': scanner_errors,
 }
 
 print(json.dumps(document, indent=2, ensure_ascii=False))
