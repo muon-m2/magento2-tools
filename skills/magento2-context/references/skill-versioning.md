@@ -29,6 +29,7 @@ skills evolve.
 | magento2-adminhtml-form    | 1.0.0   | New template/surface added, field-type pattern, controller change   |
 | magento2-adminhtml-listing | 1.0.1   | New template/column type, mass-action change, wiring change         |
 | magento2-webapi-create     | 1.0.0   | New template/route/auth-scope, service-contract change, custom-action pattern |
+| magento2-extension-point   | 1.0.0   | New mode/template added, interception pattern change                          |
 
 ## Changelog (last update: 2026-06-18)
 

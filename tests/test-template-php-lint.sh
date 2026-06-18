@@ -79,6 +79,15 @@ while IFS= read -r tpl; do
         -e 's/{Dep1FQCN}/stdClass/g' \
         -e 's/{Dep2FQCN}/stdClass/g' \
         -e 's/{Dep3FQCN}/stdClass/g' \
+        -e 's/{TargetFqcn}/stdClass/g' \
+        -e 's/{PluginName}/Plugin/g' \
+        -e 's/{plugin_name}/acme_plugin/g' \
+        -e 's/{ObserverName}/TrackOrderSave/g' \
+        -e 's/{observer_name}/acme_observer/g' \
+        -e 's/{PreferenceFor}/stdClass/g' \
+        -e 's/{SortOrder}/10/g' \
+        -e 's/{EventName}/sales_order_save_after/g' \
+        -e 's/{area}/frontend/g' \
         -e 's/{Dep1Type}/stdClass/g' \
         -e 's/{Dep2Type}/stdClass/g' \
         -e 's/{depMethod}/aMethod/g' \

@@ -66,7 +66,7 @@ Developer documentation lives in [`docs/`](docs/README.md):
 
 ## Skills
 
-20 skills under `skills/`, each self-contained (`SKILL.md` + `references/` +
+21 skills under `skills/`, each self-contained (`SKILL.md` + `references/` +
 `scripts/` + `templates/`). Per-skill flags, phases, and outputs are documented in
 [docs/skills-reference.md](docs/skills-reference.md).
 
@@ -92,6 +92,7 @@ Developer documentation lives in [`docs/`](docs/README.md):
 | `magento2-i18n` | Translation extraction / locale management. |
 | `magento2-adminhtml-form` | Scaffold an adminhtml UI-component edit form (form XML + DataProvider + New/Edit/Save/Delete + button blocks). |
 | `magento2-adminhtml-listing` | Scaffold an adminhtml grid/listing (listing XML + DataProvider + columns + actions + mass actions), paired with adminhtml-form. |
+| `magento2-extension-point` | Wire behaviour onto an existing class: plugin (before/after/around interceptor), observer (events.xml + Observer), or preference. |
 
 ### Dependency graph
 
@@ -174,7 +175,7 @@ detection. Changing any override busts the resolver cache automatically.
 .claude-plugin/
   plugin.json        # plugin manifest
   marketplace.json   # this repo doubles as its own marketplace ("muon-m2")
-skills/              # 20 magento2-* skills (auto-discovered by Claude Code)
+skills/              # 21 magento2-* skills (auto-discovered by Claude Code)
 commands/            # 9 /magento2-tools:<verb> shortcut commands (auto-discovered)
 agents/              # first-party subagents (read-only Magento reviewer for parallel review)
 hooks/               # PreToolUse guard: keeps .docs/ artifacts at the project root

@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!--
+    Event observer registration for {Vendor}_{Module}.
+    Target: {Vendor}/{Module}/etc/{area}/events.xml  (merge into existing file)
+
+    Tokens: {EventName}, {Vendor}, {Module}, {ObserverName}, {observer_name}
+    Adjust {area}/ prefix: omit for global, or use frontend/ adminhtml/ webapi_rest/ etc.
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+    <event name="{EventName}">
+        <observer name="{observer_name}"
+                  instance="{Vendor}\{Module}\Observer\{ObserverName}"/>
+    </event>
+</config>

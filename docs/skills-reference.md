@@ -349,6 +349,30 @@ existing routes/ACL/menu from `magento2-adminhtml-form` when present.
   layout XML; `.docs/adminhtml/{Module}-listing-{date}.md`.
 - **Related:** sibling `magento2-adminhtml-form` (the edit form); reviewed by
   `magento2-module-review`; called by `magento2-feature-implement` (M* tasks).
+
+### magento2-extension-point
+
+Wire behaviour onto an **existing** Magento 2 class without editing it. Three modes:
+plugin (before/after/around interceptor + `di.xml`), observer (`events.xml` + Observer
+class), or preference (swap an interface/class binding). Chooses the lightest mechanism
+for the use case. Refuses to plugin `final`/`private`/`static` methods or data
+interfaces.
+
+- **Invocation:** `--mode=plugin --target=Fqcn --method=methodName --type=before|after|around --module=Vendor_Module`;
+  `--mode=observer --event=event_name --module=Vendor_Module`;
+  `--mode=preference --for=FqcnOfInterface --module=Vendor_Module`.
+- **Phases:** resolve context → resolve inputs (mode-specific table) → plan (gate) →
+  **test-first** (3A: failing unit test before implementation; preference: integration
+  test) → generate from templates → verify (`php -l`, `xmllint`,
+  `magento2-module-review --diff`) → report.
+- **Outputs:** `Plugin/{PluginName}.php`, `Observer/{ObserverName}.php`, or
+  `Model/{EntityName}.php` + the matching `etc/{area}/di.xml` or `etc/{area}/events.xml`;
+  unit/integration tests; `.docs/extension-points/{Module}-{mode}-{slug}-{date}.md`.
+- **Related:** use `magento2-module-create` first if the module does not exist;
+  `magento2-feature-implement` for multi-surface work that includes interception tasks.
+
+---
+
 ## Choosing between adjacent skills
 
 Several skills have adjacent triggers. The `description` frontmatter encodes these boundaries so
@@ -358,6 +382,7 @@ key ones.
 
 | If the request is… | Use | Not |
 |---|---|---|
+| Wire behaviour onto an existing class (plugin/observer/preference) | `magento2-extension-point` | `magento2-module-create` / `magento2-feature-implement` |
 | A single admin edit form | `magento2-adminhtml-form` | `magento2-feature-implement` / `magento2-module-create` |
 | A GraphQL query/mutation/type | `magento2-graphql-create` | `magento2-feature-implement` / `magento2-module-create` |
 | A single product/customer/category attribute | `magento2-eav-attribute` | `magento2-module-create` / `magento2-data-migration` |

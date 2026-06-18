@@ -40,6 +40,18 @@ Names used inside generated PHP/XML. Examples: `{ClassUnderTest}`, `{ServiceName
 `{TargetNamespace}`, `{TargetShortName}`, `{SubNamespace}`, `{Dep1FQCN}`, `{ParentIdAccessor}`,
 `{parent_id_key}`, `{ParentTheme}`, `{ParentVendor}`, `{Theme}`, `{theme_lower}`.
 
+## Extension-point tokens (magento2-extension-point)
+
+Plugin, observer, and preference tokens:
+`{PluginName}` (PascalCase plugin class name),
+`{plugin_name}` (snake_case DI identifier),
+`{TargetFqcn}` (fully-qualified class name being intercepted),
+`{SortOrder}` (integer plugin sort order),
+`{EventName}` (snake_case dispatched event name),
+`{observer_name}` (snake_case observer identifier in events.xml),
+`{PreferenceFor}` (FQCN of the interface/class being replaced),
+`{area}` (area folder name: global/frontend/adminhtml/webapi_rest/graphql/crontab).
+
 ## Theme / frontend tokens
 
 `{component}`, `{component-name-kebab}`, `{module-kebab-case}`, `{module-name-kebab}`,
@@ -99,6 +111,7 @@ The machine-readable allow-list. `test-placeholder-tokens.sh` parses the fenced 
 ```registry
 ActionName
 Area
+EventName
 AttributeCode
 BackendName
 Behaviour
@@ -163,9 +176,12 @@ ParentVendor
 Patch
 PatchName
 Path
+PluginName
+PreferenceFor
 SHA1
 SHA2
 Section
+SortOrder
 Service
 ServiceName
 Severity
@@ -173,6 +189,7 @@ ShortDescription
 SourceName
 SubNamespace
 TOOL_RESULTS_TABLE
+TargetFqcn
 TargetNamespace
 TargetShortName
 Theme
@@ -184,6 +201,7 @@ Version
 YYYY-MM-DD
 action
 actual
+area
 args
 attribute_code
 author
@@ -239,8 +257,10 @@ modules
 name
 new
 notes
+observer_name
 package
 paramName
+plugin_name
 paramValue
 parent_id_key
 parent_theme_constraint
