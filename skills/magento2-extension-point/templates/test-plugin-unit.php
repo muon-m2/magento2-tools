@@ -38,24 +38,26 @@ class {PluginName}Test extends TestCase
     }
 
     /**
-     * Test that the before-plugin returns the expected (modified) arguments.
+     * Test the before-plugin's effect on the incoming arguments.
      *
-     * This test intentionally fails against the empty stub — implement
-     * before{Method} to make it pass (RED → GREEN).
+     * As written it asserts the pass-through default (returns null). Replace the
+     * expected value with your intended argument rewrite — that makes the test RED
+     * until before{Method} implements it (RED → GREEN).
      */
     public function testBeforePluginModifiesArguments(): void
     {
         $result = $this->plugin->before{Method}($this->subjectMock);
 
-        // Adjust the expected value to your interception logic.
+        // Pass-through default; change to your expected [$arg1, ...] replacement array.
         self::assertNull($result);
     }
 
     /**
-     * Test that the after-plugin transforms the return value as expected.
+     * Test the after-plugin's effect on the return value.
      *
-     * This test intentionally fails against the empty stub — implement
-     * after{Method} to make it pass (RED → GREEN).
+     * As written it asserts the pass-through default (returns $result unchanged).
+     * Replace the expected value with your intended transformation — that makes the
+     * test RED until after{Method} implements it (RED → GREEN).
      */
     public function testAfterPluginTransformsResult(): void
     {
@@ -63,15 +65,16 @@ class {PluginName}Test extends TestCase
 
         $result = $this->plugin->after{Method}($this->subjectMock, $originalResult);
 
-        // Adjust the expected value to your interception logic.
+        // Pass-through default; change to your expected transformed value.
         self::assertSame($originalResult, $result);
     }
 
     /**
      * Test that the around-plugin forwards arguments and returns the proceed result.
      *
-     * This test intentionally fails against the empty stub — implement
-     * around{Method} to make it pass (RED → GREEN).
+     * As written it asserts the pass-through default (returns the proceed result).
+     * Add assertions for any pre/post transformation you implement in around{Method}
+     * to drive RED → GREEN.
      */
     public function testAroundPluginForwardsArgsAndReturnsResult(): void
     {

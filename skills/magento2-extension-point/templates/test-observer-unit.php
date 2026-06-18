@@ -48,22 +48,21 @@ class {ObserverName}Test extends TestCase
     }
 
     /**
-     * Test that execute() performs the expected action on the event payload.
+     * Test that execute() reads the dispatched event payload.
      *
-     * This test intentionally fails against the empty stub — implement
-     * execute() to make it pass (RED → GREEN).
+     * The mock expectation below is a real assertion (PHPUnit verifies it at
+     * tear-down): the observer must read the event data. Adjust 'key' to your
+     * event's parameter, then add an assertion on the side effect your execute()
+     * produces (e.g. a mocked service call) to drive RED → GREEN.
      */
-    public function testExecuteActsOnEventPayload(): void
+    public function testExecuteReadsEventPayload(): void
     {
-        // Arrange: configure the event mock to return specific payload data.
-        // Adjust the key and value to match the event payload your observer reads.
-        $this->eventMock->method('getData')->with('key')->willReturn('expected-value');
+        // The observer must read this payload key exactly once.
+        $this->eventMock->expects(self::once())
+            ->method('getData')
+            ->with('key')
+            ->willReturn('expected-value');
 
-        // Act: invoke execute().
         $this->observer->execute($this->observerMock);
-
-        // Assert: verify the expected effect occurred.
-        // Adjust the expected value to your interception logic.
-        self::assertTrue(true); // Replace with a real assertion once execute() sets observable state.
     }
 }
