@@ -76,6 +76,24 @@ Console command and cron job generator tokens:
 
 Note: `{ServiceName}` is already registered under Structural / code tokens above.
 
+## Message-queue tokens (magento2-message-queue)
+
+Async message-queue generator tokens:
+`{TopicName}` (dot-separated topic name shared across communication.xml, queue_topology.xml,
+queue_publisher.xml, and the publisher's `TOPIC` const, e.g. `acme.orders.order.export`),
+`{QueueName}` (dot-separated physical queue name shared by queue_topology.xml's binding
+destination and queue_consumer.xml's `queue`, e.g. `acme.orders.export`),
+`{ExchangeName}` (exchange name shared by queue_topology.xml and queue_publisher.xml; `magento`
+by convention for the `db` connection),
+`{ConnectionName}` (message-queue connection: `db` by default, or `amqp` when a broker is
+confirmed; shared across topology/publisher/consumer XML),
+`{PublisherName}` (PascalCase publisher class name placed in `Model/`, e.g. `OrderExportPublisher`).
+
+Note: `{ConsumerName}` (consumer class + queue_consumer.xml `name`) and `{EntityName}` (the
+typed message DTO) are already registered above and are reused here. The DTO factory
+referenced in the publisher is the framework-generated `{EntityName}InterfaceFactory`
+(derived from `{EntityName}`, not a separate token).
+
 ## Theme / frontend tokens
 
 `{component}`, `{component-name-kebab}`, `{module-kebab-case}`, `{module-name-kebab}`,
@@ -147,6 +165,7 @@ ClassUnderTest
 Code
 CommandClass
 CommandName
+ConnectionName
 ConsumerName
 Controller
 ControllerArea
@@ -167,6 +186,7 @@ ENVIRONMENT_LIMITATIONS
 EXECUTIVE_SUMMARY
 Entity
 EntityName
+ExchangeName
 Existing
 ExistingModule
 FINDINGS_HTML
@@ -212,6 +232,8 @@ Path
 PluginName
 PreferenceFor
 PreferenceForShort
+PublisherName
+QueueName
 SHA1
 SHA2
 Schedule
@@ -231,6 +253,7 @@ TargetShortName
 Theme
 Title
 To
+TopicName
 VENDOR_UPPER
 Vendor
 Version

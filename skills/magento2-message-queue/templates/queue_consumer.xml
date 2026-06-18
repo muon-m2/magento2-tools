@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<!--
+    Message-queue consumer declaration for {Vendor}_{Module}.
+    Target: {Vendor}/{Module}/etc/queue_consumer.xml  (merge into existing file)
+
+    Tokens: {ConsumerName}, {QueueName}, {ConnectionName}, {Vendor}, {Module}
+    Maps the named consumer to the queue it drains and the handler it calls per message.
+    {QueueName} must match queue_topology.xml's binding destination; {ConnectionName}
+    ("db" by default) must match queue_topology.xml + queue_publisher.xml; {ConsumerName}
+    must match the consumer class name and its unit test. Verify the consumer appears in
+    `bin/magento queue:consumers:list` after setup:upgrade.
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework-message-queue:etc/consumer.xsd">
+    <consumer name="{ConsumerName}"
+              queue="{QueueName}"
+              connection="{ConnectionName}"
+              handler="{Vendor}\{Module}\Model\Consumer\{ConsumerName}::process"/>
+</config>

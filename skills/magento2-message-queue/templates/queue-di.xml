@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<!--
+    DI preference binding the message DTO interface to its concrete model for {Vendor}_{Module}.
+    Target: {Vendor}/{Module}/etc/di.xml  (merge into existing file)
+
+    Tokens: {Vendor}, {Module}, {EntityName}
+    Required so the message-queue framework can instantiate the typed payload it sees as
+    the topic's `request` interface in communication.xml.
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <preference for="{Vendor}\{Module}\Api\Data\{EntityName}Interface"
+                type="{Vendor}\{Module}\Model\{EntityName}"/>
+</config>

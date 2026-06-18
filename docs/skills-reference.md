@@ -414,6 +414,31 @@ interfaces.
 - **Related:** use `magento2-module-create` first if the module does not exist;
   `magento2-feature-implement` for multi-surface work that includes interception tasks.
 
+### magento2-message-queue
+
+Scaffold a full **async message-queue** surface on an **existing** module: a
+`communication.xml` topic (typed DTO `request`), the `queue_topology.xml` /
+`queue_publisher.xml` / `queue_consumer.xml` bindings, a `di.xml` DTO `<preference>`, a
+typed message interface + model, a `PublisherInterface`-backed publisher, and an
+idempotent consumer that decodes the typed message and delegates to a domain handler.
+Goes beyond `magento2-module-create`'s bare queue stub by wiring all five XML files so the
+topic ↔ topology ↔ publisher ↔ consumer ↔ queue chain resolves.
+
+- **Invocation:** *"process orders asynchronously in Acme_Orders"*;
+  *"add a queue consumer to Acme_Orders"*;
+  `--module=Acme_Orders --topic=acme.orders.order.export --entity=OrderExport --publisher=OrderExportPublisher --consumer=OrderExportConsumer --queue=acme.orders.export --connection=db`.
+- **Phases:** resolve context (hard-stop if module absent — offer `magento2-module-create`)
+  → resolve inputs (topic/DTO/publisher/consumer/connection/queue) → plan (gate) →
+  **test-first** (3A: consumer unit test asserts a decoded typed message is handed to the
+  handler exactly once, and a redelivery is an idempotent no-op) → generate from templates
+  → verify (`php -l`, `xmllint`, `magento2-module-review --diff`) → report.
+- **Outputs:** `etc/communication.xml` + `etc/queue_topology.xml` + `etc/queue_publisher.xml`
+  + `etc/queue_consumer.xml` + `etc/di.xml` (all merge) + `Api/Data/{EntityName}Interface.php`
+  + `Model/{EntityName}.php` + `Model/{PublisherName}.php` + `Model/Consumer/{ConsumerName}.php`
+  + the consumer unit test; `.docs/message-queues/{Vendor}_{Module}-{topic}-{date}.md`.
+- **Related:** use `magento2-module-create` first if the module does not exist (it emits the
+  bare queue stub this skill goes beyond).
+
 ---
 
 ## Choosing between adjacent skills
@@ -426,6 +451,7 @@ key ones.
 | If the request is… | Use | Not |
 |---|---|---|
 | Add a bin/magento console command or cron job | `magento2-cli-command` | `magento2-module-create` |
+| Add an async message queue (topic + consumer) | `magento2-message-queue` | `magento2-module-create` |
 | Add admin store configuration (system.xml + typed reader) | `magento2-system-config` | `magento2-module-create` / `magento2-adminhtml-form` |
 | Wire behaviour onto an existing class (plugin/observer/preference) | `magento2-extension-point` | `magento2-module-create` / `magento2-feature-implement` |
 | A single admin edit form | `magento2-adminhtml-form` | `magento2-feature-implement` / `magento2-module-create` |

@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!--
+    Message-queue topology (exchange + binding) for {Vendor}_{Module}.
+    Target: {Vendor}/{Module}/etc/queue_topology.xml  (merge into existing file)
+
+    Tokens: {ExchangeName}, {TopicName}, {QueueName}, {ConnectionName}, {Vendor}, {Module}
+    The exchange routes {TopicName} to {QueueName}. {ExchangeName} must match the exchange
+    in queue_publisher.xml; {TopicName} must match communication.xml + queue_publisher.xml;
+    {QueueName} must match the consumer's queue in queue_consumer.xml. For connection="db"
+    the conventional exchange is "magento".
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework-message-queue:etc/topology.xsd">
+    <exchange name="{ExchangeName}" type="topic" connection="{ConnectionName}">
+        <binding id="{Vendor}{Module}{EntityName}Binding"
+                 topic="{TopicName}"
+                 destinationType="queue"
+                 destination="{QueueName}"/>
+    </exchange>
+</config>

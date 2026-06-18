@@ -50,6 +50,8 @@ while IFS= read -r tpl; do
         -e 's/{ControllerName}/Index/g' \
         -e 's/{ControllerArea}/frontend/g' \
         -e 's/{ConsumerName}/Consumer/g' \
+        -e 's/{PublisherName}/Publisher/g' \
+        -e 's/{TopicName}/acme.mod.entity.action/g' \
         -e 's/{JobName}/Job/g' \
         -e 's/{MessageName}/Message/g' \
         -e 's/{PatchName}/Patch/g' \

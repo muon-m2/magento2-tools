@@ -42,6 +42,10 @@ while IFS= read -r tpl; do
         -e 's/{action}/action/g' \
         -e 's/{ConsumerName}/Consumer/g' \
         -e 's/{consumer_description}/consumer/g' \
+        -e 's/{TopicName}/acme.mod.entity.action/g' \
+        -e 's/{QueueName}/acme.mod.entity/g' \
+        -e 's/{ExchangeName}/magento/g' \
+        -e 's/{ConnectionName}/db/g' \
         -e 's/{JobName}/Job/g' \
         -e 's/{MessageName}/Message/g' \
         -e 's/{queue_name}/queue.name/g' \
