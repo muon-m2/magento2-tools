@@ -28,7 +28,12 @@ while IFS= read -r tpl; do
         -e 's/{entity}/entity/g' \
         -e 's/{entities}/entities/g' \
         -e 's/{EntityName}/Entity/g' \
+        -e 's/{BackendModelName}/SomeBackend/g' \
         -e 's/{BackendName}/Backend/g' \
+        -e 's/{DefaultValue}/1/g' \
+        -e 's/{FieldId}/some_field/g' \
+        -e 's/{GroupId}/general/g' \
+        -e 's/{SectionId}/acme_mod/g' \
         -e 's/{SourceName}/Source/g' \
         -e 's/{FrontendName}/Frontend/g' \
         -e 's/{ServiceName}/Service/g' \

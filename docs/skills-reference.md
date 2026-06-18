@@ -350,6 +350,27 @@ existing routes/ACL/menu from `magento2-adminhtml-form` when present.
 - **Related:** sibling `magento2-adminhtml-form` (the edit form); reviewed by
   `magento2-module-review`; called by `magento2-feature-implement` (M* tasks).
 
+### magento2-system-config
+
+Add admin Stores → Configuration settings to an **existing** module: `system.xml`
+section/group/field declarations, `config.xml` defaults, `acl.xml` resource, optional
+source and backend models, and a typed `Config` reader that wraps `ScopeConfigInterface`.
+Handles all field types (text, select, multiselect, obscure/encrypted). Config paths
+follow the `{vendor_lower}_{module_lower}/{group}/{field}` convention.
+
+- **Invocation:** *"add a config toggle for Acme_Checkout"*;
+  `--module=Acme_Checkout --section=acme_checkout --group=general --field=enable --type=select`.
+- **Phases:** resolve context → resolve inputs (section/group/fields table) → plan (gate) →
+  **test-first** (3A: mock-based unit test for typed reader + source model tests) → generate
+  (system.xml + config.xml + acl.xml + optional source/backend models + typed reader) →
+  verify (`php -l`, `xmllint`, `magento2-module-review --diff`) → report.
+- **Outputs:** `etc/adminhtml/system.xml`, `etc/config.xml`, `etc/acl.xml`,
+  optional `Model/Config/Source/{SourceName}.php` and `Model/Config/Backend/{BackendModelName}.php`,
+  `Model/Config.php` (typed reader), `Test/Unit/Model/ConfigTest.php`;
+  `.docs/system-config/{Module}-{section}-{date}.md`.
+- **Related:** use `magento2-module-create` first if the module does not exist; for an
+  admin **data** edit form use `magento2-adminhtml-form`; reviewed by `magento2-module-review`.
+
 ### magento2-extension-point
 
 Wire behaviour onto an **existing** Magento 2 class without editing it. Three modes:
@@ -382,6 +403,7 @@ key ones.
 
 | If the request is… | Use | Not |
 |---|---|---|
+| Add admin store configuration (system.xml + typed reader) | `magento2-system-config` | `magento2-module-create` / `magento2-adminhtml-form` |
 | Wire behaviour onto an existing class (plugin/observer/preference) | `magento2-extension-point` | `magento2-module-create` / `magento2-feature-implement` |
 | A single admin edit form | `magento2-adminhtml-form` | `magento2-feature-implement` / `magento2-module-create` |
 | A GraphQL query/mutation/type | `magento2-graphql-create` | `magento2-feature-implement` / `magento2-module-create` |

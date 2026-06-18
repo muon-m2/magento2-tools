@@ -18,6 +18,12 @@ while IFS= read -r tpl; do
     # current XML templates. Kept in alphabetical-ish order to make additions easy.
     sed -e 's/{Vendor}/Acme/g' \
         -e 's/{vendor_lower}/acme/g' \
+        -e 's/{BackendModelName}/SomeBackend/g' \
+        -e 's/{DefaultValue}/1/g' \
+        -e 's/{FieldId}/some_field/g' \
+        -e 's/{GroupId}/general/g' \
+        -e 's/{SectionId}/acme_mod/g' \
+        -e 's/{SourceName}/Source/g' \
         -e 's/{VENDOR_UPPER}/ACME/g' \
         -e 's/{Module}/Mod/g' \
         -e 's/{ModuleName}/Mod/g' \

@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<!--
+  ACL resource for {Vendor}_{Module} store configuration.
+  Target: {Vendor}/{Module}/etc/acl.xml  (MERGE into existing acl.xml; do not clobber)
+
+  The config resource is referenced by the <resource> element inside system.xml's <section>.
+  It nests under {Vendor}_{Module}::main so that granting the module's main resource
+  implicitly grants access to its configuration.
+
+  acl.xsd allows ONLY id, title, sortOrder, disabled on <resource>. Do NOT add
+  translate="..." — that attribute belongs on menu.xml <add>, not here.
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Acl/etc/acl.xsd">
+    <acl>
+        <resources>
+            <resource id="Magento_Backend::admin">
+                <resource id="Magento_Config::config">
+                    <resource id="{Vendor}_{Module}::config" title="{Title} Configuration"
+                              sortOrder="10"/>
+                </resource>
+            </resource>
+        </resources>
+    </acl>
+</config>

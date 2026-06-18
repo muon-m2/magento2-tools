@@ -40,6 +40,16 @@ Names used inside generated PHP/XML. Examples: `{ClassUnderTest}`, `{ServiceName
 `{TargetNamespace}`, `{TargetShortName}`, `{SubNamespace}`, `{Dep1FQCN}`, `{ParentIdAccessor}`,
 `{parent_id_key}`, `{ParentTheme}`, `{ParentVendor}`, `{Theme}`, `{theme_lower}`.
 
+## System-config tokens (magento2-system-config)
+
+Store-configuration generator tokens:
+`{SectionId}` (snake_case section id in system.xml, e.g. `acme_checkout`),
+`{GroupId}` (snake_case group id, e.g. `general`),
+`{FieldId}` (snake_case field id, e.g. `enable_feature`),
+`{ConfigPath}` (full config path `{section}/{group}/{field}`, used in typed reader constants),
+`{BackendModelName}` (PascalCase backend model class name, e.g. `SomeBackend`),
+`{DefaultValue}` (default field value written to config.xml, e.g. `1`).
+
 ## Extension-point tokens (magento2-extension-point)
 
 Plugin, observer, and preference tokens:
@@ -114,6 +124,7 @@ ActionName
 Area
 EventName
 AttributeCode
+BackendModelName
 BackendName
 Behaviour
 CHECKLIST_TABLE
@@ -126,6 +137,7 @@ Controller
 ControllerArea
 ControllerName
 DATE
+DefaultValue
 Dep1FQCN
 Dep1Type
 Dep2FQCN
@@ -142,8 +154,10 @@ Existing
 ExistingModule
 FINDINGS_HTML
 FeatureName
+FieldId
 From
 Group
+GroupId
 HIGH_COUNT
 ID
 Interface
@@ -183,6 +197,7 @@ PreferenceForShort
 SHA1
 SHA2
 Section
+SectionId
 SortOrder
 Service
 ServiceName
