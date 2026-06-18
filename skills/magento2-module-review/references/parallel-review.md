@@ -47,9 +47,14 @@ When two subagents reach contradictory conclusions about the same code location,
 
 ## Claude Code Agent Guidance
 
-Spawn subagents with the `Agent` tool. Use `subagent_type: 'Explore'` for bounded evidence collection and file
-inventory; use `subagent_type: 'claude'` for security and architecture review. Pass the module path and subtask scope in
-the prompt. Each subagent must receive a self-contained brief — it has no access to the parent conversation.
+Spawn subagents with the `Agent` tool. Prefer the plugin's first-party `subagent_type: 'magento2-reviewer'`
+(a read-only Magento reviewer that loads this checklist + the shared severity scale, defined in
+`agents/magento2-reviewer.md`) for the Security, Architecture, Frontend, Testing, and Performance
+dimensions — dispatch one per subtask scope. Use `subagent_type: 'Explore'` for bounded evidence
+collection / file inventory when you only need files located, not judged. If `magento2-reviewer` is
+unavailable in the session, fall back to `subagent_type: 'claude'`. Pass the module path and subtask
+scope in the prompt. Each subagent must receive a self-contained brief — it has no access to the
+parent conversation.
 
 ## Model Guidance
 
