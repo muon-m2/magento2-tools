@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<!--
+    DI wiring for the {EntityName} Web API.
+
+    The three preferences below are required for the service contract to resolve:
+      1. RepositoryInterface  -> the concrete repository (the route target).
+      2. Data interface       -> the entity model (so the Web API can build the DTO).
+      3. SearchResultsInterface -> the framework SearchResults (getList return type).
+
+    getList relies on a CollectionProcessorInterface. Magento binds a default processor; declare a
+    virtual type only if this entity needs custom filter/sort handling — see
+    references/search-criteria.md.
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <preference for="{Vendor}\{ModuleName}\Api\{EntityName}RepositoryInterface"
+                type="{Vendor}\{ModuleName}\Model\{EntityName}Repository"/>
+    <preference for="{Vendor}\{ModuleName}\Api\Data\{EntityName}Interface"
+                type="{Vendor}\{ModuleName}\Model\{EntityName}"/>
+    <preference for="{Vendor}\{ModuleName}\Api\Data\{EntityName}SearchResultsInterface"
+                type="Magento\Framework\Api\SearchResults"/>
+</config>

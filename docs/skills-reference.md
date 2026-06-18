@@ -89,6 +89,25 @@ batch resolvers (N+1 prevention). Appends to existing `schema.graphqls`, never r
 - **Related:** tests via `magento2-test-generate`; reviewed with
   `magento2-module-review --diff`; called by feature-implement (G* tasks).
 
+### magento2-webapi-create
+
+Contract-first REST / Web API for an **existing** entity (sibling to graphql-create):
+`webapi.xml` CRUD routes + optional custom-action routes, `Api/{Entity}RepositoryInterface`
+service contract, `Api/Data` DTO + search-results interfaces, a full `{Entity}Repository`
+(`SearchCriteria` via `CollectionProcessor`), `di.xml` preferences, `acl.xml`, and a
+`WebapiAbstract` functional test. Per-route auth scopes (anonymous/self/ACL), exception→HTTP
+mapping, extension attributes. Assumes the entity model exists (run `magento2-module-create`
+first); appends to existing `webapi.xml`/`di.xml`/`acl.xml` rather than overwriting.
+
+- **Invocation:** `--module=Acme_Catalog --entity=Brand --auth=anonymous|self|acl`
+  (anonymous routes need justification).
+- **Phases:** contract plan → DTO & repository plan (gate) → generate → verify (`xmllint`,
+  `php -l`, `magento2-module-review --diff`) → report.
+- **Outputs:** `etc/webapi.xml`, `etc/di.xml`, `etc/acl.xml`, `Api/…`, `Model/{Entity}Repository.php`,
+  `Test/Api/…`.
+- **Related:** tests via `magento2-test-generate --types=api`; reviewed with
+  `magento2-module-review --diff`; called by feature-implement (API tasks).
+
 ### magento2-frontend-create
 
 Theme-aware frontend scaffolding: theme, RequireJS module, Knockout component, Alpine

@@ -66,7 +66,7 @@ Developer documentation lives in [`docs/`](docs/README.md):
 
 ## Skills
 
-19 skills under `skills/`, each self-contained (`SKILL.md` + `references/` +
+20 skills under `skills/`, each self-contained (`SKILL.md` + `references/` +
 `scripts/` + `templates/`). Per-skill flags, phases, and outputs are documented in
 [docs/skills-reference.md](docs/skills-reference.md).
 
@@ -85,6 +85,7 @@ Developer documentation lives in [`docs/`](docs/README.md):
 | `magento2-debug` | Investigate logs / DI graph when reproduction is hard. |
 | `magento2-eav-attribute` | Add EAV attributes idempotently. |
 | `magento2-graphql-create` | Schema-first GraphQL surfaces. |
+| `magento2-webapi-create` | Contract-first REST / Web-API surfaces for an existing entity (webapi.xml routes + service contract + DTO + repository + di.xml + acl.xml + functional tests). |
 | `magento2-frontend-create` | Themes, components, email templates. |
 | `magento2-data-migration` | Idempotent data patches / importers. |
 | `magento2-release` | Version bump, changelog, tag, publish. |
@@ -102,9 +103,9 @@ it and it depends on nothing. `magento2-feature-implement` is the top orchestrat
 magento2-context  ◄── (called by all others; depends on nothing)
 
 magento2-feature-implement ──► module-create, module-review, test-generate,
-                               eav-attribute, graphql-create, frontend-create,
-                               data-migration, deploy, debug, security-audit,
-                               performance-audit, bug-fix
+                               eav-attribute, graphql-create, webapi-create,
+                               frontend-create, data-migration, deploy, debug,
+                               security-audit, performance-audit, bug-fix
 
 magento2-bug-fix           ──► context, module-review, deploy, data-migration, debug
 magento2-deploy            ──► context, module-upgrade, release
@@ -114,6 +115,7 @@ magento2-security-audit    ──► context, module-review, module-upgrade
 magento2-performance-audit ──► context, module-review, security-audit
 magento2-eav-attribute     ──► context, module-create, module-review
 magento2-graphql-create    ──► context, module-create, module-review, test-generate
+magento2-webapi-create     ──► context, module-create, module-review, test-generate
 magento2-frontend-create   ──► context, module-create, module-review
 magento2-module-upgrade    ──► context, module-review, test-generate
 magento2-data-migration    ──► context, module-review
@@ -172,7 +174,7 @@ detection. Changing any override busts the resolver cache automatically.
 .claude-plugin/
   plugin.json        # plugin manifest
   marketplace.json   # this repo doubles as its own marketplace ("muon-m2")
-skills/              # 19 magento2-* skills (auto-discovered by Claude Code)
+skills/              # 20 magento2-* skills (auto-discovered by Claude Code)
 commands/            # 9 /magento2-tools:<verb> shortcut commands (auto-discovered)
 hooks/               # PreToolUse guard: keeps .docs/ artifacts at the project root
 tests/               # contract test harness

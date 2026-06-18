@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<!--
+    REST routes for the {EntityName} service contract.
+
+    Each <route> binds a URL + HTTP method to a method on {EntityName}RepositoryInterface and
+    declares an auth scope under <resources>:
+      - <resource ref="{Vendor}_{ModuleName}::view"/>   ACL-protected read  (admin/integration token)
+      - <resource ref="{Vendor}_{ModuleName}::manage"/> ACL-protected write (admin/integration token)
+      - <resource ref="self"/>                            customer-scoped (token identifies the user)
+      - <resource ref="anonymous"/>                       PUBLIC — only with explicit justification
+    See references/auth-scopes.md. Path params (:entityId) map by name to the method argument.
+-->
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Webapi:etc/webapi.xsd">
+    <route url="/V1/{vendor_lower}/{route}/:entityId" method="GET">
+        <service class="{Vendor}\{ModuleName}\Api\{EntityName}RepositoryInterface" method="getById"/>
+        <resources>
+            <resource ref="{Vendor}_{ModuleName}::view"/>
+        </resources>
+    </route>
+    <route url="/V1/{vendor_lower}/{route}" method="GET">
+        <service class="{Vendor}\{ModuleName}\Api\{EntityName}RepositoryInterface" method="getList"/>
+        <resources>
+            <resource ref="{Vendor}_{ModuleName}::view"/>
+        </resources>
+    </route>
+    <route url="/V1/{vendor_lower}/{route}" method="POST">
+        <service class="{Vendor}\{ModuleName}\Api\{EntityName}RepositoryInterface" method="save"/>
+        <resources>
+            <resource ref="{Vendor}_{ModuleName}::manage"/>
+        </resources>
+    </route>
+    <route url="/V1/{vendor_lower}/{route}/:entityId" method="PUT">
+        <service class="{Vendor}\{ModuleName}\Api\{EntityName}RepositoryInterface" method="save"/>
+        <resources>
+            <resource ref="{Vendor}_{ModuleName}::manage"/>
+        </resources>
+    </route>
+    <route url="/V1/{vendor_lower}/{route}/:entityId" method="DELETE">
+        <service class="{Vendor}\{ModuleName}\Api\{EntityName}RepositoryInterface" method="deleteById"/>
+        <resources>
+            <resource ref="{Vendor}_{ModuleName}::manage"/>
+        </resources>
+    </route>
+    <!--
+        EXAMPLE custom action — remove for a CRUD-only API. Mirrors {EntityName}Repository::activate
+        and its signature in {EntityName}RepositoryInterface. The :entityId path param maps to the
+        method's int $entityId argument.
+    -->
+    <route url="/V1/{vendor_lower}/{route}/:entityId/activate" method="POST">
+        <service class="{Vendor}\{ModuleName}\Api\{EntityName}RepositoryInterface" method="activate"/>
+        <resources>
+            <resource ref="{Vendor}_{ModuleName}::manage"/>
+        </resources>
+    </route>
+</routes>
