@@ -70,7 +70,7 @@ Declares the exchange and the binding that routes a topic to a destination queue
 
 ```xml
 <exchange name="{ExchangeName}" type="topic" connection="{ConnectionName}">
-    <binding id="{ConsumerName}Binding" topic="{TopicName}"
+    <binding id="{Vendor}{Module}{EntityName}Binding" topic="{TopicName}"
              destinationType="queue" destination="{QueueName}"/>
 </exchange>
 ```

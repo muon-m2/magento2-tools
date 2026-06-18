@@ -108,6 +108,9 @@ error):
   Then assert that a **second** delivery of the **same** message is a safe no-op for the
   consumer class itself (idempotency-safety). Mock expectations ARE assertions — no
   `markTestIncomplete`, no `self::assertTrue(true)`.
+- **Prerequisite:** the injected domain handler/service (e.g. `{EntityName}Handler`) must
+  already exist or be stubbed before running the RED test, otherwise the failure is a
+  handler-not-found error rather than the intended consumer-not-found RED.
 
 Follow `magento2-context/references/tdd-discipline.md`.
 
