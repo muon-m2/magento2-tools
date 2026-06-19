@@ -53,14 +53,17 @@ seq = 1
 
 
 def finding(severity, category, title, file_path, line, recommendation,
-            verification, subcategory=None, tags=None):
+            verification, subcategory=None, tags=None, extra_evidence=None):
     global seq
+    evidence = [{"file": file_path, "line": line}]
+    for extra in extra_evidence or []:
+        evidence.append({"file": extra, "line": 1})
     f = {
         "id": f"marketplace-{seq:04d}",
         "severity": severity,
         "category": category,
         "title": title,
-        "evidence": [{"file": file_path, "line": line}],
+        "evidence": evidence,
         "recommendation": recommendation,
         "verification": verification,
         "tags": tags or ["eqp", "marketplace"],
@@ -289,7 +292,8 @@ if php_files_missing_header:
         " * See LICENSE.txt for license details.",
         "Re-run check-readiness.sh; all PHP files should have a license/copyright header.",
         subcategory="license-header-missing",
-        tags=["eqp", "marketplace", "warning"] + sample,
+        tags=["eqp", "marketplace", "warning"],
+        extra_evidence=sample[1:],
     )
 
 # ---------------------------------------------------------------------------
@@ -401,7 +405,8 @@ if found_artifacts:
         "Remove dev artifacts from the module directory and add them to .gitignore and composer.json 'archive.exclude'.",
         "Confirm dev artifacts are removed or excluded from the package.",
         subcategory="dev-artifacts",
-        tags=["eqp", "marketplace", "warning"] + [os.path.basename(a) for a in found_artifacts],
+        tags=["eqp", "marketplace", "warning"],
+        extra_evidence=found_artifacts[1:],
     )
 
 # ---------------------------------------------------------------------------
