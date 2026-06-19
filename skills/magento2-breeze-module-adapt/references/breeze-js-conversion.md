@@ -18,7 +18,7 @@ Reference for `magento2-breeze-module-adapt`. Breeze ships [Cash](https://github
 
 ```js
 $.widget('uniqueName', {
-    component: '{Vendor}_{Module}/js/breeze/widget',
+    component: '{Vendor}_{Module}Breeze/js/breeze/widget',
 
     create: function () {
         // this.element — Cash collection for the bound node
@@ -28,6 +28,9 @@ $.widget('uniqueName', {
 ```
 
 - The first argument is a unique widget name; `component` is the asset path Breeze resolves.
+- The `component` namespace is the **companion** module (`{Vendor}_{Module}Breeze`), because the
+  widget file lives at `{Vendor}_{Module}Breeze/view/frontend/web/js/breeze/widget.js`. Pointing at
+  the target module's namespace would 404 — this skill never adds files to the target.
 - Breeze honors standard `data-mage-init` and `text/x-magento-init` instructions, so the markup
   that triggered the Luma widget usually triggers the Breeze widget unchanged.
 

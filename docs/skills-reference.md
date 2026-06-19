@@ -622,7 +622,7 @@ at `magento2-breeze-module-adapt`.
 
 - **Invocation:** `/magento2-tools:magento2-breeze-compat-audit <Vendor_Module>`.
 - **Phases:** context → scope → static scan → verdict + findings emit.
-- **Outputs:** `.docs/breeze-compat/{Vendor}_{Module}-{date}.{md,json,sarif}`.
+- **Outputs:** `.docs/breeze-compat/breeze-compat-{scope}-{date}.{json,sarif}` (+ a Markdown summary).
 
 ---
 

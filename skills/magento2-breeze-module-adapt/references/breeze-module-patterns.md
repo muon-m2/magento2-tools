@@ -51,7 +51,7 @@ Two routes, chosen per module (see `breeze-js-conversion.md`):
        <arguments>
            <argument name="components" xsi:type="array">
                <item name="{vendor_lower}_{module_lower}" xsi:type="array">
-                   <item name="component" xsi:type="string">{Vendor}_{Module}/js/breeze/widget</item>
+                   <item name="component" xsi:type="string">{Vendor}_{Module}Breeze/js/breeze/widget</item>
                </item>
            </argument>
        </arguments>

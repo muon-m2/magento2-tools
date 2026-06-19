@@ -10,7 +10,7 @@
             <arguments>
                 <argument name="components" xsi:type="array">
                     <item name="{vendor_lower}_{module_lower}" xsi:type="array">
-                        <item name="component" xsi:type="string">{Vendor}_{ModuleName}/js/breeze/widget</item>
+                        <item name="component" xsi:type="string">{Vendor}_{ModuleName}Breeze/js/breeze/widget</item>
                     </item>
                 </argument>
                 <!--

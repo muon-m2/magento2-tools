@@ -445,7 +445,7 @@ if [[ -f "$COMPOSER_JSON" ]] && command -v php >/dev/null 2>&1; then
     [[ -z "$BREEZE_PACKAGES_JSON" ]] && BREEZE_PACKAGES_JSON="[]"
     if [[ "$BREEZE_PACKAGES_JSON" != "[]" ]]; then
         BREEZE_INSTALLED="true"
-        BREEZE_SRC="${COMPOSER_JSON}:require swissup/breeze-* present"
+        BREEZE_SRC="${COMPOSER_JSON}:require has swissup/breeze-* or swissup/module-breeze (see theme.breeze.packages)"
     fi
 fi
 

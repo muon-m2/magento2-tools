@@ -9,7 +9,7 @@
     'use strict';
 
     $.widget('{moduleName}Widget', {
-        component: '{Vendor}_{ModuleName}/js/breeze/widget',
+        component: '{Vendor}_{ModuleName}Breeze/js/breeze/widget',
 
         /**
          * Breeze lifecycle hook. `this.element` is a Cash collection for the bound node and
