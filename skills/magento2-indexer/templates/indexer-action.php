@@ -39,6 +39,12 @@ class {IndexerName}Action
     private const TARGET_TABLE = '{target_table}';
 
     /**
+     * Primary-key column used to match index rows to source entities.
+     * Matches the entity_column of the mview subscription in etc/mview.xml.
+     */
+    private const ENTITY_COLUMN = '{id_column}';
+
+    /**
      * @param \Magento\Framework\App\ResourceConnection $resource
      */
     public function __construct(
@@ -109,7 +115,7 @@ class {IndexerName}Action
 
         foreach (array_chunk($ids, self::BATCH_SIZE) as $batch) {
             // Delete stale index rows for this batch of ids.
-            $connection->delete($targetTable, ['entity_id IN (?)' => $batch]);
+            $connection->delete($targetTable, [self::ENTITY_COLUMN . ' IN (?)' => $batch]);
 
             // TODO: replace this stub with real projection logic.
             // SELECT source rows for $batch, compute derived columns, INSERT into
