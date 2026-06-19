@@ -477,6 +477,33 @@ topic ↔ topology ↔ publisher ↔ consumer ↔ queue chain resolves.
 - **Related:** use `magento2-module-create` first if the module does not exist (it emits the
   bare queue stub this skill goes beyond).
 
+### magento2-indexer
+
+Scaffold a custom indexer and materialized view (mview) onto an **existing** module:
+`indexer.xml` declaration, `mview.xml` subscriptions, an indexer class that implements
+both `ActionInterface`s (executeFull/executeList/executeRow + Mview execute), and a
+dedicated action class that owns all batching and SQL logic. Bakes in idempotent
+delete-then-insert batching, the `view_id`/`id` parity contract (the #1 mview bug), and
+the ActionInterface name-clash resolution. Use for "add a custom index". Dimensions
+(Commerce-only sharding) are noted but not scaffolded by default.
+
+- **Invocation:** *"add a custom indexer to Acme_Catalog"*;
+  *"scaffold an mview indexer for product stock in Acme_Catalog"*;
+  `--module=Acme_Catalog --class=ProductStock --id=acme_catalog_productstock --source-table=cataloginventory_stock_item --id-column=product_id --target-table=acme_catalog_productstock_index`.
+- **Phases:** resolve context (hard-stop if module absent — offer `magento2-module-create`)
+  → resolve inputs (indexer id/title/description, source table, id column, target table)
+  → plan (gate) → **test-first** (3A: mock-based unit test asserting delegation of all
+  four methods with correct ids; statelessness check across instances) → generate
+  (`indexer.xml` + `mview.xml` + indexer class + action class) → verify (`php -l`,
+  `xmllint`, `magento2-module-review --diff`) → report.
+- **Outputs:** `etc/indexer.xml` (merge), `etc/mview.xml` (merge),
+  `Model/Indexer/{IndexerName}.php`, `Model/Indexer/{IndexerName}Action.php`,
+  `Test/Unit/Model/Indexer/{IndexerName}Test.php`;
+  `.docs/indexers/{Vendor}_{Module}-{indexer_id}-{date}.md` (includes the
+  `indexer:reindex {indexer_id}` and `indexer:set-mode` commands).
+- **Related:** use `magento2-module-create` first if the module does not exist; to
+  review or diagnose existing indexer performance use `magento2-performance-audit`.
+
 ### magento2-docs-generate
 
 Generate or refresh a module's **technical documentation** from its own code — public
@@ -525,3 +552,4 @@ key ones.
 | Performance depth (N+1, caching, ranked findings) | `magento2-performance-audit` | `magento2-debug` |
 | Read-only log/DI/queue inspection, one session | `magento2-debug` | `magento2-performance-audit` |
 | Generate module technical documentation from code | `magento2-docs-generate` | `magento2-module-review` |
+| Add a custom indexer + mview | `magento2-indexer` | `magento2-module-create` / `magento2-performance-audit` |

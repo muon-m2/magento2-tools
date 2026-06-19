@@ -66,6 +66,11 @@ while IFS= read -r tpl; do
         -e 's/{cron_job_name}/acme_mod_sync/g' \
         -e 's/{CronGroup}/default/g' \
         -e 's/{Schedule}/*\/15 * * * */g' \
+        -e 's/{IndexerName}/ProductStock/g' \
+        -e 's/{indexer_id}/acme_mod_productstock/g' \
+        -e 's/{id_column}/product_id/g' \
+        -e 's/{source_table}/src_tbl/g' \
+        -e 's/{target_table}/tgt_tbl/g' \
         "$tpl" > "$tmp"
 
     # MFTF templates use Magento's `{{_ENV.NAME}}` token, which is valid in MFTF DSL

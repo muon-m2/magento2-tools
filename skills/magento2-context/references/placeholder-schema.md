@@ -76,6 +76,22 @@ Console command and cron job generator tokens:
 
 Note: `{ServiceName}` is already registered under Structural / code tokens above.
 
+## Indexer tokens (magento2-indexer)
+
+Indexer and mview generator tokens:
+`{IndexerName}` (PascalCase indexer class name placed in `Model/Indexer/`, e.g.
+`ProductStock`; the action class is `{IndexerName}Action`),
+`{indexer_id}` (snake_case unique indexer identifier shared by `indexer.xml` `id`,
+`mview.xml` `view id`, and the `indexer:reindex` CLI command, e.g.
+`acme_catalog_productstock`),
+`{id_column}` (column name in the source table that holds the entity primary key,
+e.g. `product_id`; used as `entity_column` in `mview.xml` subscriptions).
+
+Note: `{source_table}` (source DB table subscribed to in mview), `{target_table}`
+(destination index table), `{Title}` (human-readable indexer title shown in admin), and
+`{Description}` (one-sentence description shown in admin) are already registered under
+Value / content tokens above and are reused here — not duplicated.
+
 ## Message-queue tokens (magento2-message-queue)
 
 Async message-queue generator tokens:
@@ -213,6 +229,7 @@ GRAPHQL_TABLE
 GroupId
 HIGH_COUNT
 ID
+IndexerName
 Interface
 Item
 JobName
@@ -317,7 +334,9 @@ framework_constraint
 from
 from_magento
 from_php
+id_column
 ids
+indexer_id
 invalidArgs
 kebab-title
 line

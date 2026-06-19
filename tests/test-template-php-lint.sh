@@ -77,6 +77,9 @@ while IFS= read -r tpl; do
         -e 's/{actual}/actual/g' \
         -e 's/{reproducedArgs}/null/g' \
         -e 's/{parent_id_key}/parent_id/g' \
+        -e 's/{IndexerName}/ProductStock/g' \
+        -e 's/{id_column}/product_id/g' \
+        -e 's/{indexer_id}/acme_mod_productstock/g' \
         -e 's/{source_table}/src_tbl/g' \
         -e 's/{target_table}/tgt_tbl/g' \
         -e 's/{\$sourceTable}/\$srcTable/g' \
