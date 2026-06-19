@@ -135,6 +135,12 @@ These are substituted by the review/report emitters, not by code scaffolding:
 `{EXECUTIVE_SUMMARY}`, `{FINDINGS_HTML}`, `{ENVIRONMENT_LIMITATIONS}`, `{NEXT_STEPS}`,
 `{POSITIVE_OBSERVATIONS}`, `{PARALLEL_REVIEW_SECTION}`, `{TOOL_RESULTS_TABLE}`.
 
+`magento2-docs-generate` surface-section markers (substituted when generating module
+technical documentation from extracted code surfaces):
+`{MODULE_DESCRIPTION}`, `{DEPENDENCIES_LIST}`, `{API_SURFACE_TABLE}`, `{EVENTS_TABLE}`,
+`{PLUGINS_TABLE}`, `{CONFIG_PATHS_TABLE}`, `{CLI_COMMANDS_TABLE}`, `{CRON_TABLE}`,
+`{REST_ROUTES_TABLE}`, `{GRAPHQL_TABLE}`, `{DB_SCHEMA_TABLE}`.
+
 ## Substitution rules
 
 - Substitution is whole-token: replace the literal text `{ModuleName}` with the resolved
@@ -152,14 +158,21 @@ The machine-readable allow-list. `test-placeholder-tokens.sh` parses the fenced 
 
 ```registry
 ActionName
+API_SURFACE_TABLE
 Area
-EventName
 AttributeCode
 BackendModelName
 BackendName
 Behaviour
 CHECKLIST_TABLE
+CLI_COMMANDS_TABLE
+CONFIG_PATHS_TABLE
 CRITICAL_COUNT
+CRON_TABLE
+DB_SCHEMA_TABLE
+DEPENDENCIES_LIST
+EVENTS_TABLE
+EventName
 Class
 ClassUnderTest
 Code
@@ -195,6 +208,7 @@ FieldId
 FieldTitle
 From
 Group
+GRAPHQL_TABLE
 GroupId
 HIGH_COUNT
 ID
@@ -204,6 +218,7 @@ JobName
 LOW_COUNT
 MEDIUM_COUNT
 METHOD
+MODULE_DESCRIPTION
 MODULE_NAME
 MODULE_PATH
 MODULE_UPPER
@@ -229,11 +244,13 @@ ParentVendor
 Patch
 PatchName
 Path
+PLUGINS_TABLE
 PluginName
 PreferenceFor
 PreferenceForShort
 PublisherName
 QueueName
+REST_ROUTES_TABLE
 SHA1
 SHA2
 Schedule
@@ -276,6 +293,7 @@ cron_job_name
 ctx.magento_cli
 ctx.magento_root
 ctx.runner
+date
 default
 depMethod
 depReturn

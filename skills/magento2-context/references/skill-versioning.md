@@ -34,6 +34,7 @@ skills evolve.
 | magento2-cli-command       | 1.0.0   | New mode/template, command or cron pattern change                             |
 | magento2-message-queue     | 1.0.0   | New connection type/template, topic or consumer pattern change                |
 | magento2-static-analysis   | 1.0.0   | New tool/rule, autofix-safety calibration change                              |
+| magento2-docs-generate     | 1.0.0   | New surface extractor, doc-structure change                                   |
 
 ## Changelog (last update: 2026-06-18)
 

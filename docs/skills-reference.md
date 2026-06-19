@@ -477,6 +477,28 @@ topic ↔ topology ↔ publisher ↔ consumer ↔ queue chain resolves.
 - **Related:** use `magento2-module-create` first if the module does not exist (it emits the
   bare queue stub this skill goes beyond).
 
+### magento2-docs-generate
+
+Generate or refresh a module's **technical documentation** from its own code — public
+`@api` surface, events fired and observed, plugins, preferences, admin config paths, CLI
+commands, cron jobs, REST routes, GraphQL types, DB schema, and module dependencies.
+Read-only: extracts facts from real files, writes Markdown only. Produces a `README.md`,
+a `docs/technical-reference.md`, and a `CHANGELOG.md` scaffold inside the documented
+module, plus a run report under `.docs/docs-generated/`. Every table entry cites its
+source file path.
+
+- **Invocation:** *"document this module"*; *"generate module docs for Acme_OrderExport"*;
+  `--module=Acme_OrderExport`; `--docs=readme,technical-reference,changelog` (default: all
+  three).
+- **Phases:** resolve context (hard-stop if module absent) → scope (which module, which
+  docs) → extract surface via `scripts/extract-surface.sh` + present doc plan (gate) →
+  render templates → verify (no unsubstituted tokens, no empty tables, Markdown only) →
+  report to `.docs/docs-generated/`.
+- **Outputs:** `{module}/README.md`, `{module}/docs/technical-reference.md`,
+  `{module}/CHANGELOG.md` (scaffold); `.docs/docs-generated/{Vendor}_{Module}-{date}.md`.
+- **Related:** `magento2-module-review` for architecture/quality review (findings, not docs);
+  `magento2-release` to consume `CHANGELOG.md` after docs are in place.
+
 ---
 
 ## Choosing between adjacent skills
@@ -502,3 +524,4 @@ key ones.
 | Security depth (CVEs, secrets, EQP, cross-module/repo) | `magento2-security-audit` | `magento2-module-review` |
 | Performance depth (N+1, caching, ranked findings) | `magento2-performance-audit` | `magento2-debug` |
 | Read-only log/DI/queue inspection, one session | `magento2-debug` | `magento2-performance-audit` |
+| Generate module technical documentation from code | `magento2-docs-generate` | `magento2-module-review` |
