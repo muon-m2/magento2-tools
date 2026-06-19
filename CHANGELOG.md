@@ -6,6 +6,12 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.12.2] — 2026-06-19 — feature-implement: probe-before-fallback sub-skill delegation
+
+### Fixed
+
+- **`magento2-feature-implement` 2.10.0 → 2.10.1** — closes a delegation-discipline gap surfaced by auditing a real feature run, where the orchestrator skipped `magento2-*` sub-skill delegation on an unverified "not Skill-invocable here" assumption and relabelled typed tasks (an admin-config `C` task built inline as `X`). Adds a **Delegate by probing, never by assumption** Core Rule — attempt the `Skill` invocation and fall back to inline only on an actual failure, recording the concrete reason; never pre-declare a sub-skill (or the whole family) unreachable or skip from memory/a project note. Adds a Phase 5 **Fallback discipline** subsection — on a genuine fallback, keep the task's type prefix (never downgrade `C`/`I`/`L`/`Q`/`E`/`G` to `X`) and author the same output inline from the skill's own references; `magento2-feature-implement` never runs `bin/magento` itself (`magento2-deploy` owns the deploy plan). Reinforced by a "type by work, not tool availability" note in `references/task-breakdown-guide.md` and `Skill:`-field + `D1` deploy guidance in `templates/task-record.md`. No new phase/gate/mode/task-type.
+
 ## [1.12.1] — 2026-06-19 — documentation is a required step before the final step
 
 ### Changed

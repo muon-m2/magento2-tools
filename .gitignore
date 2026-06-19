@@ -22,8 +22,9 @@
 # Stale manual packages superseded by this repo
 skills.zip
 
-# Internal audit / process docs — kept local, not part of the shipped plugin.
+# Internal audit / process / design docs — kept local, not part of the shipped plugin.
 # The CHANGELOG is the durable record of what changed.
+.docs/
 SKILLS-ANALYSIS-REPORT.md
 SKILLS-IMPROVEMENT-PLAN.md
 SKILLS-REMEDIATION-REPORT.md
