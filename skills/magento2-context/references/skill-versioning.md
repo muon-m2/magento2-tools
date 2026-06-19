@@ -33,8 +33,17 @@ skills evolve.
 | magento2-system-config     | 1.0.0   | New field type/template, config-reader pattern change                         |
 | magento2-cli-command       | 1.0.0   | New mode/template, command or cron pattern change                             |
 | magento2-message-queue     | 1.0.0   | New connection type/template, topic or consumer pattern change                |
+| magento2-static-analysis   | 1.0.0   | New tool/rule, autofix-safety calibration change                              |
 
 ## Changelog (last update: 2026-06-18)
+
+- **New skill `magento2-static-analysis` 1.0.0 (unreleased)** — action skill that runs
+  the static-analysis gate (phpcs Magento2, phpstan, phpmd, php-cs-fixer, rector) over a
+  module or diff, applies safe auto-fixes (phpcbf, php-cs-fixer, safe rector sets) after
+  a mandatory Phase-2 approval gate, and emits residual violations as ranked findings
+  (Markdown + JSON `outputKind=quality` + SARIF) via the shared emit-json.sh / emit-sarif.sh
+  emitters. References: `tool-matrix.md`, `autofix-safety.md`, `ci-integration.md`.
+  Scripts: `run-analysis.sh`, `apply-fixes.sh`, `build-findings.sh`. No templates.
 
 - **New skill `magento2-message-queue` 1.0.0 (unreleased)** — generator for a full async
   message-queue surface on an **existing** module: a `communication.xml` topic (typed

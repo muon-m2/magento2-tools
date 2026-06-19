@@ -140,6 +140,44 @@ SELECT→INSERT→DELETE, keyset-paginated). Destructive patches require
 
 ## Quality
 
+### magento2-static-analysis
+
+Action skill — run the full static-analysis gate (phpcs Magento2, phpstan, phpmd,
+php-cs-fixer, rector dry-run) over a module or diff and **apply safe auto-fixes to
+green**, reporting residual violations as ranked findings. Use when you need to *fix*
+coding-standard violations or make a module pass the CI gate. For an architecture/quality
+review without fixing, use `magento2-module-review`.
+
+- **Invocation:** `[--module=<Vendor>_<Module>] [--diff [<ref>]] [--scope=module|site]
+  [<files>…]`.
+- **Phases:** context resolution (tools probe) → scope → read-only analysis pass
+  (run-analysis.sh, Phase 2) → **approval gate** (present fix plan, wait for "proceed")
+  → apply safe fixes (phpcbf, php-cs-fixer, safe rector, Phase 3) → re-run analysis
+  (Phase 4) → report (Phase 5).
+- **Safe auto-fixes:** phpcbf (all PHPCS whitespace/formatting), php-cs-fixer
+  (`@PSR12` + safe rules), rector safe sets (void return types, unused vars, union types
+  on PHP ≥ 8.0). Risky rector rules are proposed only. Vendor/generated/var are never
+  touched.
+- **Outputs:** `.docs/quality/{Vendor}_{Module}-quality-{date}.md` + JSON
+  `.docs/quality/quality-{scope}-{date}.json` + SARIF (via shared `build-findings.sh`,
+  `outputKind=quality`).
+- **CI gate:** `references/ci-integration.md`; SARIF uploads to GitHub Code Scanning;
+  `--diff origin/main` for PR gating.
+- **Related:** `magento2-module-review` (read-only architecture review, no fixing);
+  `magento2-security-audit` (deeper security scan); `magento2-bug-fix` (defects needing
+  RCA rather than style fixes).
+
+**Routing table (when to use which quality skill):**
+
+| Intent | Skill | Defers to |
+|--------|-------|-----------|
+| Run the static toolchain and auto-fix to green (CI gate) | `magento2-static-analysis` | `magento2-module-review` |
+| Review architecture/quality/security without touching code | `magento2-module-review` | — |
+| Deep security scan (CVEs, secrets, EQP) | `magento2-security-audit` | `magento2-module-review` |
+| Performance profiling (N+1, caching, indexers) | `magento2-performance-audit` | — |
+
+---
+
 ### magento2-module-review
 
 Static-evidence review of a module (or a diff): architecture, security, persistence,
