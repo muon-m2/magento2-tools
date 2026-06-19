@@ -19,12 +19,12 @@ and reports residual violations as ranked findings. Unlike `magento2-module-revi
 - **Probe tools via `{ctx.tools}`.** Skip any tool not present. NEVER install anything.
 - **Fixers run ONLY after the Phase-2 approval gate.** No file is touched until the user
   explicitly types "proceed" (or an equivalent confirmation).
-- **Safe transforms only.** `phpcbf` and `php-cs-fixer` are applied automatically.
-  Low-risk rector sets listed in `references/autofix-safety.md` (whitespace, import
-  ordering, return-type declarations with full type-inference) are also auto-applied.
-- **Risky rector rules are PROPOSED, not applied.** Dead-code removal, type-coercion,
-  and upgrade rules are listed for manual review; the skill never applies them without
-  explicit per-rule approval.
+- **Safe transforms only.** `phpcbf` and `php-cs-fixer` are the only auto-applied fixers.
+  They are purely mechanical and cannot change observable behaviour.
+- **Rector is PROPOSED, not auto-applied.** Rector runs in `--dry-run` mode during Phase 2
+  (detection only). Its findings are listed for manual review; the skill never applies rector
+  transforms automatically. The developer applies any desired rector changes manually after
+  reviewing the proposals.
 - **Re-run after fixing.** After applying fixes, the analysis gate re-runs and reports
   the residual (manual-only) violations.
 - **NEVER edit `vendor/`.** All fixers exclude the `vendor/` directory unconditionally.
@@ -77,10 +77,11 @@ Run `${CLAUDE_SKILL_DIR}/scripts/apply-fixes.sh` with the approved scope. The sc
 
 1. Runs `phpcbf --standard=Magento2` over the scope (auto-fixes PHPCS style violations).
 2. Runs `php-cs-fixer fix` with safe rules if the tool is available.
-3. Runs `rector process` with safe sets only (per `references/autofix-safety.md`) if
-   rector is available. Unsafe sets are skipped here even if `--dry-run` showed them.
-4. Captures before/after violation counts.
-5. Never touches files outside the approved scope; never touches `vendor/`.
+3. Captures before/after violation counts.
+4. Never touches files outside the approved scope; never touches `vendor/`.
+
+Rector is NOT run by apply-fixes.sh. Rector proposals from Phase 2 are manual-only;
+the developer applies them after reviewing each proposed transform.
 
 ### Phase 4 — Verify
 
@@ -115,8 +116,8 @@ Write three artifacts:
 
 - `${CLAUDE_SKILL_DIR}/scripts/run-analysis.sh` — orchestrates read-only tool passes;
   outputs findings JSON array.
-- `${CLAUDE_SKILL_DIR}/scripts/apply-fixes.sh` — runs safe fixers (phpcbf, php-cs-fixer,
-  safe rector); never touches `vendor/`.
+- `${CLAUDE_SKILL_DIR}/scripts/apply-fixes.sh` — runs safe fixers (phpcbf, php-cs-fixer
+  only); never touches `vendor/`. Rector is never auto-applied.
 - `${CLAUDE_SKILL_DIR}/scripts/build-findings.sh` — assembles residual findings into the
   shared JSON+SARIF format using the `emit-json.sh` / `emit-sarif.sh` emitters owned by
   `magento2-module-review`.

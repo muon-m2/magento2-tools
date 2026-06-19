@@ -11,10 +11,9 @@ Prefix with `{ctx.runner}` when running inside a Docker container (e.g.
 | Tool | Role | Fixes code? | Config required? |
 |------|------|-------------|-----------------|
 | `phpcs` (Magento2 standard) | Detect coding-standard violations | No — use `phpcbf` | `--standard=Magento2` |
-| `phpcbf` (Magento2 standard) | Auto-fix coding-standard violations | **Yes** | `--standard=Magento2` |
-| `php-cs-fixer` | Auto-fix formatting (PER-CS baseline) | **Yes** | `.php-cs-fixer.dist.php` or built-in rules |
-| `rector` `--dry-run` | Detect refactoring opportunities | No — use `rector process` | `rector.php` |
-| `rector process` | Apply refactoring transforms (safe sets only) | **Yes** (gated) | `rector.php` |
+| `phpcbf` (Magento2 standard) | Auto-fix coding-standard violations | **Yes** (auto-applied) | `--standard=Magento2` |
+| `php-cs-fixer` | Auto-fix formatting (PER-CS baseline) | **Yes** (auto-applied) | `.php-cs-fixer.dist.php` or built-in rules |
+| `rector` `--dry-run` | Detect refactoring opportunities (proposal only) | No — never auto-applied; manual post-review step | `rector.php` |
 | `phpmd` | Detect code-complexity, clean-code violations | No | `phpmd.xml` or built-in rule sets |
 | `phpstan` | Detect type errors and dead-code paths | No | `phpstan.neon` or level flag |
 
@@ -42,8 +41,9 @@ Exit code: 0 = no violations, 1 = violations found, 2 = runtime error.
 ```
 
 Level: use `phpstan.neon`'s configured level; fall back to `--level=5` if no config exists.
-phpstan is report-only — it produces no auto-fixable output. Map `level` to findings severity:
-level 0–3 errors → high, level 4–6 → medium, level 7–8+ → low.
+phpstan is report-only — it produces no auto-fixable output. Findings are emitted at a fixed
+`medium` severity; phpstan's analysis JSON does not carry a per-message level value, so
+level-based severity mapping is not possible at parse time.
 
 ### phpmd — Detect
 
@@ -62,10 +62,15 @@ phpmd is report-only. Map `priority` (1-5) to severity: 1→critical, 2→high, 
     > {TMP}/rector.json
 ```
 
-Outputs a list of proposed transforms. Categorise each by the rector set it belongs to;
-see `autofix-safety.md` for which sets are safe vs review-required.
+Outputs a list of proposed transforms. `--output-format=json` requires `--dry-run`.
+Rector findings are **proposals only** — the developer applies any desired changes
+manually after reviewing each proposed transform. Rector is never auto-applied by this
+skill. Categorise each proposal by the rector set it belongs to; see `autofix-safety.md`
+for guidance on which transforms are lower-risk vs require deeper review.
 
 ## Fix Commands (auto-apply, Phase 3)
+
+Only `phpcbf` and `php-cs-fixer` are auto-applied. Rector is detection/proposal only.
 
 ### phpcbf — Fix
 
@@ -85,16 +90,6 @@ Always exclude `vendor/` via `--ignore=*/vendor/*,*/generated/*,*/var/*`.
 
 When a project `.php-cs-fixer.dist.php` exists, omit `--rules` (use project config).
 Always pass `--path-mode=intersection` when combined with explicit file lists.
-
-### rector — Safe-Sets Fix
-
-```bash
-{ctx.runner} {ctx.tools.rector} process --set=dead-code --set=code-quality \
-    --output-format=json {scope}
-```
-
-Only apply rector sets classified **SAFE** in `autofix-safety.md`. Never apply REVIEW sets
-here. See the safety reference for the exact `--set` flags to include/exclude.
 
 ## Probing Availability
 

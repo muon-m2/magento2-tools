@@ -67,16 +67,23 @@ confirmation before applying.
 | `Php82.ReadonlyClassRector` | REVIEW-REQUIRED — breaks extensibility (Magento prohibits final/readonly on extensible classes) |
 | `Magento2.` ruleset (if installed) | SAFE for import/preference rules; REVIEW-REQUIRED for others |
 
-### Safe Rector Sets Summary
+### Rector — Proposal-Only Policy
 
-Apply automatically in Phase 3:
+**No rector transform is auto-applied by this skill.** Rector runs exclusively in
+`--dry-run` mode during Phase 2 (detection). All rector output is proposal-only;
+the developer reviews the proposed transforms and applies them manually. This policy
+applies even to transforms previously classified SAFE — the risk/review overhead of
+running rector in write mode is not worth automating in a CI gate context.
+
+For reference, transforms that are lower-risk (and thus reasonable to apply manually
+without deep review) include:
 - `DeadCode.RemoveUnusedVariableRector`
 - `TypeDeclaration.AddVoidReturnTypeWhereNoReturnRector`
 - `TypeDeclaration.ReturnTypeFromReturnNewRector`
 - `TypeDeclaration.ParamTypeFromStrictTypedPropertyRector`
 - `Php80.UnionTypesRector` (only when `{ctx.php_version}` ≥ 8.0)
 
-Propose but do NOT auto-apply:
+Transforms that require careful manual review before applying:
 - Any `DeadCode` rule that removes methods, properties, or class members
 - Any `Php81`/`Php82` rule (readonly — breaks Magento extensibility model)
 - Any rule that changes a public API signature

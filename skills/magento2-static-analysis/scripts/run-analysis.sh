@@ -171,7 +171,7 @@ for file_errors in raw.get('files', {}).values():
         out.append({
             'id': f'quality-phpstan-{seq:04d}',
             'severity': 'medium',
-            'category': 'style',
+            'category': 'type',
             'subcategory': 'phpstan',
             'title': err.get('message', 'PHPStan error'),
             'evidence': [{'file': err.get('file', '?'), 'line': err.get('line', 1)}],
@@ -230,7 +230,7 @@ for violation in raw.get('violations', []):
     out.append({
         'id': f'quality-phpmd-{seq:04d}',
         'severity': severity,
-        'category': 'style',
+        'category': 'complexity',
         'subcategory': violation.get('rule', 'phpmd'),
         'title': violation.get('description', 'PHPMD violation'),
         'evidence': [{'file': violation.get('fileName', '?'),
@@ -305,7 +305,7 @@ for diff in diffs:
         out.append({
             'id': f'quality-rector-{seq:04d}',
             'severity': 'low' if is_safe else 'info',
-            'category': 'style',
+            'category': 'refactoring',
             'subcategory': 'rector',
             'title': f'Rector: {rector_class}',
             'evidence': [{'file': file_path, 'line': 1}],

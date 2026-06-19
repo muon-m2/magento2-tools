@@ -52,18 +52,6 @@ trap 'rm -rf "$TMP_DIR"' EXIT
 ANALYSIS_OUT="${TMP_DIR}/analysis.json"
 ANALYSIS_ERR="${TMP_DIR}/analysis.err"
 
-# Run the analysis pass; capture its findings file path.
-run_scanner() {
-    local name="$1" out="$2" err="$3"; shift 3
-    if ! bash "$@" > /dev/null 2> "$err"; then
-        echo "${name}: scanner returned non-zero exit" >> "$err"
-        echo "[]" > "$out"
-        return 1
-    fi
-    # The analysis script writes a file path to stdout and the findings to FINDINGS_FILE.
-    return 0
-}
-
 # run-analysis.sh writes the findings array to a tmp file and prints its path.
 # We capture that path and read the file.
 ANALYSIS_FINDINGS_PATH=""

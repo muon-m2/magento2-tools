@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
-# apply-fixes.sh — run SAFE auto-fixers (phpcbf, php-cs-fixer, safe rector sets) over
-# an approved scope. Never touches vendor/, generated/, var/, or pub/static/.
+# apply-fixes.sh — run SAFE auto-fixers (phpcbf, php-cs-fixer) over an approved scope.
+# Never touches vendor/, generated/, var/, or pub/static/.
+#
+# Rector is NOT auto-applied. Rector findings are proposals (dry-run only, produced by
+# run-analysis.sh) that the developer applies manually after review.
 #
 # Inputs (env vars):
 #   TARGET_PATH    Path to fix (required)
 #   RUNNER         Runner prefix, e.g. "docker compose exec -T php" (default: "")
 #   PHPCBF         Path to phpcbf binary (default: auto-resolved)
 #   PHP_CS_FIXER   Path to php-cs-fixer binary (default: auto-resolved)
-#   RECTOR         Path to rector binary (default: auto-resolved)
-#   PHP_VERSION    PHP version string e.g. "8.1.0" (affects which rector sets are safe)
 #   DRY_RUN        "1" to skip actual fixes (default: 0)
 #
 # Output:
@@ -22,8 +23,6 @@ set -uo pipefail
 RUNNER="${RUNNER:-}"
 PHPCBF="${PHPCBF:-}"
 PHP_CS_FIXER="${PHP_CS_FIXER:-}"
-RECTOR="${RECTOR:-}"
-PHP_VERSION="${PHP_VERSION:-8.1.0}"
 DRY_RUN="${DRY_RUN:-0}"
 
 # Never touch these directories.
@@ -46,7 +45,6 @@ _resolve_tool() {
 
 PHPCBF_BIN="$(_resolve_tool "$PHPCBF" phpcbf)"
 PHP_CS_FIXER_BIN="$(_resolve_tool "$PHP_CS_FIXER" php-cs-fixer)"
-RECTOR_BIN="$(_resolve_tool "$RECTOR" rector)"
 
 # Safety guard: TARGET_PATH must not be or contain vendor/.
 case "$TARGET_PATH" in
@@ -73,9 +71,9 @@ count_phpcs_violations() {
                 # shellcheck disable=SC2206
                 run_cmd=($RUNNER)
             fi
-            run_cmd+=("$phpcs_bin" --standard=Magento2 --report=summary
+            run_cmd+=("$phpcs_bin" --standard=Magento2
                 "--ignore=${EXCLUDE_PATTERN}" "$target")
-            count=$("${run_cmd[@]}" 2>/dev/null | grep -E '^A TOTAL' | grep -oE '[0-9]+' | head -1 || echo 0)
+            count=$("${run_cmd[@]}" --report=json 2>/dev/null | php -r '$d=json_decode(stream_get_contents(STDIN),true); echo (int)(($d["totals"]["errors"]??0)+($d["totals"]["warnings"]??0));' 2>/dev/null || echo 0)
         fi
     fi
     printf '%d' "$count" > "$out_file"
@@ -155,53 +153,8 @@ run_php_cs_fixer() {
     }
 }
 
-# ---------------------------------------------------------------------------
-# 3. rector — apply SAFE sets only (read autofix-safety.md for the list)
-# ---------------------------------------------------------------------------
-run_rector_safe() {
-    if [ -z "$RECTOR_BIN" ]; then
-        echo "apply-fixes: rector not found — skipping" | tee -a "$FIX_LOG" >&2
-        return 0
-    fi
-
-    # Determine safe sets based on PHP version.
-    local safe_sets=(
-        "TypeDeclaration"
-        "DeadCode"
-    )
-
-    # PHP 8.0+ union types are safe.
-    local php_major php_minor
-    php_major="$(printf '%s' "$PHP_VERSION" | cut -d. -f1)"
-    php_minor="$(printf '%s' "$PHP_VERSION" | cut -d. -f2)"
-    if [ "${php_major:-0}" -ge 8 ] || { [ "${php_major:-0}" -ge 8 ] && [ "${php_minor:-0}" -ge 0 ]; }; then
-        safe_sets+=("Php80")
-    fi
-
-    local run_cmd=()
-    if [ -n "$RUNNER" ]; then
-        # shellcheck disable=SC2206
-        run_cmd=($RUNNER)
-    fi
-    run_cmd+=("$RECTOR_BIN" process)
-    for set_name in "${safe_sets[@]}"; do
-        run_cmd+=(--set "$set_name")
-    done
-    run_cmd+=("$TARGET_PATH")
-
-    if [ "$DRY_RUN" = "1" ]; then
-        echo "apply-fixes: [dry-run] would run: ${run_cmd[*]}" | tee -a "$FIX_LOG"
-        return 0
-    fi
-
-    echo "apply-fixes: running rector (safe sets: ${safe_sets[*]})..." | tee -a "$FIX_LOG"
-    # rector exits non-zero when changes are made.
-    "${run_cmd[@]}" >> "$FIX_LOG" 2>&1 || true
-}
-
 run_phpcbf
 run_php_cs_fixer
-run_rector_safe
 
 # Count violations after fixing.
 count_phpcs_violations "$TARGET_PATH" "$AFTER_FILE"
