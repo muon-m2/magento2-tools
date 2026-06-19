@@ -12,7 +12,7 @@ skills evolve.
 | magento2-context           | 1.6.1   | JSON schema changes, new resolution rules, new tool probes          |
 | magento2-module-create     | 1.8.0   | New template added, surface added, naming rule changed              |
 | magento2-module-review     | 2.3.1   | New checklist category, severity calibration change, new JSON field, fix-routing change |
-| magento2-feature-implement | 2.10.0  | New phase, new approval gate, mode added, new task types (I/C/L/Q), template structure change |
+| magento2-feature-implement | 2.10.1  | New phase, new approval gate, mode added, new task types (I/C/L/Q), template structure change |
 | magento2-bug-fix           | 1.0.2   | Workflow phase change, RCA format change                            |
 | magento2-deploy            | 1.2.1   | Deploy plan template change, rollback recipe change                 |
 | magento2-test-generate     | 1.1.2   | Generator pattern change, new test type added                       |
@@ -40,6 +40,17 @@ skills evolve.
 | magento2-accessibility-audit | 1.0.0 | New WCAG rule, runtime pass change                                            |
 
 ## Changelog (last update: 2026-06-19)
+
+- **`magento2-feature-implement` 2.10.0 → 2.10.1 — delegation discipline (unreleased).** Fixes the
+  failure mode where the orchestrator skipped sub-skill delegation on an unverified "not
+  Skill-invocable here" assumption and relabelled typed tasks (e.g. a `C` admin-config task built
+  inline as `X`). Adds a **Delegate by probing, never by assumption** Core Rule (attempt the
+  `Skill` call; fall back only on a real failure; record the concrete reason — never skip from
+  memory or a project note), a Phase 5 **Fallback discipline** subsection (keep the task's type
+  prefix on fallback; author the same output inline from the skill's references; `D*` never runs
+  `bin/magento` inline), a "type by work, not tool availability" note in
+  `references/task-breakdown-guide.md`, and `Skill:`-field + `D1` deploy guidance in
+  `templates/task-record.md`. No new phase/gate/mode/task-type. Pinned `@version` tokens updated.
 
 - **Plugin 1.12.1 — required documentation step before the final step.** Both creation skills now
   produce documentation as a mandatory step before their final step, instead of an optional
