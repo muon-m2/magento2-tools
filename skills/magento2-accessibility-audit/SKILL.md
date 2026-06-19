@@ -80,8 +80,14 @@ Run `${CLAUDE_SKILL_DIR}/scripts/scan-templates.sh`:
 - Scans `.less` and `.css` for color-contrast heuristics (WCAG 1.4.3 — heuristic only;
   note this cannot fully verify contrast without rendering).
 - Outputs a JSON array of finding objects conforming to
-  `magento2-context/references/findings-schema.md`.
+  `magento2-context/references/findings-schema.md`. Each finding's `category` is one of
+  the documented buckets (`alt-text`, `aria`, `semantic-html`, `keyboard`, `contrast`,
+  `forms`) so findings summarize by bucket.
 - Adapts to Hyva vs. Luma template patterns via `{ctx.theme}`.
+- For **module scope**, pass any resolved theme-override roots (e.g.
+  `app/design/frontend/{ctx.theme}/{Vendor}_{Module}/templates`, per
+  `references/theme-discovery.md`) via `EXTRA_SCAN_ROOTS` (os.pathsep- or newline-separated)
+  so the single scan covers both the module's own templates and the overrides that render.
 
 ### Phase 3 — Optional Runtime pa11y Pass (OPT-IN)
 
@@ -104,15 +110,17 @@ Never invent runtime findings.
 Produce three deliverables:
 
 1. **Markdown audit report** (LLM deliverable, NOT automated):
-   `.docs/accessibility/{Vendor}_{Module}-a11y-{date}.md`
+   `.docs/accessibility/{Vendor}-{Module}-a11y-{date}.md`
    Sections: target identity + scope summary, findings by WCAG criterion (Critical/High/Medium/Low/Info),
    static-only caveat, runtime pass status, skipped checks, recommended next steps (each
    naming the executing skill: `magento2-frontend-create` for template fixes).
 
-2. **JSON + SARIF** (automated via `${CLAUDE_SKILL_DIR}/scripts/build-findings.sh`):
+2. **JSON + SARIF** (automated via `${CLAUDE_SKILL_DIR}/scripts/build-findings.sh`). The
+   automated basename converts underscores in the module name to hyphens (e.g.
+   `Acme_Storefront` → `Acme-Storefront-a11y-{date}`):
    ```
-   .docs/accessibility/{Vendor}_{Module}-a11y-{date}.json   # OUTPUT_KIND=accessibility
-   .docs/accessibility/{Vendor}_{Module}-a11y-{date}.sarif
+   .docs/accessibility/{Vendor}-{Module}-a11y-{date}.json   # OUTPUT_KIND=accessibility
+   .docs/accessibility/{Vendor}-{Module}-a11y-{date}.sarif
    ```
 
 ## WCAG Checks (Summary)
@@ -163,10 +171,13 @@ See `references/wcag-rules.md` for the full static check catalog.
 
 ## Outputs
 
+Artifact basenames convert underscores in the module name to hyphens
+(`Acme_Storefront` → `Acme-Storefront`):
+
 ```
-.docs/accessibility/{Vendor}_{Module}-a11y-{date}.md    # LLM deliverable (Phase 4)
-.docs/accessibility/{Vendor}_{Module}-a11y-{date}.json  # automated (build-findings.sh)
-.docs/accessibility/{Vendor}_{Module}-a11y-{date}.sarif # automated (build-findings.sh)
+.docs/accessibility/{Vendor}-{Module}-a11y-{date}.md    # LLM deliverable (Phase 4)
+.docs/accessibility/{Vendor}-{Module}-a11y-{date}.json  # automated (build-findings.sh)
+.docs/accessibility/{Vendor}-{Module}-a11y-{date}.sarif # automated (build-findings.sh)
 ```
 
 ## Related Skills

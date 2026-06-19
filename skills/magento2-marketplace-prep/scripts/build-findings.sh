@@ -12,6 +12,9 @@
 #   SCOPE               "module" | "site"  (default: module)
 #   OUTPUT_DIR          default: .docs/marketplace
 #   SKILL_VERSION       default: 1.0.0
+#   EQP_FINDINGS_FILE   optional: path to a JSON array of EQP static findings produced by
+#                       magento2-security-audit's EQP pass (SKILL.md Phase 2.2). When set and
+#                       readable, those findings are merged into the combined findings list.
 #
 # Output:
 #   Writes {OUTPUT_DIR}/{Module}-readiness-{YYYY-MM-DD}.json + .sarif. Stdout echoes the JSON.
@@ -24,6 +27,7 @@ set -uo pipefail
 SCOPE="${SCOPE:-module}"
 OUTPUT_DIR="${OUTPUT_DIR:-.docs/marketplace}"
 SKILL_VERSION="${SKILL_VERSION:-1.0.0}"
+EQP_FINDINGS_FILE="${EQP_FINDINGS_FILE:-}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 EMIT_JSON="${SCRIPT_DIR}/../../magento2-module-review/scripts/emit-json.sh"
@@ -83,10 +87,17 @@ print(json.dumps(errors, indent=2))
 PY
 
 # ---------------------------------------------------------------------------
-# Merge all findings into one array.
+# Merge all findings into one array. The marketplace-specific check-readiness
+# output is always included; the delegated magento2-security-audit EQP findings
+# (SKILL.md Phase 2.2) are merged in when EQP_FINDINGS_FILE is provided.
 # ---------------------------------------------------------------------------
+MERGE_INPUTS=("$READINESS_OUT")
+if [ -n "$EQP_FINDINGS_FILE" ] && [ -f "$EQP_FINDINGS_FILE" ]; then
+    MERGE_INPUTS+=("$EQP_FINDINGS_FILE")
+fi
+
 FINDINGS_FILE="${TMP_DIR}/findings.json"
-python3 - "$READINESS_OUT" > "$FINDINGS_FILE" <<'PY'
+python3 - "${MERGE_INPUTS[@]}" > "$FINDINGS_FILE" <<'PY'
 import json
 import sys
 

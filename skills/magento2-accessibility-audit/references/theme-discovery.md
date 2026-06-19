@@ -56,7 +56,9 @@ The `magento2-context` skill exposes the active frontend theme as `{ctx.theme}` 
 `theme.frontend` in the JSON). Use it to:
 
 1. **Locate theme-level overrides.** When `ctx.theme` is non-null, also scan
-   `app/design/frontend/{ctx.theme path}/` for template files.
+   `app/design/frontend/{ctx.theme path}/` for template files. Pass the resolved
+   override directories to `scan-templates.sh` via `EXTRA_SCAN_ROOTS` (os.pathsep- or
+   newline-separated) so one scan covers both the module's own templates and the overrides.
 2. **Adapt rule heuristics.** The scan script sets `THEME` from the context JSON and
    applies Luma vs. Hyva pattern adaptations.
 
@@ -64,6 +66,10 @@ The `magento2-context` skill exposes the active frontend theme as `{ctx.theme}` 
 # Consumer pattern (from magento2-context/references/theme-detection.md)
 THEME=$(jq -r '.theme.frontend // "null"' .claude/.cache/magento2-context.json)
 SRC=$(jq   -r '.theme.frontend_source // ""' .claude/.cache/magento2-context.json)
+
+# Module scope: scan module templates + any theme override for this module in one run.
+EXTRA_SCAN_ROOTS="$MAGENTO_ROOT/app/design/frontend/$SRC/$VENDOR_MODULE/templates" \
+    THEME="$THEME" bash scan-templates.sh "$MODULE_PATH"
 ```
 
 When `ctx.theme` is `null`, the scan proceeds on module templates only and notes the

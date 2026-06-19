@@ -168,8 +168,10 @@ else:
                 tags=["eqp", "marketplace", "blocker"],
             )
 
-        # M7 — PHP constraint in require
-        if not any(k.startswith("php") for k in require):
+        # M7 — PHP constraint in require. Only the explicit `php` / `php-64bit` keys
+        # satisfy this; a vendor package whose name merely starts with "php"
+        # (e.g. "phpseclib/phpseclib") must NOT be treated as a PHP platform constraint.
+        if not any(k in ("php", "php-64bit") for k in require):
             finding(
                 "high", "metadata",
                 "composer.json 'require' does not include a PHP version constraint",
@@ -193,18 +195,21 @@ else:
                 tags=["eqp", "marketplace", "blocker"],
             )
 
-        # M9 — no dev/wildcard version constraints
-        BAD_PATTERNS = re.compile(r'^(dev-|@dev|\*)|\*$')
+        # M9 — no dev/unbounded version constraints. Per references/packaging.md, minor
+        # wildcards like "1.0.*" are ALLOWED; only a bare "*", dev-branch references
+        # ("dev-…"), and the "@dev" stability flag are rejected by EQP.
         for pkg, constraint in require.items():
             if pkg in ("php", "php-64bit"):
                 continue
-            if BAD_PATTERNS.search(str(constraint)):
+            c = str(constraint).strip()
+            if c == "*" or c.startswith("dev-") or "@dev" in c:
                 finding(
                     "critical", "metadata",
-                    f"Non-stable/wildcard version constraint in require: {pkg}: {constraint}",
+                    f"Non-stable/unbounded version constraint in require: {pkg}: {constraint}",
                     composer_path, 1,
-                    f"Replace '{constraint}' with a stable semver constraint for '{pkg}'.",
-                    "Run: composer validate; EQP rejects non-stable constraints.",
+                    f"Replace '{constraint}' with a stable, bounded semver constraint for '{pkg}' "
+                    "(e.g. '^1.0', '>=1.0 <2.0', or '1.0.*').",
+                    "Run: composer validate; EQP rejects dev/unbounded constraints.",
                     subcategory="unstable-constraint",
                     tags=["eqp", "marketplace", "blocker", pkg],
                 )
@@ -262,8 +267,10 @@ header_patterns = [
 ]
 php_checked = 0
 for dirpath, dirnames, filenames in os.walk(target_path):
-    # Skip vendor, generated, and Test directories for the header check.
-    dirnames[:] = [d for d in dirnames if d not in ("vendor", "generated", "var", ".git", "node_modules")]
+    # Skip vendor, generated, and Test directories for the header check. Test code is
+    # excluded from the production package (see references/packaging.md archive.exclude),
+    # so a missing header there does not affect Marketplace readiness.
+    dirnames[:] = [d for d in dirnames if d not in ("vendor", "generated", "var", ".git", "node_modules", "Test", "test")]
     for fname in filenames:
         if not fname.endswith(".php"):
             continue

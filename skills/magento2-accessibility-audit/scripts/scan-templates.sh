@@ -9,9 +9,12 @@
 # See references/theme-discovery.md for template location rules.
 #
 # Inputs (env vars or positional):
-#   TARGET_PATH   Path to the module root or theme root (required, or $1)
-#   TARGET_MODULE Module name, e.g. "Acme_Storefront" (default: derived from module.xml)
-#   THEME         Active frontend theme, e.g. "hyva" or "Magento/luma" (default: "")
+#   TARGET_PATH       Path to the module root or theme root (required, or $1)
+#   TARGET_MODULE     Module name, e.g. "Acme_Storefront" (default: derived from module.xml)
+#   THEME             Active frontend theme, e.g. "hyva" or "Magento/luma" (default: "")
+#   EXTRA_SCAN_ROOTS  optional: os.pathsep- or newline-separated list of additional roots
+#                     to scan (e.g. caller-resolved theme-override directories under
+#                     app/design/frontend/...; see references/theme-discovery.md)
 #
 # Output:
 #   JSON array of finding objects written to stdout.
@@ -26,6 +29,7 @@ TARGET_PATH="${TARGET_PATH:-${1:-}}"
 
 TARGET_MODULE="${TARGET_MODULE:-}"
 THEME="${THEME:-}"
+EXTRA_SCAN_ROOTS="${EXTRA_SCAN_ROOTS:-}"
 
 if ! command -v python3 >/dev/null 2>&1; then
     echo "[]"
@@ -46,6 +50,7 @@ TARGET_MODULE="${TARGET_MODULE:-unknown_module}"
 TARGET_PATH="$TARGET_PATH" \
 TARGET_MODULE="$TARGET_MODULE" \
 THEME="$THEME" \
+EXTRA_SCAN_ROOTS="$EXTRA_SCAN_ROOTS" \
 python3 <<'PY'
 import json
 import os
@@ -69,8 +74,12 @@ ROOT_LAYOUT_PATTERNS = re.compile(
 )
 
 
-def finding(severity, category, title, file_path, line, recommendation,
-            verification, subcategory=None, tags=None, extra_evidence=None):
+# `category` carries the documented top-level bucket for this skill
+# (alt-text / aria / semantic-html / keyboard / contrast / forms — see
+# magento2-context/references/findings-schema.md), so byCategory summarization groups
+# by the real bucket rather than lumping everything under a single "accessibility" key.
+def finding(severity, title, file_path, line, recommendation,
+            verification, category="accessibility", tags=None, extra_evidence=None):
     global seq
     evidence = [{"file": file_path, "line": line}]
     for extra in extra_evidence or []:
@@ -85,8 +94,6 @@ def finding(severity, category, title, file_path, line, recommendation,
         "verification": verification,
         "tags": tags or ["wcag", "accessibility"],
     }
-    if subcategory:
-        f["subcategory"] = subcategory
     findings.append(f)
     seq += 1
 
@@ -110,7 +117,13 @@ def read_lines(fpath):
 
 
 # ---------------------------------------------------------------------------
-# Determine scan roots: module templates + theme overrides.
+# Determine scan roots.
+#   - Module TARGET_PATH: view/frontend/{templates,web}.
+#   - Theme or theme-override TARGET_PATH (no view/frontend/ inside): the path itself.
+#   - Theme-override roots the caller resolves per references/theme-discovery.md
+#     (e.g. app/design/frontend/<Vendor>/<Theme>/<Module>/templates) are passed in via
+#     EXTRA_SCAN_ROOTS so a single run covers both the module's own templates and the
+#     theme overrides that actually render.
 # ---------------------------------------------------------------------------
 scan_roots = []
 template_root = os.path.join(target_path, "view", "frontend", "templates")
@@ -124,6 +137,13 @@ if os.path.isdir(web_root):
 # Also scan the target_path directly if it looks like a theme (has web/ or *.phtml at top level)
 if not scan_roots and os.path.isdir(target_path):
     scan_roots.append(target_path)
+
+# Append caller-resolved theme-override roots (deduped; existing directories only).
+_extra = os.environ.get("EXTRA_SCAN_ROOTS", "")
+for _root in _extra.replace(os.pathsep, "\n").split("\n"):
+    _root = _root.strip()
+    if _root and os.path.isdir(_root) and _root not in scan_roots:
+        scan_roots.append(_root)
 
 TEMPLATE_EXTS = {".phtml", ".html"}
 STYLE_EXTS = {".less", ".css"}
@@ -226,12 +246,12 @@ for fpath in template_files:
             window = "".join(lines[max(0, lineno - 2):min(len(lines), lineno + 2)])
             if not IMG_ALT_RE.search(window):
                 finding(
-                    "high", "accessibility",
+                    "high",
                     "<img> tag missing alt attribute",
                     fpath, lineno,
                     "Add alt=\"\" for decorative images or a descriptive alt text for informational images.",
                     "Re-run scan or use axe DevTools browser extension to verify.",
-                    subcategory="alt-text",
+                    category="alt-text",
                     tags=["wcag", "wcag-1.1.1", "alt-text"],
                 )
 
@@ -246,12 +266,12 @@ for fpath in template_files:
                 has_label = LABEL_FOR_RE.search(window) or ARIA_LABEL_RE.search(window)
                 if not has_label:
                     finding(
-                        "high", "accessibility",
+                        "high",
                         "Form input without associated label",
                         fpath, lineno,
                         "Add <label for=\"field-id\">Label</label> or aria-label=\"Label\" to the input.",
                         "Re-run scan; verify with screen reader or axe DevTools.",
-                        subcategory="forms",
+                        category="forms",
                         tags=["wcag", "wcag-1.3.1", "wcag-4.1.2", "forms"],
                     )
 
@@ -263,12 +283,12 @@ for fpath in template_files:
                 has_label = LABEL_FOR_RE.search(window) or ARIA_LABEL_RE.search(window)
                 if not has_label:
                     finding(
-                        "high", "accessibility",
+                        "high",
                         f"<{tag_name}> without associated label",
                         fpath, lineno,
                         f"Add <label for=\"field-id\">Label</label> or aria-label=\"Label\" to the <{tag_name}>.",
                         "Re-run scan; verify with screen reader or axe DevTools.",
-                        subcategory="forms",
+                        category="forms",
                         tags=["wcag", "wcag-1.3.1", "wcag-4.1.2", "forms"],
                     )
 
@@ -277,12 +297,12 @@ for fpath in template_files:
             window = "".join(lines[lineno - 1:min(len(lines), lineno + 10)])
             if not LEGEND_TAG_RE.search(window):
                 finding(
-                    "medium", "accessibility",
+                    "medium",
                     "<fieldset> missing <legend>",
                     fpath, lineno,
                     "Add <legend>Group label</legend> as the first child of <fieldset>.",
                     "Re-run scan; verify with screen reader.",
-                    subcategory="forms",
+                    category="forms",
                     tags=["wcag", "wcag-1.3.1", "forms"],
                 )
 
@@ -292,12 +312,12 @@ for fpath in template_files:
             level = int(h_match.group(1)[1])
             if last_heading_level > 0 and level > last_heading_level + 1:
                 finding(
-                    "medium", "accessibility",
+                    "medium",
                     f"Heading order skip: h{last_heading_level} followed by h{level}",
                     fpath, lineno,
                     f"Use h{last_heading_level + 1} instead of h{level} to maintain a logical heading hierarchy.",
                     "Re-run scan; verify heading structure with axe DevTools.",
-                    subcategory="semantic-html",
+                    category="semantic-html",
                     tags=["wcag", "wcag-1.3.1", "semantic-html"],
                 )
             last_heading_level = level
@@ -306,12 +326,12 @@ for fpath in template_files:
         if is_root_layout and lineno == 1:
             if not SKIP_LINK_RE.search(full_text):
                 finding(
-                    "medium", "accessibility",
+                    "medium",
                     "Root layout template missing skip-link",
                     fpath, 1,
                     'Add <a href="#maincontent" class="skip">Skip to main content</a> as the first focusable element.',
                     "Re-run scan; navigate the page with Tab key and confirm a skip link appears.",
-                    subcategory="keyboard",
+                    category="keyboard",
                     tags=["wcag", "wcag-2.4.1", "keyboard"],
                 )
 
@@ -322,12 +342,12 @@ for fpath in template_files:
                 ti_val = int(ti_match.group(1).strip())
                 if ti_val > 0:
                     finding(
-                        "medium", "accessibility",
+                        "medium",
                         f"Positive tabindex={ti_val} disrupts natural tab order",
                         fpath, lineno,
                         "Remove positive tabindex. Use tabindex=\"0\" to include in natural order or tabindex=\"-1\" for programmatic focus.",
                         "Re-run scan; test keyboard navigation order.",
-                        subcategory="keyboard",
+                        category="keyboard",
                         tags=["wcag", "wcag-2.4.3", "keyboard"],
                     )
             except ValueError:
@@ -339,12 +359,12 @@ for fpath in template_files:
                 # Also check for title= as an acceptable alternative
                 if "title=" not in line.lower():
                     finding(
-                        "high", "accessibility",
+                        "high",
                         "<a> tag with no accessible text",
                         fpath, lineno,
                         "Add descriptive link text, aria-label, or a visually-hidden <span> with meaningful text.",
                         "Re-run scan; test with screen reader; use axe DevTools.",
-                        subcategory="aria",
+                        category="aria",
                         tags=["wcag", "wcag-2.4.4", "wcag-4.1.2", "aria"],
                     )
 
@@ -352,12 +372,12 @@ for fpath in template_files:
         if BUTTON_TAG_RE.search(line):
             if not has_accessible_text_nearby(lines, lineno - 1):
                 finding(
-                    "high", "accessibility",
+                    "high",
                     "<button> tag with no accessible text",
                     fpath, lineno,
                     "Add a text label, aria-label, or visually-hidden <span> to every <button>.",
                     "Re-run scan; test with screen reader.",
-                    subcategory="aria",
+                    category="aria",
                     tags=["wcag", "wcag-4.1.2", "aria"],
                 )
 
@@ -365,12 +385,12 @@ for fpath in template_files:
         if HTML_TAG_RE.search(line):
             if not HTML_LANG_RE.search(line):
                 finding(
-                    "low", "accessibility",
+                    "low",
                     "<html> tag missing lang attribute",
                     fpath, lineno,
                     'Add lang="en" (or appropriate BCP-47 tag) to the <html> element.',
                     "Re-run scan; verify with axe DevTools.",
-                    subcategory="semantic-html",
+                    category="semantic-html",
                     tags=["wcag", "wcag-3.1.1", "semantic-html"],
                 )
 
@@ -380,26 +400,37 @@ for fpath in template_files:
             role_val = role_match.group(1).strip().lower()
             if role_val not in VALID_ARIA_ROLES:
                 finding(
-                    "medium", "accessibility",
+                    "medium",
                     f"Invalid or unrecognized ARIA role: role=\"{role_val}\"",
                     fpath, lineno,
                     f"Replace role=\"{role_val}\" with a valid WAI-ARIA role or the appropriate semantic HTML element.",
                     "Re-run scan; verify role list at https://www.w3.org/TR/wai-aria-1.1/#role_definitions.",
-                    subcategory="aria",
+                    category="aria",
                     tags=["wcag", "wcag-4.1.2", "aria"],
                 )
 
-        # --- Rule AR2: aria-hidden on focusable element ---
-        if ARIA_HIDDEN_RE.search(line) and FOCUSABLE_RE.search(line):
-            finding(
-                "high", "accessibility",
-                "aria-hidden=\"true\" on a potentially focusable element",
-                fpath, lineno,
-                "Remove aria-hidden from focusable elements, or add tabindex=\"-1\" before hiding from AT.",
-                "Re-run scan; test with screen reader to confirm element is not announced while focused.",
-                subcategory="aria",
-                tags=["wcag", "wcag-4.1.2", "aria"],
-            )
+        # --- Rule AR2: aria-hidden on a focusable element (intrinsic tag OR tabindex >= 0) ---
+        if ARIA_HIDDEN_RE.search(line):
+            focusable = bool(FOCUSABLE_RE.search(line))
+            if not focusable:
+                ti = TABINDEX_RE.search(line)
+                if ti:
+                    try:
+                        # tabindex="0" (and any non-negative value) makes an element focusable;
+                        # tabindex="-1" is programmatic-only, so aria-hidden is acceptable there.
+                        focusable = int(ti.group(1).strip()) >= 0
+                    except ValueError:
+                        focusable = False
+            if focusable:
+                finding(
+                    "high",
+                    "aria-hidden=\"true\" on a potentially focusable element",
+                    fpath, lineno,
+                    "Remove aria-hidden from focusable elements, or add tabindex=\"-1\" before hiding from AT.",
+                    "Re-run scan; test with screen reader to confirm element is not announced while focused.",
+                    category="aria",
+                    tags=["wcag", "wcag-4.1.2", "aria"],
+                )
 
 # ---------------------------------------------------------------------------
 # 3. LESS/CSS color-contrast heuristics (Rule C1 — heuristic only).
@@ -421,12 +452,12 @@ if not is_hyva:
         for lineno, line in enumerate(lines, start=1):
             if LOW_CONTRAST_RE.search(line):
                 finding(
-                    "medium", "accessibility",
+                    "medium",
                     "Potential low-contrast color value (heuristic — verify with browser tool)",
                     fpath, lineno,
                     "Use WebAIM Contrast Checker to verify ratio >= 4.5:1 (normal text) or >= 3:1 (large text).",
                     "Check rendered contrast with axe DevTools, Lighthouse, or browser DevTools accessibility inspector.",
-                    subcategory="contrast",
+                    category="contrast",
                     tags=["wcag", "wcag-1.4.3", "contrast", "heuristic"],
                 )
 
