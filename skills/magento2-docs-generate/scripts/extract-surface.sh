@@ -47,12 +47,14 @@ if [ -z "$SURFACE_FILE" ]; then
     SURFACE_FILE="${TMP_DIR}/surface.json"
 fi
 
-python3 - "$MODULE_PATH" "$SURFACE_FILE" <<'PY'
+if ! python3 - "$MODULE_PATH" "$SURFACE_FILE" <<'PY'
 import json
 import os
 import re
 import sys
 import xml.etree.ElementTree as ET
+
+XSI_TYPE = '{http://www.w3.org/2001/XMLSchema-instance}type'
 
 module_path = sys.argv[1]
 surface_file = sys.argv[2]
@@ -149,7 +151,7 @@ def extract_events_fired(base):
     entries = []
     dispatch_re = re.compile(
         r'(?:->|\$)(?:_eventManager|eventManager|_dispatchEvent)\s*->\s*dispatch\s*\(\s*[\'"]([^\'"]+)[\'"]'
-        r'|dispatch\s*\(\s*[\'"]([^\'"]+)[\'"]'
+        r'|->\s*dispatch\s*\(\s*[\'"]([^\'"]+)[\'"]'
     )
     for dirpath, _dirs, files in os.walk(base):
         for fname in files:
@@ -399,7 +401,7 @@ def extract_db_schema(base):
         columns = []
         for col_el in table_el.findall('column'):
             col_name = col_el.get('name', '')
-            col_type = col_el.get('xsi:type', col_el.get('type', ''))
+            col_type = col_el.get(XSI_TYPE, col_el.get('type', ''))
             columns.append(f'{col_name}:{col_type}')
         indexes = [idx.get('referenceId', '') for idx in table_el.findall('index')]
         constraints = [c.get('referenceId', '') for c in table_el.findall('constraint')]
@@ -460,9 +462,11 @@ surface = {
 
 with open(surface_file, 'w', encoding='utf-8') as fh:
     json.dump(surface, fh, indent=2)
+PY
+then
+    echo "extract-surface: extraction failed" >&2
+    exit 1
+fi
 
 # Print the output path for callers that chain further processing.
-print(surface_file)
-PY
-
 echo "$SURFACE_FILE"

@@ -20,7 +20,7 @@ grep -rn '@api' <module_path> --include='*.php'
 ```
 
 **Output fields per entry:**
-- `class` — fully-qualified class or interface name (derived from namespace + class name)
+- `class` — short class or interface name (unqualified name from the declaration line)
 - `kind` — `interface` or `class`
 - `file` — relative path from module root
 - `line` — line number of the `@api` annotation

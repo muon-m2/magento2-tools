@@ -22,3 +22,5 @@ its source file path. Sections with no entries are omitted.
 {GRAPHQL_TABLE}
 
 {DB_SCHEMA_TABLE}
+
+{EXTENSION_ATTRIBUTES_TABLE}

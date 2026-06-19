@@ -17,20 +17,16 @@ Rendered from `templates/readme.md`. Target file: `{module}/README.md`.
 4. **Installation** — `bin/magento module:enable {Vendor}_{Module}` +
    `bin/magento setup:upgrade`.
 
-### Conditional sections (include only when the surface exists)
+### Documentation link (always present)
 
-5. **Configuration** — link to `docs/technical-reference.md#config-paths` when admin
-   config paths exist.
-6. **Console Commands** — brief list of `bin/magento` commands when CLI commands exist.
-7. **REST API** — pointer to `docs/technical-reference.md#rest-routes` when REST routes
-   exist.
-8. **GraphQL** — pointer to `docs/technical-reference.md#graphql` when a GraphQL schema
-   exists.
+5. **Documentation** — a single "Full technical reference" link to
+   `docs/technical-reference.md` covering all surfaces (API, events, plugins, REST,
+   GraphQL, DB schema, extension attributes, config paths). The README stays concise;
+   per-surface detail lives in the technical reference.
 
 ### Closing sections (always present)
 
-9. **Dependencies** — `{DEPENDENCIES_LIST}` from `composer.json require`.
-10. **License** — value from `composer.json license` field, or omit if absent.
+6. **Dependencies** — `{DEPENDENCIES_LIST}` from `composer.json require`.
 
 ---
 
@@ -62,6 +58,7 @@ Each section heading is an anchor used by the README's conditional sections abov
 | REST routes | `## REST Routes` | `#rest-routes` | `{REST_ROUTES_TABLE}` |
 | GraphQL | `## GraphQL` | `#graphql` | `{GRAPHQL_TABLE}` |
 | DB schema | `## Database Schema` | `#database-schema` | `{DB_SCHEMA_TABLE}` |
+| Extension attributes | `## Extension Attributes` | `#extension-attributes` | `{EXTENSION_ATTRIBUTES_TABLE}` |
 
 ### Closing sections (always present)
 

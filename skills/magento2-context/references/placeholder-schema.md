@@ -139,7 +139,7 @@ These are substituted by the review/report emitters, not by code scaffolding:
 technical documentation from extracted code surfaces):
 `{MODULE_DESCRIPTION}`, `{DEPENDENCIES_LIST}`, `{API_SURFACE_TABLE}`, `{EVENTS_TABLE}`,
 `{PLUGINS_TABLE}`, `{CONFIG_PATHS_TABLE}`, `{CLI_COMMANDS_TABLE}`, `{CRON_TABLE}`,
-`{REST_ROUTES_TABLE}`, `{GRAPHQL_TABLE}`, `{DB_SCHEMA_TABLE}`.
+`{REST_ROUTES_TABLE}`, `{GRAPHQL_TABLE}`, `{DB_SCHEMA_TABLE}`, `{EXTENSION_ATTRIBUTES_TABLE}`.
 
 ## Substitution rules
 
@@ -172,6 +172,7 @@ CRON_TABLE
 DB_SCHEMA_TABLE
 DEPENDENCIES_LIST
 EVENTS_TABLE
+EXTENSION_ATTRIBUTES_TABLE
 EventName
 Class
 ClassUnderTest
