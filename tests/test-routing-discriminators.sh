@@ -49,6 +49,7 @@ check indexer             magento2-module-create magento2-performance-audit
 check marketplace-prep    magento2-security-audit magento2-release
 check accessibility-audit magento2-frontend-create magento2-module-review
 check breeze-child-theme   magento2-frontend-create
+check breeze-module-adapt  magento2-extension-point magento2-breeze-compat-audit
 
 [ "$FAIL" -eq 0 ] || { echo "RESULT: FAIL"; exit 1; }
 echo "routing discriminators: all cross-references present"

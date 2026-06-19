@@ -39,6 +39,7 @@ skills evolve.
 | magento2-marketplace-prep  | 1.0.0   | New EQP check, readiness-scoring calibration                                  |
 | magento2-accessibility-audit | 1.0.0 | New WCAG rule, runtime pass change                                            |
 | magento2-breeze-child-theme | 1.0.0 | New template/parent variant, theme-layout change                              |
+| magento2-breeze-module-adapt | 1.0.0 | New template/surface, widget-conversion or sequence rule change               |
 
 ## Changelog (last update: 2026-06-19)
 

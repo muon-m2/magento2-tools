@@ -1,0 +1,22 @@
+{
+    "name": "{vendor_lower}/module-{module-kebab-case}-breeze",
+    "description": "Swissup Breeze integration for {Vendor}_{ModuleName}",
+    "type": "magento2-module",
+    "license": "proprietary",
+    "version": "1.0.0",
+    "require": {
+        "php": "{php_constraint}",
+        "magento/framework": "{framework_constraint}"
+    },
+    "suggest": {
+        "swissup/module-breeze": "Breeze frontend framework this module integrates with"
+    },
+    "autoload": {
+        "files": [
+            "registration.php"
+        ],
+        "psr-4": {
+            "{Vendor}\\{ModuleName}Breeze\\": ""
+        }
+    }
+}
