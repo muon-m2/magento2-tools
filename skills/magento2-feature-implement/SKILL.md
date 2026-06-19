@@ -62,6 +62,13 @@ the full implementation from analysis through tested, reviewed, reported deliver
   as done. Every generated file must contain real implementation content.
 - **All diagrams are Mermaid.** Every diagram in every document — dependency graphs, flow charts,
   module schemas, ER diagrams — must use Mermaid syntax. No ASCII art or external image links.
+- **Document before report (required).** Phase 7 is split into **7A** (documentation) and **7B**
+  (final report). Phase 7B may not start until the feature's documentation set exists on disk and
+  is current. Documentation is a required deliverable — not an optional extra — in `feature` and
+  `extend` modes. The set spans three scopes (technical, developer, user), carries screenshots, and,
+  when the feature exposes a REST/GraphQL surface, includes request/response payload examples. Per-
+  module technical reference docs are delegated to `magento2-docs-generate`. The required artifacts,
+  per-mode scope, and the completeness gate live in `references/documentation-guide.md`.
 - **Guides and user docs are HTML.** Development guides and user documentation default to `.html`
   format. Define a CSS color schema once for the feature and apply it inline to every HTML file
   in the feature folder for visual consistency.
@@ -98,12 +105,15 @@ Every feature gets its own subfolder under `.docs/`. Create it at the start of P
     │   ├── 003-X1-{title}.md  # 003-X1 and 003-X2 share index 003 → parallel wave
     │   ├── 003-X2-{title}.md
     │   └── ...
-    ├── report.md             # Final implementation report — Phase 7
-    ├── guides/               # Development guides (HTML) — generated when applicable
+    ├── report.md             # Final implementation report — Phase 7B
+    ├── spec.md               # Cross-module technical specification — Phase 7A (required in feature mode)
+    ├── guides/               # Developer-scope documentation (HTML) — Phase 7A (required in feature/extend)
     │   └── developer-guide.html
-    ├── user-docs/            # End-user documentation (HTML) — generated when applicable
-    │   └── user-guide.html
-    └── spec.md               # Technical specification — generated when scope warrants it
+    ├── user-docs/            # User/admin-scope documentation (HTML) — Phase 7A (required in feature/extend)
+    │   ├── user-guide.html
+    │   └── screenshots/      # Admin/storefront screenshots embedded in the user guide (reuse Phase 6B captures)
+    ├── api-examples/         # REST/GraphQL request + response payload samples — when the feature exposes an API
+    └── artifacts/            # Other helpful artifacts (Postman collection, ER/sequence diagrams, sample data)
 ```
 
 **plan.md** is the single source of truth for resuming interrupted runs. It must always contain:
@@ -676,7 +686,63 @@ halt and prompt the user. Record each iteration via `templates/smoke-run-report.
 
 ---
 
-## Phase 7 — Final Report
+## Phase 7 — Documentation and Final Report
+
+Phase 7 is split into two sub-phases: **7A** (documentation — required) and **7B** (final report).
+**Phase 7B may not start until Phase 7A's documentation set is written to disk and current.** The
+report is the genuine last step; documentation is produced — and verified complete — before it.
+
+---
+
+### Phase 7A — Documentation (required)
+
+**Goal:** produce — or refresh — the feature's complete documentation set so it reflects the code
+as actually built.
+
+Load `references/documentation-guide.md`. It defines the required artifacts per scope, the per-mode
+documentation scope, screenshot sourcing, API payload examples, and the completeness gate. Phase 7A
+is **mandatory** in `feature` and `extend` modes, **reduced** in `hotfix` mode, and **skipped** in
+`spike` mode (see `references/modes.md`).
+
+1. **Per-module technical docs.** For every module created or modified this run, delegate to
+   `magento2-docs-generate` to (re)generate `{module}/README.md`,
+   `{module}/docs/technical-reference.md`, and the `CHANGELOG.md` scaffold from the module's own
+   code. Re-running it is how the extracted `@api`/event/config surface stays current.
+
+   ```
+   Skill: magento2-docs-generate
+   Args: --module={Vendor}_{Module}
+   ```
+
+2. **Technical specification.** Write or refresh `.docs/{FeatureName}/spec.md` — the cross-module
+   technical reference (architecture, data model, module interactions, extension points,
+   sequence/flow diagrams in Mermaid). Link to the per-module references rather than restating them.
+
+3. **Developer-scope guide.** Write or refresh `guides/developer-guide.html` — how a developer
+   integrates with and extends the feature: service contracts, events, plugins, DI, and worked code
+   examples. When the feature exposes a REST or GraphQL surface, embed request/response payload
+   examples (reuse the raw S2 captures under `.docs/{FeatureName}/smoke/raw/S2/` where available)
+   and also save curated, redacted examples under `api-examples/`.
+
+4. **User-scope guide.** Write or refresh `user-docs/user-guide.html` — admin configuration and
+   end-user workflows, **with screenshots**. Reuse the Phase 6B screenshots under
+   `.docs/{FeatureName}/smoke/screenshots/` (copy the relevant ones into `user-docs/screenshots/`),
+   or capture fresh ones with the smoke browser driver for screens smoke did not exercise.
+
+5. **Other helpful artifacts** (as the module's scope warrants): a Postman collection for the REST
+   surface, an ER diagram, a sequence diagram, or sample payloads/fixtures. Save under `artifacts/`.
+   Omit any that do not apply — do not create empty placeholders.
+
+6. **Updated, not stale.** On a resume or `extend` run, **refresh** existing documents to match the
+   final code — never leave a previously generated doc describing an earlier design. Apply the
+   feature's shared CSS color schema inline to every HTML file (per the Core Rules).
+
+7. Run the completeness checklist in `references/documentation-guide.md`. **Do not proceed to
+   Phase 7B until every required artifact for the current mode exists on disk.**
+
+---
+
+### Phase 7B — Final Report
 
 **Goal:** produce a complete implementation report.
 
@@ -696,16 +762,12 @@ halt and prompt the user. Record each iteration via `templates/smoke-run-report.
 4. Update the blueprint status line to `Status: Complete` in `.docs/{FeatureName}/blueprint.md`.
    Update the plan status and mark all remaining checkboxes `[x]` in `.docs/{FeatureName}/plan.md`.
 5. Save the report to `.docs/{FeatureName}/report.md`.
-6. If the feature includes complex configuration, non-obvious developer integration points, or
-   admin workflows, generate the relevant optional documents in the feature folder:
-    - `guides/developer-guide.html` — integration and extension guide for developers.
-    - `user-docs/user-guide.html` — admin/end-user guide for configuring and using the feature.
-    - `spec.md` — technical specification, if the blueprint warrants persistent reference material.
-      Each HTML file must define a CSS color schema inline (primary, secondary, background, text,
-      accent colors) and apply it consistently across all HTML files in the feature folder.
+6. Link the Phase 7A documentation set from the report (in Recommended Next Steps or an artifacts
+   list): `spec.md`, the developer and user guides, `api-examples/` (when present), and the
+   per-module `README.md` / `docs/technical-reference.md`.
 7. Print the report to the conversation.
-8. State explicitly: *"Feature implementation complete. See report above and
-   `.docs/{FeatureName}/report.md`."*
+8. State explicitly: *"Feature implementation complete. See report above,
+   `.docs/{FeatureName}/report.md`, and the documentation set under `.docs/{FeatureName}/`."*
 
 ---
 
@@ -715,8 +777,9 @@ halt and prompt the user. Record each iteration via `templates/smoke-run-report.
 - `references/module-schema-guide.md`: new vs modify decision matrix, cohesion rules, diagram format.
 - `references/task-breakdown-guide.md`: task IDs (including `S*`), task record format, Mermaid syntax, approval gate.
 - `references/tradeoffs-catalog.md`: common Magento 2 architectural tradeoffs and documentation format.
+- `references/documentation-guide.md`: Phase 7A required documentation set — per-scope artifacts (technical/developer/user), screenshot sourcing, API payload examples, per-mode scope, completeness gate.
 - `references/final-report-format.md`: report structure (incl. Section 10 — Smoke Test Results).
-- `references/modes.md`: feature/hotfix/extend/spike mode selection, per-mode pipeline overrides, per-mode smoke scope.
+- `references/modes.md`: feature/hotfix/extend/spike mode selection, per-mode pipeline overrides, per-mode smoke and documentation scope.
 - `references/per-task-commits.md`: opt-in per-task git commit format, scoping, failure handling.
 - `references/tdd-mode.md`: opt-in test-first execution — flag/config/env triple, per-mode applicability, how Phase 5 applies the shared `tdd-discipline.md` loop.
 - `references/smoke-test-guide.md`: Phase 6B suites, severity rubric, fix routing, loop control.
@@ -745,6 +808,9 @@ invocations — the `Skill` tool preserves conversation context across phases.
   touches PHP/XML/JS/template before re-entering Phase 6 from 6A.
 - `magento2-test-generate`: invoked for the T* task (Phase 5) and Phase 6A when present.
   Generates unit/integration/API tests; falls back to inline test generation if absent.
+- `magento2-docs-generate`: invoked in Phase 7A for every created or modified module —
+  (re)generates the per-module `README.md`, `docs/technical-reference.md`, and `CHANGELOG.md`
+  scaffold from the module's own code, keeping the technical documentation current.
 - `magento2-eav-attribute`: invoked when the blueprint declares EAV attributes — replaces
   hand-written `Setup/Patch/Data/` files for EAV.
 - `magento2-graphql-create`: invoked when the blueprint declares a GraphQL surface and

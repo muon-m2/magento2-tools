@@ -36,6 +36,14 @@ checklist with zero post-creation fixes required.
 - **Generate surfaces in order.** When surfaces are independent, follow:
   `core` → `persistence` → `service_contracts` → `admin_config` → `admin_ui` → `frontend_ui`
   → `rest_api` → `graphql` → `cron` → `queue` → `extensions`.
+- **Document before report (required).** Step 6 generates the module's documentation set; Step 7
+  (report) may not start until it exists on disk and is current. The set is **code-derived** (this
+  skill assumes no running instance): a technical reference via `magento2-docs-generate`, plus
+  developer-scope and user-scope guides, screenshots (or named placeholders when no instance is
+  available), and — when a REST/GraphQL surface is declared — request/response payload examples, with
+  other helpful artifacts as the surfaces warrant. Reduced in Quick Create Mode; refresh-only in
+  `--mode=augment`. The required artifacts, per-mode scope, and completeness gate live in
+  `references/documentation-guide.md`.
 
 ## Workflow
 
@@ -144,7 +152,33 @@ checklist with zero post-creation fixes required.
       `setup:db-declaration:generate-whitelist` automatically — offer them as next steps.
     - Record all results: pass / fail / skipped per check.
 
-6. **Report and offer next steps.**
+6. **Generate documentation (required).**
+    - Load `references/documentation-guide.md`. It defines the required artifacts per scope, the
+      per-mode scope, screenshot handling, API payload examples, and the completeness gate.
+    - Delegate the technical reference to `magento2-docs-generate` for the created module:
+      ```
+      Skill: magento2-docs-generate
+      Args: --module={Vendor}_{ModuleName}
+      ```
+      This (re)generates `docs/technical-reference.md` and refreshes the `README.md` / `CHANGELOG.md`
+      scaffold from the module's own code; reconcile with `references/docs-format.md` (do not duplicate).
+    - When the module exposes a public surface (service contracts, REST/GraphQL, events, plugins),
+      write `docs/developer-guide.md` — integration and extension points with worked code examples
+      drawn from the generated code.
+    - When the module declares `admin_config`, `admin_ui`, or `frontend_ui`, write
+      `docs/user-guide.md` — admin configuration and end-user workflows, with screenshots under
+      `docs/screenshots/`. With no running instance available, insert clearly marked screenshot
+      placeholders naming the screen to capture post-deploy — do not fabricate images.
+    - When `rest_api` or `graphql` is declared, write contract-derived request/response payload
+      examples under `docs/api-examples/` and reference them from the developer guide.
+    - Add other helpful artifacts (Postman collection, ER/sequence diagram) under `docs/artifacts/`
+      as the surfaces warrant. Omit those that do not apply — no empty placeholder files.
+    - **Quick Create Mode:** produce only `README.md` + `CHANGELOG.md`. **`--mode=augment`:** refresh
+      the docs the new surfaces touch — never leave a doc describing the pre-augment module.
+    - Run the completeness checklist in `references/documentation-guide.md`. Do not proceed to Step 7
+      until every required artifact for the current mode exists on disk.
+
+7. **Report and offer next steps.**
     - Show the created file tree (all files, relative to module root).
     - Show the creation checklist status from `references/creation-checklist.md`
       (all 12 categories, each marked ✓ compliant / ⚠ partial / ✗ gap).
@@ -167,6 +201,9 @@ Creates only the **core** surface files:
 
 Does not create interfaces, models, controllers, templates, or tests. All files must still fully comply
 with Categories 1, 2, and 3 of the review checklist.
+
+Documentation (Step 6) is reduced to `README.md` + `CHANGELOG.md` — the full doc set
+(technical reference, developer/user guides, API examples) is generated when surfaces are added.
 
 After creation, list all skipped surfaces and state:
 *"Run `/module-create {ModuleName} {surface}` to add a surface when ready."*
@@ -210,6 +247,9 @@ parallel creation to the user and wait for a yes/no answer before proceeding. Re
   FQCN requirements, brevity rules, and common mistakes to avoid.
 - `references/parallel-create.md`: agent split guidance for large or complex modules.
 - `references/docs-format.md`: README.md section structure and CHANGELOG.md format rules.
+- `references/documentation-guide.md`: Step 6 required documentation set — per-scope artifacts
+  (technical/developer/user), screenshot handling, contract-derived API examples, per-mode scope,
+  and the completeness gate.
 
 ## Template Inventory
 

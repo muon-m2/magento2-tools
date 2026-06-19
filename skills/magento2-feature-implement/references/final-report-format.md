@@ -164,6 +164,9 @@ Ordered list of what to do after this implementation, with the highest-value ite
 4. Configure the feature in Admin > {section path}.
 5. Run `magento2-deploy` to enable modules on staging.
 
+Link the Phase 7A documentation set so readers can find it: `spec.md`, the developer and user HTML
+guides, `api-examples/` (when present), and each module's `README.md` / `docs/technical-reference.md`.
+
 ---
 
 ### 10. Smoke Test Results

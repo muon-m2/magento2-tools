@@ -12,6 +12,10 @@ All gates apply (Phase 2 blueprint approval, Phase 4 plan approval).
 
 **Smoke scope (Phase 6B):** full battery — every applicable suite from S1 to S9.
 
+**Documentation scope (Phase 7A):** full set — per-module docs via `magento2-docs-generate`,
+`spec.md`, developer + user HTML guides with screenshots, API payload examples when a REST/GraphQL
+surface exists, plus applicable artifacts. See `documentation-guide.md`.
+
 ## Mode: `hotfix`
 
 Skip Phases 3-4 (Module Schema, Task Breakdown). Use when the request is **small and
@@ -36,7 +40,7 @@ the user: "Change is larger than initial estimate — switching to full mode."
 | 4 | **SKIPPED** |
 | 5 | Execute: apply the change as a single task; commit; run `php -l` + `xmllint` on touched files. |
 | 6 | Test: 6A unit tests for affected modules; 6B reduced smoke — S1 + S8 + only the suites for surfaces the hotfix actually touched. |
-| 7 | Report: short report (3 sections — what was changed, why, verification) + abbreviated Section 10 smoke summary. |
+| 7 | Documentation (7A, reduced) + Report (7B): refresh the touched module's docs; short report (3 sections — what was changed, why, verification) + abbreviated Section 10 smoke summary. |
 
 **Hotfix still invokes `magento2-module-review` after the change** (diff mode). It still
 requires test coverage for the change. The only things skipped are the schema and detailed
@@ -52,6 +56,10 @@ breakdown phases — there is one logical task.
     My Account tab if any).
   - Grid declaration edited → `S5` (only the affected grid).
 - The loop and 5-iteration cap apply identically.
+
+**Documentation scope (Phase 7A):** reduced — refresh the touched module's `technical-reference.md`
++ add a `CHANGELOG.md` note. No full guide set unless the hotfix changed admin/API behaviour a user
+or developer relies on. See `documentation-guide.md`.
 
 ## Mode: `extend`
 
@@ -70,11 +78,15 @@ Pipeline:
 | 4 | Task list (minimal): one M*/X* task + R* + T* + V*, **written to `plan.md` with a `## Current State` checklist**. Phase 4 is **not** skipped in `extend` — only Phase 3 is. |
 | 5 | Execute via `magento2-module-create --augment` for the new files; mark each task `[x]` in `plan.md` `## Current State` on completion — SKILL.md Phase 5 *Per-task completion protocol*. |
 | 6 | Test: 6A unit tests; 6B reduced smoke per the same rules as `hotfix` mode — S1 + S8 + only the suites for the added surface. |
-| 7 | Report |
+| 7 | Documentation (7A) + Report (7B) |
 
 **Smoke scope (Phase 6B):** same shape as `hotfix` — always S1/S8/S9, plus suite(s) matching
 the added surface (e.g. observer added → S6 of the controller that dispatches the event;
 plugin on a public service → S2 + S3/S5 of the affected admin surface).
+
+**Documentation scope (Phase 7A):** update the affected module's docs and refresh the developer/user
+guide sections the new surface touches; add API examples if the surface is REST/GraphQL; `spec.md`
+only if the design changed. See `documentation-guide.md`.
 
 ## Mode: `spike`
 
@@ -89,6 +101,9 @@ real feature.
 
 **Smoke scope (Phase 6B):** entirely skipped. Spikes do not run smoke; the promotion
 checklist must include "run full Phase 6B in `feature` mode" as a prerequisite for merge.
+
+**Documentation scope (Phase 7A):** entirely skipped. The promotion checklist must also include
+"generate full documentation in `feature` mode" as a prerequisite for merge.
 
 ## Mode Selection Algorithm
 
