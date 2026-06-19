@@ -6,6 +6,20 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.12.0] — 2026-06-18 — Wave 2: command surface + indexer / marketplace-prep / accessibility-audit skills
+
+### Added
+
+- **New skill `magento2-indexer`** — scaffolds a custom indexer + materialized view: `indexer.xml`, `mview.xml` subscriptions, an indexer implementing both `Indexer\ActionInterface` (executeFull/executeList/executeRow) and `Mview\ActionInterface` (execute) that delegates to a batched, idempotent action class, plus a unit test.
+- **New skill `magento2-marketplace-prep`** — read-only Adobe Marketplace / EQP submission-readiness audit (composer metadata, license headers, MFTF presence, version-constraint sanity, packaging) producing a tiered, scored report (Markdown + JSON + SARIF via the shared emitters, `outputKind=marketplace`). Delegates EQP static code rules to `magento2-security-audit` rather than duplicating them.
+- **New skill `magento2-accessibility-audit`** — static-first storefront WCAG audit of `.phtml`/`.less` templates (alt text, form labels, ARIA, heading order, keyboard/tab-index, contrast heuristics), theme-aware (Luma/Hyvä), with an optional opt-in `pa11y` runtime pass; emits ranked findings (`outputKind=accessibility`).
+- **Five new slash-command shortcuts** — `/magento2-tools:test` (`magento2-test-generate`), `:upgrade` (`magento2-module-upgrade`), `:i18n` (`magento2-i18n`), `:lint` (`magento2-static-analysis`), and a `:scaffold` dispatcher that routes a generation request to the matching generator skill (defaulting to `magento2-module-create`). Command count **9 → 14**.
+- **`OUTPUT_KIND=marketplace` and `OUTPUT_KIND=accessibility`** — two new `outputKind` values in the shared findings emitters, for the marketplace-prep and accessibility-audit reports.
+
+### Changed
+
+- Skill count **26 → 29**.
+
 ## [1.11.0] — 2026-06-18 — Wave 1: extension/config/cli/queue/static-analysis/docs skills + explorer agent
 
 ### Added
