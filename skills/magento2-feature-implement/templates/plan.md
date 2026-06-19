@@ -6,7 +6,7 @@ Blueprint: `.docs/{FeatureName}/blueprint.md`
 Skill versions:
 
 - magento2-feature-implement@2.10.1
-- magento2-context@1.6.1
+- magento2-context@1.7.0
 
 ---
 

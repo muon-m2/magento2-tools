@@ -25,6 +25,7 @@ skills.zip
 # Internal audit / process / design docs — kept local, not part of the shipped plugin.
 # The CHANGELOG is the durable record of what changed.
 .docs/
+docs/superpowers/
 SKILLS-ANALYSIS-REPORT.md
 SKILLS-IMPROVEMENT-PLAN.md
 SKILLS-REMEDIATION-REPORT.md

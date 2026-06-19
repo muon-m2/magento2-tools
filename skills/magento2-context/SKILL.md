@@ -56,7 +56,7 @@ to `.claude/.cache/magento2-context.json`.
 {
   "schemaVersion": "1.0",
   "skill": "magento2-context",
-  "skillVersion": "1.6.1",
+  "skillVersion": "1.7.0",
   "resolvedAt": "2026-05-26T14:30:00Z",
   "cacheKey": "lock:sha256-...;json:sha256-...;claude:sha256-...;m2:sha256-...;env:<M2_MAGENTO_ROOT>|<M2_PHP_CONTAINER>",
 
@@ -83,7 +83,14 @@ to `.claude/.cache/magento2-context.json`.
     "frontend": "hyva",
     "frontend_source": "src/composer.json:hyva-themes/* dependency (installed, active-theme unverified)",
     "adminhtml": "Magento/backend",
-    "adminhtml_source": "src/app/etc/config.php:themes[].area=adminhtml"
+    "adminhtml_source": "src/app/etc/config.php:themes[].area=adminhtml",
+    "breeze": {
+      "installed": false,
+      "active": false,
+      "parent": null,
+      "packages": [],
+      "source": null
+    }
   },
 
   "tools": {
@@ -140,6 +147,14 @@ to `.claude/.cache/magento2-context.json`.
   `app/etc/config.php`. `null` when no active theme can be confirmed; never silently
   defaulted to `custom`. Always read alongside `theme.frontend_source` /
   `theme.adminhtml_source` to know how the value was derived.
+- `theme.breeze` — Swissup Breezefront detection. `installed` is `true` when any
+  `swissup/breeze-*` (or `swissup/module-breeze`) package is required in composer.
+  `active` is `true` only when `theme.frontend` (or a `<parent>` in its app/design chain)
+  resolves to a Breeze theme; `parent` is that Breeze theme code (e.g.
+  `Swissup/breeze-evolution`), else `null`. `packages` lists the matched composer
+  packages; `source` records how the verdict was reached. The `magento2-breeze-*` skills
+  refuse to run when `installed` is `false` and print the install command instead. See
+  `references/theme-detection.md`.
 
 ## Consumption Pattern (for caller skills)
 

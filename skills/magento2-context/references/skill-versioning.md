@@ -9,7 +9,7 @@ skills evolve.
 
 | Skill                      | Version | Bumped when                                                         |
 |----------------------------|---------|---------------------------------------------------------------------|
-| magento2-context           | 1.6.1   | JSON schema changes, new resolution rules, new tool probes          |
+| magento2-context           | 1.7.0   | JSON schema changes, new resolution rules, new tool probes          |
 | magento2-module-create     | 1.8.0   | New template added, surface added, naming rule changed              |
 | magento2-module-review     | 2.3.1   | New checklist category, severity calibration change, new JSON field, fix-routing change |
 | magento2-feature-implement | 2.10.1  | New phase, new approval gate, mode added, new task types (I/C/L/Q), template structure change, delegation/fallback discipline |
@@ -40,6 +40,30 @@ skills evolve.
 | magento2-accessibility-audit | 1.0.0 | New WCAG rule, runtime pass change                                            |
 
 ## Changelog (last update: 2026-06-19)
+
+- **Breeze (Swissup Breezefront) support — three new skills + context detection (unreleased).**
+  Adds first-class Breeze theme support to the suite.
+  - `magento2-context 1.6.1 → 1.7.0` — new `theme.breeze` JSON object
+    (`installed`/`active`/`parent`/`packages`/`source`): `installed` keys off any
+    `swissup/breeze-*` / `swissup/module-breeze` composer package; `active` walks the active
+    frontend theme's `app/design` `<parent>` chain for a Breeze ancestor. New detection rules
+    in `references/theme-detection.md`; `resolve-context.sh` emits the object. Minor (new
+    schema field + resolution rule).
+  - **New skill `magento2-breeze-child-theme` 1.0.0** — scaffolds a Breeze child theme
+    (`theme.xml` `<parent>Swissup/breeze-*`, `registration.php`, `composer.json`,
+    `web/css/breeze/_default.less` with `@critical` guards). Sibling to
+    `magento2-frontend-create` (generic/Hyva/Luma themes); this one is Breeze-specific.
+  - **New skill `magento2-breeze-module-adapt` 1.0.0** — generates a companion
+    `{Vendor}_{Module}Breeze` integration module (sequenced after the target + `Swissup_Breeze`)
+    holding the Breeze adapter layer: `breeze_default.xml` JS registration, `breeze/_default.less`,
+    and Cash `$.widget` stubs converted from the target's RequireJS/Knockout/jQuery widgets.
+    Never edits the target module (works on read-only `vendor/` modules).
+  - **New skill `magento2-breeze-compat-audit` 1.0.0** — read-only static auditor; scans a
+    module for RequireJS/Knockout/jQuery-widget/mixin usage and emits ranked findings
+    (Markdown + JSON `outputKind=compatibility` + SARIF) via the shared emit-json.sh /
+    emit-sarif.sh emitters, plus a verdict (compatible / needs Better Compatibility / needs
+    manual adapter) pointing at `magento2-breeze-module-adapt`.
+  - Not yet bundled in a plugin release (`plugin.json` unchanged).
 
 - **`magento2-feature-implement` 2.10.0 → 2.10.1 — delegation discipline (unreleased).** Fixes the
   failure mode where the orchestrator skipped sub-skill delegation on an unverified "not
@@ -165,7 +189,7 @@ skills evolve.
   behaviour/boilerplate line once; `magento2-bug-fix` now points at it (one-line pointer, no
   bump). `magento2-context` itself is **not** bumped — adding a cross-cutting reference doc does
   not change its resolved JSON/schema/probes (the bump triggers in its row), and a context bump
-  would force-touch the 17 files that pin `magento2-context@1.6.1` for no behavioural reason.
+  would force-touch the many files that pin the `magento2-context` version for no behavioural reason.
   - **magento2-feature-implement 2.6.0 → 2.7.0** — opt-in **TDD mode** (`--tdd` /
     `Feature implement: tdd = on` / `MAGENTO2_FI_TDD=1`, default off; `spike` exempt). New
     `references/tdd-mode.md`; Phase 5 `M*`/`X*` behaviour is written test-first (signature →

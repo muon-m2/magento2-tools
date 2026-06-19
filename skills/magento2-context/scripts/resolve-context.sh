@@ -46,6 +46,19 @@ json_str() {
         | tr -d '\r' | tr -d '\n'
 }
 json_or_null() { if [[ -z "$1" || "$1" == "null" ]]; then printf 'null'; else printf '"%s"' "$(json_str "$1")"; fi; }
+# Serialize a comma-separated list as a JSON array of strings ("" → []).
+json_array_from_csv() {
+    local csv="$1"; local out="["; local first=1; local item
+    local IFS=','
+    for item in $csv; do
+        [[ -z "$item" ]] && continue
+        [[ $first -eq 0 ]] && out+=","
+        out+="\"$(json_str "$item")\""
+        first=0
+    done
+    out+="]"
+    printf '%s' "$out"
+}
 # runner is special: an EMPTY string is a real value in bare mode (callers compose
 # `${runner} php ...`), so it must serialize as "" — never null. Only the no-environment
 # case (runner_kind == "null") emits JSON null.
@@ -420,6 +433,60 @@ if [[ "$THEME_FRONTEND" == "null" && -f "$COMPOSER_JSON" ]] && command -v php >/
     fi
 fi
 
+# --- Breeze (Swissup Breezefront) detection ---
+# installed = any swissup/breeze-* or swissup/module-breeze package is required in composer.
+# active    = the resolved frontend theme, or any theme.xml <parent> in its (app/design) chain,
+#             is a Swissup Breeze theme (code contains "breeze"). Honest-gaps rule: when there
+#             is no evidence, installed/active stay false, parent null. Consumed by the
+#             magento2-breeze-* skills, which refuse to run when installed is false.
+BREEZE_INSTALLED="false"
+BREEZE_ACTIVE="false"
+BREEZE_PARENT="null"
+BREEZE_PACKAGES=""
+BREEZE_SRC=""
+
+if [[ -f "$COMPOSER_JSON" ]] && command -v php >/dev/null 2>&1; then
+    BREEZE_PACKAGES=$(php -r '
+        $d = json_decode(file_get_contents($argv[1]), true);
+        $r = (is_array($d) && isset($d["require"]) && is_array($d["require"])) ? $d["require"] : [];
+        $hit = [];
+        foreach ($r as $k => $v) {
+            if (preg_match("#^swissup/(breeze-|module-breeze)#", (string) $k)) { $hit[] = $k; }
+        }
+        echo implode(",", $hit);
+    ' "$COMPOSER_JSON" 2>/dev/null || echo "")
+    if [[ -n "$BREEZE_PACKAGES" ]]; then
+        BREEZE_INSTALLED="true"
+        BREEZE_SRC="${COMPOSER_JSON}:require swissup/breeze-* present"
+    fi
+fi
+
+# Walk the active frontend theme's parent chain (app/design only) for a Breeze ancestor.
+if [[ "$THEME_FRONTEND" != "null" && "$THEME_FRONTEND" != "hyva" ]] && command -v php >/dev/null 2>&1; then
+    breeze_parent=$(php -r '
+        $root = rtrim($argv[1], "/"); $cur = $argv[2]; $seen = [];
+        for ($i = 0; $i < 10; $i++) {
+            if ($cur === "" || isset($seen[$cur])) { break; }
+            $seen[$cur] = true;
+            if (stripos($cur, "breeze") !== false) { echo $cur; exit; }
+            $xml = $root . "/app/design/frontend/" . $cur . "/theme.xml";
+            if (!is_file($xml)) { break; }
+            $c = (string) file_get_contents($xml);
+            if (preg_match("#<parent>\s*([^<]+?)\s*</parent>#", $c, $m)) { $cur = trim($m[1]); }
+            else { break; }
+        }
+    ' "$MAGENTO_ROOT" "$THEME_FRONTEND" 2>/dev/null || echo "")
+    if [[ -n "$breeze_parent" ]]; then
+        BREEZE_ACTIVE="true"
+        BREEZE_PARENT="$breeze_parent"
+        if [[ -z "$BREEZE_SRC" ]]; then
+            BREEZE_SRC="theme.frontend parent chain resolves to ${breeze_parent}"
+        else
+            BREEZE_SRC="${BREEZE_SRC}; theme.frontend chain → ${breeze_parent}"
+        fi
+    fi
+fi
+
 # --- Tools ---
 probe_tool() {
     local key="$1"; local probe="$2"; local resolved="$3"
@@ -492,7 +559,7 @@ cat > "$CACHE_TMP" <<EOF
 {
   "schemaVersion": "1.0",
   "skill": "magento2-context",
-  "skillVersion": "1.6.1",
+  "skillVersion": "1.7.0",
   "resolvedAt": "${TIMESTAMP}",
   "cacheKey": $(json_or_null "$CACHE_KEY"),
 
@@ -519,7 +586,14 @@ cat > "$CACHE_TMP" <<EOF
     "frontend": $(json_or_null "$THEME_FRONTEND"),
     "frontend_source": $(json_or_null "$THEME_FRONTEND_SRC"),
     "adminhtml": $(json_or_null "$THEME_ADMIN"),
-    "adminhtml_source": $(json_or_null "$THEME_ADMIN_SRC")
+    "adminhtml_source": $(json_or_null "$THEME_ADMIN_SRC"),
+    "breeze": {
+      "installed": ${BREEZE_INSTALLED},
+      "active": ${BREEZE_ACTIVE},
+      "parent": $(json_or_null "$BREEZE_PARENT"),
+      "packages": $(json_array_from_csv "$BREEZE_PACKAGES"),
+      "source": $(json_or_null "$BREEZE_SRC")
+    }
   },
 
   "tools": {

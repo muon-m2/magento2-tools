@@ -17,7 +17,7 @@ requires updating this schema and the JSON emitter.
   "skillVersion": "2.3.0",
   "skillVersions": [
     "magento2-module-review@2.3.1",
-    "magento2-context@1.6.1"
+    "magento2-context@1.7.0"
   ],
   "outputKind": "review",
   "target": {
