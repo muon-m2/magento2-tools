@@ -182,7 +182,7 @@ detection. Changing any override busts the resolver cache automatically.
   marketplace.json   # this repo doubles as its own marketplace ("muon-m2")
 skills/              # 26 magento2-* skills (auto-discovered by Claude Code)
 commands/            # 9 /magento2-tools:<verb> shortcut commands (auto-discovered)
-agents/              # first-party subagents (read-only Magento reviewer for parallel review)
+agents/              # first-party read-only subagents: magento2-reviewer (per-dimension review) + magento2-explorer (code comprehension/tracing)
 hooks/               # PreToolUse guard: keeps .docs/ artifacts at the project root
 tests/               # contract test harness
 scripts/             # release-notes helper (used by .github/workflows/release.yml)

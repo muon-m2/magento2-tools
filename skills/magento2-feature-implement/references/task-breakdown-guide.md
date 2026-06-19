@@ -12,7 +12,7 @@ Tasks use a two-part ID: `{TypePrefix}{Number}`
 | Prefix | Type                                                                                   |
 |--------|---------------------------------------------------------------------------------------|
 | `M`    | Create new module (maps 1:1 to a `magento2-module-create` invocation)                 |
-| `X`    | Modify existing module                                                                |
+| `X`    | Modify existing module (before an `X` task, the orchestrator may dispatch `magento2-explorer` to map the target module's execution paths and extension points first) |
 | `E`    | EAV attribute (maps 1:1 to a `magento2-eav-attribute` invocation)                     |
 | `G`    | GraphQL surface design (maps 1:1 to a `magento2-graphql-create` invocation)           |
 | `F`    | Frontend asset (maps 1:1 to a `magento2-frontend-create` invocation, when present)    |

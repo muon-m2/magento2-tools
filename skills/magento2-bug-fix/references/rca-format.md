@@ -82,6 +82,12 @@ fix — they become separate `/magento2-bug-fix` runs.}
 proceed.}
 ```
 
+## Explorer Assist
+
+During RCA investigation, the `magento2-explorer` agent can be dispatched to map the suspect
+execution path — tracing the call chain from entry point through plugins, observers, and
+preferences — so the defect location can be pinpointed without manually reading every interceptor.
+
 ## Quality Bar
 
 The RCA is approved only when:

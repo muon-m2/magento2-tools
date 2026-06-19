@@ -56,6 +56,15 @@ unavailable in the session, fall back to `subagent_type: 'claude'`. Pass the mod
 scope in the prompt. Each subagent must receive a self-contained brief — it has no access to the
 parent conversation.
 
+For the **inventory / comprehension step** (understanding the module's execution paths, extension
+points, and cross-module dependencies before judging them), prefer
+`subagent_type: 'magento2-explorer'` (defined in `agents/magento2-explorer.md`) — it produces a
+structured comprehension map and Mermaid call-chain diagram. Fall back to `subagent_type: 'Explore'`
+if `magento2-explorer` is unavailable, then to `subagent_type: 'claude'`. Run the explorer step
+first; pass its comprehension map to the per-dimension `magento2-reviewer` subagents so they start
+with a shared understanding of the module's structure. The per-dimension judging still uses
+`magento2-reviewer`.
+
 ## Model Guidance
 
 In Claude Code, pass the `model` parameter on the `Agent` tool call to control per-subagent model selection:
