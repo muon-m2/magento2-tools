@@ -2,6 +2,9 @@
 .claude/.cache/
 .cache/
 
+# Local Claude Code workflow scripts — not part of the shipped plugin
+.claude/workflows/
+
 # Local, machine-specific settings — never share
 *.local.json
 .claude/settings.local.json

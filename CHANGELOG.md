@@ -15,7 +15,7 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 - **New skill `magento2-cli-command`** — generates a Magento 2 CLI command or cron job: command class, `di.xml` registration, and (for cron) `crontab.xml`.
 - **New skill `magento2-message-queue`** — generates a full async message-queue surface on an existing module: typed topic DTO + interface, publisher, idempotent consumer, and all five queue XML files (`communication.xml`, `queue_topology.xml`, `queue_publisher.xml`, `queue_consumer.xml`).
 - **New skill `magento2-static-analysis`** — action skill running the full static quality gate (PHPCS Magento2 standard, PHPStan level 8, PHPMD, optional php-cs-fixer / rector) with a mandatory Phase-2 approval gate before any auto-fix is applied; emits ranked findings as Markdown + JSON (`outputKind=quality`) + SARIF via the shared emitters.
-- **New skill `magento2-docs-generate`** — generates module technical documentation by extracting public API surfaces, extension points, DI graph, templates, and cron jobs into structured HTML/Markdown output.
+- **New skill `magento2-docs-generate`** — generates module technical documentation by extracting public API surfaces, extension points, DI graph, templates, and cron jobs into a structured Markdown technical reference (read-only; writes Markdown only).
 - **New read-only agent `magento2-explorer`** — comprehension agent that maps a module's execution paths, extension points, and DI graph before an `X*` (modify) task; dispatched automatically by `magento2-feature-implement` when needed.
 - **`OUTPUT_KIND=quality`** — new `outputKind` value in the shared findings emitters (`emit-json.sh` / `emit-sarif.sh`), used by `magento2-static-analysis` for its quality-gate findings.
 
