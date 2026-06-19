@@ -1,18 +1,20 @@
 ---
-description: Entry point for Magento 2 code generation — routes to the right generator skill starting with magento2-module-create, which in turn delegates to specialist generators.
+description: Entry point for Magento 2 code generation — routes the request to the matching generator skill (defaults to magento2-module-create for a whole new module).
 argument-hint: "[<type>] [<Vendor>_<Module>] [--flags]"
 ---
-Use the `magento2-tools:magento2-module-create` skill, forwarding these arguments verbatim: $ARGUMENTS
+Match the request to the generator skill below and invoke THAT skill directly, forwarding these arguments verbatim: $ARGUMENTS
 
-The module-create skill is the canonical scaffold entry point. Depending on what you need to generate, it will guide you to the appropriate specialist generator:
+- a whole new module/extension → `magento2-tools:magento2-module-create` (the default)
+- a plugin / observer / preference onto existing code → `magento2-extension-point`
+- admin Stores → Configuration settings → `magento2-system-config`
+- a `bin/magento` console command or cron job → `magento2-cli-command`
+- an async message-queue surface → `magento2-message-queue`
+- a product/customer/category EAV attribute → `magento2-eav-attribute`
+- a GraphQL query/mutation/type → `magento2-graphql-create`
+- a REST / Web-API surface for an existing entity → `magento2-webapi-create`
+- a theme, RequireJS/Knockout/Alpine component, or email template → `magento2-frontend-create`
+- an admin UI-component edit form → `magento2-adminhtml-form`
+- an admin UI-component grid/listing → `magento2-adminhtml-listing`
 
-- extension-point (magento2-extension-point)
-- system-config (magento2-system-config)
-- cli-command (magento2-cli-command)
-- message-queue (magento2-message-queue)
-- eav-attribute (magento2-eav-attribute)
-- graphql-create (magento2-graphql-create)
-- webapi-create (magento2-webapi-create)
-- frontend-create (magento2-frontend-create)
-- adminhtml-form (magento2-adminhtml-form)
-- adminhtml-listing (magento2-adminhtml-listing)
+If the request is multi-surface or its scope is unclear, use `magento2-feature-implement` instead.
+If no specialist matches, default to the `magento2-tools:magento2-module-create` skill.
