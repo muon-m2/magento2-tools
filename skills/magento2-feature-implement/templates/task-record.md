@@ -18,7 +18,15 @@ itself — no duplication.
 
 **Format:** the canonical record format lives in `references/task-breakdown-guide.md`
 §"Task Record Format". Copy one block per task and fill it in. The filled examples below
-cover every task type (M/R/X/T/V/D/S/P) — use them as a structural reference.
+cover the common task types (M/R/X/T/V/D/S/P); the remaining prefixes (E/G/F/I/C/L/Q — see the
+type table in `references/task-breakdown-guide.md`) use the same record format.
+
+**`Skill:` field.** Name the sub-skill this task delegates to (per the type table in
+`references/task-breakdown-guide.md`), or `manual` for genuinely hand-authored work with no
+matching skill. Per SKILL.md **Delegate by probing**, do not pre-judge availability: if a
+delegating task must fall back to inline because its skill is truly absent, keep the task's type
+and record the concrete failure here (e.g. `magento2-system-config — not Skill-invocable: no such
+skill`). Never write a speculative "if Skill-invocable" hedge, and never relabel the task to `X`.
 
 ---
 
@@ -186,7 +194,11 @@ Acceptance criteria:
 Type: Deploy
 Target: all new and modified modules
 Depends on: V1
-Skill: `magento2-deploy`
+Skill: `magento2-deploy` — delegated. `magento2-feature-implement` **never** runs `bin/magento`
+itself; `magento2-deploy` owns the deploy plan (it is the component that runs the `bin/magento`
+steps). If `magento2-deploy` is genuinely absent, offer the enable / `setup:upgrade` /
+`setup:di:compile` / `cache:flush` commands as manual next steps for the user to run — do not
+auto-run them (SKILL.md Phase 5 §Deploy task).
 Estimate: S
 
 Description:

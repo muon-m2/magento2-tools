@@ -76,9 +76,19 @@ the full implementation from analysis through tested, reviewed, reported deliver
   `Feature implement: per-task commits = on`, or `MAGENTO2_FI_PER_TASK_COMMITS=1` is set,
   every completed task in Phase 5 produces a focused git commit. See
   `references/per-task-commits.md` for format, scoping rules, and failure handling. Off by default.
+- **Delegate by probing, never by assumption.** The `magento2-*` sub-skills ship in the **same
+  plugin** as this skill — if this skill is running, the plugin is installed and they are
+  Skill-invocable. Decide a sub-skill's availability by *attempting* its `Skill` invocation and
+  falling back only on an actual failure (the tool reports no such skill). **Never** pre-declare a
+  sub-skill — or the whole `magento2-*` family — unreachable, and never skip delegation "from
+  memory," from a project note, or on a blanket "not Skill-invocable here" assumption. A task that
+  falls back to inline MUST record the concrete invocation failure that justified it; an
+  unverifiable citation is not a reason. Inline is the exception for a genuinely absent skill, not
+  the default — see the **Fallback discipline** note at the start of Phase 5.
 - **Deploy delegation.** D* tasks delegate to `magento2-deploy`. The skill is invoked with the
-  module list and the user's environment selection; this skill does not run `bin/magento`
-  commands inline.
+  module list and the user's environment selection; `magento2-feature-implement` does not run
+  `bin/magento` commands itself — `magento2-deploy` owns the deploy plan (and the manual-next-steps
+  fallback when it is absent).
 
 ---
 
@@ -377,6 +387,26 @@ the next task**, run these steps in order:
 Every task subsection below ends with **"→ run the Per-task completion protocol"** — that is
 the cue to perform these four steps. When tasks run in parallel (same wave), apply the
 protocol once per task as each one finishes, not once for the whole wave.
+
+### Fallback discipline (applies to every delegating task below)
+
+Each task type below names the sub-skill it delegates to. Per the **Delegate by probing** Core
+Rule, attempt that invocation first and fall back to inline **only** when the `Skill` call actually
+fails. When a fallback is genuinely required:
+
+1. **Keep the task's type prefix.** A task is typed by the *work* — admin config = `C`, extension
+   point = `I`, CLI/cron = `L`, queue = `Q`, EAV = `E`, GraphQL = `G`, tests = `T`, validate = `V`,
+   deploy = `D` — not by which skill happened to run. Never relabel a `C`/`I`/`L`/`Q`/`E`/`G` task
+   to `X` because its generator was unavailable; that hides the work from type-based routing.
+2. **Generate inline from the same `references/` the skill uses**, to the same quality bar — e.g.
+   `magento2-system-config`'s field + config-reader patterns for a `C` task — not a thinner stub.
+3. **Record the concrete reason** on the task's `Skill:` line (e.g. "`magento2-system-config` —
+   not Skill-invocable: tool returned no such skill"), never a speculative "if Skill-invocable"
+   hedge.
+
+`T*`, `V*`, and `D*` restate their specific fallback below — and `D*` is the one type that never
+runs inline. `C*`/`I*`/`L*`/`Q*`/`E*`/`G*` have no separate inline generator: you author the same
+output the skill would have produced, keeping the type.
 
 ### New module tasks (M*)
 

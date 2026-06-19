@@ -5,6 +5,9 @@
 # Local Claude Code workflow scripts — not part of the shipped plugin
 .claude/workflows/
 
+# Scratch / temp artifacts copied in for local review — never shipped
+.tmp/
+
 # Local, machine-specific settings — never share
 *.local.json
 .claude/settings.local.json

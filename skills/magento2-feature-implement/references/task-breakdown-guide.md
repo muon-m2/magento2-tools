@@ -29,6 +29,13 @@ Tasks use a two-part ID: `{TypePrefix}{Number}`
 
 Example task IDs: `M1`, `M2`, `X1`, `E1`, `G1`, `I1`, `C1`, `L1`, `Q1`, `T1`, `R1`, `V1`, `D1`, `S1`, `S2`, `S8`, `P1`.
 
+**Type by work, not by tool availability.** The `1:1` mappings above name each task's *default
+delegate*, not a precondition for using the type. A task is typed by the work it does — admin
+config is always `C`, an extension point always `I`, and so on — even when the matching
+`magento2-*` skill is absent and the work is generated inline (SKILL.md Phase 5 **Fallback
+discipline**). Never downgrade a `C`/`I`/`L`/`Q`/`E`/`G` task to `X` just because its generator did
+not run — that loses the type-based routing the prefix exists to provide.
+
 ### `S*` smoke tasks
 
 Smoke tasks are emitted automatically when Phase 6B starts, not by the planner during Phase 4.
