@@ -582,6 +582,50 @@ source file path.
 
 ---
 
+## Breeze (Swissup Breezefront)
+
+Skills for the [Breeze](https://breezefront.com) frontend framework, which replaces
+RequireJS/Knockout/jQuery with a Cash-based stack. All three resolve `theme.breeze` from
+`magento2-context` and refuse to run (printing the install command) when Breeze is not installed.
+
+### magento2-breeze-child-theme
+
+Scaffolds a Breeze child theme: `theme.xml` with a `Swissup/breeze-*` parent, `registration.php`,
+`composer.json`, a Breeze-only `breeze_default.xml` layout handle, and Breeze-side overrides in
+`web/css/breeze/_default.less` (with the `@critical` guard). Sibling to `magento2-frontend-create`
+(generic Luma/Hyva/custom themes); this one is Breeze-specific.
+
+- **Invocation:** `/magento2-tools:magento2-breeze-child-theme [--vendor=Acme] [--name=BreezeCustom] [--parent=breeze-evolution]`.
+- **Phases:** context (Breeze gate) → inputs → generate (prefers `bin/magento breeze:theme:create`
+  when available) → verify (`xmllint`, `php -l`) → report with activation commands.
+- **Outputs:** a registered theme under `app/design/frontend/{Vendor}/{Theme}/`.
+
+### magento2-breeze-module-adapt
+
+Generates a companion `{Vendor}_{Module}Breeze` integration module (sequenced after the target +
+`Swissup_Breeze`) holding the Breeze adapter layer for an existing module — `breeze_default.xml` JS
+registration, `web/css/breeze/_default.less`, and Cash `$.widget` stubs converted from the target's
+RequireJS/Knockout/jQuery widgets. Never edits the target module, so it works on read-only `vendor/`
+modules. Pairs with `magento2-breeze-compat-audit` (which finds what needs adapting).
+
+- **Invocation:** `/magento2-tools:magento2-breeze-module-adapt <Vendor_Module>`.
+- **Phases:** context → scope (optionally audit first; choose surfaces) → generate companion module
+  → enable (`setup:upgrade`, static deploy) + `?breeze=1&compat=1` test guidance.
+- **Outputs:** `app/code/{Vendor}/{Module}Breeze/` (module.xml, layout, LESS, JS widgets).
+
+### magento2-breeze-compat-audit
+
+Read-only static auditor: scans a module for RequireJS/Knockout/jQuery-widget/mixin usage and emits
+ranked findings (Markdown + JSON `outputKind=compatibility` + SARIF, via the shared emitters) plus a
+verdict — *compatible out-of-box* / *needs Better Compatibility* / *needs manual adapter* — pointing
+at `magento2-breeze-module-adapt`.
+
+- **Invocation:** `/magento2-tools:magento2-breeze-compat-audit <Vendor_Module>`.
+- **Phases:** context → scope → static scan → verdict + findings emit.
+- **Outputs:** `.docs/breeze-compat/{Vendor}_{Module}-{date}.{md,json,sarif}`.
+
+---
+
 ## Choosing between adjacent skills
 
 Several skills have adjacent triggers. The `description` frontmatter encodes these boundaries so
@@ -607,3 +651,6 @@ key ones.
 | Read-only log/DI/queue inspection, one session | `magento2-debug` | `magento2-performance-audit` |
 | Generate module technical documentation from code | `magento2-docs-generate` | `magento2-module-review` |
 | Add a custom indexer + mview | `magento2-indexer` | `magento2-module-create` / `magento2-performance-audit` |
+| Scaffold a Breeze (Swissup) child theme | `magento2-breeze-child-theme` | `magento2-frontend-create` |
+| Adapt an existing module to Breeze (companion module) | `magento2-breeze-module-adapt` | `magento2-extension-point` / `magento2-breeze-compat-audit` |
+| Check if a module is Breeze-compatible (static) | `magento2-breeze-compat-audit` | `magento2-module-review` / `magento2-breeze-module-adapt` |

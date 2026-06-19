@@ -66,7 +66,7 @@ Developer documentation lives in [`docs/`](docs/README.md):
 
 ## Skills
 
-29 skills under `skills/`, each self-contained (`SKILL.md` + `references/` +
+30 skills under `skills/`, each self-contained (`SKILL.md` + `references/` +
 `scripts/` + `templates/`). Per-skill flags, phases, and outputs are documented in
 [docs/skills-reference.md](docs/skills-reference.md).
 
@@ -189,7 +189,7 @@ detection. Changing any override busts the resolver cache automatically.
 .claude-plugin/
   plugin.json        # plugin manifest
   marketplace.json   # this repo doubles as its own marketplace ("muon-m2")
-skills/              # 29 magento2-* skills (auto-discovered by Claude Code)
+skills/              # 30 magento2-* skills (auto-discovered by Claude Code)
 commands/            # 14 /magento2-tools:<verb> shortcut commands (auto-discovered)
 agents/              # first-party read-only subagents: magento2-reviewer (per-dimension review) + magento2-explorer (code comprehension/tracing)
 hooks/               # PreToolUse guard: keeps .docs/ artifacts at the project root

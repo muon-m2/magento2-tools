@@ -1,0 +1,15 @@
+{
+    "name": "{vendor_lower}/theme-frontend-{theme_lower}",
+    "description": "{Vendor} {Theme} — Swissup Breeze child theme",
+    "type": "magento2-theme",
+    "version": "1.0.0",
+    "license": ["proprietary"],
+    "require": {
+        "php": "{php_constraint}",
+        "magento/framework": "{framework_constraint}",
+        "{parent_theme_package}": "{parent_theme_constraint}"
+    },
+    "autoload": {
+        "files": ["registration.php"]
+    }
+}
