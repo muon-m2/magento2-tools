@@ -46,19 +46,6 @@ json_str() {
         | tr -d '\r' | tr -d '\n'
 }
 json_or_null() { if [[ -z "$1" || "$1" == "null" ]]; then printf 'null'; else printf '"%s"' "$(json_str "$1")"; fi; }
-# Serialize a comma-separated list as a JSON array of strings ("" → []).
-json_array_from_csv() {
-    local csv="$1"; local out="["; local first=1; local item
-    local IFS=','
-    for item in $csv; do
-        [[ -z "$item" ]] && continue
-        [[ $first -eq 0 ]] && out+=","
-        out+="\"$(json_str "$item")\""
-        first=0
-    done
-    out+="]"
-    printf '%s' "$out"
-}
 # runner is special: an EMPTY string is a real value in bare mode (callers compose
 # `${runner} php ...`), so it must serialize as "" — never null. Only the no-environment
 # case (runner_kind == "null") emits JSON null.
@@ -442,20 +429,21 @@ fi
 BREEZE_INSTALLED="false"
 BREEZE_ACTIVE="false"
 BREEZE_PARENT="null"
-BREEZE_PACKAGES=""
+BREEZE_PACKAGES_JSON="[]"
 BREEZE_SRC=""
 
 if [[ -f "$COMPOSER_JSON" ]] && command -v php >/dev/null 2>&1; then
-    BREEZE_PACKAGES=$(php -r '
+    BREEZE_PACKAGES_JSON=$(php -r '
         $d = json_decode(file_get_contents($argv[1]), true);
         $r = (is_array($d) && isset($d["require"]) && is_array($d["require"])) ? $d["require"] : [];
         $hit = [];
         foreach ($r as $k => $v) {
             if (preg_match("#^swissup/(breeze-|module-breeze)#", (string) $k)) { $hit[] = $k; }
         }
-        echo implode(",", $hit);
-    ' "$COMPOSER_JSON" 2>/dev/null || echo "")
-    if [[ -n "$BREEZE_PACKAGES" ]]; then
+        echo json_encode(array_values($hit));
+    ' "$COMPOSER_JSON" 2>/dev/null || echo "[]")
+    [[ -z "$BREEZE_PACKAGES_JSON" ]] && BREEZE_PACKAGES_JSON="[]"
+    if [[ "$BREEZE_PACKAGES_JSON" != "[]" ]]; then
         BREEZE_INSTALLED="true"
         BREEZE_SRC="${COMPOSER_JSON}:require swissup/breeze-* present"
     fi
@@ -591,7 +579,7 @@ cat > "$CACHE_TMP" <<EOF
       "installed": ${BREEZE_INSTALLED},
       "active": ${BREEZE_ACTIVE},
       "parent": $(json_or_null "$BREEZE_PARENT"),
-      "packages": $(json_array_from_csv "$BREEZE_PACKAGES"),
+      "packages": ${BREEZE_PACKAGES_JSON},
       "source": $(json_or_null "$BREEZE_SRC")
     }
   },
