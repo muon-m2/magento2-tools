@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # test-command-routing.sh — every commands/*.md must be a well-formed thin pass-through to a
-# real magento2-* skill, and the set must be exactly the 9 expected shortcuts. Write commands
+# real magento2-* skill, and the set must be exactly the 14 expected shortcuts. Write commands
 # must be user-only (disable-model-invocation: true).
 set -uo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
@@ -55,6 +55,15 @@ for cmd in context snapshot review security perf test i18n; do
     [ -f "$f" ] || continue
     grep -qE '^disable-model-invocation: +true' "$f" \
         && { echo "FAIL: read-only command $f must not set 'disable-model-invocation: true'"; FAIL=1; }
+done
+
+# 2c. the scaffold dispatcher routes to (gated) generator skills; it is itself an auto-invokable
+#     entry point — the write gate lives in the target skill — so it must NOT be user-only.
+for cmd in scaffold; do
+    f="$CMD_DIR/$cmd.md"
+    [ -f "$f" ] || continue
+    grep -qE '^disable-model-invocation: +true' "$f" \
+        && { echo "FAIL: dispatcher command $f must not set 'disable-model-invocation: true' (gates live in target skills)"; FAIL=1; }
 done
 
 # 3. no unexpected command files, and filenames are lowercase-kebab

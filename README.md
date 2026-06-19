@@ -156,7 +156,7 @@ gate. They are always namespaced:
 | `/magento2-tools:upgrade`  | `magento2-module-upgrade` | BC-break detection and upgrade plan (gated) |
 | `/magento2-tools:i18n`     | `magento2-i18n` | extract strings / manage locale CSVs |
 | `/magento2-tools:lint`     | `magento2-static-analysis` | static analysis + safe auto-fixes (gated) |
-| `/magento2-tools:scaffold` | `magento2-module-create` | code-generation dispatcher (gated) |
+| `/magento2-tools:scaffold` | `magento2-module-create` | code-generation dispatcher (routes to a generator; that skill gates) |
 
 The six write commands (`deploy`, `bugfix`, `feature`, `release`, `upgrade`, `lint`) are user-invoked only; the
 read-only seven (`context`, `snapshot`, `review`, `security`, `perf`, `test`, `i18n`) may also be auto-suggested.
