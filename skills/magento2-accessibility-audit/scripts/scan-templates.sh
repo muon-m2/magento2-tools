@@ -243,7 +243,7 @@ for fpath in template_files:
             if input_type not in excluded_types:
                 window_lines = lines[max(0, lineno - 5):min(len(lines), lineno + 5)]
                 window = "".join(window_lines)
-                has_label = LABEL_FOR_RE.search(window) or ARIA_LABEL_RE.search(line)
+                has_label = LABEL_FOR_RE.search(window) or ARIA_LABEL_RE.search(window)
                 if not has_label:
                     finding(
                         "high", "accessibility",
@@ -260,7 +260,7 @@ for fpath in template_files:
             if tag_re.search(line):
                 window_lines = lines[max(0, lineno - 5):min(len(lines), lineno + 5)]
                 window = "".join(window_lines)
-                has_label = LABEL_FOR_RE.search(window) or ARIA_LABEL_RE.search(line)
+                has_label = LABEL_FOR_RE.search(window) or ARIA_LABEL_RE.search(window)
                 if not has_label:
                     finding(
                         "high", "accessibility",

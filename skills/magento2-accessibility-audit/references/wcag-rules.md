@@ -153,9 +153,10 @@ Pattern: An `<html` tag without a `lang=` attribute.
 
 **Rule AR1 — Invalid ARIA role**
 
-Pattern: `role="<value>"` where `<value>` is not a recognized WAI-ARIA role (e.g.
-`role="button"` on a block `<div>` without keyboard-event handlers, or a non-existent
-role name).
+Pattern: `role="<value>"` where `<value>` is not a recognized WAI-ARIA role (e.g. a typo
+like `role="buton"` or an invented role like `role="clickable"`). Note: this check flags
+unrecognized role *names* only — it does not detect a valid role (e.g. `role="button"`)
+applied to the wrong element.
 
 - Severity: `medium`
 - Subcategory: `aria`
