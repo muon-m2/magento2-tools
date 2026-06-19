@@ -2,7 +2,7 @@
 
 Single source of truth for the JSON document emitted by every finding-producing skill:
 `magento2-module-review`, `magento2-security-audit`, `magento2-performance-audit`,
-`magento2-module-upgrade`, `magento2-static-analysis`.
+`magento2-module-upgrade`, `magento2-static-analysis`, `magento2-marketplace-prep`.
 
 A SARIF 2.1.0 emitter is generated from the same JSON; adding new finding categories only
 requires updating this schema and the JSON emitter.
@@ -125,7 +125,7 @@ requires updating this schema and the JSON emitter.
 | skill         | Yes      | `SKILL_NAME` env var; the producing skill identifier.                                 |
 | skillVersion  | Yes      | `SKILL_VERSION` env var.                                                              |
 | skillVersions | Yes      | Array of `name@version` strings — every contributor.                                  |
-| outputKind    | Yes      | `review` \| `security` \| `performance` \| `upgrade` \| `quality`. Drives output filename + label. |
+| outputKind    | Yes      | `review` \| `security` \| `performance` \| `upgrade` \| `quality` \| `marketplace`. Drives output filename + label. |
 | target        | Yes      | `{module, path, scope}`. `scope` ∈ `module                                            |site|vendor|diff`. |
 | runAt         | Yes      | ISO-8601 UTC timestamp.                                                               |
 | mode          | Yes      | `full` \| `quick` \| `diff`.                                                          |
@@ -165,6 +165,14 @@ requires updating this schema and the JSON emitter.
 `style` (phpcs/phpcbf/php-cs-fixer violations) | `complexity` (phpmd) |
 `type` (phpstan type errors) | `dead-code` (phpmd/rector dead-code) |
 `refactoring` (rector safe/review transforms)
+
+### magento2-marketplace-prep
+
+`metadata` (composer.json fields, name/type/version/license/autoload/constraints) |
+`packaging` (registration.php, module.xml, dev artifacts, .gitignore) |
+`documentation` (LICENSE file, license headers, README) |
+`testing` (MFTF, unit, integration test presence) |
+`eqp` (EQP static findings incorporated from magento2-security-audit)
 
 ## SARIF 2.1.0 Mapping
 

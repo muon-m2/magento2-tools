@@ -91,6 +91,7 @@ FAIL=0
 run_builder magento2-security-audit "magento2-security-audit" "security" "security-module-${DATE}" || FAIL=1
 run_builder magento2-performance-audit "magento2-performance-audit" "performance" "perf-module-${DATE}" || FAIL=1
 run_builder magento2-static-analysis "magento2-static-analysis" "quality" "quality-module-${DATE}" || FAIL=1
+run_builder magento2-marketplace-prep "magento2-marketplace-prep" "marketplace" "Acme-Test-readiness-${DATE}" || FAIL=1
 
 cd "$OLDPWD"
 exit "$FAIL"

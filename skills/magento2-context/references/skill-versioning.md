@@ -36,6 +36,7 @@ skills evolve.
 | magento2-static-analysis   | 1.0.0   | New tool/rule, autofix-safety calibration change                              |
 | magento2-docs-generate     | 1.0.0   | New surface extractor, doc-structure change                                   |
 | magento2-indexer           | 1.0.0   | New indexer/mview pattern, dimension support                                  |
+| magento2-marketplace-prep  | 1.0.0   | New EQP check, readiness-scoring calibration                                  |
 
 ## Changelog (last update: 2026-06-18)
 

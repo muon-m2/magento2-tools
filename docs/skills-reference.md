@@ -235,6 +235,35 @@ cross-module collisions. Never asks for production secrets.
 - **Outputs:** `.docs/audits/security-{scope}-{date}.json` + `.sarif` (automated via
   `build-findings.sh`) + `.md` narrative.
 
+### magento2-marketplace-prep
+
+Read-only Adobe Marketplace / EQP submission readiness audit: composer metadata
+completeness, license file + headers, `registration.php` / `etc/module.xml` consistency,
+MFTF test presence, README / user-docs, packaging hygiene, and EQP static rules
+(delegated to `magento2-security-audit`). Emits a tiered scored report with
+blockers/warnings/info breakdown. Never modifies code, never packages or uploads.
+
+- **Invocation:** `[--module=<Vendor>_<Module>] [--format=markdown|json|sarif]`.
+- **Phases:** context resolution → scope → readiness checks (`scripts/check-readiness.sh`
+  + `magento2-security-audit` EQP delegation) → report.
+- **Severity:** blocker = `critical`/`high`, warning = `medium`, info = `low`/`info`.
+  0 blockers required for PASS verdict.
+- **Outputs:** `.docs/marketplace/{Vendor}_{Module}-readiness-{date}.json` + `.sarif`
+  (automated via `build-findings.sh`, `outputKind=marketplace`) + `.md` narrative.
+  JSON carries `readiness_score` (0–100) and `readiness_verdict` (PASS/CONDITIONAL/FAIL).
+- **Related:** `magento2-security-audit` (deep CVE/secret/EQP static scan);
+  `magento2-release` (version bump, tag, publish).
+
+**Routing table (when to use which quality/submission skill):**
+
+| Intent | Skill | Defers to |
+|--------|-------|-----------|
+| Assess EQP submission readiness (metadata, docs, packaging) | `magento2-marketplace-prep` | `magento2-security-audit` / `magento2-release` |
+| Deep CVE + secret + EQP static scan | `magento2-security-audit` | `magento2-module-review` |
+| Version bump, changelog, tag, publish | `magento2-release` | — |
+
+---
+
 ### magento2-performance-audit
 
 Static performance pass (N+1, full-collection loads, missing cache identities/
