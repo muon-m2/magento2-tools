@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!--
+  Breeze-ONLY layout handle for the {Vendor} {Theme} child theme.
+
+  Files named breeze_* load only on Breeze-based themes and never affect blank/luma.
+  Use this handle to register theme-level Breeze JS components on the breeze.js block.
+  Do NOT add a layout="" attribute to the default handle — it would apply site-wide.
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <!--
+        <referenceBlock name="breeze.js">
+            <arguments>
+                <argument name="components" xsi:type="array">
+                    <item name="{vendor_lower}_{theme_lower}" xsi:type="array">
+                        <item name="component" xsi:type="string">js/theme</item>
+                    </item>
+                </argument>
+            </arguments>
+        </referenceBlock>
+        -->
+    </body>
+</page>

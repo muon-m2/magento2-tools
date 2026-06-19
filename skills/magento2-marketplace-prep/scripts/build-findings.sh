@@ -131,7 +131,7 @@ export SKILL_VERSION
 export OUTPUT_KIND="marketplace"
 export OUTPUT_BASENAME
 export OUTPUT_DIR
-export SKILL_VERSIONS_JSON="[\"magento2-marketplace-prep@${SKILL_VERSION}\",\"magento2-context@1.6.1\"]"
+export SKILL_VERSIONS_JSON="[\"magento2-marketplace-prep@${SKILL_VERSION}\",\"magento2-context@1.7.0\"]"
 
 bash "$EMIT_JSON" > /dev/null
 

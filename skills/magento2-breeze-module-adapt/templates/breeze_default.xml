@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<!--
+  Breeze-ONLY layout for {Vendor}_{ModuleName} (loaded via the companion {Vendor}_{ModuleName}Breeze
+  module). breeze_* layout files never affect blank/luma themes.
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="breeze.js">
+            <arguments>
+                <argument name="components" xsi:type="array">
+                    <item name="{vendor_lower}_{module_lower}" xsi:type="array">
+                        <item name="component" xsi:type="string">{Vendor}_{ModuleName}Breeze/js/breeze/widget</item>
+                    </item>
+                </argument>
+                <!--
+                  Alternative: skip the hand-ported widget and let Breeze run the module's existing
+                  RequireJS via Better Compatibility (enable for the WHOLE module):
+                <argument name="better_compatibility" xsi:type="array">
+                    <item name="{Vendor}_{ModuleName}" xsi:type="boolean">true</item>
+                </argument>
+                -->
+            </arguments>
+        </referenceBlock>
+    </body>
+</page>

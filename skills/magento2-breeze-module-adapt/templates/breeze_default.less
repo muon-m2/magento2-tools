@@ -1,0 +1,18 @@
+//
+// Breeze styles for {Vendor}_{ModuleName} (auto-included by Breeze on every storefront page).
+//
+// Move the module's Breeze-relevant CSS here. Wrap above-the-fold rules in the @critical
+// guard so they are inlined; defer the rest. See https://breezefront.com/docs/custom-module
+//
+
+& when (@critical) {
+    .{vendor_lower}-{module_lower} {
+        // critical, above-the-fold styles
+    }
+}
+
+& when not (@critical) {
+    .{vendor_lower}-{module_lower} {
+        // deferred styles
+    }
+}

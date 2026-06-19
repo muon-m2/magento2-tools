@@ -141,7 +141,7 @@ if raw_versions:
 else:
     skill_versions = [
         f'{skill_name}@{skill_version}',
-        'magento2-context@1.6.1',
+        'magento2-context@1.7.0',
     ]
 
 document = {

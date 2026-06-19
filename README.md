@@ -66,7 +66,7 @@ Developer documentation lives in [`docs/`](docs/README.md):
 
 ## Skills
 
-29 skills under `skills/`, each self-contained (`SKILL.md` + `references/` +
+32 skills under `skills/`, each self-contained (`SKILL.md` + `references/` +
 `scripts/` + `templates/`). Per-skill flags, phases, and outputs are documented in
 [docs/skills-reference.md](docs/skills-reference.md).
 
@@ -101,6 +101,9 @@ Developer documentation lives in [`docs/`](docs/README.md):
 | `magento2-indexer` | Scaffold a custom indexer + materialized view (mview) on an existing module: indexer.xml, mview.xml subscriptions, an ActionInterface indexer class + batched action class. |
 | `magento2-marketplace-prep` | Assess an existing module's Adobe Marketplace / EQP submission readiness: composer metadata, licensing, structure, MFTF tests, docs, packaging hygiene. Read-only; emits a tiered scored report (JSON + SARIF, `outputKind=marketplace`). |
 | `magento2-accessibility-audit` | Audit a module's/theme's storefront templates for WCAG 2.1 Level AA issues (alt text, labels, ARIA, headings, keyboard, contrast). Static-first; optional pa11y runtime pass. Read-only; emits ranked findings (JSON + SARIF, `outputKind=accessibility`). |
+| `magento2-breeze-child-theme` | Scaffold a Swissup Breeze (Breezefront) child theme: theme.xml `Swissup/breeze-*` parent + registration.php + composer.json + `web/css/breeze/_default.less` (`@critical`) + breeze-only layout. |
+| `magento2-breeze-module-adapt` | Adapt an existing module to Breeze by generating a separate companion `{Vendor}_{Module}Breeze` module (breeze.js JS registration + `web/css/breeze` LESS + Cash `$.widget` stubs). Never edits the target. |
+| `magento2-breeze-compat-audit` | Read-only static audit of a module's Breeze compatibility (RequireJS/Knockout/jQuery-widget/mixins). Emits ranked findings (JSON + SARIF, `outputKind=compatibility`) + a verdict. |
 
 ### Dependency graph
 
@@ -133,6 +136,9 @@ magento2-release           ──► context, deploy
 magento2-i18n              ──► context
 magento2-debug             ──► context, performance-audit, security-audit
 magento2-adminhtml-listing  ──► context, module-create, module-review
+magento2-breeze-child-theme  ──► context
+magento2-breeze-module-adapt ──► context, breeze-compat-audit
+magento2-breeze-compat-audit ──► context, module-review   (+ reuses emit-json.sh / emit-sarif.sh)
 ```
 
 ## Commands
@@ -189,7 +195,7 @@ detection. Changing any override busts the resolver cache automatically.
 .claude-plugin/
   plugin.json        # plugin manifest
   marketplace.json   # this repo doubles as its own marketplace ("muon-m2")
-skills/              # 29 magento2-* skills (auto-discovered by Claude Code)
+skills/              # 32 magento2-* skills (auto-discovered by Claude Code)
 commands/            # 14 /magento2-tools:<verb> shortcut commands (auto-discovered)
 agents/              # first-party read-only subagents: magento2-reviewer (per-dimension review) + magento2-explorer (code comprehension/tracing)
 hooks/               # PreToolUse guard: keeps .docs/ artifacts at the project root

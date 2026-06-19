@@ -38,6 +38,40 @@ Resolved the same way as `theme.frontend`, from the `area = "adminhtml"` entry i
 `Magento/backend` — that assumption was previously baked in and produced misleading
 "resolved" state for projects that hadn't yet run setup.
 
+## Breeze detection (`theme.breeze`)
+
+Swissup [Breezefront](https://breezefront.com) is a frontend framework that replaces
+RequireJS/Knockout/jQuery with a Cash-based stack. It is detected independently of
+`theme.frontend` and emitted as a `theme.breeze` object:
+
+```json
+"breeze": { "installed": false, "active": false, "parent": null, "packages": [], "source": null }
+```
+
+1. **`installed`** — `true` when `composer.json` `require` lists any `swissup/breeze-*`
+   package (`breeze-blank`, `breeze-evolution`, `breeze-enterprise`) **or**
+   `swissup/module-breeze`. `packages` collects every matched package name.
+
+2. **`active`** — `true` only when the resolved `theme.frontend`, or any `<parent>` in its
+   `app/design/frontend/<code>/theme.xml` chain (walked up to 10 hops), is a Swissup Breeze
+   theme (its code contains `breeze`). `parent` is set to that Breeze theme code (e.g.
+   `Swissup/breeze-evolution`). Vendor-installed Breeze themes that are *directly* active are
+   matched by the same "code contains breeze" rule.
+
+3. **Honest gaps.** With no evidence, `installed`/`active` stay `false`, `parent` is `null`.
+   The walk only follows `app/design` theme.xml files, so a custom child theme whose Breeze
+   parent lives in `vendor/` is reported via `installed` (package presence) even when the
+   chain walk cannot complete; `source` records which signal fired.
+
+### Why it matters
+
+The three `magento2-breeze-*` skills (`-child-theme`, `-module-adapt`, `-compat-audit`)
+**refuse to run** when `theme.breeze.installed` is `false` and instead print the install
+path (`composer require swissup/breeze-evolution && bin/magento setup:upgrade --safe-mode=1
+&& bin/magento marketplace:package:install swissup/breeze-evolution`). `compat-audit` also
+reads `active` to phrase its verdict ("compatible with the active Breeze theme" vs
+"Breeze installed but not active").
+
 ## Output values
 
 `theme.frontend` is one of:

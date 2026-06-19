@@ -93,6 +93,7 @@ run_builder magento2-performance-audit "magento2-performance-audit" "performance
 run_builder magento2-static-analysis "magento2-static-analysis" "quality" "quality-module-${DATE}" || FAIL=1
 run_builder magento2-marketplace-prep "magento2-marketplace-prep" "marketplace" "Acme-Test-readiness-${DATE}" || FAIL=1
 run_builder magento2-accessibility-audit "magento2-accessibility-audit" "accessibility" "Acme-Test-a11y-${DATE}" || FAIL=1
+run_builder magento2-breeze-compat-audit "magento2-breeze-compat-audit" "compatibility" "breeze-compat-module-${DATE}" || FAIL=1
 
 cd "$OLDPWD"
 exit "$FAIL"

@@ -1,0 +1,20 @@
+//
+// {Vendor} {Theme} — Breeze styles (auto-included by Breeze on every storefront page)
+//
+// Breeze compiles this file separately from Luma's _extend.less and inlines the @critical
+// branch above the fold. Keep above-the-fold rules inside `when (@critical)` and defer the
+// rest. See https://breezefront.com/docs/child-theme
+//
+
+& when (@critical) {
+    .{vendor_lower}-{theme_lower}-hero {
+        padding: 40px 0;
+        text-align: center;
+    }
+}
+
+& when not (@critical) {
+    .{vendor_lower}-{theme_lower}-hero:hover {
+        opacity: 0.9;
+    }
+}

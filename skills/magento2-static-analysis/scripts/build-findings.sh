@@ -124,7 +124,7 @@ export SKILL_VERSION
 export OUTPUT_KIND="quality"
 export OUTPUT_BASENAME="quality-${SCOPE}-${DATE}"
 export OUTPUT_DIR
-export SKILL_VERSIONS_JSON="[\"magento2-static-analysis@${SKILL_VERSION}\",\"magento2-context@1.6.1\"]"
+export SKILL_VERSIONS_JSON="[\"magento2-static-analysis@${SKILL_VERSION}\",\"magento2-context@1.7.0\"]"
 
 bash "$EMIT_JSON" > /dev/null
 
