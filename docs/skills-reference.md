@@ -140,6 +140,44 @@ SELECT→INSERT→DELETE, keyset-paginated). Destructive patches require
 
 ## Quality
 
+### magento2-static-analysis
+
+Action skill — run the full static-analysis gate (phpcs Magento2, phpstan, phpmd,
+php-cs-fixer, rector dry-run) over a module or diff and **apply safe auto-fixes to
+green**, reporting residual violations as ranked findings. Use when you need to *fix*
+coding-standard violations or make a module pass the CI gate. For an architecture/quality
+review without fixing, use `magento2-module-review`.
+
+- **Invocation:** `[--module=<Vendor>_<Module>] [--diff [<ref>]] [--scope=module|site]
+  [<files>…]`.
+- **Phases:** context resolution (tools probe) → scope → read-only analysis pass
+  (run-analysis.sh, Phase 2) → **approval gate** (present fix plan, wait for "proceed")
+  → apply safe fixes (phpcbf, php-cs-fixer, safe rector, Phase 3) → re-run analysis
+  (Phase 4) → report (Phase 5).
+- **Safe auto-fixes:** phpcbf (all PHPCS whitespace/formatting), php-cs-fixer
+  (`@PSR12` + safe rules), rector safe sets (void return types, unused vars, union types
+  on PHP ≥ 8.0). Risky rector rules are proposed only. Vendor/generated/var are never
+  touched.
+- **Outputs:** `.docs/quality/{Vendor}_{Module}-quality-{date}.md` + JSON
+  `.docs/quality/quality-{scope}-{date}.json` + SARIF (via shared `build-findings.sh`,
+  `outputKind=quality`).
+- **CI gate:** `references/ci-integration.md`; SARIF uploads to GitHub Code Scanning;
+  `--diff origin/main` for PR gating.
+- **Related:** `magento2-module-review` (read-only architecture review, no fixing);
+  `magento2-security-audit` (deeper security scan); `magento2-bug-fix` (defects needing
+  RCA rather than style fixes).
+
+**Routing table (when to use which quality skill):**
+
+| Intent | Skill | Defers to |
+|--------|-------|-----------|
+| Run the static toolchain and auto-fix to green (CI gate) | `magento2-static-analysis` | `magento2-module-review` |
+| Review architecture/quality/security without touching code | `magento2-module-review` | — |
+| Deep security scan (CVEs, secrets, EQP) | `magento2-security-audit` | `magento2-module-review` |
+| Performance profiling (N+1, caching, indexers) | `magento2-performance-audit` | — |
+
+---
+
 ### magento2-module-review
 
 Static-evidence review of a module (or a diff): architecture, security, persistence,
@@ -196,6 +234,60 @@ cross-module collisions. Never asks for production secrets.
   Critical).
 - **Outputs:** `.docs/audits/security-{scope}-{date}.json` + `.sarif` (automated via
   `build-findings.sh`) + `.md` narrative.
+
+### magento2-marketplace-prep
+
+Read-only Adobe Marketplace / EQP submission readiness audit: composer metadata
+completeness, license file + headers, `registration.php` / `etc/module.xml` consistency,
+MFTF test presence, README / user-docs, packaging hygiene, and EQP static rules
+(delegated to `magento2-security-audit`). Emits a tiered scored report with
+blockers/warnings/info breakdown. Never modifies code, never packages or uploads.
+
+- **Invocation:** `[--module=<Vendor>_<Module>] [--format=markdown|json|sarif]`.
+- **Phases:** context resolution → scope → readiness checks (`scripts/check-readiness.sh`
+  + `magento2-security-audit` EQP delegation) → report.
+- **Severity:** blocker = `critical`/`high`, warning = `medium`, info = `low`/`info`.
+  0 blockers required for PASS verdict.
+- **Outputs:** `.docs/marketplace/{Vendor}_{Module}-readiness-{date}.json` + `.sarif`
+  (automated via `build-findings.sh`, `outputKind=marketplace`) + `.md` narrative.
+  JSON carries `readiness_score` (0–100) and `readiness_verdict` (PASS/CONDITIONAL/FAIL).
+- **Related:** `magento2-security-audit` (deep CVE/secret/EQP static scan);
+  `magento2-release` (version bump, tag, publish).
+
+**Routing table (when to use which quality/submission skill):**
+
+| Intent | Skill | Defers to |
+|--------|-------|-----------|
+| Assess EQP submission readiness (metadata, docs, packaging) | `magento2-marketplace-prep` | `magento2-security-audit` / `magento2-release` |
+| Deep CVE + secret + EQP static scan | `magento2-security-audit` | `magento2-module-review` |
+| Version bump, changelog, tag, publish | `magento2-release` | — |
+| Audit storefront templates for WCAG/a11y issues | `magento2-accessibility-audit` | `magento2-frontend-create` / `magento2-module-review` |
+
+---
+
+### magento2-accessibility-audit
+
+Read-only WCAG 2.1 Level AA audit of a module's or theme's storefront templates:
+missing alt text, unlabelled form controls, ARIA misuse, heading-order breaks,
+keyboard/tab-index problems, and LESS color-contrast heuristics. Static-first (no
+running Magento needed); optional opt-in pa11y runtime pass. Never modifies templates.
+
+- **Invocation:** `[--module=<Vendor>_<Module>] [--theme=<Vendor>/<Theme>]
+  [--runtime --url=<storefront-url>] [--format=markdown|json|sarif]`.
+- **Phases:** context resolution (theme detection via `magento2-context`) → scope →
+  static scan (`scripts/scan-templates.sh`) → optional pa11y runtime pass (opt-in;
+  requires `--runtime`, `--url`, and `pa11y` in `{ctx.tools}`) → report.
+- **Severity:** `high` = missing alt/label/accessible text; `medium` = heading order,
+  ARIA misuse, contrast heuristic, positive tabindex; `low` = missing lang; `info` =
+  runtime pass skipped.
+- **Theme-aware:** adapts Luma (Knockout/LESS) vs. Hyva (Alpine/Tailwind) template
+  patterns via `{ctx.theme}` from `magento2-context`.
+- **Outputs:** `.docs/accessibility/{Vendor}_{Module}-a11y-{date}.json` + `.sarif`
+  (automated via `build-findings.sh`, `outputKind=accessibility`) + `.md` narrative.
+- **Related:** `magento2-frontend-create` (build accessible frontend assets);
+  `magento2-module-review` (general module quality review).
+
+---
 
 ### magento2-performance-audit
 
@@ -349,6 +441,147 @@ existing routes/ACL/menu from `magento2-adminhtml-form` when present.
   layout XML; `.docs/adminhtml/{Module}-listing-{date}.md`.
 - **Related:** sibling `magento2-adminhtml-form` (the edit form); reviewed by
   `magento2-module-review`; called by `magento2-feature-implement` (M* tasks).
+
+### magento2-system-config
+
+Add admin Stores → Configuration settings to an **existing** module: `system.xml`
+section/group/field declarations, `config.xml` defaults, `acl.xml` resource, optional
+source and backend models, and a typed `Config` reader that wraps `ScopeConfigInterface`.
+Handles all field types (text, select, multiselect, obscure/encrypted). Config paths
+follow the `{vendor_lower}_{module_lower}/{group}/{field}` convention.
+
+- **Invocation:** *"add a config toggle for Acme_Checkout"*;
+  `--module=Acme_Checkout --section=acme_checkout --group=general --field=enable --type=select`.
+- **Phases:** resolve context → resolve inputs (section/group/fields table) → plan (gate) →
+  **test-first** (3A: mock-based unit test for typed reader + source model tests) → generate
+  (system.xml + config.xml + acl.xml + optional source/backend models + typed reader) →
+  verify (`php -l`, `xmllint`, `magento2-module-review --diff`) → report.
+- **Outputs:** `etc/adminhtml/system.xml`, `etc/config.xml`, `etc/acl.xml`,
+  optional `Model/Config/Source/{SourceName}.php` and `Model/Config/Backend/{BackendModelName}.php`,
+  `Model/Config.php` (typed reader), `Test/Unit/Model/ConfigTest.php`;
+  `.docs/system-config/{Module}-{section}-{date}.md`.
+- **Related:** use `magento2-module-create` first if the module does not exist; for an
+  admin **data** edit form use `magento2-adminhtml-form`; reviewed by `magento2-module-review`.
+
+### magento2-cli-command
+
+Add a `bin/magento` console command or a cron job to an **existing** module. Two modes:
+**command** (Symfony `Command` subclass + `CommandList` DI registration + arguments/options
++ `Cli::RETURN_*` exit codes) and **cron** (`crontab.xml` job declaration + job class with
+a delegate service; fixed `<schedule>` or `<config_path>` schedule). Business logic always
+lives in the injected service class.
+
+- **Invocation:** *"add a CLI command to sync orders in Acme_Orders"*;
+  *"add a cron job to Acme_Orders to run every 15 minutes"*;
+  `--mode=command --module=Acme_Orders --class=SyncOrdersCommand --name=acme:orders:sync`;
+  `--mode=cron --module=Acme_Orders --class=SyncOrders --job=acme_orders_sync --schedule="*/15 * * * *"`.
+- **Phases:** resolve context (hard-stop if module absent — offer `magento2-module-create`)
+  → resolve inputs (mode-specific table) → plan (gate) → **test-first** (3A: `CommandTester`
+  unit test for command mode; idempotency + delegate-once test for cron mode) → generate
+  from templates → verify (`php -l`, `xmllint`, `magento2-module-review --diff`) → report.
+- **Outputs:** `Console/Command/{CommandClass}.php` + `etc/di.xml` (command mode) or
+  `Cron/{CronJobName}.php` + `etc/crontab.xml` (cron mode) + unit tests;
+  `.docs/cli-commands/{Vendor}_{Module}-{mode}-{slug}-{date}.md`.
+- **Related:** use `magento2-module-create` first if the module does not exist; pair with
+  `magento2-system-config` when the cron schedule should be configurable from admin.
+
+### magento2-extension-point
+
+Wire behaviour onto an **existing** Magento 2 class without editing it. Three modes:
+plugin (before/after/around interceptor + `di.xml`), observer (`events.xml` + Observer
+class), or preference (swap an interface/class binding). Chooses the lightest mechanism
+for the use case. Refuses to plugin `final`/`private`/`static` methods or data
+interfaces.
+
+- **Invocation:** `--mode=plugin --target=Fqcn --method=methodName --type=before|after|around --module=Vendor_Module`;
+  `--mode=observer --event=event_name --module=Vendor_Module`;
+  `--mode=preference --for=FqcnOfInterface --module=Vendor_Module`.
+- **Phases:** resolve context → resolve inputs (mode-specific table) → plan (gate) →
+  **test-first** (3A: failing unit test before implementation; preference: integration
+  test) → generate from templates → verify (`php -l`, `xmllint`,
+  `magento2-module-review --diff`) → report.
+- **Outputs:** `Plugin/{PluginName}.php`, `Observer/{ObserverName}.php`, or
+  `Model/{EntityName}.php` + the matching `etc/{area}/di.xml` or `etc/{area}/events.xml`;
+  unit/integration tests; `.docs/extension-points/{Module}-{mode}-{slug}-{date}.md`.
+- **Related:** use `magento2-module-create` first if the module does not exist;
+  `magento2-feature-implement` for multi-surface work that includes interception tasks.
+
+### magento2-message-queue
+
+Scaffold a full **async message-queue** surface on an **existing** module: a
+`communication.xml` topic (typed DTO `request`), the `queue_topology.xml` /
+`queue_publisher.xml` / `queue_consumer.xml` bindings, a `di.xml` DTO `<preference>`, a
+typed message interface + model, a `PublisherInterface`-backed publisher, and an
+idempotent consumer that decodes the typed message and delegates to a domain handler.
+Goes beyond `magento2-module-create`'s bare queue stub by wiring all five XML files so the
+topic ↔ topology ↔ publisher ↔ consumer ↔ queue chain resolves.
+
+- **Invocation:** *"process orders asynchronously in Acme_Orders"*;
+  *"add a queue consumer to Acme_Orders"*;
+  `--module=Acme_Orders --topic=acme.orders.order.export --entity=OrderExport --publisher=OrderExportPublisher --consumer=OrderExportConsumer --queue=acme.orders.export --connection=db`.
+- **Phases:** resolve context (hard-stop if module absent — offer `magento2-module-create`)
+  → resolve inputs (topic/DTO/publisher/consumer/connection/queue) → plan (gate) →
+  **test-first** (3A: consumer unit test asserts a decoded typed message is handed to the
+  handler exactly once, and a redelivery is an idempotent no-op) → generate from templates
+  → verify (`php -l`, `xmllint`, `magento2-module-review --diff`) → report.
+- **Outputs:** `etc/communication.xml` + `etc/queue_topology.xml` + `etc/queue_publisher.xml`
+  + `etc/queue_consumer.xml` + `etc/di.xml` (all merge) + `Api/Data/{EntityName}Interface.php`
+  + `Model/{EntityName}.php` + `Model/{PublisherName}.php` + `Model/Consumer/{ConsumerName}.php`
+  + the consumer unit test; `.docs/message-queues/{Vendor}_{Module}-{topic}-{date}.md`.
+- **Related:** use `magento2-module-create` first if the module does not exist (it emits the
+  bare queue stub this skill goes beyond).
+
+### magento2-indexer
+
+Scaffold a custom indexer and materialized view (mview) onto an **existing** module:
+`indexer.xml` declaration, `mview.xml` subscriptions, an indexer class that implements
+both `ActionInterface`s (executeFull/executeList/executeRow + Mview execute), and a
+dedicated action class that owns all batching and SQL logic. Bakes in idempotent
+delete-then-insert batching, the `view_id`/`id` parity contract (the #1 mview bug), and
+the ActionInterface name-clash resolution. Use for "add a custom index". Dimensions
+(Commerce-only sharding) are noted but not scaffolded by default.
+
+- **Invocation:** *"add a custom indexer to Acme_Catalog"*;
+  *"scaffold an mview indexer for product stock in Acme_Catalog"*;
+  `--module=Acme_Catalog --class=ProductStock --id=acme_catalog_productstock --source-table=cataloginventory_stock_item --id-column=product_id --target-table=acme_catalog_productstock_index`.
+- **Phases:** resolve context (hard-stop if module absent — offer `magento2-module-create`)
+  → resolve inputs (indexer id/title/description, source table, id column, target table)
+  → plan (gate) → **test-first** (3A: mock-based unit test asserting delegation of all
+  four methods with correct ids; statelessness check across instances) → generate
+  (`indexer.xml` + `mview.xml` + indexer class + action class) → verify (`php -l`,
+  `xmllint`, `magento2-module-review --diff`) → report.
+- **Outputs:** `etc/indexer.xml` (merge), `etc/mview.xml` (merge),
+  `Model/Indexer/{IndexerName}.php`, `Model/Indexer/{IndexerName}Action.php`,
+  `Test/Unit/Model/Indexer/{IndexerName}Test.php`;
+  `.docs/indexers/{Vendor}_{Module}-{indexer_id}-{date}.md` (includes the
+  `indexer:reindex {indexer_id}` and `indexer:set-mode` commands).
+- **Related:** use `magento2-module-create` first if the module does not exist; to
+  review or diagnose existing indexer performance use `magento2-performance-audit`.
+
+### magento2-docs-generate
+
+Generate or refresh a module's **technical documentation** from its own code — public
+`@api` surface, events fired and observed, plugins, preferences, admin config paths, CLI
+commands, cron jobs, REST routes, GraphQL types, DB schema, and module dependencies.
+Read-only: extracts facts from real files, writes Markdown only. Produces a `README.md`,
+a `docs/technical-reference.md`, and a `CHANGELOG.md` scaffold inside the documented
+module, plus a run report under `.docs/docs-generated/`. Every table entry cites its
+source file path.
+
+- **Invocation:** *"document this module"*; *"generate module docs for Acme_OrderExport"*;
+  `--module=Acme_OrderExport`; `--docs=readme,technical-reference,changelog` (default: all
+  three).
+- **Phases:** resolve context (hard-stop if module absent) → scope (which module, which
+  docs) → extract surface via `scripts/extract-surface.sh` + present doc plan (gate) →
+  render templates → verify (no unsubstituted tokens, no empty tables, Markdown only) →
+  report to `.docs/docs-generated/`.
+- **Outputs:** `{module}/README.md`, `{module}/docs/technical-reference.md`,
+  `{module}/CHANGELOG.md` (scaffold); `.docs/docs-generated/{Vendor}_{Module}-{date}.md`.
+- **Related:** `magento2-module-review` for architecture/quality review (findings, not docs);
+  `magento2-release` to consume `CHANGELOG.md` after docs are in place.
+
+---
+
 ## Choosing between adjacent skills
 
 Several skills have adjacent triggers. The `description` frontmatter encodes these boundaries so
@@ -358,6 +591,10 @@ key ones.
 
 | If the request is… | Use | Not |
 |---|---|---|
+| Add a bin/magento console command or cron job | `magento2-cli-command` | `magento2-module-create` |
+| Add an async message queue (topic + consumer) | `magento2-message-queue` | `magento2-module-create` |
+| Add admin store configuration (system.xml + typed reader) | `magento2-system-config` | `magento2-module-create` / `magento2-adminhtml-form` |
+| Wire behaviour onto an existing class (plugin/observer/preference) | `magento2-extension-point` | `magento2-module-create` / `magento2-feature-implement` |
 | A single admin edit form | `magento2-adminhtml-form` | `magento2-feature-implement` / `magento2-module-create` |
 | A GraphQL query/mutation/type | `magento2-graphql-create` | `magento2-feature-implement` / `magento2-module-create` |
 | A single product/customer/category attribute | `magento2-eav-attribute` | `magento2-module-create` / `magento2-data-migration` |
@@ -368,3 +605,5 @@ key ones.
 | Security depth (CVEs, secrets, EQP, cross-module/repo) | `magento2-security-audit` | `magento2-module-review` |
 | Performance depth (N+1, caching, ranked findings) | `magento2-performance-audit` | `magento2-debug` |
 | Read-only log/DI/queue inspection, one session | `magento2-debug` | `magento2-performance-audit` |
+| Generate module technical documentation from code | `magento2-docs-generate` | `magento2-module-review` |
+| Add a custom indexer + mview | `magento2-indexer` | `magento2-module-create` / `magento2-performance-audit` |

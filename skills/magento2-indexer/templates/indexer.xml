@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<!--
+    Indexer declaration for {Vendor}_{Module}.
+    Target: {Vendor}/{Module}/etc/indexer.xml  (merge into existing file)
+
+    Tokens: {indexer_id}, {Vendor}, {Module}, {IndexerName}, {Title}, {Description}
+    The view_id MUST equal the <view id> declared in mview.xml — mismatch silently breaks
+    scheduled partial reindex.
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Indexer/etc/indexer.xsd">
+    <indexer id="{indexer_id}"
+             view_id="{indexer_id}"
+             class="{Vendor}\{Module}\Model\Indexer\{IndexerName}">
+        <title translate="true">{Title}</title>
+        <description translate="true">{Description}</description>
+    </indexer>
+</config>

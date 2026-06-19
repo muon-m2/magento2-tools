@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!--
+    Cron job declaration for {Vendor}_{Module}.
+    Target: {Vendor}/{Module}/etc/crontab.xml  (merge into existing file)
+
+    Tokens: {Vendor}, {Module}, {CronJobName}, {cron_job_name}, {CronGroup}, {Schedule}
+    Replace {Schedule} with a cron expression (e.g. "*/15 * * * *") or swap the
+    <schedule> element for <config_path>acme_mod/cron/schedule</config_path> to read
+    the expression from admin configuration (pair with magento2-system-config).
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Cron:etc/crontab.xsd">
+    <group id="{CronGroup}">
+        <job name="{cron_job_name}"
+             instance="{Vendor}\{Module}\Cron\{CronJobName}"
+             method="execute">
+            <schedule>{Schedule}</schedule>
+        </job>
+    </group>
+</config>

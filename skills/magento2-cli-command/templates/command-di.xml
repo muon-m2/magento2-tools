@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!--
+    CommandList registration for {Vendor}_{Module}.
+    Target: {Vendor}/{Module}/etc/di.xml  (merge into existing file)
+
+    Tokens: {Vendor}, {Module}, {CommandClass}, {command_name}
+    The item name="{command_name}" is a unique array key; the item value is the FQCN.
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="Magento\Framework\Console\CommandList">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="{command_name}" xsi:type="object">
+                    {Vendor}\{Module}\Console\Command\{CommandClass}
+                </item>
+            </argument>
+        </arguments>
+    </type>
+</config>

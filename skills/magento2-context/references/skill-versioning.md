@@ -12,7 +12,7 @@ skills evolve.
 | magento2-context           | 1.6.1   | JSON schema changes, new resolution rules, new tool probes          |
 | magento2-module-create     | 1.7.1   | New template added, surface added, naming rule changed              |
 | magento2-module-review     | 2.3.1   | New checklist category, severity calibration change, new JSON field, fix-routing change |
-| magento2-feature-implement | 2.8.0   | New phase, new approval gate, mode added, template structure change |
+| magento2-feature-implement | 2.9.0   | New phase, new approval gate, mode added, new task types (I/C/L/Q), template structure change |
 | magento2-bug-fix           | 1.0.2   | Workflow phase change, RCA format change                            |
 | magento2-deploy            | 1.2.1   | Deploy plan template change, rollback recipe change                 |
 | magento2-test-generate     | 1.1.2   | Generator pattern change, new test type added                       |
@@ -29,8 +29,40 @@ skills evolve.
 | magento2-adminhtml-form    | 1.0.0   | New template/surface added, field-type pattern, controller change   |
 | magento2-adminhtml-listing | 1.0.1   | New template/column type, mass-action change, wiring change         |
 | magento2-webapi-create     | 1.0.0   | New template/route/auth-scope, service-contract change, custom-action pattern |
+| magento2-extension-point   | 1.0.0   | New mode/template added, interception pattern change                          |
+| magento2-system-config     | 1.0.0   | New field type/template, config-reader pattern change                         |
+| magento2-cli-command       | 1.0.0   | New mode/template, command or cron pattern change                             |
+| magento2-message-queue     | 1.0.0   | New connection type/template, topic or consumer pattern change                |
+| magento2-static-analysis   | 1.0.0   | New tool/rule, autofix-safety calibration change                              |
+| magento2-docs-generate     | 1.0.0   | New surface extractor, doc-structure change                                   |
+| magento2-indexer           | 1.0.0   | New indexer/mview pattern, dimension support                                  |
+| magento2-marketplace-prep  | 1.0.0   | New EQP check, readiness-scoring calibration                                  |
+| magento2-accessibility-audit | 1.0.0 | New WCAG rule, runtime pass change                                            |
 
 ## Changelog (last update: 2026-06-18)
+
+- **New skill `magento2-static-analysis` 1.0.0 (unreleased)** — action skill that runs
+  the static-analysis gate (phpcs Magento2, phpstan, phpmd, php-cs-fixer, rector) over a
+  module or diff, applies safe auto-fixes (phpcbf, php-cs-fixer, safe rector sets) after
+  a mandatory Phase-2 approval gate, and emits residual violations as ranked findings
+  (Markdown + JSON `outputKind=quality` + SARIF) via the shared emit-json.sh / emit-sarif.sh
+  emitters. References: `tool-matrix.md`, `autofix-safety.md`, `ci-integration.md`.
+  Scripts: `run-analysis.sh`, `apply-fixes.sh`, `build-findings.sh`. No templates.
+
+- **New skill `magento2-message-queue` 1.0.0 (unreleased)** — generator for a full async
+  message-queue surface on an **existing** module: a `communication.xml` topic (typed
+  `request` DTO), the `queue_topology.xml` / `queue_publisher.xml` / `queue_consumer.xml`
+  bindings, a `di.xml` DTO `<preference>`, a typed message interface + model, a
+  `PublisherInterface`-backed publisher (topic in a single `TOPIC` const), and an idempotent
+  consumer that decodes the typed message and delegates to a domain handler (poison-message
+  log-and-drop). 10 templates, 4 references. Goes beyond `magento2-module-create`'s queue
+  stub by wiring all five XML files so the topic ↔ topology ↔ publisher ↔ consumer ↔ queue
+  chain resolves, and baking in the cross-file name-consistency contract (the #1 MQ bug),
+  idempotency, and `db`-default connection. New tokens `{TopicName}` / `{QueueName}` /
+  `{ExchangeName}` / `{ConnectionName}` / `{PublisherName}` registered in
+  `placeholder-schema.md` (reusing existing `{ConsumerName}` / `{EntityName}`). Built
+  test-first (consumer unit test RED on missing class → GREEN against the templates). Not
+  yet bundled in a plugin release (`plugin.json` unchanged).
 
 - **Plugin 1.10.1 — audit-remediation patch bumps.** A correctness pass (bug fixes + drift
   cleanup + regression tests) patch-bumped every skill whose scripts/templates actually changed;

@@ -18,6 +18,12 @@ while IFS= read -r tpl; do
     # current XML templates. Kept in alphabetical-ish order to make additions easy.
     sed -e 's/{Vendor}/Acme/g' \
         -e 's/{vendor_lower}/acme/g' \
+        -e 's/{BackendModelName}/SomeBackend/g' \
+        -e 's/{DefaultValue}/1/g' \
+        -e 's/{FieldId}/some_field/g' \
+        -e 's/{GroupId}/general/g' \
+        -e 's/{SectionId}/acme_mod/g' \
+        -e 's/{SourceName}/Source/g' \
         -e 's/{VENDOR_UPPER}/ACME/g' \
         -e 's/{Module}/Mod/g' \
         -e 's/{ModuleName}/Mod/g' \
@@ -36,6 +42,10 @@ while IFS= read -r tpl; do
         -e 's/{action}/action/g' \
         -e 's/{ConsumerName}/Consumer/g' \
         -e 's/{consumer_description}/consumer/g' \
+        -e 's/{TopicName}/acme.mod.entity.action/g' \
+        -e 's/{QueueName}/acme.mod.entity/g' \
+        -e 's/{ExchangeName}/magento/g' \
+        -e 's/{ConnectionName}/db/g' \
         -e 's/{JobName}/Job/g' \
         -e 's/{MessageName}/Message/g' \
         -e 's/{queue_name}/queue.name/g' \
@@ -50,6 +60,17 @@ while IFS= read -r tpl; do
         -e 's/{TargetShortName}/Target/g' \
         -e 's/{target_short_lower}/target/g' \
         -e 's/{Email Template Label}/Email Label/g' \
+        -e 's/{CommandClass}/RunCommand/g' \
+        -e 's/{command_name}/acme_mod_run/g' \
+        -e 's/{CronJobName}/SyncJob/g' \
+        -e 's/{cron_job_name}/acme_mod_sync/g' \
+        -e 's/{CronGroup}/default/g' \
+        -e 's/{Schedule}/*\/15 * * * */g' \
+        -e 's/{IndexerName}/ProductStock/g' \
+        -e 's/{indexer_id}/acme_mod_productstock/g' \
+        -e 's/{id_column}/product_id/g' \
+        -e 's/{source_table}/src_tbl/g' \
+        -e 's/{target_table}/tgt_tbl/g' \
         "$tpl" > "$tmp"
 
     # MFTF templates use Magento's `{{_ENV.NAME}}` token, which is valid in MFTF DSL

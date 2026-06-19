@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!--
+    Message-queue topic declaration for {Vendor}_{Module}.
+    Target: {Vendor}/{Module}/etc/communication.xml  (merge into existing file)
+
+    Tokens: {TopicName}, {Vendor}, {Module}, {EntityName}
+    The `request` attribute is the typed message DTO interface FQCN — this is what makes
+    the payload a typed object rather than an array. The SAME {TopicName} must appear in
+    queue_publisher.xml, queue_topology.xml, and the publisher's TOPIC constant.
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:MessageQueue/etc/communication.xsd">
+    <topic name="{TopicName}"
+           request="{Vendor}\{Module}\Api\Data\{EntityName}Interface"/>
+</config>

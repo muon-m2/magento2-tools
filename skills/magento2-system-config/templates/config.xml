@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<!--
+  Default configuration values for {Vendor}_{Module}.
+  Target: {Vendor}/{Module}/etc/config.xml  (MERGE into existing config.xml; do not clobber)
+
+  The <default> tree mirrors the config path: {SectionId}/{GroupId}/{FieldId}
+  All field ids must match those declared in etc/adminhtml/system.xml.
+
+  Note: Do NOT add a default entry for obscure/encrypted fields — the Encrypted
+  backend model expects an empty default, and seeding a plaintext value here would
+  store it unencrypted.
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:App/etc/config.xsd">
+    <default>
+        <{SectionId}>
+            <{GroupId}>
+                <{FieldId}>{DefaultValue}</{FieldId}>
+            </{GroupId}>
+        </{SectionId}>
+    </default>
+</config>

@@ -28,10 +28,20 @@ while IFS= read -r tpl; do
         -e 's/{entity}/entity/g' \
         -e 's/{entities}/entities/g' \
         -e 's/{EntityName}/Entity/g' \
+        -e 's/{BackendModelName}/SomeBackend/g' \
         -e 's/{BackendName}/Backend/g' \
+        -e 's/{DefaultValue}/1/g' \
+        -e 's/{FieldId}/some_field/g' \
+        -e 's/{GroupId}/general/g' \
+        -e 's/{SectionId}/acme_mod/g' \
         -e 's/{SourceName}/Source/g' \
         -e 's/{FrontendName}/Frontend/g' \
         -e 's/{ServiceName}/Service/g' \
+        -e 's/{CommandClass}/RunCommand/g' \
+        -e 's/{CommandName}/acme:mod:run/g' \
+        -e 's/{command_name}/acme_mod_run/g' \
+        -e 's/{CronJobName}/SyncJob/g' \
+        -e 's/{cron_job_name}/acme_mod_sync/g' \
         -e 's/{ClassName}/Cls/g' \
         -e 's/{TestClassName}/Cls/g' \
         -e 's/{Method}/method/g' \
@@ -40,6 +50,8 @@ while IFS= read -r tpl; do
         -e 's/{ControllerName}/Index/g' \
         -e 's/{ControllerArea}/frontend/g' \
         -e 's/{ConsumerName}/Consumer/g' \
+        -e 's/{PublisherName}/Publisher/g' \
+        -e 's/{TopicName}/acme.mod.entity.action/g' \
         -e 's/{JobName}/Job/g' \
         -e 's/{MessageName}/Message/g' \
         -e 's/{PatchName}/Patch/g' \
@@ -65,6 +77,9 @@ while IFS= read -r tpl; do
         -e 's/{actual}/actual/g' \
         -e 's/{reproducedArgs}/null/g' \
         -e 's/{parent_id_key}/parent_id/g' \
+        -e 's/{IndexerName}/ProductStock/g' \
+        -e 's/{id_column}/product_id/g' \
+        -e 's/{indexer_id}/acme_mod_productstock/g' \
         -e 's/{source_table}/src_tbl/g' \
         -e 's/{target_table}/tgt_tbl/g' \
         -e 's/{\$sourceTable}/\$srcTable/g' \
@@ -79,6 +94,16 @@ while IFS= read -r tpl; do
         -e 's/{Dep1FQCN}/stdClass/g' \
         -e 's/{Dep2FQCN}/stdClass/g' \
         -e 's/{Dep3FQCN}/stdClass/g' \
+        -e 's/{TargetFqcn}/stdClass/g' \
+        -e 's/{PluginName}/Plugin/g' \
+        -e 's/{plugin_name}/acme_plugin/g' \
+        -e 's/{ObserverName}/TrackOrderSave/g' \
+        -e 's/{observer_name}/acme_observer/g' \
+        -e 's/{PreferenceFor}/stdClass/g' \
+        -e 's/{PreferenceForShort}/SomePreference/g' \
+        -e 's/{SortOrder}/10/g' \
+        -e 's/{EventName}/sales_order_save_after/g' \
+        -e 's/{area}/frontend/g' \
         -e 's/{Dep1Type}/stdClass/g' \
         -e 's/{Dep2Type}/stdClass/g' \
         -e 's/{depMethod}/aMethod/g' \

@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!--
+    Mview subscription declaration for {Vendor}_{Module}.
+    Target: {Vendor}/{Module}/etc/mview.xml  (merge into existing file)
+
+    Tokens: {indexer_id}, {Vendor}, {Module}, {IndexerName}, {source_table}, {id_column}
+    The view id MUST equal the indexer id in indexer.xml — mismatch silently breaks
+    scheduled partial reindex. group="indexer" places changelog drainage under Magento's
+    built-in indexer cron schedule.
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Mview/etc/mview.xsd">
+    <view id="{indexer_id}"
+          class="{Vendor}\{Module}\Model\Indexer\{IndexerName}"
+          group="indexer">
+        <subscriptions>
+            <table name="{source_table}" entity_column="{id_column}"/>
+        </subscriptions>
+    </view>
+</config>

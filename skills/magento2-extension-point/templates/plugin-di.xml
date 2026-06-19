@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<!--
+    Plugin wiring for {Vendor}_{Module}.
+    Target: {Vendor}/{Module}/etc/{area}/di.xml  (merge into existing file)
+
+    Tokens: {TargetFqcn}, {Vendor}, {Module}, {PluginName}, {plugin_name}, {SortOrder}
+    Adjust {area}/ prefix: omit for global, or use frontend/ adminhtml/ webapi_rest/ etc.
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="{TargetFqcn}">
+        <plugin name="{plugin_name}"
+                type="{Vendor}\{Module}\Plugin\{PluginName}"
+                sortOrder="{SortOrder}"
+                disabled="false"/>
+    </type>
+</config>

@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<!--
+  Admin store configuration for {Vendor}_{Module}.
+  Target: {Vendor}/{Module}/etc/adminhtml/system.xml  (MERGE into existing system.xml; do not clobber)
+
+  Config path pattern: {vendor_lower}_{module_lower}/{GroupId}/{FieldId}
+  ACL resource:        {Vendor}_{Module}::config
+
+  Scope flags — set to 1 where the field should be configurable:
+    showInDefault="1"  — visible at the Global (default) scope
+    showInWebsite="1"  — visible at the Website scope
+    showInStore="1"    — visible at the Store View scope
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <section id="{SectionId}" translate="label" type="text" sortOrder="300"
+                 showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>{Title}</label>
+            <tab>general</tab>
+            <resource>{Vendor}_{Module}::config</resource>
+
+            <group id="{GroupId}" translate="label" type="text" sortOrder="10"
+                   showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>{Name}</label>
+
+                <!-- select field example — replace type/source_model/backend_model as needed -->
+                <field id="{FieldId}" translate="label comment" type="select" sortOrder="10"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>{FieldTitle}</label>
+                    <comment>{description}</comment>
+                    <!-- Remove source_model if type is not select/multiselect -->
+                    <source_model>{Vendor}\{Module}\Model\Config\Source\{SourceName}</source_model>
+                    <!-- Remove backend_model if no custom save/load logic is needed -->
+                    <backend_model>{Vendor}\{Module}\Model\Config\Backend\{BackendModelName}</backend_model>
+                    <!-- Remove depends if no conditional visibility is needed. The field id
+                         here must be a DIFFERENT sibling field in this group (e.g. an "enable"
+                         toggle) — a field cannot depend on itself. -->
+                    <depends>
+                        <field id="enable">1</field>
+                    </depends>
+                </field>
+
+            </group>
+        </section>
+    </system>
+</config>

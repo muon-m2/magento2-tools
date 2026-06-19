@@ -32,14 +32,22 @@ check() { # skill ref...
     done
 }
 
+check cli-command         magento2-module-create
+check message-queue       magento2-module-create
 check feature-implement   magento2-adminhtml-form magento2-graphql-create magento2-eav-attribute
+check system-config       magento2-module-create magento2-adminhtml-form
 check module-create       magento2-adminhtml-form magento2-graphql-create magento2-eav-attribute
+check extension-point     magento2-module-create magento2-feature-implement
 check module-review       magento2-security-audit magento2-performance-audit
 check security-audit      magento2-module-review
 check debug               magento2-performance-audit
 check performance-audit   magento2-debug
 check eav-attribute       magento2-data-migration
 check data-migration      magento2-eav-attribute
+check static-analysis     magento2-module-review
+check indexer             magento2-module-create magento2-performance-audit
+check marketplace-prep    magento2-security-audit magento2-release
+check accessibility-audit magento2-frontend-create magento2-module-review
 
 [ "$FAIL" -eq 0 ] || { echo "RESULT: FAIL"; exit 1; }
 echo "routing discriminators: all cross-references present"

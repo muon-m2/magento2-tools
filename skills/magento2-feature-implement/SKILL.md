@@ -463,9 +463,77 @@ Simple GraphQL surfaces continue to use `magento2-module-create`'s graphql templ
 
 → run the **Per-task completion protocol** (mark `[x]` in `plan.md`, save, commit if enabled).
 
+### Extension point tasks (I*)
+
+When the blueprint wires an extension point (plugin, observer, or preference) onto existing code,
+generate an I* task and delegate to `magento2-extension-point`:
+
+```
+Skill: magento2-extension-point
+Args: --module={Vendor}_{Module} --mode={plugin|observer|preference}
+```
+
+The skill produces the interception class, `di.xml` wiring, and a unit test.
+
+→ run the **Per-task completion protocol** (mark `[x]` in `plan.md`, save, commit if enabled).
+
+### System configuration tasks (C*)
+
+When the blueprint requires admin store configuration (system.xml fields + typed config reader),
+generate a C* task and delegate to `magento2-system-config`:
+
+```
+Skill: magento2-system-config
+Args: --module={Vendor}_{Module}
+```
+
+The skill produces `system.xml`, `config.xml`, `acl.xml`, and a typed config reader class.
+
+→ run the **Per-task completion protocol** (mark `[x]` in `plan.md`, save, commit if enabled).
+
+### CLI command / cron tasks (L*)
+
+When the blueprint adds a CLI command or cron job, generate an L* task and delegate to
+`magento2-cli-command`:
+
+```
+Skill: magento2-cli-command
+Args: --module={Vendor}_{Module} --mode={command|cron}
+```
+
+The skill produces the command class, `di.xml` registration, and (for cron) `crontab.xml`.
+
+→ run the **Per-task completion protocol** (mark `[x]` in `plan.md`, save, commit if enabled).
+
+### Message-queue tasks (Q*)
+
+When the blueprint adds an async message-queue surface, generate a Q* task and delegate to
+`magento2-message-queue`:
+
+```
+Skill: magento2-message-queue
+Args: --module={Vendor}_{Module} --topic={topic.name}
+```
+
+The skill produces the topic DTO, publisher, consumer, and all five queue XML files
+(`communication.xml`, `queue_topology.xml`, `queue_publisher.xml`, `queue_consumer.xml`,
+`di.xml`).
+
+→ run the **Per-task completion protocol** (mark `[x]` in `plan.md`, save, commit if enabled).
+
 ### Validate task (V*)
 
-Run each check with the probed `{runner}`. Skip and report any tool that is unavailable.
+When `magento2-static-analysis` is present, delegate the quality gate to it — it runs PHPCS
+(Magento2 standard), PHPStan, PHPMD, and optional php-cs-fixer/rector in a single pass and
+emits ranked findings via the shared emitters:
+
+```
+Skill: magento2-static-analysis
+Args: --module={Vendor}_{Module}
+```
+
+When `magento2-static-analysis` is absent, run each check inline with the probed `{runner}`.
+Skip and report any tool that is unavailable.
 
 ```bash
 # Code style
@@ -681,6 +749,15 @@ invocations — the `Skill` tool preserves conversation context across phases.
   hand-written `Setup/Patch/Data/` files for EAV.
 - `magento2-graphql-create`: invoked when the blueprint declares a GraphQL surface and
   the design includes batch loaders or auth/scope complexity.
+- `magento2-extension-point`: invoked for I* tasks — wires a plugin, observer, or preference
+  onto existing code.
+- `magento2-system-config`: invoked for C* tasks — generates system.xml fields and a typed
+  config reader.
+- `magento2-cli-command`: invoked for L* tasks — generates a CLI command or cron job.
+- `magento2-message-queue`: invoked for Q* tasks — generates the full async message-queue
+  surface (topic, publisher, consumer, all five XML files).
+- `magento2-static-analysis`: invoked for V* tasks when present — runs the full static
+  quality gate (PHPCS, PHPStan, PHPMD, optional auto-fix) and emits ranked findings.
 - `magento2-bug-fix`: invoked by Phase 6B S9 to remediate Critical/High smoke findings —
   default fix delegate; see `references/smoke-test-guide.md` §Fix Routing.
 - `magento2-debug`: invoked by Phase 6B S9 for triage of new `var/log/exception.log` entries

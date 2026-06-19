@@ -66,7 +66,7 @@ Developer documentation lives in [`docs/`](docs/README.md):
 
 ## Skills
 
-20 skills under `skills/`, each self-contained (`SKILL.md` + `references/` +
+29 skills under `skills/`, each self-contained (`SKILL.md` + `references/` +
 `scripts/` + `templates/`). Per-skill flags, phases, and outputs are documented in
 [docs/skills-reference.md](docs/skills-reference.md).
 
@@ -92,6 +92,15 @@ Developer documentation lives in [`docs/`](docs/README.md):
 | `magento2-i18n` | Translation extraction / locale management. |
 | `magento2-adminhtml-form` | Scaffold an adminhtml UI-component edit form (form XML + DataProvider + New/Edit/Save/Delete + button blocks). |
 | `magento2-adminhtml-listing` | Scaffold an adminhtml grid/listing (listing XML + DataProvider + columns + actions + mass actions), paired with adminhtml-form. |
+| `magento2-extension-point` | Wire behaviour onto an existing class: plugin (before/after/around interceptor), observer (events.xml + Observer), or preference. |
+| `magento2-system-config` | Add admin Stores → Configuration settings: system.xml + config.xml + ACL + optional source/backend models + typed Config reader. |
+| `magento2-cli-command` | Scaffold a bin/magento console command or cron job on an existing module: Symfony Command + CommandList registration, or crontab.xml + job class with a delegate service. |
+| `magento2-message-queue` | Scaffold an async message-queue surface on an existing module: communication.xml topic + queue_topology/publisher/consumer.xml bindings + a typed message DTO + publisher + idempotent consumer. |
+| `magento2-static-analysis` | Run the static-analysis gate (phpcs, phpstan, phpmd, php-cs-fixer, rector) and apply safe auto-fixes; emit residual violations as ranked findings (JSON + SARIF). |
+| `magento2-docs-generate` | Generate or refresh a module's technical documentation from its own code — public @api surface, events, plugins, REST/GraphQL, DB schema, and more. Read-only; writes Markdown only. |
+| `magento2-indexer` | Scaffold a custom indexer + materialized view (mview) on an existing module: indexer.xml, mview.xml subscriptions, an ActionInterface indexer class + batched action class. |
+| `magento2-marketplace-prep` | Assess an existing module's Adobe Marketplace / EQP submission readiness: composer metadata, licensing, structure, MFTF tests, docs, packaging hygiene. Read-only; emits a tiered scored report (JSON + SARIF, `outputKind=marketplace`). |
+| `magento2-accessibility-audit` | Audit a module's/theme's storefront templates for WCAG 2.1 Level AA issues (alt text, labels, ARIA, headings, keyboard, contrast). Static-first; optional pa11y runtime pass. Read-only; emits ranked findings (JSON + SARIF, `outputKind=accessibility`). |
 
 ### Dependency graph
 
@@ -143,10 +152,16 @@ gate. They are always namespaced:
 | `/magento2-tools:bugfix`   | `magento2-bug-fix` | reproduce → RCA → fix (gated) |
 | `/magento2-tools:feature`  | `magento2-feature-implement` | feature orchestrator (gated) |
 | `/magento2-tools:release`  | `magento2-release` | cut a release (gated) |
+| `/magento2-tools:test`     | `magento2-test-generate` | generate unit/integration/API/MFTF tests |
+| `/magento2-tools:upgrade`  | `magento2-module-upgrade` | BC-break detection and upgrade plan (gated) |
+| `/magento2-tools:i18n`     | `magento2-i18n` | extract strings / manage locale CSVs |
+| `/magento2-tools:lint`     | `magento2-static-analysis` | static analysis + safe auto-fixes (gated) |
+| `/magento2-tools:scaffold` | `magento2-module-create` | code-generation dispatcher (routes to a generator; that skill gates) |
 
-The four write commands (`deploy`, `bugfix`, `feature`, `release`) are user-invoked only; the
-read-only five may also be auto-suggested. All arguments/flags are passed straight through to the
-skill, which is the source of truth for behaviour and gates.
+The six write commands (`deploy`, `bugfix`, `feature`, `release`, `upgrade`, `lint`) are user-invoked only; the
+read-only seven (`context`, `snapshot`, `review`, `security`, `perf`, `test`, `i18n`) may also be auto-suggested.
+The `scaffold` dispatcher routes to `magento2-module-create` and guides generation to specialist skills.
+All arguments/flags are passed straight through to the skill, which is the source of truth for behaviour and gates.
 
 ## Per-project environment overrides
 
@@ -174,9 +189,9 @@ detection. Changing any override busts the resolver cache automatically.
 .claude-plugin/
   plugin.json        # plugin manifest
   marketplace.json   # this repo doubles as its own marketplace ("muon-m2")
-skills/              # 20 magento2-* skills (auto-discovered by Claude Code)
-commands/            # 9 /magento2-tools:<verb> shortcut commands (auto-discovered)
-agents/              # first-party subagents (read-only Magento reviewer for parallel review)
+skills/              # 29 magento2-* skills (auto-discovered by Claude Code)
+commands/            # 14 /magento2-tools:<verb> shortcut commands (auto-discovered)
+agents/              # first-party read-only subagents: magento2-reviewer (per-dimension review) + magento2-explorer (code comprehension/tracing)
 hooks/               # PreToolUse guard: keeps .docs/ artifacts at the project root
 tests/               # contract test harness
 scripts/             # release-notes helper (used by .github/workflows/release.yml)

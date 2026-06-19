@@ -40,6 +40,76 @@ Names used inside generated PHP/XML. Examples: `{ClassUnderTest}`, `{ServiceName
 `{TargetNamespace}`, `{TargetShortName}`, `{SubNamespace}`, `{Dep1FQCN}`, `{ParentIdAccessor}`,
 `{parent_id_key}`, `{ParentTheme}`, `{ParentVendor}`, `{Theme}`, `{theme_lower}`.
 
+## System-config tokens (magento2-system-config)
+
+Store-configuration generator tokens:
+`{SectionId}` (snake_case section id in system.xml, e.g. `acme_checkout`),
+`{GroupId}` (snake_case group id, e.g. `general`),
+`{FieldId}` (snake_case field id, e.g. `enable_feature`),
+`{FieldTitle}` (human-readable field label shown in admin, e.g. `Enable Feature`),
+`{BackendModelName}` (PascalCase backend model class name, e.g. `SomeBackend`),
+`{DefaultValue}` (default field value written to config.xml, e.g. `1`).
+
+## Extension-point tokens (magento2-extension-point)
+
+Plugin, observer, and preference tokens:
+`{PluginName}` (PascalCase plugin class name),
+`{plugin_name}` (snake_case DI identifier),
+`{TargetFqcn}` (fully-qualified class name being intercepted),
+`{SortOrder}` (integer plugin sort order),
+`{EventName}` (snake_case dispatched event name),
+`{observer_name}` (snake_case observer identifier in events.xml),
+`{PreferenceFor}` (FQCN of the interface/class being replaced; used in `use` statement and XML attribute),
+`{PreferenceForShort}` (unqualified short class/interface name derived from `{PreferenceFor}`; used in `implements`/`extends` after the `use` import),
+`{area}` (area folder name: global/frontend/adminhtml/webapi_rest/graphql/crontab).
+
+## CLI-command tokens (magento2-cli-command)
+
+Console command and cron job generator tokens:
+`{CommandClass}` (PascalCase command class name, e.g. `SyncOrdersCommand`; placed in `Console/Command/`),
+`{CommandName}` (namespaced CLI name, e.g. `acme:orders:sync`; passed to `setName()`),
+`{command_name}` (snake_case DI array key for `CommandList` registration, e.g. `acme_orders_sync_command`),
+`{CronJobName}` (PascalCase cron job class name, e.g. `SyncOrders`; placed in `Cron/`),
+`{cron_job_name}` (snake_case cron job identifier in `crontab.xml`, e.g. `acme_orders_sync`),
+`{CronGroup}` (cron group id in `crontab.xml`, e.g. `default`),
+`{Schedule}` (cron expression string, e.g. `*/15 * * * *`; or replaced by `<config_path>` when schedule comes from admin config).
+
+Note: `{ServiceName}` is already registered under Structural / code tokens above.
+
+## Indexer tokens (magento2-indexer)
+
+Indexer and mview generator tokens:
+`{IndexerName}` (PascalCase indexer class name placed in `Model/Indexer/`, e.g.
+`ProductStock`; the action class is `{IndexerName}Action`),
+`{indexer_id}` (snake_case unique indexer identifier shared by `indexer.xml` `id`,
+`mview.xml` `view id`, and the `indexer:reindex` CLI command, e.g.
+`acme_catalog_productstock`),
+`{id_column}` (column name in the source table that holds the entity primary key,
+e.g. `product_id`; used as `entity_column` in `mview.xml` subscriptions).
+
+Note: `{source_table}` (source DB table subscribed to in mview), `{target_table}`
+(destination index table), `{Title}` (human-readable indexer title shown in admin), and
+`{Description}` (one-sentence description shown in admin) are already registered under
+Value / content tokens above and are reused here — not duplicated.
+
+## Message-queue tokens (magento2-message-queue)
+
+Async message-queue generator tokens:
+`{TopicName}` (dot-separated topic name shared across communication.xml, queue_topology.xml,
+queue_publisher.xml, and the publisher's `TOPIC` const, e.g. `acme.orders.order.export`),
+`{QueueName}` (dot-separated physical queue name shared by queue_topology.xml's binding
+destination and queue_consumer.xml's `queue`, e.g. `acme.orders.export`),
+`{ExchangeName}` (exchange name shared by queue_topology.xml and queue_publisher.xml; `magento`
+by convention for the `db` connection),
+`{ConnectionName}` (message-queue connection: `db` by default, or `amqp` when a broker is
+confirmed; shared across topology/publisher/consumer XML),
+`{PublisherName}` (PascalCase publisher class name placed in `Model/`, e.g. `OrderExportPublisher`).
+
+Note: `{ConsumerName}` (consumer class + queue_consumer.xml `name`) and `{EntityName}` (the
+typed message DTO) are already registered above and are reused here. The DTO factory
+referenced in the publisher is the framework-generated `{EntityName}InterfaceFactory`
+(derived from `{EntityName}`, not a separate token).
+
 ## Theme / frontend tokens
 
 `{component}`, `{component-name-kebab}`, `{module-kebab-case}`, `{module-name-kebab}`,
@@ -81,6 +151,12 @@ These are substituted by the review/report emitters, not by code scaffolding:
 `{EXECUTIVE_SUMMARY}`, `{FINDINGS_HTML}`, `{ENVIRONMENT_LIMITATIONS}`, `{NEXT_STEPS}`,
 `{POSITIVE_OBSERVATIONS}`, `{PARALLEL_REVIEW_SECTION}`, `{TOOL_RESULTS_TABLE}`.
 
+`magento2-docs-generate` surface-section markers (substituted when generating module
+technical documentation from extracted code surfaces):
+`{MODULE_DESCRIPTION}`, `{DEPENDENCIES_LIST}`, `{API_SURFACE_TABLE}`, `{EVENTS_TABLE}`,
+`{PLUGINS_TABLE}`, `{CONFIG_PATHS_TABLE}`, `{CLI_COMMANDS_TABLE}`, `{CRON_TABLE}`,
+`{REST_ROUTES_TABLE}`, `{GRAPHQL_TABLE}`, `{DB_SCHEMA_TABLE}`, `{EXTENSION_ATTRIBUTES_TABLE}`.
+
 ## Substitution rules
 
 - Substitution is whole-token: replace the literal text `{ModuleName}` with the resolved
@@ -98,20 +174,36 @@ The machine-readable allow-list. `test-placeholder-tokens.sh` parses the fenced 
 
 ```registry
 ActionName
+API_SURFACE_TABLE
 Area
 AttributeCode
+BackendModelName
 BackendName
 Behaviour
 CHECKLIST_TABLE
+CLI_COMMANDS_TABLE
+CONFIG_PATHS_TABLE
 CRITICAL_COUNT
+CRON_TABLE
+DB_SCHEMA_TABLE
+DEPENDENCIES_LIST
+EVENTS_TABLE
+EXTENSION_ATTRIBUTES_TABLE
+EventName
 Class
 ClassUnderTest
 Code
+CommandClass
+CommandName
+ConnectionName
 ConsumerName
 Controller
 ControllerArea
 ControllerName
+CronGroup
+CronJobName
 DATE
+DefaultValue
 Dep1FQCN
 Dep1Type
 Dep2FQCN
@@ -124,20 +216,27 @@ ENVIRONMENT_LIMITATIONS
 EXECUTIVE_SUMMARY
 Entity
 EntityName
+ExchangeName
 Existing
 ExistingModule
 FINDINGS_HTML
 FeatureName
+FieldId
+FieldTitle
 From
 Group
+GRAPHQL_TABLE
+GroupId
 HIGH_COUNT
 ID
+IndexerName
 Interface
 Item
 JobName
 LOW_COUNT
 MEDIUM_COUNT
 METHOD
+MODULE_DESCRIPTION
 MODULE_NAME
 MODULE_PATH
 MODULE_UPPER
@@ -163,9 +262,19 @@ ParentVendor
 Patch
 PatchName
 Path
+PLUGINS_TABLE
+PluginName
+PreferenceFor
+PreferenceForShort
+PublisherName
+QueueName
+REST_ROUTES_TABLE
 SHA1
 SHA2
+Schedule
 Section
+SectionId
+SortOrder
 Service
 ServiceName
 Severity
@@ -173,30 +282,36 @@ ShortDescription
 SourceName
 SubNamespace
 TOOL_RESULTS_TABLE
+TargetFqcn
 TargetNamespace
 TargetShortName
 Theme
 Title
 To
+TopicName
 VENDOR_UPPER
 Vendor
 Version
 YYYY-MM-DD
 action
 actual
+area
 args
 attribute_code
 author
 bytes
 code
 col
+command_name
 commit
 component
 component-name-kebab
 consumer_description
+cron_job_name
 ctx.magento_cli
 ctx.magento_root
 ctx.runner
+date
 default
 depMethod
 depReturn
@@ -219,7 +334,9 @@ framework_constraint
 from
 from_magento
 from_php
+id_column
 ids
+indexer_id
 invalidArgs
 kebab-title
 line
@@ -239,8 +356,10 @@ modules
 name
 new
 notes
+observer_name
 package
 paramName
+plugin_name
 paramValue
 parent_id_key
 parent_theme_constraint

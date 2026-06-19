@@ -6,6 +6,37 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.12.0] — 2026-06-18 — Wave 2: command surface + indexer / marketplace-prep / accessibility-audit skills
+
+### Added
+
+- **New skill `magento2-indexer`** — scaffolds a custom indexer + materialized view: `indexer.xml`, `mview.xml` subscriptions, an indexer implementing both `Indexer\ActionInterface` (executeFull/executeList/executeRow) and `Mview\ActionInterface` (execute) that delegates to a batched, idempotent action class, plus a unit test.
+- **New skill `magento2-marketplace-prep`** — read-only Adobe Marketplace / EQP submission-readiness audit (composer metadata, license headers, MFTF presence, version-constraint sanity, packaging) producing a tiered, scored report (Markdown + JSON + SARIF via the shared emitters, `outputKind=marketplace`). Delegates EQP static code rules to `magento2-security-audit` rather than duplicating them.
+- **New skill `magento2-accessibility-audit`** — static-first storefront WCAG audit of `.phtml`/`.less` templates (alt text, form labels, ARIA, heading order, keyboard/tab-index, contrast heuristics), theme-aware (Luma/Hyvä), with an optional opt-in `pa11y` runtime pass; emits ranked findings (`outputKind=accessibility`).
+- **Five new slash-command shortcuts** — `/magento2-tools:test` (`magento2-test-generate`), `:upgrade` (`magento2-module-upgrade`), `:i18n` (`magento2-i18n`), `:lint` (`magento2-static-analysis`), and a `:scaffold` dispatcher that routes a generation request to the matching generator skill (defaulting to `magento2-module-create`). Command count **9 → 14**.
+- **`OUTPUT_KIND=marketplace` and `OUTPUT_KIND=accessibility`** — two new `outputKind` values in the shared findings emitters, for the marketplace-prep and accessibility-audit reports.
+
+### Changed
+
+- Skill count **26 → 29**.
+
+## [1.11.0] — 2026-06-18 — Wave 1: extension/config/cli/queue/static-analysis/docs skills + explorer agent
+
+### Added
+
+- **New skill `magento2-extension-point`** — wires a plugin, observer, or preference onto existing code; generates the interception class, `di.xml` wiring, and a unit test. Covers all three interception modes (`--mode=plugin|observer|preference`).
+- **New skill `magento2-system-config`** — generates a complete admin store configuration surface: `system.xml` fields, `config.xml` defaults, `acl.xml` nodes, and a typed config reader class.
+- **New skill `magento2-cli-command`** — generates a Magento 2 CLI command or cron job: command class, `di.xml` registration, and (for cron) `crontab.xml`.
+- **New skill `magento2-message-queue`** — generates a full async message-queue surface on an existing module: typed topic DTO + interface, publisher, idempotent consumer, and all five queue XML files (`communication.xml`, `queue_topology.xml`, `queue_publisher.xml`, `queue_consumer.xml`).
+- **New skill `magento2-static-analysis`** — action skill running the full static quality gate (PHPCS Magento2 standard, PHPStan level 8, PHPMD, optional php-cs-fixer / rector) with a mandatory Phase-2 approval gate before any auto-fix is applied; emits ranked findings as Markdown + JSON (`outputKind=quality`) + SARIF via the shared emitters.
+- **New skill `magento2-docs-generate`** — generates module technical documentation by extracting public API surfaces, extension points, DI graph, templates, and cron jobs into a structured Markdown technical reference (read-only; writes Markdown only).
+- **New read-only agent `magento2-explorer`** — comprehension agent that maps a module's execution paths, extension points, and DI graph before an `X*` (modify) task; dispatched automatically by `magento2-feature-implement` when needed.
+- **`OUTPUT_KIND=quality`** — new `outputKind` value in the shared findings emitters (`emit-json.sh` / `emit-sarif.sh`), used by `magento2-static-analysis` for its quality-gate findings.
+
+### Changed
+
+- **`magento2-feature-implement` 2.8.0 → 2.9.0** — gained four new task types: `I*` (extension point → delegates to `magento2-extension-point`), `C*` (system config → delegates to `magento2-system-config`), `L*` (CLI command/cron → delegates to `magento2-cli-command`), `Q*` (message queue → delegates to `magento2-message-queue`). The `V*` (Validate) quality-gate task now delegates to `magento2-static-analysis` when present (falls back to inline tool invocations otherwise). Skill count **20 → 26**.
+
 ## [1.10.2] — 2026-06-18 — per-skill version registry sync (no functional change)
 
 Provenance-only patch. The per-skill version bumps that accompany the [1.10.1] audit-remediation fixes were committed to `main` **after** the `v1.10.1` tag was cut, so this release formalizes them in a tagged release rather than force-moving the already-published `v1.10.1` tag. **No skill behaviour changed since 1.10.1** — this release exists purely so the tagged history and the per-skill provenance registry agree.

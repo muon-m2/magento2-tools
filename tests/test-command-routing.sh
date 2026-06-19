@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # test-command-routing.sh — every commands/*.md must be a well-formed thin pass-through to a
-# real magento2-* skill, and the set must be exactly the 9 expected shortcuts. Write commands
+# real magento2-* skill, and the set must be exactly the 14 expected shortcuts. Write commands
 # must be user-only (disable-model-invocation: true).
 set -uo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
@@ -17,7 +17,12 @@ perf:magento2-performance-audit
 deploy:magento2-deploy
 bugfix:magento2-bug-fix
 feature:magento2-feature-implement
-release:magento2-release"
+release:magento2-release
+test:magento2-test-generate
+upgrade:magento2-module-upgrade
+i18n:magento2-i18n
+lint:magento2-static-analysis
+scaffold:magento2-module-create"
 
 if [ ! -d "$CMD_DIR" ]; then echo "FAIL: $CMD_DIR/ directory not found"; exit 1; fi
 
@@ -37,7 +42,7 @@ $EXPECTED
 EOF
 
 # 2. write commands must be user-only
-for cmd in deploy bugfix feature release; do
+for cmd in deploy bugfix feature release upgrade lint; do
     f="$CMD_DIR/$cmd.md"
     [ -f "$f" ] || continue
     grep -qE '^disable-model-invocation: +true' "$f" \
@@ -45,11 +50,20 @@ for cmd in deploy bugfix feature release; do
 done
 
 # 2b. read-only commands must NOT be user-only (auto-invokable)
-for cmd in context snapshot review security perf; do
+for cmd in context snapshot review security perf test i18n; do
     f="$CMD_DIR/$cmd.md"
     [ -f "$f" ] || continue
     grep -qE '^disable-model-invocation: +true' "$f" \
         && { echo "FAIL: read-only command $f must not set 'disable-model-invocation: true'"; FAIL=1; }
+done
+
+# 2c. the scaffold dispatcher routes to (gated) generator skills; it is itself an auto-invokable
+#     entry point — the write gate lives in the target skill — so it must NOT be user-only.
+for cmd in scaffold; do
+    f="$CMD_DIR/$cmd.md"
+    [ -f "$f" ] || continue
+    grep -qE '^disable-model-invocation: +true' "$f" \
+        && { echo "FAIL: dispatcher command $f must not set 'disable-model-invocation: true' (gates live in target skills)"; FAIL=1; }
 done
 
 # 3. no unexpected command files, and filenames are lowercase-kebab
@@ -63,5 +77,5 @@ for f in "$CMD_DIR"/*.md; do
 done
 
 [ "$FAIL" -eq 0 ] || { echo "RESULT: FAIL"; exit 1; }
-echo "command routing: 9 commands valid, well-formed, routed to real skills"
+echo "command routing: 14 commands valid, well-formed, routed to real skills"
 exit 0

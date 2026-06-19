@@ -2,7 +2,8 @@
 
 Single source of truth for the JSON document emitted by every finding-producing skill:
 `magento2-module-review`, `magento2-security-audit`, `magento2-performance-audit`,
-`magento2-module-upgrade`.
+`magento2-module-upgrade`, `magento2-static-analysis`, `magento2-marketplace-prep`,
+`magento2-accessibility-audit`.
 
 A SARIF 2.1.0 emitter is generated from the same JSON; adding new finding categories only
 requires updating this schema and the JSON emitter.
@@ -125,7 +126,7 @@ requires updating this schema and the JSON emitter.
 | skill         | Yes      | `SKILL_NAME` env var; the producing skill identifier.                                 |
 | skillVersion  | Yes      | `SKILL_VERSION` env var.                                                              |
 | skillVersions | Yes      | Array of `name@version` strings — every contributor.                                  |
-| outputKind    | Yes      | `review` \| `security` \| `performance` \| `upgrade`. Drives output filename + label. |
+| outputKind    | Yes      | `review` \| `security` \| `performance` \| `upgrade` \| `quality` \| `marketplace` \| `accessibility`. Drives output filename + label. |
 | target        | Yes      | `{module, path, scope}`. `scope` ∈ `module                                            |site|vendor|diff`. |
 | runAt         | Yes      | ISO-8601 UTC timestamp.                                                               |
 | mode          | Yes      | `full` \| `quick` \| `diff`.                                                          |
@@ -160,6 +161,30 @@ requires updating this schema and the JSON emitter.
 `deprecation` | `bc_break` | `magento_compat` | `php_compat` | `composer_constraint` |
 `removed_class` | `removed_method`
 
+### magento2-static-analysis
+
+`style` (phpcs/phpcbf/php-cs-fixer violations) | `complexity` (phpmd) |
+`type` (phpstan type errors) | `dead-code` (phpmd/rector dead-code) |
+`refactoring` (rector safe/review transforms)
+
+### magento2-marketplace-prep
+
+`metadata` (composer.json fields, name/type/version/license/autoload/constraints) |
+`packaging` (registration.php, module.xml, dev artifacts, .gitignore) |
+`documentation` (LICENSE file, license headers, README) |
+`testing` (MFTF, unit, integration test presence) |
+`eqp` (EQP static findings incorporated from magento2-security-audit)
+
+### magento2-accessibility-audit
+
+`alt-text` (missing or empty alt attributes on images — WCAG 1.1.1) |
+`aria` (invalid/abused ARIA roles, aria-hidden on focusable elements, missing accessible
+text on links/buttons — WCAG 2.4.4, 4.1.2) |
+`semantic-html` (heading-order skips, missing lang attribute — WCAG 1.3.1, 3.1.1) |
+`keyboard` (positive tabindex, missing skip-link — WCAG 2.4.1, 2.4.3) |
+`contrast` (color-contrast heuristics in LESS/CSS — WCAG 1.4.3, heuristic only) |
+`forms` (unlabelled inputs/selects/textareas, fieldset without legend — WCAG 1.3.1, 4.1.2)
+
 ## SARIF 2.1.0 Mapping
 
 | Schema field                        | SARIF field                             |
@@ -186,6 +211,7 @@ JSON output:
 .docs/audits/security-{scope}-{YYYY-MM-DD}.json
 .docs/audits/perf-{scope}-{YYYY-MM-DD}.json
 .docs/upgrades/{Vendor}_{Module}-{from}-to-{to}-{YYYY-MM-DD}.json
+.docs/quality/quality-{scope}-{YYYY-MM-DD}.json
 ```
 
 All paths are anchored at the project root (`{ctx.docs_root}` = `{project_root}/.docs`) —
