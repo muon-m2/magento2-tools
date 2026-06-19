@@ -149,10 +149,16 @@ gate. They are always namespaced:
 | `/magento2-tools:bugfix`   | `magento2-bug-fix` | reproduce → RCA → fix (gated) |
 | `/magento2-tools:feature`  | `magento2-feature-implement` | feature orchestrator (gated) |
 | `/magento2-tools:release`  | `magento2-release` | cut a release (gated) |
+| `/magento2-tools:test`     | `magento2-test-generate` | generate unit/integration/API/MFTF tests |
+| `/magento2-tools:upgrade`  | `magento2-module-upgrade` | BC-break detection and upgrade plan (gated) |
+| `/magento2-tools:i18n`     | `magento2-i18n` | extract strings / manage locale CSVs |
+| `/magento2-tools:lint`     | `magento2-static-analysis` | static analysis + safe auto-fixes (gated) |
+| `/magento2-tools:scaffold` | `magento2-module-create` | code-generation dispatcher (gated) |
 
-The four write commands (`deploy`, `bugfix`, `feature`, `release`) are user-invoked only; the
-read-only five may also be auto-suggested. All arguments/flags are passed straight through to the
-skill, which is the source of truth for behaviour and gates.
+The six write commands (`deploy`, `bugfix`, `feature`, `release`, `upgrade`, `lint`) are user-invoked only; the
+read-only seven (`context`, `snapshot`, `review`, `security`, `perf`, `test`, `i18n`) may also be auto-suggested.
+The `scaffold` dispatcher routes to `magento2-module-create` and guides generation to specialist skills.
+All arguments/flags are passed straight through to the skill, which is the source of truth for behaviour and gates.
 
 ## Per-project environment overrides
 
@@ -181,7 +187,7 @@ detection. Changing any override busts the resolver cache automatically.
   plugin.json        # plugin manifest
   marketplace.json   # this repo doubles as its own marketplace ("muon-m2")
 skills/              # 26 magento2-* skills (auto-discovered by Claude Code)
-commands/            # 9 /magento2-tools:<verb> shortcut commands (auto-discovered)
+commands/            # 14 /magento2-tools:<verb> shortcut commands (auto-discovered)
 agents/              # first-party read-only subagents: magento2-reviewer (per-dimension review) + magento2-explorer (code comprehension/tracing)
 hooks/               # PreToolUse guard: keeps .docs/ artifacts at the project root
 tests/               # contract test harness
