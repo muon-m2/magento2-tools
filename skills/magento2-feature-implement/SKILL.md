@@ -86,8 +86,9 @@ the full implementation from analysis through tested, reviewed, reported deliver
   unverifiable citation is not a reason. Inline is the exception for a genuinely absent skill, not
   the default — see the **Fallback discipline** note at the start of Phase 5.
 - **Deploy delegation.** D* tasks delegate to `magento2-deploy`. The skill is invoked with the
-  module list and the user's environment selection; this skill does not run `bin/magento`
-  commands inline.
+  module list and the user's environment selection; `magento2-feature-implement` does not run
+  `bin/magento` commands itself — `magento2-deploy` owns the deploy plan (and the manual-next-steps
+  fallback when it is absent).
 
 ---
 

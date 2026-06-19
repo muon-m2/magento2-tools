@@ -12,7 +12,7 @@ skills evolve.
 | magento2-context           | 1.6.1   | JSON schema changes, new resolution rules, new tool probes          |
 | magento2-module-create     | 1.8.0   | New template added, surface added, naming rule changed              |
 | magento2-module-review     | 2.3.1   | New checklist category, severity calibration change, new JSON field, fix-routing change |
-| magento2-feature-implement | 2.10.1  | New phase, new approval gate, mode added, new task types (I/C/L/Q), template structure change |
+| magento2-feature-implement | 2.10.1  | New phase, new approval gate, mode added, new task types (I/C/L/Q), template structure change, delegation/fallback discipline |
 | magento2-bug-fix           | 1.0.2   | Workflow phase change, RCA format change                            |
 | magento2-deploy            | 1.2.1   | Deploy plan template change, rollback recipe change                 |
 | magento2-test-generate     | 1.1.2   | Generator pattern change, new test type added                       |
