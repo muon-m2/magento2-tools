@@ -16,14 +16,18 @@ Tasks use a two-part ID: `{TypePrefix}{Number}`
 | `E`    | EAV attribute (maps 1:1 to a `magento2-eav-attribute` invocation)                     |
 | `G`    | GraphQL surface design (maps 1:1 to a `magento2-graphql-create` invocation)           |
 | `F`    | Frontend asset (maps 1:1 to a `magento2-frontend-create` invocation, when present)    |
+| `I`    | Wire an extension point onto existing code (maps 1:1 to a `magento2-extension-point` invocation — plugin/observer/preference) |
+| `C`    | Add admin store configuration (maps 1:1 to a `magento2-system-config` invocation)     |
+| `L`    | Add a CLI command or cron job (maps 1:1 to a `magento2-cli-command` invocation)       |
+| `Q`    | Add an async message-queue surface (maps 1:1 to a `magento2-message-queue` invocation) |
 | `T`    | Write or expand tests (delegates to `magento2-test-generate` when present)            |
 | `R`    | Review (maps 1:1 to a `magento2-module-review` invocation, `--diff` mode)             |
-| `V`    | Validate (quality gate)                                                               |
+| `V`    | Validate (quality gate; may delegate to `magento2-static-analysis` when present)      |
 | `D`    | Deploy (maps 1:1 to a `magento2-deploy` invocation)                                   |
 | `S`    | Smoke suite (Phase 6B — emitted by the skill, not user-authored)                       |
 | `P`    | Report (final implementation report)                                                  |
 
-Example task IDs: `M1`, `M2`, `X1`, `E1`, `G1`, `T1`, `R1`, `V1`, `D1`, `S1`, `S2`, `S8`, `P1`.
+Example task IDs: `M1`, `M2`, `X1`, `E1`, `G1`, `I1`, `C1`, `L1`, `Q1`, `T1`, `R1`, `V1`, `D1`, `S1`, `S2`, `S8`, `P1`.
 
 ### `S*` smoke tasks
 
