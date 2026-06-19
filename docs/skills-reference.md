@@ -261,6 +261,31 @@ blockers/warnings/info breakdown. Never modifies code, never packages or uploads
 | Assess EQP submission readiness (metadata, docs, packaging) | `magento2-marketplace-prep` | `magento2-security-audit` / `magento2-release` |
 | Deep CVE + secret + EQP static scan | `magento2-security-audit` | `magento2-module-review` |
 | Version bump, changelog, tag, publish | `magento2-release` | — |
+| Audit storefront templates for WCAG/a11y issues | `magento2-accessibility-audit` | `magento2-frontend-create` / `magento2-module-review` |
+
+---
+
+### magento2-accessibility-audit
+
+Read-only WCAG 2.1 Level AA audit of a module's or theme's storefront templates:
+missing alt text, unlabelled form controls, ARIA misuse, heading-order breaks,
+keyboard/tab-index problems, and LESS color-contrast heuristics. Static-first (no
+running Magento needed); optional opt-in pa11y runtime pass. Never modifies templates.
+
+- **Invocation:** `[--module=<Vendor>_<Module>] [--theme=<Vendor>/<Theme>]
+  [--runtime --url=<storefront-url>] [--format=markdown|json|sarif]`.
+- **Phases:** context resolution (theme detection via `magento2-context`) → scope →
+  static scan (`scripts/scan-templates.sh`) → optional pa11y runtime pass (opt-in;
+  requires `--runtime`, `--url`, and `pa11y` in `{ctx.tools}`) → report.
+- **Severity:** `high` = missing alt/label/accessible text; `medium` = heading order,
+  ARIA misuse, contrast heuristic, positive tabindex; `low` = missing lang; `info` =
+  runtime pass skipped.
+- **Theme-aware:** adapts Luma (Knockout/LESS) vs. Hyva (Alpine/Tailwind) template
+  patterns via `{ctx.theme}` from `magento2-context`.
+- **Outputs:** `.docs/accessibility/{Vendor}_{Module}-a11y-{date}.json` + `.sarif`
+  (automated via `build-findings.sh`, `outputKind=accessibility`) + `.md` narrative.
+- **Related:** `magento2-frontend-create` (build accessible frontend assets);
+  `magento2-module-review` (general module quality review).
 
 ---
 

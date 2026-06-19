@@ -66,7 +66,7 @@ Developer documentation lives in [`docs/`](docs/README.md):
 
 ## Skills
 
-28 skills under `skills/`, each self-contained (`SKILL.md` + `references/` +
+29 skills under `skills/`, each self-contained (`SKILL.md` + `references/` +
 `scripts/` + `templates/`). Per-skill flags, phases, and outputs are documented in
 [docs/skills-reference.md](docs/skills-reference.md).
 
@@ -100,6 +100,7 @@ Developer documentation lives in [`docs/`](docs/README.md):
 | `magento2-docs-generate` | Generate or refresh a module's technical documentation from its own code — public @api surface, events, plugins, REST/GraphQL, DB schema, and more. Read-only; writes Markdown only. |
 | `magento2-indexer` | Scaffold a custom indexer + materialized view (mview) on an existing module: indexer.xml, mview.xml subscriptions, an ActionInterface indexer class + batched action class. |
 | `magento2-marketplace-prep` | Assess an existing module's Adobe Marketplace / EQP submission readiness: composer metadata, licensing, structure, MFTF tests, docs, packaging hygiene. Read-only; emits a tiered scored report (JSON + SARIF, `outputKind=marketplace`). |
+| `magento2-accessibility-audit` | Audit a module's/theme's storefront templates for WCAG 2.1 Level AA issues (alt text, labels, ARIA, headings, keyboard, contrast). Static-first; optional pa11y runtime pass. Read-only; emits ranked findings (JSON + SARIF, `outputKind=accessibility`). |
 
 ### Dependency graph
 
@@ -188,7 +189,7 @@ detection. Changing any override busts the resolver cache automatically.
 .claude-plugin/
   plugin.json        # plugin manifest
   marketplace.json   # this repo doubles as its own marketplace ("muon-m2")
-skills/              # 28 magento2-* skills (auto-discovered by Claude Code)
+skills/              # 29 magento2-* skills (auto-discovered by Claude Code)
 commands/            # 14 /magento2-tools:<verb> shortcut commands (auto-discovered)
 agents/              # first-party read-only subagents: magento2-reviewer (per-dimension review) + magento2-explorer (code comprehension/tracing)
 hooks/               # PreToolUse guard: keeps .docs/ artifacts at the project root

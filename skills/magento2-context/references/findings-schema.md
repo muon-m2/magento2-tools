@@ -2,7 +2,8 @@
 
 Single source of truth for the JSON document emitted by every finding-producing skill:
 `magento2-module-review`, `magento2-security-audit`, `magento2-performance-audit`,
-`magento2-module-upgrade`, `magento2-static-analysis`, `magento2-marketplace-prep`.
+`magento2-module-upgrade`, `magento2-static-analysis`, `magento2-marketplace-prep`,
+`magento2-accessibility-audit`.
 
 A SARIF 2.1.0 emitter is generated from the same JSON; adding new finding categories only
 requires updating this schema and the JSON emitter.
@@ -125,7 +126,7 @@ requires updating this schema and the JSON emitter.
 | skill         | Yes      | `SKILL_NAME` env var; the producing skill identifier.                                 |
 | skillVersion  | Yes      | `SKILL_VERSION` env var.                                                              |
 | skillVersions | Yes      | Array of `name@version` strings — every contributor.                                  |
-| outputKind    | Yes      | `review` \| `security` \| `performance` \| `upgrade` \| `quality` \| `marketplace`. Drives output filename + label. |
+| outputKind    | Yes      | `review` \| `security` \| `performance` \| `upgrade` \| `quality` \| `marketplace` \| `accessibility`. Drives output filename + label. |
 | target        | Yes      | `{module, path, scope}`. `scope` ∈ `module                                            |site|vendor|diff`. |
 | runAt         | Yes      | ISO-8601 UTC timestamp.                                                               |
 | mode          | Yes      | `full` \| `quick` \| `diff`.                                                          |
@@ -173,6 +174,16 @@ requires updating this schema and the JSON emitter.
 `documentation` (LICENSE file, license headers, README) |
 `testing` (MFTF, unit, integration test presence) |
 `eqp` (EQP static findings incorporated from magento2-security-audit)
+
+### magento2-accessibility-audit
+
+`alt-text` (missing or empty alt attributes on images — WCAG 1.1.1) |
+`aria` (invalid/abused ARIA roles, aria-hidden on focusable elements, missing accessible
+text on links/buttons — WCAG 2.4.4, 4.1.2) |
+`semantic-html` (heading-order skips, missing lang attribute — WCAG 1.3.1, 3.1.1) |
+`keyboard` (positive tabindex, missing skip-link — WCAG 2.4.1, 2.4.3) |
+`contrast` (color-contrast heuristics in LESS/CSS — WCAG 1.4.3, heuristic only) |
+`forms` (unlabelled inputs/selects/textareas, fieldset without legend — WCAG 1.3.1, 4.1.2)
 
 ## SARIF 2.1.0 Mapping
 

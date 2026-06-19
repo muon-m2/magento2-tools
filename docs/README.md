@@ -1,6 +1,6 @@
 # magento2-tools documentation
 
-Developer documentation for the `magento2-tools` Claude Code plugin — 28 skills covering
+Developer documentation for the `magento2-tools` Claude Code plugin — 29 skills covering
 the full Magento 2 engineering lifecycle: scaffolding, review, testing, bug-fixing,
 deployment, auditing, upgrading, and releasing.
 

@@ -47,6 +47,7 @@ check data-migration      magento2-eav-attribute
 check static-analysis     magento2-module-review
 check indexer             magento2-module-create magento2-performance-audit
 check marketplace-prep    magento2-security-audit magento2-release
+check accessibility-audit magento2-frontend-create magento2-module-review
 
 [ "$FAIL" -eq 0 ] || { echo "RESULT: FAIL"; exit 1; }
 echo "routing discriminators: all cross-references present"

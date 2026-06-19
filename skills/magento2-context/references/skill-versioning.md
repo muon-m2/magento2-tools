@@ -37,6 +37,7 @@ skills evolve.
 | magento2-docs-generate     | 1.0.0   | New surface extractor, doc-structure change                                   |
 | magento2-indexer           | 1.0.0   | New indexer/mview pattern, dimension support                                  |
 | magento2-marketplace-prep  | 1.0.0   | New EQP check, readiness-scoring calibration                                  |
+| magento2-accessibility-audit | 1.0.0 | New WCAG rule, runtime pass change                                            |
 
 ## Changelog (last update: 2026-06-18)
 
