@@ -10,9 +10,9 @@ skills evolve.
 | Skill                      | Version | Bumped when                                                         |
 |----------------------------|---------|---------------------------------------------------------------------|
 | magento2-context           | 1.6.1   | JSON schema changes, new resolution rules, new tool probes          |
-| magento2-module-create     | 1.7.1   | New template added, surface added, naming rule changed              |
+| magento2-module-create     | 1.8.0   | New template added, surface added, naming rule changed              |
 | magento2-module-review     | 2.3.1   | New checklist category, severity calibration change, new JSON field, fix-routing change |
-| magento2-feature-implement | 2.9.0   | New phase, new approval gate, mode added, new task types (I/C/L/Q), template structure change |
+| magento2-feature-implement | 2.10.0  | New phase, new approval gate, mode added, new task types (I/C/L/Q), template structure change |
 | magento2-bug-fix           | 1.0.2   | Workflow phase change, RCA format change                            |
 | magento2-deploy            | 1.2.1   | Deploy plan template change, rollback recipe change                 |
 | magento2-test-generate     | 1.1.2   | Generator pattern change, new test type added                       |
@@ -39,7 +39,22 @@ skills evolve.
 | magento2-marketplace-prep  | 1.0.0   | New EQP check, readiness-scoring calibration                                  |
 | magento2-accessibility-audit | 1.0.0 | New WCAG rule, runtime pass change                                            |
 
-## Changelog (last update: 2026-06-18)
+## Changelog (last update: 2026-06-19)
+
+- **Plugin 1.12.1 — required documentation step before the final step.** Both creation skills now
+  produce documentation as a mandatory step before their final step, instead of an optional
+  after-thought. Bumps:
+  - `magento2-feature-implement 2.9.0 → 2.10.0` — Phase 7 split into **7A** (documentation, required)
+    + **7B** (final report). 7A (re)generates per-module docs via `magento2-docs-generate`, a
+    cross-module `spec.md`, developer/user HTML guides with screenshots (reusing Phase 6B captures),
+    REST/GraphQL request/response payload examples when an API surface exists, and helpful artifacts;
+    refresh-not-stale on resume/extend. New `references/documentation-guide.md`; per-mode scope wired
+    into `modes.md`; the report links the doc set.
+  - `magento2-module-create 1.7.1 → 1.8.0` — new **Step 6** (documentation, required) before the
+    report (now Step 7). Code-derived/static set under `{module}/docs/` (Markdown): technical
+    reference via `magento2-docs-generate`, developer/user guides, screenshot placeholders when no
+    running instance, contract-derived API examples, and artifacts. Reduced in Quick Create;
+    refresh-only in `--mode=augment`. New `references/documentation-guide.md`.
 
 - **New skill `magento2-static-analysis` 1.0.0 (unreleased)** — action skill that runs
   the static-analysis gate (phpcs Magento2, phpstan, phpmd, php-cs-fixer, rector) over a

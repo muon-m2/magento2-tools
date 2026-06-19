@@ -6,6 +6,13 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.12.1] — 2026-06-19 — documentation is a required step before the final step
+
+### Changed
+
+- **`magento2-feature-implement` 2.9.0 → 2.10.0** — Phase 7 is split into **7A** (documentation, required) and **7B** (final report); 7B may not start until the documentation set exists on disk and is current. 7A (re)generates per-module technical docs via `magento2-docs-generate`, a cross-module `spec.md`, developer- and user-scope HTML guides with screenshots (reusing the Phase 6B captures), REST/GraphQL request/response payload examples when an API surface exists, and other helpful artifacts — refreshed (never left stale) on resume / `extend` runs. New `references/documentation-guide.md` defines the per-scope artifacts, per-mode scope, and completeness gate; per-mode scope is wired into `references/modes.md`; the final report now links the doc set. Previously documentation was an optional Phase-7 after-thought generated *after* the report.
+- **`magento2-module-create` 1.7.1 → 1.8.0** — new **Step 6** (documentation, required) before the report (now Step 7). The set is code-derived/static (this skill assumes no running instance) and lives under `{module}/docs/` in Markdown: a technical reference via `magento2-docs-generate`, developer- and user-scope guides, screenshots (or clearly-marked placeholders naming the screen to capture post-deploy when no instance is available), contract-derived REST/GraphQL request/response examples, and helpful artifacts. Reduced to `README.md` + `CHANGELOG.md` in Quick Create Mode; refresh-only in `--mode=augment`. New `references/documentation-guide.md`.
+
 ## [1.12.0] — 2026-06-18 — Wave 2: command surface + indexer / marketplace-prep / accessibility-audit skills
 
 ### Added
