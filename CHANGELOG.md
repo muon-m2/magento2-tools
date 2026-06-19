@@ -6,6 +6,20 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.13.0] — 2026-06-19 — Breeze (Swissup Breezefront) support
+
+### Added
+
+- **New skill `magento2-breeze-child-theme`** — scaffolds a Swissup Breeze child theme: `theme.xml` with a `Swissup/breeze-*` parent (`breeze-blank`/`breeze-evolution`/`breeze-enterprise`), `registration.php`, `composer.json`, a Breeze-only `breeze_default.xml` layout handle, and Breeze-side overrides in `web/css/breeze/_default.less` with the `@critical` guard. Prefers `bin/magento breeze:theme:create` when available. Sibling to `magento2-frontend-create` (generic Luma/Hyvä/custom themes).
+- **New skill `magento2-breeze-module-adapt`** — adapts an existing module to Breeze by generating a **separate companion** `{Vendor}_{Module}Breeze` module (sequenced after the target + `Swissup_Breeze`) that holds the adapter layer: `breeze_default.xml` JS registration on the `breeze.js` block, `web/css/breeze/_default.less`, and Cash `$.widget` stubs converted from the target's RequireJS/Knockout/jQuery widgets. Never edits the target, so it works on read-only `vendor/` modules.
+- **New skill `magento2-breeze-compat-audit`** — read-only static auditor; scans a module for RequireJS/Knockout/jQuery-widget/mixin usage and emits ranked findings (Markdown + JSON + SARIF via the shared emitters) plus a verdict (compatible out-of-box / needs Better Compatibility / needs a manual adapter), pointing at `magento2-breeze-module-adapt`.
+- **`OUTPUT_KIND=compatibility`** — a new `outputKind` value (+ category vocabulary) in the shared findings schema/emitters, for the Breeze compatibility report.
+- **`theme.breeze` detection in `magento2-context` (1.6.1 → 1.7.0)** — a new `theme.breeze` object (`installed`/`active`/`parent`/`packages`/`source`): `installed` keys off any `swissup/breeze-*` / `swissup/module-breeze` composer package; `active` walks the active frontend theme's `app/design` `<parent>` chain for a Breeze ancestor. The three Breeze skills refuse to run (printing the install command) when Breeze is not installed.
+
+### Changed
+
+- Skill count **29 → 32**.
+
 ## [1.12.2] — 2026-06-19 — feature-implement: probe-before-fallback sub-skill delegation
 
 ### Fixed

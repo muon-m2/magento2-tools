@@ -44,7 +44,7 @@ skills evolve.
 
 ## Changelog (last update: 2026-06-19)
 
-- **Breeze (Swissup Breezefront) support — three new skills + context detection (unreleased).**
+- **Plugin 1.13.0 — Breeze (Swissup Breezefront) support — three new skills + context detection.**
   Adds first-class Breeze theme support to the suite.
   - `magento2-context 1.6.1 → 1.7.0` — new `theme.breeze` JSON object
     (`installed`/`active`/`parent`/`packages`/`source`): `installed` keys off any
@@ -66,7 +66,7 @@ skills evolve.
     (Markdown + JSON `outputKind=compatibility` + SARIF) via the shared emit-json.sh /
     emit-sarif.sh emitters, plus a verdict (compatible / needs Better Compatibility / needs
     manual adapter) pointing at `magento2-breeze-module-adapt`.
-  - Not yet bundled in a plugin release (`plugin.json` unchanged).
+  - Bundled in plugin **1.13.0**.
 
 - **`magento2-feature-implement` 2.10.0 → 2.10.1 — delegation discipline (unreleased).** Fixes the
   failure mode where the orchestrator skipped sub-skill delegation on an unverified "not
