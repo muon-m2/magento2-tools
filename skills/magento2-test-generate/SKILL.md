@@ -100,6 +100,12 @@ Generation rules per test type:
 - `xmllint --noout` on every MFTF XML file.
 - Run unit tests via `{ctx.runner} vendor/bin/phpunit {paths}`. Fix failures.
 - Run integration tests if Magento install available.
+- **Apply the shared module-hygiene baseline (required).** After generating the test PHP
+  files, run
+  `${CLAUDE_PLUGIN_ROOT}/skills/magento2-context/scripts/add-license-headers.sh {ctx.magento_root}/app/code/{Vendor}/{Module} {Vendor}`
+  to stamp the standard copyright header onto every new `.php` — Magento test files carry
+  it too (idempotent — it skips files that already carry it). See
+  `magento2-context/references/module-hygiene.md`.
 
 ### Phase 5 — Report
 

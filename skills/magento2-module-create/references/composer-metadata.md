@@ -17,6 +17,7 @@ See SKILL.md Step 1 for context resolution rules.
 | `type`                      | `"magento2-module"`                           | Fixed — always this exact string                          |
 | `license`                   | `"proprietary"` or SPDX identifier            | From project convention or ask user                       |
 | `version`                   | Semver string, e.g. `"1.0.0"`                 | Start at `"1.0.0"` unless told otherwise                  |
+| `authors`                   | Non-empty array of `{name, email}` objects    | `name` from `git config user.name` (fallback `gh api user`); `email` from `git config user.email` — ask only if both are empty |
 | `require.php`               | `{php_constraint}`                            | Read from `src/composer.json` `"php"` field               |
 | `require.magento/framework` | `{framework_constraint}`                      | Read from `src/composer.json` `"magento/framework"` field |
 
@@ -92,5 +93,20 @@ Example for a module using Catalog and Store (version values taken from `src/com
 | Literal version numbers copied from this file | Versions come from `src/composer.json`, not this document                     |
 
 ---
+
+## License File & Copyright Headers
+
+The `license` field is not enough on its own — Marketplace/EQP also requires a matching license
+**file** and a copyright header in source files:
+
+- **`LICENSE.txt` at the module root is mandatory** and its contents must match the declared
+  `license` field. Write it from `templates/LICENSE.txt` (proprietary EULA, using `{Vendor}`). If the
+  `license` field is an SPDX identifier (`OSL-3.0`, `AFL-3.0`, `MIT`, …), replace the body with that
+  license's standard text instead, keeping file and field in sync.
+- **Every generated PHP file carries a copyright header** pointing at `LICENSE.txt`. Do not hand-write
+  it per file — it is applied uniformly by the shared
+  `magento2-context/scripts/add-license-headers.sh` (see SKILL.md Step 5). The
+  header is generic on purpose (it references `LICENSE.txt` rather than restating terms), so the same
+  block is correct for both proprietary and OSI licenses.
 
 README and CHANGELOG format rules are in `references/docs-format.md`.

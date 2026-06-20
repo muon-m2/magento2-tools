@@ -142,6 +142,14 @@ The SAME topic string must appear in `communication.xml`, `queue_topology.xml`,
 - Run the Phase 3A test with `{ctx.runner} vendor/bin/phpunit` and confirm it now
   **passes** (it failed before 3B); run the module suite to confirm nothing else broke.
 - Run `magento2-module-review --diff` (gate: zero Critical/High findings).
+- **Apply the shared module-hygiene baseline (required).** After generating or modifying PHP
+  files, run
+  `${CLAUDE_PLUGIN_ROOT}/skills/magento2-context/scripts/add-license-headers.sh {ctx.magento_root}/app/code/{Vendor}/{Module} {Vendor}`
+  to stamp the standard copyright header onto every new `.php` (idempotent — it skips files that
+  already carry it). When adding a `composer.json` `require` entry, resolve a **bounded**
+  constraint via
+  `${CLAUDE_PLUGIN_ROOT}/skills/magento2-context/scripts/resolve-dep-constraint.sh <vendor/package>` —
+  never `"*"`. See `magento2-context/references/module-hygiene.md`.
 - Consult `${CLAUDE_SKILL_DIR}/references/pitfalls.md` before declaring Phase 4 done —
   verify the topic/queue/consumer names are byte-identical across all wiring points.
 

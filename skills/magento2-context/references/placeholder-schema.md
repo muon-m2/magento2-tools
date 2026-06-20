@@ -127,7 +127,9 @@ Free-form values that authors fill in: `{N}`, `{sum}` (estimated-effort total), 
 `{route}`, `{url}`, `{description}`,
 `{Description}`, `{ShortDescription}`, `{purpose}`, `{reason}`, `{notes}`, `{Title}`,
 `{Name}` / `{name}`, `{version}` / `{ver}`, `{Severity}`, `{date}`, `{DATE}`, `{YYYY-MM-DD}`,
-`{timestamp}`, `{uuid}`, `{author}`, `{commit}`, `{env}`, `{path}` / `{Path}`, `{file}` /
+`{timestamp}`, `{uuid}`, `{author}` (composer `authors[].name`; derive from `git config user.name`,
+fallback `gh api user`), `{author_email}` (composer `authors[].email`; derive from
+`git config user.email`), `{commit}`, `{env}`, `{path}` / `{Path}`, `{file}` /
 `{file_name}` / `{file1}` / `{file2}`, `{line}`, `{col}`, `{bytes}`, `{expected}` /
 `{actual}`, `{from}` / `{to}` / `{From}` / `{To}`, `{from_magento}` / `{to_magento}` /
 `{from_php}` / `{to_php}`, `{minimum}`, `{event_name}` / `{event_short_name}` /
@@ -299,6 +301,7 @@ area
 args
 attribute_code
 author
+author_email
 bytes
 code
 col

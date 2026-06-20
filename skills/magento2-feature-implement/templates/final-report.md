@@ -7,7 +7,7 @@ Blueprint: `.docs/{FeatureName}/blueprint.md`
 Skill versions:
 
 - magento2-feature-implement@2.10.1
-  - magento2-module-create@1.8.0
+  - magento2-module-create@1.9.0
   - magento2-module-review@2.3.1
   - magento2-context@1.7.0
 

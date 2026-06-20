@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<actionGroups xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="urn:magento:mftf:Test/etc/actionGroupSchema.xsd">
+    <actionGroup name="{Vendor}{ModuleName}AssertPageLoadsActionGroup">
+        <annotations>
+            <description>Opens a {Vendor}_{ModuleName} page and asserts it is reachable (not a 404).</description>
+        </annotations>
+        <arguments>
+            <argument name="page" type="string"/>
+        </arguments>
+        <amOnPage url="{{page}}" stepKey="goToPage"/>
+        <dontSee userInput="404" stepKey="assertNotNotFound"/>
+    </actionGroup>
+</actionGroups>

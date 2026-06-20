@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tests xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="urn:magento:mftf:Test/etc/testSchema.xsd">
+    <test name="{Vendor}{ModuleName}SmokeTest">
+        <annotations>
+            <features value="{ModuleName}"/>
+            <stories value="Smoke"/>
+            <title value="{Vendor}_{ModuleName} module smoke test"/>
+            <description value="Verifies the {Vendor}_{ModuleName} module is installed and the admin entry point loads."/>
+            <severity value="MINOR"/>
+            <group value="{module_lower}"/>
+        </annotations>
+        <before>
+            <actionGroup ref="AdminLoginActionGroup" stepKey="loginAsAdmin"/>
+        </before>
+        <after>
+            <actionGroup ref="AdminLogoutActionGroup" stepKey="logout"/>
+        </after>
+        <amOnPage url="{{AdminDashboardPage.url}}" stepKey="goToDashboard"/>
+        <seeInCurrentUrl url="admin" stepKey="seeAdminUrl"/>
+    </test>
+</tests>

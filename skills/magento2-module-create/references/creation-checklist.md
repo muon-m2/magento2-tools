@@ -17,6 +17,8 @@ Must create:
 - [ ] `etc/di.xml` (always)
 - [ ] `README.md` (always)
 - [ ] `CHANGELOG.md` (always)
+- [ ] `LICENSE.txt` (always) — contents match the composer `license` field (Marketplace/EQP blocker)
+- [ ] `.gitignore` (always)
 - [ ] `etc/db_schema_whitelist.json` (when `persistence` surface declared)
 
 Must NOT create:
@@ -50,6 +52,8 @@ Must NOT create:
 - [ ] `"magento/framework"` constraint present — value derived from `src/composer.json`, not hardcoded
 - [ ] `version` field present (semver)
 - [ ] `license` field present and non-empty
+- [ ] `authors` array present — name from `git config user.name` (fallback `gh api user`), email from
+  `git config user.email` (not `{Vendor}`)
 - [ ] `description` field present and meaningful (not a copy of the module name)
 - [ ] No `"*"` version constraints anywhere
 - [ ] All `Magento_*` and `{Vendor}_*` dependencies listed explicitly in `require`
@@ -75,7 +79,9 @@ Must NOT create:
 
 Every generated PHP file must pass all of:
 
-- [ ] `<?php` on line 1, blank line, `declare(strict_types=1);` on the next line
+- [ ] `<?php` on line 1, copyright header block (applied by the shared
+  `magento2-context/scripts/add-license-headers.sh`),
+  `declare(strict_types=1);` — header references `LICENSE.txt`, not restated license terms
 - [ ] All method parameters and return types declared — no missing type hints
 - [ ] Constructor injection only — `ObjectManager::getInstance()` absent from production code
 - [ ] Promoted `readonly` constructor properties used (requires PHP 8.1+; use when project PHP version supports it)
@@ -186,6 +192,8 @@ and all `Api/` and `Service/` classes. See `references/phpdoc-rules.md` for the 
 
 - [ ] `Test/Unit/` directory created (always)
 - [ ] `Test/Integration/` directory created (always — populate when integration tests are written)
+- [ ] `Test/Mftf/` minimal smoke test created when a UI surface (`admin_ui`/`frontend_ui`) is declared
+  (Marketplace functional coverage)
 - [ ] One test class per generated `Service/` class
 - [ ] One test class per generated Repository implementation
 - [ ] Tests use `createMock()` with typed mocks: `SomeInterface&MockObject`
