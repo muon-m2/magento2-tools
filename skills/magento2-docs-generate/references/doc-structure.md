@@ -155,6 +155,287 @@ Each section heading is an anchor used by the README's conditional sections abov
 
 ---
 
+## Developer Guide Structure
+
+Rendered from `templates/developer-guide.md`.
+Target file: `{module}/docs/developer-guide.md`.
+
+### Sections (each omitted when the relevant surface has zero entries)
+
+| Section | Heading | Token | Omit when |
+|---------|---------|-------|-----------|
+| Overview | `## Overview` | `{DEV_GUIDE_OVERVIEW}` | Never omitted |
+| API Usage | `## API Usage` | `{API_USAGE}` | `api_methods` is empty |
+| Extension Points | `## Extension Points` | `{EXTENSION_POINTS}` | `plugins` + `preferences` + `events_observed` all empty |
+| Data Model | `## Data Model` | `{DATA_MODEL}` | `db_schema` + `extension_attributes` both empty |
+| Event Flow | `## Event Flow` | `{EVENT_FLOW}` | `events_fired` + `events_observed` both empty |
+
+---
+
+## User Guide Structure
+
+Rendered from `templates/user-guide.md`.
+Target file: `{module}/docs/user-guide.md`.
+
+Generated only when `user_surface` is non-empty (i.e. the module presents at least one
+admin config field, admin UI component, storefront route, or email template).
+
+### Sections (each omitted when the relevant surface has zero entries)
+
+| Section | Heading | Token | Omit when |
+|---------|---------|-------|-----------|
+| Introduction | `## Introduction` | `{USER_GUIDE_INTRO}` | Never omitted |
+| Configuration | `## Configuration` | `{CONFIG}` | `user_surface.admin_config` is empty |
+| Admin UI | `## Admin Interface` | `{ADMIN_UI}` | `user_surface.admin_ui` is empty |
+| Storefront | `## Storefront Features` | `{STOREFRONT}` | `user_surface.storefront` is empty |
+| Emails | `## Email Templates` | `{EMAILS}` | `user_surface.emails` is empty |
+| Screenshots | `## Screenshots` | `{SCREENSHOTS}` | See screenshot capture-guidance appendix below |
+
+---
+
+## REST API Reference Structure
+
+Rendered from `templates/api-reference.md`.
+Target file: `{module}/docs/api-reference.md`.
+
+Generated only when `rest_routes` is non-empty.
+
+### Sections (each omitted when the relevant surface has zero entries)
+
+| Section | Heading | Token | Omit when |
+|---------|---------|-------|-----------|
+| Introduction | `## Introduction` | `{API_REF_INTRO}` | Never omitted |
+| Endpoints | `## Endpoints` | `{ENDPOINTS}` | `rest_routes` is empty |
+
+Each route under `{ENDPOINTS}` renders as a subsection `### {METHOD} {url}` containing:
+- Auth scope note.
+- Request-body example (from `request_shape`) — captioned **"Example — illustrative, generated from the schema."**
+- Response example (from `response_shape`) — same caption.
+- Error responses table derived from `throws` + auth scope (see REST error model below).
+
+---
+
+## GraphQL API Reference Structure
+
+Rendered from `templates/graphql-reference.md`.
+Target file: `{module}/docs/graphql-reference.md`.
+
+Generated only when `graphql_operations` is non-empty.
+
+### Sections (each omitted when the relevant surface has zero entries)
+
+| Section | Heading | Token | Omit when |
+|---------|---------|-------|-----------|
+| Introduction | `## Introduction` | `{GRAPHQL_REF_INTRO}` | Never omitted |
+| Operations | `## Operations` | `{OPERATIONS}` | `graphql_operations` is empty |
+
+Each operation under `{OPERATIONS}` renders as a subsection
+`### {operation_kind}: {name}` containing:
+- Arguments table (`name`, `type`).
+- Return type with field list from `graphql[*].fields` for the `output_type`.
+- Example request/response blocks — captioned **"Example — illustrative, generated from the schema."**
+- Error responses section using the GraphQL error model below.
+
+---
+
+## Derivation Rules
+
+### Example-Derivation Table
+
+When building `request_shape`, `response_shape`, or any illustrative example block, map
+PHP or GraphQL types to placeholder values as follows:
+
+| Type | Placeholder value |
+|------|------------------|
+| `string` | `"string"` |
+| `int` | `0` |
+| `float` | `0.0` |
+| `bool` | `true` |
+| `array` or `iterable` | `[]` |
+| `void` or `mixed` | `null` |
+| DTO (`*\Api\Data\*Interface`) | nested object keyed by snake_case getter field names |
+| `Type[]` (typed array) | one-element array `[<placeholder for Type>]` |
+| Unresolvable type | `"string"` |
+
+**Every rendered example block must carry the caption:**
+> Example — illustrative, generated from the schema.
+
+---
+
+### REST Error Model
+
+All REST API errors use the Magento standard envelope:
+
+```json
+{
+  "message": "The entity with id \"42\" does not exist.",
+  "parameters": { "fieldName": "id", "fieldValue": "42" },
+  "trace": "..."
+}
+```
+
+The `parameters` and `trace` fields may be absent in production responses (depending on
+developer mode). The `trace` field is only present when `MAGE_MODE=developer`.
+
+**HTTP status mapping** (derived per route from `throws` + auth scope):
+
+| Exception / Condition | HTTP Status |
+|-----------------------|-------------|
+| `Magento\Framework\Exception\NoSuchEntityException` | 404 |
+| `Magento\Framework\Exception\LocalizedException` | 400 |
+| `Magento\Framework\Exception\InputException` | 400 |
+| `Magento\Framework\Exception\AuthorizationException` | 403 |
+| Missing or invalid bearer token | 401 |
+
+For each route, generate an **Errors** table listing only the statuses that apply:
+1. Include 401 if the route's `auth` scope is not `anonymous`.
+2. Include 403 if the route has an ACL resource scope.
+3. Include a row for each FQCN in the route's `throws` list mapped via the table above.
+
+---
+
+### GraphQL Error Model
+
+GraphQL errors use the standard Magento extension envelope on the `errors` array:
+
+```json
+{
+  "errors": [
+    {
+      "message": "The entity with id \"42\" does not exist.",
+      "extensions": {
+        "category": "graphql-no-such-entity"
+      }
+    }
+  ]
+}
+```
+
+**Category values:**
+
+| Category | Meaning |
+|----------|---------|
+| `graphql-authorization` | Missing or insufficient auth token |
+| `graphql-input` | Invalid argument value or type |
+| `graphql-no-such-entity` | Requested entity not found |
+
+---
+
+### Screenshot Capture-Guidance Appendix
+
+The `{SCREENSHOTS}` section in the User Guide is a **Markdown checklist** — never an
+`![]()` image embed. Each checklist item gives:
+1. A human-navigable path to the UI element.
+2. A suggested filename for the screenshot file under `docs/images/`.
+
+**Navigation path derivation:**
+
+| Source | Navigation path format |
+|--------|----------------------|
+| `user_surface.admin_config` entry | `Admin → Stores → Configuration → {tab} → {section} → {group}` |
+| `user_surface.admin_ui.menu` entry | The `title` breadcrumb chain from the menu `parent` hierarchy |
+| `user_surface.storefront.routes` entry | `/{frontName}/...` (the storefront URL prefix) |
+
+**Checklist item format:**
+
+```
+- [ ] **{Label}** — navigate to `{navigation_path}`; save as `docs/images/{name}.png`
+```
+
+Where `{name}` is a lowercase, hyphenated slug derived from the navigation path
+(e.g. `admin-stores-config-acme-general.png`).
+
+The `{SCREENSHOTS}` section is omitted when `user_surface` is entirely empty.
+
+---
+
+### Mermaid Diagram Recipes
+
+All Mermaid node identifiers must contain only `[A-Za-z0-9_]`. Replace namespace
+separators (`\`), hyphens, and spaces with `_`. Truncate long names to keep diagrams
+readable.
+
+#### (a) Architecture / Extension-Point Graph
+
+Source surfaces: `api`, `plugins`, `preferences`, `events_observed`.
+
+```mermaid
+graph LR
+    subgraph API_Contracts
+        FooInterface["FooInterface (@api)"]
+    end
+    subgraph Plugins
+        FooPlugin["FooPlugin (before/after/around)"]
+    end
+    FooPlugin -->|intercepts| FooInterface
+    ConcreteImpl -->|preference for| FooInterface
+```
+
+One node per `@api` entry; one node per plugin/preference; directed edges show
+interception or substitution relationships.
+
+#### (b) Sequence Diagram — REST Route / GraphQL Operation
+
+Source surfaces: `rest_routes` (with `request_shape`/`response_shape`/`throws`) or
+`graphql_operations`.
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Endpoint as REST /V1/acme/orders/:id
+    participant Service as OrderRepository::getById
+    Client->>Endpoint: GET /V1/acme/orders/42 (Bearer token)
+    Endpoint->>Service: getById(42)
+    alt success
+        Service-->>Endpoint: OrderInterface
+        Endpoint-->>Client: 200 { response_shape }
+    else NoSuchEntityException
+        Service-->>Endpoint: throws NoSuchEntityException
+        Endpoint-->>Client: 404 { "message": "..." }
+    end
+```
+
+One diagram per route or operation. Error branches are drawn for each FQCN in `throws`.
+
+#### (c) Event-Flow Flowchart
+
+Source surfaces: `events_fired`, `events_observed`.
+
+```mermaid
+flowchart LR
+    Dispatch["sales_order_place_after\n(dispatch)"]
+    Observer["Acme_Module::LoyaltyObserver\n(observe)"]
+    Dispatch --> Observer
+```
+
+One node per distinct event name; directed edges from the dispatching class to the
+observing class, labelled with the event name.
+
+#### (d) ER Diagram — Database Schema
+
+Source surface: `db_schema`.
+
+```mermaid
+erDiagram
+    acme_order {
+        int entity_id PK
+        varchar status
+        int customer_id FK
+    }
+    acme_order_item {
+        int item_id PK
+        int order_id FK
+        varchar sku
+    }
+    acme_order ||--o{ acme_order_item : "has"
+```
+
+One entity per table. Foreign key constraints generate relationship edges. Column types
+are taken from `db_schema[*].columns`. Sanitize table names: replace any non-`[A-Za-z0-9_]`
+character with `_`.
+
+---
+
 ## CHANGELOG Scaffold Structure
 
 Rendered from `templates/changelog-scaffold.md`.
