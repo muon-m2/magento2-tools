@@ -14,4 +14,7 @@ interface SampleRepositoryInterface
     public function getById(int $id): SampleInterface;
 
     public function save(SampleInterface $sample): SampleInterface;
+
+    /** PHP 8 union types — request_shape must resolve the DTO, not degrade to "string". */
+    public function upsert(SampleInterface|null $sample): SampleInterface|null;
 }

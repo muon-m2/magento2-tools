@@ -276,13 +276,13 @@ grep -n 'public function' <api_file>
 For each public method, extract:
 - The method name.
 - Its parameter list (name + type hint).
-- Its return type hint (PHP 7+ `function foo(): ReturnType` or docblock `@return`).
+- Its return type hint (PHP 7+ `function foo(): ReturnType` syntax only).
 
-Only methods declared directly on the `@api` class or interface are collected; inherited
-methods are skipped unless re-declared.
+Only `public function` declarations found in the file itself are collected; the extractor
+does not resolve methods inherited from parent interfaces in other files.
 
 **Output fields per entry:**
-- `class` — fully-qualified class name (FQCN) of the `@api` class or interface
+- `class` — short (unqualified) class/interface name — consistent with the `api` surface
 - `method` — method name
 - `params` — ordered list of `{ "name": "foo", "type": "string" }` objects (parameter name without leading `$`)
 - `return_type` — return type as a string (`"void"`, `"int"`, FQCN, etc.)
@@ -457,7 +457,7 @@ The script emits one JSON object:
 {
   "module_path": "<absolute path>",
   "surfaces": {
-    "api": [ { "class": "...", "kind": "...", "file": "...", "line": 0 } ],
+    "api": [ { "class": "...", "kind": "...", "file": "...", "line": 12 } ],
     "api_methods": [
       {
         "class": "SampleRepositoryInterface",
@@ -545,4 +545,5 @@ The script emits one JSON object:
 
 Empty arrays are included in the JSON for completeness but surfaces with zero entries
 must be **omitted** from the generated Markdown documentation. The `user_surface` key
-is omitted entirely when all sub-keys are empty.
+is always present and is `{}` when the module exposes no user-facing surface; its
+sub-keys (`admin_config`, `admin_ui`, `storefront`, `emails`) are omitted when empty.

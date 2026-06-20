@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Runs the read-only surface extractor against the fixture module and asserts the
 # surface-JSON contract: existing keys plus the multi-doc expansion keys.
-set -uo pipefail
+set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
 command -v python3 >/dev/null 2>&1 || { echo "skip: python3 not on PATH"; exit 77; }
@@ -26,7 +26,7 @@ def need(cond, msg):
 # existing-key regression guard
 for k in ("api","events_observed","plugins","rest_routes","graphql","db_schema"):
     need(k in s, f"missing existing key {k}")
-need(len(s["rest_routes"]) == 3, "expected 3 REST routes")
+need(len(s["rest_routes"]) == 4, "expected 4 REST routes")
 need("api_methods" in s, "missing api_methods key")
 ams = [m for m in s["api_methods"] if m["method"] == "getById"]
 need(ams, "getById not extracted as an api method")
@@ -63,5 +63,11 @@ need(ext[0].get("response_shape") is None,
      "out-of-module service class should yield null response_shape")
 need(ext[0].get("request_shape") is None,
      "out-of-module service class should yield null request_shape")
+up = [r for r in s["rest_routes"] if r["service_method"] == "upsert"][0]
+need(isinstance(up.get("request_shape"), dict),
+     "union DTO param (SampleInterface|null) must resolve to a DTO object, not a string")
+um = [m for m in s["api_methods"] if m["method"] == "upsert"]
+need(um and "|" in um[0]["return_type"],
+     "api_methods must capture the full union return type verbatim")
 print("PASS")
 PY

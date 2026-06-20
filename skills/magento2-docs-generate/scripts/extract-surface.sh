@@ -114,7 +114,7 @@ def extract_api(base):
 # 1b. Public @api method signatures
 # ---------------------------------------------------------------------------
 METHOD_RE = re.compile(
-    r'public\s+function\s+(\w+)\s*\(([^)]*)\)\s*:\s*\??([\\\w\[\]]+)'
+    r'public\s+function\s+(\w+)\s*\(([^)]*)\)\s*:\s*\??([\\\w\[\]\|]+)'
 )
 
 def extract_api_methods(base):
@@ -361,6 +361,13 @@ SCALAR_EXAMPLE = {
     'array': [], 'iterable': [],
 }
 
+def _first_concrete_type(rtype):
+    """Reduce a PHP union type to its first concrete (non-null) member, e.g.
+    'SampleInterface|null' -> 'SampleInterface', 'string|int' -> 'string'."""
+    parts = [p.strip() for p in rtype.split('|')]
+    parts = [p for p in parts if p and p.lower().lstrip('\\') not in ('null', 'void', 'mixed')]
+    return parts[0] if parts else rtype
+
 def _ns_to_path(base, fqcn):
     """Map Vendor\\Module\\Sub\\Class -> {base}/Sub/Class.php (module-local only)."""
     parts = fqcn.lstrip('\\').split('\\')
@@ -401,11 +408,12 @@ def _resolve_type(name, use_map, current_ns):
     return name
 
 GETTER_RE = re.compile(
-    r'public\s+function\s+((?:get|is|has)[A-Z]\w*)\s*\([^)]*\)\s*:\s*\??([\\\w\[\]]+)'
+    r'public\s+function\s+((?:get|is|has)[A-Z]\w*)\s*\([^)]*\)\s*:\s*\??([\\\w\[\]\|]+)'
 )
 
 def _type_to_example(base, rtype, depth, seen, use_map=None, cur_ns=''):
     use_map = use_map or {}
+    rtype = _first_concrete_type(rtype)
     is_array = rtype.endswith('[]')
     core = (rtype[:-2] if is_array else rtype).lstrip('\\')
     short = core.split('\\')[-1].lower()
@@ -440,7 +448,7 @@ def walk_dto_shape(base, fqcn, depth=0, seen=None):
     return shape
 
 def enrich_rest_examples(base, routes):
-    sig_tmpl = r'public\s+function\s+{m}\s*\(([^)]*)\)\s*:\s*\??([\\\w\[\]]+)'
+    sig_tmpl = r'public\s+function\s+{m}\s*\(([^)]*)\)\s*:\s*\??([\\\w\[\]\|]+)'
     for r in routes:
         r['request_shape'] = None
         r['response_shape'] = None
@@ -460,7 +468,7 @@ def enrich_rest_examples(base, routes):
         if not sig:
             continue
         for p in sig.group(1).split(','):
-            pm = re.search(r'([\\\w\[\]]+)\s+\$\w+', p.strip())
+            pm = re.search(r'([\\\w\[\]\|]+)\s+\$\w+', p.strip())
             if pm:
                 ex = _type_to_example(base, pm.group(1), 0, set(), use_map, cur_ns)
                 if isinstance(ex, dict):

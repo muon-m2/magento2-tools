@@ -4,6 +4,7 @@
     <table name="acme_sample" resource="default" engine="innodb" comment="Acme Sample Table">
         <column xsi:type="int" name="entity_id" unsigned="true" nullable="false" identity="true" comment="Entity ID"/>
         <column xsi:type="varchar" name="customer_email" nullable="true" length="255" comment="Customer Email"/>
+        <column xsi:type="int" name="store_id" unsigned="true" nullable="false" default="0" comment="Store ID"/>
         <constraint xsi:type="primary" referenceId="PRIMARY">
             <column name="entity_id"/>
         </constraint>
