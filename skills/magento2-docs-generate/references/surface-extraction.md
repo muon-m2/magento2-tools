@@ -261,8 +261,6 @@ grep -n '<extension_attributes\|<attribute' etc/extension_attributes.xml
 
 ---
 
----
-
 ## 13. `@api` Method Signatures
 
 **Source files:** All `*.php` under the module directory that bear an `@api` annotation on
@@ -286,7 +284,7 @@ methods are skipped unless re-declared.
 **Output fields per entry:**
 - `class` — fully-qualified class name (FQCN) of the `@api` class or interface
 - `method` — method name
-- `params` — ordered list of `{ "name": "$foo", "type": "string" }` objects
+- `params` — ordered list of `{ "name": "foo", "type": "string" }` objects (parameter name without leading `$`)
 - `return_type` — return type as a string (`"void"`, `"int"`, FQCN, etc.)
 - `file` — relative path from module root
 - `line` — line number of the `public function` declaration
@@ -319,9 +317,12 @@ build illustrative request/response shapes:
    `doc-structure.md`). Walking is bounded by a **depth cap of ≈4 levels** and a
    **visited-set** to break cycles; a type seen at a prior level is replaced by `{}`.
 
-5. **Build `request_shape`** — a JSON-serializable object keyed by parameter name, with
-   each value set to the derived placeholder for that parameter's type. If the method has
-   no input parameters, `request_shape` is `null`.
+5. **Build `request_shape`** — built from the **first DTO-typed parameter** only. Parse
+   that DTO's public getter methods and produce a flat field→example object (one key per
+   getter, snake_case, with a placeholder value derived from the getter's return type). A
+   method whose parameters are all scalar types (int, string, bool, etc.) — i.e. no
+   DTO-typed param exists — yields `request_shape: null`. Unresolvable service classes
+   also produce `request_shape: null`.
 
 6. **Build `response_shape`** — derived from the return type placeholder. `void` →
    `null`.
@@ -391,36 +392,39 @@ is non-empty.
 
 Parse `etc/adminhtml/system.xml` for section/group/field hierarchy. For each field,
 record:
-- `config_path` — `{section_id}/{group_id}/{field_id}`
+- `config_path` — `{section_id}/{group_id}/{field_id}` (the section and group *ids* live here)
+- `section_label` — human-readable label from `<label>` on the `<section>` element
+- `group_label` — human-readable label from `<label>` on the `<group>` element
 - `tab` — `<tab>` id referenced by the section (nav label context)
-- `section` — section id + label
-- `group` — group id + label
-- `field_label` — `<label>` text of the field
+- `field_label` — `<label>` text of the `<field>` element
 - `comment` — `<comment>` text if present
+- `file` — `etc/adminhtml/system.xml` relative to module root
 
 ### 16b. Admin UI (`admin_ui`)
 
-- `components` — list of `*.xml` filenames under `view/adminhtml/ui_component/`
-- `menu` — list of menu entries from `etc/adminhtml/menu.xml`: `{ id, title, parent, resource, action }`
-- `acl` — list of ACL resource ids from `etc/acl.xml`: `{ id, title }`
-- `admin_routes` — list of `{ frontName }` from `etc/adminhtml/routes.xml`
+- `components` — list of `{ "name": "<component-name>", "file": "<path>" }` objects for `*.xml` files under `view/adminhtml/ui_component/`
+- `menu` — list of menu entries from `etc/adminhtml/menu.xml`: `{ id, title, parent, action, resource, file }`
+- `acl` — list of ACL resource entries from `etc/acl.xml`: `{ id, title, file }`
+- `admin_routes` — list of `{ id, frontName, file }` from `etc/adminhtml/routes.xml`
 
 Note: Adminhtml controllers (`Controller/Adminhtml/`) are **excluded** from the
 `storefront` sub-key; they belong to `admin_ui` only.
 
 ### 16c. Storefront (`storefront`)
 
-- `routes` — list of `{ frontName, area }` from `etc/frontend/routes.xml`
-- `controllers` — list of controller PHP files under `Controller/` (excluding `Controller/Adminhtml/`)
-- `layouts` — list of layout XML filenames under `view/frontend/layout/`
-- `templates` — list of `.phtml` filenames under `view/frontend/templates/`
+- `routes` — list of `{ id, frontName, file }` from `etc/frontend/routes.xml` (no `area` field)
+- `controllers` — list of `{ class, file }` objects for PHP files under `Controller/` (excluding `Controller/Adminhtml/`)
+- `layouts` — list of `{ handle, file }` objects for layout XMLs under `view/frontend/layout/`
+- `templates` — list of `{ file }` objects for `.phtml` files under `view/frontend/templates/`
 
 ### 16d. Emails (`emails`)
 
 Parse `etc/email_templates.xml`:
 - `id` — template id
 - `label` — human-readable label
-- `file` — template file path
+- `file_attr` — template file name (the `file` attribute on the `<template>` element, e.g. `notify.html`)
+- `module` — module name attribute value
+- `file` — source XML path (`etc/email_templates.xml`) relative to module root
 
 ---
 
@@ -456,12 +460,12 @@ The script emits one JSON object:
     "api": [ { "class": "...", "kind": "...", "file": "...", "line": 0 } ],
     "api_methods": [
       {
-        "class": "Vendor\\Module\\Api\\FooInterface",
+        "class": "SampleRepositoryInterface",
         "method": "getById",
-        "params": [ { "name": "$id", "type": "int" } ],
-        "return_type": "Vendor\\Module\\Api\\Data\\FooInterface",
-        "file": "Api/FooInterface.php",
-        "line": 42
+        "params": [ { "name": "id", "type": "int" } ],
+        "return_type": "SampleInterface",
+        "file": "Api/SampleRepositoryInterface.php",
+        "line": 14
       }
     ],
     "events_observed": [ ... ],
@@ -474,21 +478,14 @@ The script emits one JSON object:
     "rest_routes": [
       {
         "method": "GET",
-        "url": "/V1/acme/orders/:id",
-        "service_class": "Vendor\\Module\\Api\\OrderRepositoryInterface",
+        "url": "/V1/acme/sample/:id",
+        "service_class": "Acme\\Sample\\Api\\SampleRepositoryInterface",
         "service_method": "getById",
-        "auth": "Magento_Sales::sales",
+        "auth": "Acme_Sample::view",
         "file": "etc/webapi.xml",
         "request_shape": null,
-        "response_shape": {
-          "id": 0,
-          "status": "string",
-          "items": []
-        },
-        "throws": [
-          "Magento\\Framework\\Exception\\NoSuchEntityException",
-          "Magento\\Framework\\Exception\\LocalizedException"
-        ]
+        "response_shape": { "entity_id": 0, "customer_email": "string", "active": true },
+        "throws": [ "Magento\\Framework\\Exception\\NoSuchEntityException" ]
       }
     ],
     "graphql": [
@@ -517,28 +514,29 @@ The script emits one JSON object:
     "user_surface": {
       "admin_config": [
         {
-          "config_path": "acme/general/enable",
-          "tab": "general",
-          "section": "acme",
-          "group": "general",
-          "field_label": "Enable Module",
-          "comment": "Set to Yes to activate the Acme integration."
+          "config_path": "acme_sample/general/enabled",
+          "section_label": "Sample",
+          "group_label": "General",
+          "tab": "acme",
+          "field_label": "Enabled",
+          "comment": "Turns the feature on.",
+          "file": "etc/adminhtml/system.xml"
         }
       ],
       "admin_ui": {
-        "components": [ "acme_order_listing.xml" ],
-        "menu": [ { "id": "Acme_Module::menu", "title": "Acme", "parent": "Magento_Backend::stores", "resource": "Acme_Module::config", "action": "acme/index/index" } ],
-        "acl": [ { "id": "Acme_Module::config", "title": "Configuration" } ],
-        "admin_routes": [ { "frontName": "acme" } ]
+        "components": [ { "name": "acme_sample_listing", "file": "view/adminhtml/ui_component/acme_sample_listing.xml" } ],
+        "menu": [ { "id": "Acme_Sample::list", "title": "Samples", "parent": "Magento_Backend::content", "action": "acme_sample/index/index", "resource": "Acme_Sample::view", "file": "etc/adminhtml/menu.xml" } ],
+        "acl": [ { "id": "Acme_Sample::view", "title": "View Samples", "file": "etc/acl.xml" } ],
+        "admin_routes": [ { "id": "acme_sample", "frontName": "acme_sample", "file": "etc/adminhtml/routes.xml" } ]
       },
       "storefront": {
-        "routes": [ { "frontName": "acme", "area": "frontend" } ],
-        "controllers": [ "Controller/Index/Index.php" ],
-        "layouts": [ "acme_index_index.xml" ],
-        "templates": [ "order/list.phtml" ]
+        "routes": [ { "id": "acme_sample", "frontName": "acme_sample", "file": "etc/frontend/routes.xml" } ],
+        "controllers": [ { "class": "View", "file": "Controller/Index/View.php" } ],
+        "layouts": [ { "handle": "acme_sample_index_index", "file": "view/frontend/layout/acme_sample_index_index.xml" } ],
+        "templates": [ { "file": "view/frontend/templates/view.phtml" } ]
       },
       "emails": [
-        { "id": "acme_order_confirm", "label": "Acme Order Confirmation", "file": "acme_order_confirm.html" }
+        { "id": "acme_sample_notify", "label": "Sample Notification", "file_attr": "notify.html", "module": "Acme_Sample", "file": "etc/email_templates.xml" }
       ]
     }
   }
