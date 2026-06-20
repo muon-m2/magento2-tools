@@ -376,21 +376,45 @@ def _getter_to_field(method):
     name = re.sub(r'^(get|is|has)', '', method)
     return re.sub(r'(?<!^)(?=[A-Z])', '_', name).lower()
 
+def _parse_use_map(text):
+    """Map short/aliased class name -> FQCN from `use` statements."""
+    use_map = {}
+    for m in re.finditer(r'^\s*use\s+([\\\w]+)(?:\s+as\s+(\w+))?\s*;', text, re.M):
+        fqcn = m.group(1).lstrip('\\')
+        alias = m.group(2) or fqcn.split('\\')[-1]
+        use_map[alias] = fqcn
+    return use_map
+
+def _current_namespace(text):
+    m = re.search(r'^\s*namespace\s+([\\\w]+)\s*;', text, re.M)
+    return m.group(1).lstrip('\\') if m else ''
+
+def _resolve_type(name, use_map, current_ns):
+    """Expand a possibly-short class name to an FQCN via use-map + namespace."""
+    name = name.lstrip('\\')
+    if '\\' in name:
+        return name
+    if name in use_map:
+        return use_map[name]
+    if current_ns:
+        return f'{current_ns}\\{name}'
+    return name
+
 GETTER_RE = re.compile(
     r'public\s+function\s+((?:get|is|has)[A-Z]\w*)\s*\([^)]*\)\s*:\s*\??([\\\w\[\]]+)'
 )
 
-def _type_to_example(base, rtype, depth, seen):
+def _type_to_example(base, rtype, depth, seen, use_map=None, cur_ns=''):
+    use_map = use_map or {}
     is_array = rtype.endswith('[]')
     core = (rtype[:-2] if is_array else rtype).lstrip('\\')
     short = core.split('\\')[-1].lower()
     if short in SCALAR_EXAMPLE:
         val = SCALAR_EXAMPLE[short]
-    elif core[:1].isupper() or '\\' in core:
-        nested = walk_dto_shape(base, core, depth + 1, seen)
-        val = nested if nested is not None else 'string'
     else:
-        val = 'string'
+        fqcn = _resolve_type(core, use_map, cur_ns)
+        nested = walk_dto_shape(base, fqcn, depth + 1, seen)
+        val = nested if nested is not None else 'string'
     return [val] if is_array else val
 
 def walk_dto_shape(base, fqcn, depth=0, seen=None):
@@ -407,9 +431,12 @@ def walk_dto_shape(base, fqcn, depth=0, seen=None):
             text = fh.read()
     except OSError:
         return None
+    use_map = _parse_use_map(text)
+    cur_ns = _current_namespace(text)
     shape = {}
     for m in GETTER_RE.finditer(text):
-        shape[_getter_to_field(m.group(1))] = _type_to_example(base, m.group(2), depth, seen)
+        shape[_getter_to_field(m.group(1))] = _type_to_example(
+            base, m.group(2), depth, seen, use_map, cur_ns)
     return shape
 
 def enrich_rest_examples(base, routes):
@@ -427,18 +454,21 @@ def enrich_rest_examples(base, routes):
                 text = fh.read()
         except OSError:
             continue
+        use_map = _parse_use_map(text)
+        cur_ns = _current_namespace(text)
         sig = re.search(sig_tmpl.replace('{m}', re.escape(meth)), text)
         if not sig:
             continue
         for p in sig.group(1).split(','):
             pm = re.search(r'([\\\w\[\]]+)\s+\$\w+', p.strip())
             if pm:
-                ex = _type_to_example(base, pm.group(1), 0, set())
+                ex = _type_to_example(base, pm.group(1), 0, set(), use_map, cur_ns)
                 if isinstance(ex, dict):
                     r['request_shape'] = ex
                     break
-        r['response_shape'] = _type_to_example(base, sig.group(2), 0, set())
-        r['throws'] = sorted(set(re.findall(r'@throws\s+\\?([\\\w]+)', text)))
+        r['response_shape'] = _type_to_example(base, sig.group(2), 0, set(), use_map, cur_ns)
+        r['throws'] = sorted({_resolve_type(t, use_map, cur_ns)
+                              for t in re.findall(r'@throws\s+\\?([\\\w]+)', text)})
     return routes
 
 def extract_rest_routes(base):
