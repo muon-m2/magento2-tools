@@ -647,6 +647,104 @@ def extract_extension_attributes(base):
     return entries
 
 # ---------------------------------------------------------------------------
+# 13. User-facing surface (admin config/UI, storefront, emails)
+# ---------------------------------------------------------------------------
+def extract_user_surface(base):
+    out = {}
+    # --- admin_config (system.xml enriched with nav labels) ---
+    cfg = []
+    sfile = os.path.join(base, 'etc', 'adminhtml', 'system.xml')
+    root = read_xml(sfile) if os.path.isfile(sfile) else None
+    if root is not None:
+        for sec in root.findall('.//section'):
+            sid = sec.get('id', '')
+            slabel = (sec.findtext('label') or '').strip()
+            tab = (sec.findtext('tab') or '').strip()
+            for grp in sec.findall('.//group'):
+                gid = grp.get('id', '')
+                glabel = (grp.findtext('label') or '').strip()
+                for fld in grp.findall('.//field'):
+                    cfg.append({
+                        'config_path': f'{sid}/{gid}/{fld.get("id", "")}',
+                        'section_label': slabel, 'group_label': glabel, 'tab': tab,
+                        'field_label': (fld.findtext('label') or '').strip(),
+                        'comment': (fld.findtext('comment') or '').strip(),
+                        'file': rel(sfile),
+                    })
+    if cfg:
+        out['admin_config'] = cfg
+    # --- admin_ui ---
+    ui = {'components': [], 'menu': [], 'acl': [], 'admin_routes': []}
+    uidir = os.path.join(base, 'view', 'adminhtml', 'ui_component')
+    if os.path.isdir(uidir):
+        ui['components'] = [{'name': f[:-4], 'file': rel(os.path.join(uidir, f))}
+                            for f in sorted(os.listdir(uidir)) if f.endswith('.xml')]
+    menu = os.path.join(base, 'etc', 'adminhtml', 'menu.xml')
+    mroot = read_xml(menu) if os.path.isfile(menu) else None
+    if mroot is not None:
+        for a in mroot.findall('.//add'):
+            ui['menu'].append({'id': a.get('id', ''), 'title': a.get('title', ''),
+                               'parent': a.get('parent', ''), 'action': a.get('action', ''),
+                               'resource': a.get('resource', ''), 'file': rel(menu)})
+    acl = os.path.join(base, 'etc', 'acl.xml')
+    aroot = read_xml(acl) if os.path.isfile(acl) else None
+    if aroot is not None:
+        for r in aroot.findall('.//resource'):
+            rid = r.get('id', '')
+            if rid and rid != 'Magento_Backend::admin':
+                ui['acl'].append({'id': rid, 'title': r.get('title', ''), 'file': rel(acl)})
+    arts = os.path.join(base, 'etc', 'adminhtml', 'routes.xml')
+    arroot = read_xml(arts) if os.path.isfile(arts) else None
+    if arroot is not None:
+        for r in arroot.findall('.//route'):
+            ui['admin_routes'].append({'id': r.get('id', ''), 'frontName': r.get('frontName', ''),
+                                       'file': rel(arts)})
+    ui = {k: v for k, v in ui.items() if v}
+    if ui:
+        out['admin_ui'] = ui
+    # --- storefront ---
+    sf = {'routes': [], 'controllers': [], 'layouts': [], 'templates': []}
+    fr = os.path.join(base, 'etc', 'frontend', 'routes.xml')
+    frroot = read_xml(fr) if os.path.isfile(fr) else None
+    if frroot is not None:
+        for r in frroot.findall('.//route'):
+            sf['routes'].append({'id': r.get('id', ''), 'frontName': r.get('frontName', ''),
+                                 'file': rel(fr)})
+    cdir = os.path.join(base, 'Controller')
+    if os.path.isdir(cdir):
+        for dp, _d, files in os.walk(cdir):
+            if f'{os.sep}Adminhtml{os.sep}' in f'{dp}{os.sep}':
+                continue
+            for fn in files:
+                if fn.endswith('.php'):
+                    sf['controllers'].append({'class': fn[:-4], 'file': rel(os.path.join(dp, fn))})
+    ldir = os.path.join(base, 'view', 'frontend', 'layout')
+    if os.path.isdir(ldir):
+        sf['layouts'] = [{'handle': f[:-4], 'file': rel(os.path.join(ldir, f))}
+                         for f in sorted(os.listdir(ldir)) if f.endswith('.xml')]
+    tdir = os.path.join(base, 'view', 'frontend', 'templates')
+    if os.path.isdir(tdir):
+        for dp, _d, files in os.walk(tdir):
+            for fn in files:
+                if fn.endswith('.phtml'):
+                    sf['templates'].append({'file': rel(os.path.join(dp, fn))})
+    sf = {k: v for k, v in sf.items() if v}
+    if sf:
+        out['storefront'] = sf
+    # --- emails ---
+    emails = []
+    ef = os.path.join(base, 'etc', 'email_templates.xml')
+    eroot = read_xml(ef) if os.path.isfile(ef) else None
+    if eroot is not None:
+        for t in eroot.findall('.//template'):
+            emails.append({'id': t.get('id', ''), 'label': t.get('label', ''),
+                           'file_attr': t.get('file', ''), 'module': t.get('module', ''),
+                           'file': rel(ef)})
+    if emails:
+        out['emails'] = emails
+    return out
+
+# ---------------------------------------------------------------------------
 # Run all extractors
 # ---------------------------------------------------------------------------
 plugins, preferences = extract_plugins_preferences(module_path)
@@ -670,6 +768,7 @@ surface = {
         'graphql_operations': extract_graphql_operations(module_path),
         'db_schema': extract_db_schema(module_path),
         'extension_attributes': extract_extension_attributes(module_path),
+        'user_surface': extract_user_surface(module_path),
     },
 }
 

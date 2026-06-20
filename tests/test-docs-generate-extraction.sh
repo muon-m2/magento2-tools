@@ -46,5 +46,13 @@ need(q[0]["output_type"] == "Sample", "output_type not captured")
 need(any(a["name"] == "id" for a in q[0]["args"]), "query args not captured")
 st = [t for t in s["graphql"] if t["name"] == "Sample"][0]
 need(isinstance(st["fields"][0], dict) and "type" in st["fields"][0], "graphql field types not captured")
+us = s.get("user_surface", {})
+need("admin_config" in us and us["admin_config"][0]["config_path"] == "acme_sample/general/enabled",
+     "admin_config not extracted")
+need(us["admin_config"][0]["group_label"] == "General", "config nav labels not captured")
+need(us.get("admin_ui", {}).get("menu"), "admin menu not extracted")
+need(us.get("admin_ui", {}).get("acl"), "acl not extracted")
+need(us.get("storefront", {}).get("routes"), "storefront route not extracted")
+need(us.get("emails") and us["emails"][0]["id"] == "acme_sample_notify", "email template not extracted")
 print("PASS")
 PY
