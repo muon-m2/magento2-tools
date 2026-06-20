@@ -6,6 +6,21 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.14.1] — 2026-06-19 — README dependency-graph completeness
+
+Documentation-only patch. No skill, command, agent, script, or template changed — only
+`README.md`.
+
+### Fixed
+
+- **README dependency graph now covers all 32 skills.** The graph was missing 10 nodes —
+  `adminhtml-form`, `extension-point`, `system-config`, `cli-command`, `message-queue`,
+  `indexer`, `static-analysis`, `docs-generate`, `marketplace-prep`, and
+  `accessibility-audit` — each now added with edges taken from its own *Related Skills*
+  table. The `magento2-feature-implement` orchestrator edge was also expanded to the
+  generators it actually dispatches (`adminhtml-form`, `extension-point`, `system-config`,
+  `cli-command`, `message-queue`, `static-analysis`, `docs-generate`).
+
 ## [1.14.0] — 2026-06-19 — Marketplace-hygiene baseline (generators emit marketplace-clean modules)
 
 Generators now bake in the packaging/compliance contract that `magento2-marketplace-prep` audits, so a
