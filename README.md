@@ -116,8 +116,11 @@ magento2-context  ◄── (called by all others; depends on nothing)
 
 magento2-feature-implement ──► module-create, module-review, test-generate,
                                eav-attribute, graphql-create, webapi-create,
-                               frontend-create, data-migration, deploy, debug,
-                               security-audit, performance-audit, bug-fix
+                               frontend-create, data-migration, adminhtml-form,
+                               extension-point, system-config, cli-command,
+                               message-queue, static-analysis, docs-generate,
+                               deploy, debug, security-audit, performance-audit,
+                               bug-fix
 
 magento2-bug-fix           ──► context, module-review, deploy, data-migration, debug
 magento2-deploy            ──► context, module-upgrade, release
@@ -135,7 +138,17 @@ magento2-test-generate     ──► context, module-create
 magento2-release           ──► context, deploy
 magento2-i18n              ──► context
 magento2-debug             ──► context, performance-audit, security-audit
-magento2-adminhtml-listing  ──► context, module-create, module-review
+magento2-adminhtml-form      ──► context, module-create, module-review, test-generate
+magento2-adminhtml-listing   ──► context, module-create, module-review
+magento2-extension-point     ──► context, module-create, module-review
+magento2-system-config       ──► context, module-create, module-review
+magento2-cli-command         ──► context, module-create, module-review, system-config
+magento2-message-queue       ──► context, module-create, module-review
+magento2-indexer             ──► context, module-create, module-review
+magento2-static-analysis     ──► context, module-review   (+ reuses emit-json.sh / emit-sarif.sh)
+magento2-docs-generate       ──► context
+magento2-marketplace-prep    ──► context, module-review, security-audit   (+ reuses emit-json.sh / emit-sarif.sh)
+magento2-accessibility-audit ──► context, module-review   (+ reuses emit-json.sh / emit-sarif.sh)
 magento2-breeze-child-theme  ──► context
 magento2-breeze-module-adapt ──► context, breeze-compat-audit
 magento2-breeze-compat-audit ──► context, module-review   (+ reuses emit-json.sh / emit-sarif.sh)
