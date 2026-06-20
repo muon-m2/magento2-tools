@@ -159,6 +159,18 @@ technical documentation from extracted code surfaces):
 `{PLUGINS_TABLE}`, `{CONFIG_PATHS_TABLE}`, `{CLI_COMMANDS_TABLE}`, `{CRON_TABLE}`,
 `{REST_ROUTES_TABLE}`, `{GRAPHQL_TABLE}`, `{DB_SCHEMA_TABLE}`, `{EXTENSION_ATTRIBUTES_TABLE}`.
 
+`magento2-docs-generate` multi-document markers (substituted when rendering the developer
+guide, user guide, and REST/GraphQL references):
+`{DOCUMENTATION_LINKS}` (README bullet list of produced docs),
+`{DEV_GUIDE_OVERVIEW}`, `{DEV_GUIDE_API_USAGE}`, `{DEV_GUIDE_EXTENSION_POINTS}`,
+`{DEV_GUIDE_DATA_MODEL}`, `{DEV_GUIDE_EVENT_FLOW}` (developer-guide sections),
+`{USER_GUIDE_INTRO}`, `{USER_GUIDE_CONFIG}`, `{USER_GUIDE_ADMIN_UI}`,
+`{USER_GUIDE_STOREFRONT}`, `{USER_GUIDE_EMAILS}`, `{USER_GUIDE_SCREENSHOTS}`
+(user-guide sections), `{API_REF_INTRO}`, `{API_REF_ENDPOINTS}` (REST reference),
+`{GRAPHQL_REF_INTRO}`, `{GRAPHQL_REF_OPERATIONS}` (GraphQL reference). Each is a
+fully-rendered Markdown section composed by the model from the surface JSON, or empty
+when its surface has no entries.
+
 ## Substitution rules
 
 - Substitution is whole-token: replace the literal text `{ModuleName}` with the resolved
@@ -176,6 +188,8 @@ The machine-readable allow-list. `test-placeholder-tokens.sh` parses the fenced 
 
 ```registry
 ActionName
+API_REF_ENDPOINTS
+API_REF_INTRO
 API_SURFACE_TABLE
 Area
 AttributeCode
@@ -189,6 +203,12 @@ CRITICAL_COUNT
 CRON_TABLE
 DB_SCHEMA_TABLE
 DEPENDENCIES_LIST
+DEV_GUIDE_API_USAGE
+DEV_GUIDE_DATA_MODEL
+DEV_GUIDE_EVENT_FLOW
+DEV_GUIDE_EXTENSION_POINTS
+DEV_GUIDE_OVERVIEW
+DOCUMENTATION_LINKS
 EVENTS_TABLE
 EXTENSION_ATTRIBUTES_TABLE
 EventName
@@ -227,6 +247,8 @@ FieldId
 FieldTitle
 From
 Group
+GRAPHQL_REF_INTRO
+GRAPHQL_REF_OPERATIONS
 GRAPHQL_TABLE
 GroupId
 HIGH_COUNT
@@ -284,6 +306,12 @@ ShortDescription
 SourceName
 SubNamespace
 TOOL_RESULTS_TABLE
+USER_GUIDE_ADMIN_UI
+USER_GUIDE_CONFIG
+USER_GUIDE_EMAILS
+USER_GUIDE_INTRO
+USER_GUIDE_SCREENSHOTS
+USER_GUIDE_STOREFRONT
 TargetFqcn
 TargetNamespace
 TargetShortName

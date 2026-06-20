@@ -21,7 +21,4 @@ Enable the module and run setup upgrade:
 
 ## Documentation
 
-Full technical reference, including public API surface, events, plugins, REST routes,
-GraphQL types, database schema, and configuration paths:
-
-[docs/technical-reference.md](docs/technical-reference.md)
+{DOCUMENTATION_LINKS}
