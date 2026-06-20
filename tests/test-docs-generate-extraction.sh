@@ -38,5 +38,6 @@ need(g["response_shape"].get("active") is True, "bool field not skeletonized")
 need(any("NoSuchEntity" in t for t in g.get("throws", [])), "throws not captured")
 p = [r for r in s["rest_routes"] if r["service_method"] == "save"][0]
 need(isinstance(p.get("request_shape"), dict), "save request_shape not built from DTO param")
+need(not p.get("throws"), "save must have empty throws (method-scoped @throws)")
 print("PASS")
 PY

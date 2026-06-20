@@ -359,6 +359,7 @@ def extract_cron_jobs(base):
 SCALAR_EXAMPLE = {
     'string': 'string', 'int': 0, 'integer': 0, 'float': 0.0,
     'bool': True, 'boolean': True, 'void': None, 'mixed': None,
+    'array': [], 'iterable': [],
 }
 
 def _ns_to_path(base, fqcn):
@@ -467,8 +468,13 @@ def enrich_rest_examples(base, routes):
                     r['request_shape'] = ex
                     break
         r['response_shape'] = _type_to_example(base, sig.group(2), 0, set(), use_map, cur_ns)
+        doc = None
+        for d in re.finditer(r'/\*\*(.*?)\*/', text, re.S):
+            if d.end() <= sig.start() and text[d.end():sig.start()].strip() == '':
+                doc = d
+        throws_text = doc.group(1) if doc else ''
         r['throws'] = sorted({_resolve_type(t, use_map, cur_ns)
-                              for t in re.findall(r'@throws\s+\\?([\\\w]+)', text)})
+                              for t in re.findall(r'@throws\s+\\?([\\\w]+)', throws_text)})
     return routes
 
 def extract_rest_routes(base):
