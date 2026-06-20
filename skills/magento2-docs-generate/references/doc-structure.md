@@ -165,10 +165,10 @@ Target file: `{module}/docs/developer-guide.md`.
 | Section | Heading | Token | Omit when |
 |---------|---------|-------|-----------|
 | Overview | `## Overview` | `{DEV_GUIDE_OVERVIEW}` | Never omitted |
-| API Usage | `## API Usage` | `{API_USAGE}` | `api_methods` is empty |
-| Extension Points | `## Extension Points` | `{EXTENSION_POINTS}` | `plugins` + `preferences` + `events_observed` all empty |
-| Data Model | `## Data Model` | `{DATA_MODEL}` | `db_schema` + `extension_attributes` both empty |
-| Event Flow | `## Event Flow` | `{EVENT_FLOW}` | `events_fired` + `events_observed` both empty |
+| API Usage | `## API Usage` | `{DEV_GUIDE_API_USAGE}` | `api_methods` is empty |
+| Extension Points | `## Extension Points` | `{DEV_GUIDE_EXTENSION_POINTS}` | `plugins` + `preferences` + `events_observed` all empty |
+| Data Model | `## Data Model` | `{DEV_GUIDE_DATA_MODEL}` | `db_schema` + `extension_attributes` both empty |
+| Event Flow | `## Event Flow` | `{DEV_GUIDE_EVENT_FLOW}` | `events_fired` + `events_observed` both empty |
 
 ---
 
@@ -185,11 +185,11 @@ admin config field, admin UI component, storefront route, or email template).
 | Section | Heading | Token | Omit when |
 |---------|---------|-------|-----------|
 | Introduction | `## Introduction` | `{USER_GUIDE_INTRO}` | Never omitted |
-| Configuration | `## Configuration` | `{CONFIG}` | `user_surface.admin_config` is empty |
-| Admin UI | `## Admin Interface` | `{ADMIN_UI}` | `user_surface.admin_ui` is empty |
-| Storefront | `## Storefront Features` | `{STOREFRONT}` | `user_surface.storefront` is empty |
-| Emails | `## Email Templates` | `{EMAILS}` | `user_surface.emails` is empty |
-| Screenshots | `## Screenshots` | `{SCREENSHOTS}` | See screenshot capture-guidance appendix below |
+| Configuration | `## Configuration` | `{USER_GUIDE_CONFIG}` | `user_surface.admin_config` is empty |
+| Admin UI | `## Admin Interface` | `{USER_GUIDE_ADMIN_UI}` | `user_surface.admin_ui` is empty |
+| Storefront | `## Storefront Features` | `{USER_GUIDE_STOREFRONT}` | `user_surface.storefront` is empty |
+| Emails | `## Email Templates` | `{USER_GUIDE_EMAILS}` | `user_surface.emails` is empty |
+| Screenshots | `## Screenshots` | `{USER_GUIDE_SCREENSHOTS}` | See screenshot capture-guidance appendix below |
 
 ---
 
@@ -205,9 +205,9 @@ Generated only when `rest_routes` is non-empty.
 | Section | Heading | Token | Omit when |
 |---------|---------|-------|-----------|
 | Introduction | `## Introduction` | `{API_REF_INTRO}` | Never omitted |
-| Endpoints | `## Endpoints` | `{ENDPOINTS}` | `rest_routes` is empty |
+| Endpoints | `## Endpoints` | `{API_REF_ENDPOINTS}` | `rest_routes` is empty |
 
-Each route under `{ENDPOINTS}` renders as a subsection `### {METHOD} {url}` containing:
+Each route under `{API_REF_ENDPOINTS}` renders as a subsection `### {METHOD} {url}` containing:
 - Auth scope note.
 - Request-body example (from `request_shape`) — captioned **"Example — illustrative, generated from the schema."**
 - Response example (from `response_shape`) — same caption.
@@ -227,9 +227,9 @@ Generated only when `graphql_operations` is non-empty.
 | Section | Heading | Token | Omit when |
 |---------|---------|-------|-----------|
 | Introduction | `## Introduction` | `{GRAPHQL_REF_INTRO}` | Never omitted |
-| Operations | `## Operations` | `{OPERATIONS}` | `graphql_operations` is empty |
+| Operations | `## Operations` | `{GRAPHQL_REF_OPERATIONS}` | `graphql_operations` is empty |
 
-Each operation under `{OPERATIONS}` renders as a subsection
+Each operation under `{GRAPHQL_REF_OPERATIONS}` renders as a subsection
 `### {operation_kind}: {name}` containing:
 - Arguments table (`name`, `type`).
 - Return type with field list from `graphql[*].fields` for the `output_type`.
@@ -323,7 +323,7 @@ GraphQL errors use the standard Magento extension envelope on the `errors` array
 
 ### Screenshot Capture-Guidance Appendix
 
-The `{SCREENSHOTS}` section in the User Guide is a **Markdown checklist** — never an
+The `{USER_GUIDE_SCREENSHOTS}` section in the User Guide is a **Markdown checklist** — never an
 `![]()` image embed. Each checklist item gives:
 1. A human-navigable path to the UI element.
 2. A suggested filename for the screenshot file under `docs/images/`.
@@ -345,7 +345,7 @@ The `{SCREENSHOTS}` section in the User Guide is a **Markdown checklist** — ne
 Where `{name}` is a lowercase, hyphenated slug derived from the navigation path
 (e.g. `admin-stores-config-acme-general.png`).
 
-The `{SCREENSHOTS}` section is omitted when `user_surface` is entirely empty.
+The `{USER_GUIDE_SCREENSHOTS}` section is omitted when `user_surface` is entirely empty.
 
 ---
 

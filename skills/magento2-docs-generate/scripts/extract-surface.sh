@@ -120,7 +120,6 @@ METHOD_RE = re.compile(
 def extract_api_methods(base):
     """Public method signatures of @api interfaces/classes."""
     entries = []
-    api_files = set()
     for dirpath, _dirs, files in os.walk(base):
         for fname in files:
             if not fname.endswith('.php'):
