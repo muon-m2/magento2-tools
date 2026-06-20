@@ -216,6 +216,9 @@ done < <(find "$module_path" -type f -name '*.php' -not -path '*/Test/*' -print0
 # A miss here means the stamp step did not run — re-run it before reporting done.
 header_missing=0
 while IFS= read -r -d '' file; do
+    # Mirror the stamper: it only stamps files whose first line is exactly `<?php`, so the
+    # gate must not fail shebang-style or non-canonical-first-line scripts it deliberately skips.
+    [[ "$(head -n 1 "$file")" == "<?php" ]] || continue
     if ! grep -qF "See LICENSE.txt for license details." "$file"; then
         fail "Missing copyright header: ${file#"$module_path/"} (run magento2-context/scripts/add-license-headers.sh)"
         header_missing=$((header_missing + 1))

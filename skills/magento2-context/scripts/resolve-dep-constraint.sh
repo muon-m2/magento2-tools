@@ -98,9 +98,13 @@ try:
     data = json.load(open(cj, encoding="utf-8"))
 except Exception:
     sys.exit(0)
-val = data.get("require", {}).get(pkg) or data.get("require-dev", {}).get(pkg)
-if val and val.strip() != "*":
-    print(val.strip())
+val = (data.get("require", {}).get(pkg) or data.get("require-dev", {}).get(pkg) or "").strip()
+# Reuse only a genuinely bounded constraint. EQP rejects wildcard and dev refs, so a
+# verbatim "*", "dev-master", "1.0.x-dev", or "...@dev" must NOT be reused — fall through
+# to the caller, which asks the user rather than re-emitting a disallowed constraint.
+if val and "*" not in val and "@dev" not in val \
+        and not val.startswith("dev-") and not val.endswith("-dev"):
+    print(val)
 PY
 )"
         if [[ -n "${existing:-}" ]]; then printf '%s\n' "$existing"; exit 0; fi

@@ -3,12 +3,12 @@
        xsi:noNamespaceSchemaLocation="urn:magento:mftf:Test/etc/testSchema.xsd">
     <test name="{Vendor}{ModuleName}SmokeTest">
         <annotations>
-            <features value="{ModuleName}"/>
+            <features value="{Vendor}_{ModuleName}"/>
             <stories value="Smoke"/>
             <title value="{Vendor}_{ModuleName} module smoke test"/>
-            <description value="Verifies the {Vendor}_{ModuleName} module is installed and the admin entry point loads."/>
+            <description value="Verifies the {Vendor}_{ModuleName} module is installed and the admin area loads."/>
             <severity value="MINOR"/>
-            <group value="{module_lower}"/>
+            <group value="{Vendor}_{ModuleName}"/>
         </annotations>
         <before>
             <actionGroup ref="AdminLoginActionGroup" stepKey="loginAsAdmin"/>
@@ -16,7 +16,9 @@
         <after>
             <actionGroup ref="AdminLogoutActionGroup" stepKey="logout"/>
         </after>
-        <amOnPage url="{{AdminDashboardPage.url}}" stepKey="goToDashboard"/>
-        <seeInCurrentUrl url="admin" stepKey="seeAdminUrl"/>
+        <!-- Backend frontName is configurable; reference it via _ENV, never the literal "admin". -->
+        <amOnPage url="{{_ENV.MAGENTO_BACKEND_NAME}}/admin/dashboard/" stepKey="goToDashboard"/>
+        <waitForPageLoad stepKey="waitForDashboard"/>
+        <seeInCurrentUrl url="{{_ENV.MAGENTO_BACKEND_NAME}}" stepKey="seeAdminArea"/>
     </test>
 </tests>

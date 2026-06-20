@@ -32,6 +32,18 @@ cat > "$work/composer.lock" <<'JSON'
 }
 JSON
 
+# composer.json reuse path (only reached for packages absent from the lock):
+# a bounded constraint is reused verbatim; a dev/wildcard constraint must be rejected.
+cat > "$work/composer.json" <<'JSON'
+{
+    "require": {
+        "bounded/pkg": "^2.0",
+        "dev/pkg": "dev-master",
+        "wild/pkg": "*"
+    }
+}
+JSON
+
 fail=0
 assert_eq() { # <label> <actual> <expected>
     if [ "$2" != "$3" ]; then echo "FAIL: $1 — got '$2', expected '$3'"; fail=1; fi
@@ -44,6 +56,21 @@ assert_eq "eav floor" "$out" ">=102.1.0"
 
 out="$(NO_COMPOSER=1 bash "$SCRIPT" acme/foo "$work" 2>/dev/null)"
 assert_eq "v-prefixed floor" "$out" ">=1.4.0"
+
+# composer.json reuse: a bounded constraint is reused verbatim.
+out="$(NO_COMPOSER=1 bash "$SCRIPT" bounded/pkg "$work" 2>/dev/null)"
+assert_eq "bounded reuse" "$out" "^2.0"
+
+# composer.json reuse: a dev constraint must be REJECTED (exit non-zero, emit nothing).
+if out="$(NO_COMPOSER=1 bash "$SCRIPT" dev/pkg "$work" 2>/dev/null)"; then
+    echo "FAIL: 'dev-master' constraint must not be reused"; fail=1
+fi
+if [ -n "$out" ]; then echo "FAIL: dev constraint leaked output '$out'"; fail=1; fi
+
+# composer.json reuse: a wildcard must be rejected too.
+if out="$(NO_COMPOSER=1 bash "$SCRIPT" wild/pkg "$work" 2>/dev/null)"; then
+    echo "FAIL: '*' constraint must not be reused"; fail=1
+fi
 
 # Unknown package → non-zero exit, no output, never a wildcard.
 if out="$(NO_COMPOSER=1 bash "$SCRIPT" nope/missing "$work" 2>/dev/null)"; then
