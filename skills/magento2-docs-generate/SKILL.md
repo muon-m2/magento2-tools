@@ -26,8 +26,9 @@ It **never** modifies PHP or XML files.
 - **OMIT empty surfaces.** If a surface (events, plugins, REST routes, etc.) has no
   entries, that section is omitted entirely. No empty tables; no placeholder text.
 - **Markdown only.** This skill never modifies PHP, XML, JSON, or any non-Markdown file.
-  Output is `{module}/README.md`, `{module}/docs/technical-reference.md`, and
-  `{module}/CHANGELOG.md` (scaffold), plus a run report under `.docs/docs-generated/`.
+  Output is the set of Markdown docs selected in Phase 1 (README, technical reference,
+  developer/user guides, REST/GraphQL references, CHANGELOG scaffold — each produced only
+  when applicable), plus a run report under `.docs/docs-generated/`.
 - **Illustrative examples only.** JSON example blocks are generated from real DTO or
   GraphQL field types (names and types extracted from the schema). Every such block must
   carry the caption `> Example — illustrative, generated from the schema` immediately
@@ -125,7 +126,8 @@ Before saving any file:
   sanitized node ids (no spaces or special characters).
 - No `![]` image embeds appear anywhere in the output.
 - The `{DOCUMENTATION_LINKS}` token in `README.md` lists only the docs that were
-  actually produced in this run.
+  actually produced in this run (registered in
+  `magento2-context/references/placeholder-schema.md`).
 
 ### Phase 5 — Report
 
