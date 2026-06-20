@@ -31,5 +31,12 @@ need("api_methods" in s, "missing api_methods key")
 ams = [m for m in s["api_methods"] if m["method"] == "getById"]
 need(ams, "getById not extracted as an api method")
 need(ams[0]["return_type"].endswith("SampleInterface"), "getById return type not captured")
+g = [r for r in s["rest_routes"] if r["service_method"] == "getById"][0]
+need(isinstance(g.get("response_shape"), dict), "getById response_shape not a DTO object")
+need(g["response_shape"].get("customer_email") == "string", "DTO field not skeletonized")
+need(g["response_shape"].get("active") is True, "bool field not skeletonized")
+need(any("NoSuchEntity" in t for t in g.get("throws", [])), "throws not captured")
+p = [r for r in s["rest_routes"] if r["service_method"] == "save"][0]
+need(isinstance(p.get("request_shape"), dict), "save request_shape not built from DTO param")
 print("PASS")
 PY

@@ -354,8 +354,93 @@ def extract_cron_jobs(base):
     return entries
 
 # ---------------------------------------------------------------------------
-# 9. REST routes
+# 9. REST routes + DTO walker helpers
 # ---------------------------------------------------------------------------
+SCALAR_EXAMPLE = {
+    'string': 'string', 'int': 0, 'integer': 0, 'float': 0.0,
+    'bool': True, 'boolean': True, 'void': None, 'mixed': None,
+}
+
+def _ns_to_path(base, fqcn):
+    """Map Vendor\\Module\\Sub\\Class -> {base}/Sub/Class.php (module-local only)."""
+    parts = fqcn.lstrip('\\').split('\\')
+    if len(parts) < 3:
+        return None
+    vendor_module = os.path.normpath(base).split(os.sep)[-2:]
+    if parts[:2] != vendor_module:
+        return None  # type lives outside this module; cannot resolve statically
+    fpath = os.path.join(base, *parts[2:]) + '.php'
+    return fpath if os.path.isfile(fpath) else None
+
+def _getter_to_field(method):
+    name = re.sub(r'^(get|is|has)', '', method)
+    return re.sub(r'(?<!^)(?=[A-Z])', '_', name).lower()
+
+GETTER_RE = re.compile(
+    r'public\s+function\s+((?:get|is|has)[A-Z]\w*)\s*\([^)]*\)\s*:\s*\??([\\\w\[\]]+)'
+)
+
+def _type_to_example(base, rtype, depth, seen):
+    is_array = rtype.endswith('[]')
+    core = (rtype[:-2] if is_array else rtype).lstrip('\\')
+    short = core.split('\\')[-1].lower()
+    if short in SCALAR_EXAMPLE:
+        val = SCALAR_EXAMPLE[short]
+    elif core[:1].isupper() or '\\' in core:
+        nested = walk_dto_shape(base, core, depth + 1, seen)
+        val = nested if nested is not None else 'string'
+    else:
+        val = 'string'
+    return [val] if is_array else val
+
+def walk_dto_shape(base, fqcn, depth=0, seen=None):
+    if seen is None:
+        seen = set()
+    if depth > 4 or fqcn in seen:
+        return {}
+    seen = seen | {fqcn}
+    fpath = _ns_to_path(base, fqcn)
+    if not fpath:
+        return None  # unresolved -> caller omits the example
+    try:
+        with open(fpath, encoding='utf-8', errors='replace') as fh:
+            text = fh.read()
+    except OSError:
+        return None
+    shape = {}
+    for m in GETTER_RE.finditer(text):
+        shape[_getter_to_field(m.group(1))] = _type_to_example(base, m.group(2), depth, seen)
+    return shape
+
+def enrich_rest_examples(base, routes):
+    sig_tmpl = r'public\s+function\s+{m}\s*\(([^)]*)\)\s*:\s*\??([\\\w\[\]]+)'
+    for r in routes:
+        r['request_shape'] = None
+        r['response_shape'] = None
+        r['throws'] = []
+        fpath = _ns_to_path(base, r.get('service_class', ''))
+        meth = r.get('service_method', '')
+        if not fpath or not meth:
+            continue
+        try:
+            with open(fpath, encoding='utf-8', errors='replace') as fh:
+                text = fh.read()
+        except OSError:
+            continue
+        sig = re.search(sig_tmpl.replace('{m}', re.escape(meth)), text)
+        if not sig:
+            continue
+        for p in sig.group(1).split(','):
+            pm = re.search(r'([\\\w\[\]]+)\s+\$\w+', p.strip())
+            if pm:
+                ex = _type_to_example(base, pm.group(1), 0, set())
+                if isinstance(ex, dict):
+                    r['request_shape'] = ex
+                    break
+        r['response_shape'] = _type_to_example(base, sig.group(2), 0, set())
+        r['throws'] = sorted(set(re.findall(r'@throws\s+\\?([\\\w]+)', text)))
+    return routes
+
 def extract_rest_routes(base):
     entries = []
     fpath = os.path.join(base, 'etc', 'webapi.xml')
@@ -483,6 +568,8 @@ def extract_extension_attributes(base):
 # Run all extractors
 # ---------------------------------------------------------------------------
 plugins, preferences = extract_plugins_preferences(module_path)
+_rest = extract_rest_routes(module_path)
+enrich_rest_examples(module_path, _rest)
 
 surface = {
     'module_path': module_path,
@@ -496,7 +583,7 @@ surface = {
         'cli_commands': extract_cli_commands(module_path),
         'config_paths': extract_config_paths(module_path),
         'cron_jobs': extract_cron_jobs(module_path),
-        'rest_routes': extract_rest_routes(module_path),
+        'rest_routes': _rest,
         'graphql': extract_graphql(module_path),
         'db_schema': extract_db_schema(module_path),
         'extension_attributes': extract_extension_attributes(module_path),
