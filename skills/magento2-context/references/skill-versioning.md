@@ -34,7 +34,7 @@ skills evolve.
 | magento2-cli-command       | 1.0.1   | New mode/template, command or cron pattern change                             |
 | magento2-message-queue     | 1.0.1   | New connection type/template, topic or consumer pattern change                |
 | magento2-static-analysis   | 1.0.0   | New tool/rule, autofix-safety calibration change                              |
-| magento2-docs-generate     | 1.0.0   | New surface extractor, doc-structure change                                   |
+| magento2-docs-generate     | 1.1.0   | New docs (developer/user guide, REST+GraphQL reference), example/diagram derivation |
 | magento2-indexer           | 1.0.1   | New indexer/mview pattern, dimension support                                  |
 | magento2-marketplace-prep  | 1.0.0   | New EQP check, readiness-scoring calibration                                  |
 | magento2-accessibility-audit | 1.0.0 | New WCAG rule, runtime pass change                                            |
@@ -42,7 +42,18 @@ skills evolve.
 | magento2-breeze-module-adapt | 1.0.1 | New template/surface, widget-conversion or sequence rule change               |
 | magento2-breeze-compat-audit | 1.0.0 | New check/pattern, severity calibration change                                |
 
-## Changelog (last update: 2026-06-19)
+## Changelog (last update: 2026-06-20)
+
+- **`magento2-docs-generate` 1.0.0 → 1.1.0 — multi-doc expansion.** Four new output
+  documents: `developer-guide.md` (always), `user-guide.md` (when a user surface exists),
+  `api-reference.md` (when REST routes exist), `graphql-reference.md` (when GraphQL
+  operations exist). Adds `{DOCUMENTATION_LINKS}` token to `README.md`. Illustrative-example
+  carve-out: all JSON examples are schema-derived and captioned accordingly. Mermaid diagrams
+  generated only from extracted facts (recipes in `doc-structure.md`). Screenshot appendix
+  replaces inline image embeds. Error models derived from Magento REST envelope and GraphQL
+  `errors[]+category` conventions. New Phase 2 reporting fields: `api_methods`, `graphql ops`,
+  `user surface` breakdown. New Phase 4 checks for example validity, captions, Mermaid balance,
+  and `{DOCUMENTATION_LINKS}` accuracy. Phase 5 reports omitted new docs with reasons.
 
 - **Plugin 1.14.0 — Marketplace-hygiene baseline (generators emit marketplace-clean modules).**
   Closes the systematic first-try Marketplace/EQP blockers + warnings surfaced by
