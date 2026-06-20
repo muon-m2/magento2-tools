@@ -39,5 +39,12 @@ need(any("NoSuchEntity" in t for t in g.get("throws", [])), "throws not captured
 p = [r for r in s["rest_routes"] if r["service_method"] == "save"][0]
 need(isinstance(p.get("request_shape"), dict), "save request_shape not built from DTO param")
 need(not p.get("throws"), "save must have empty throws (method-scoped @throws)")
+need("graphql_operations" in s, "missing graphql_operations key")
+q = [o for o in s["graphql_operations"] if o["name"] == "acmeSample"]
+need(q and q[0]["operation_kind"] == "query", "query op not extracted")
+need(q[0]["output_type"] == "Sample", "output_type not captured")
+need(any(a["name"] == "id" for a in q[0]["args"]), "query args not captured")
+st = [t for t in s["graphql"] if t["name"] == "Sample"][0]
+need(isinstance(st["fields"][0], dict) and "type" in st["fields"][0], "graphql field types not captured")
 print("PASS")
 PY

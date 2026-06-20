@@ -513,7 +513,7 @@ def extract_graphql(base):
     type_re = re.compile(
         r'^(type|input|interface|extend\s+type|extend\s+input)\s+(\w+)'
     )
-    field_re = re.compile(r'^\s+(\w+)\s*[:(]')
+    field_re = re.compile(r'^\s+(\w+)\s*(?:\([^)]*\))?\s*:\s*([\[\]\w!]+)')
     try:
         with open(fpath, encoding='utf-8', errors='replace') as fh:
             lines = fh.readlines()
@@ -538,7 +538,7 @@ def extract_graphql(base):
         elif current_name and '{' not in line and '}' not in line:
             fm = field_re.match(line)
             if fm:
-                current_fields.append(fm.group(1))
+                current_fields.append({'name': fm.group(1), 'type': fm.group(2).strip('[]!')})
     if current_name:
         entries.append({
             'kind': current_kind,
@@ -547,6 +547,52 @@ def extract_graphql(base):
             'file': rel(fpath),
         })
     return entries
+
+# ---------------------------------------------------------------------------
+# 10b. GraphQL operations
+# ---------------------------------------------------------------------------
+def extract_graphql_operations(base):
+    fpath = os.path.join(base, 'etc', 'schema.graphqls')
+    if not os.path.isfile(fpath):
+        return []
+    try:
+        with open(fpath, encoding='utf-8', errors='replace') as fh:
+            lines = fh.readlines()
+    except OSError:
+        return []
+    ops = []
+    head_re = re.compile(r'^(?:extend\s+type|type)\s+(Query|Mutation)\b')
+    field_re = re.compile(r'^\s*(\w+)\s*(?:\(([^)]*)\))?\s*:\s*([\[\]\w!]+)')
+    resolver_re = re.compile(r'@resolver\s*\(\s*class\s*:\s*"([^"]+)"')
+    in_block = False
+    kind = None
+    for line in lines:
+        h = head_re.match(line.strip())
+        if h:
+            in_block, kind = True, h.group(1)
+            continue
+        if in_block and line.strip().startswith('}'):
+            in_block = False
+            continue
+        if in_block:
+            fm = field_re.match(line)
+            if fm:
+                args = []
+                if fm.group(2):
+                    for a in fm.group(2).split(','):
+                        am = re.match(r'\s*(\w+)\s*:\s*([\[\]\w!]+)', a)
+                        if am:
+                            args.append({'name': am.group(1), 'type': am.group(2).strip('[]!')})
+                rm = resolver_re.search(line)
+                ops.append({
+                    'operation_kind': kind.lower(),
+                    'name': fm.group(1),
+                    'args': args,
+                    'output_type': fm.group(3).strip('[]!'),
+                    'resolver': rm.group(1).replace('\\\\', '\\') if rm else '',
+                    'file': rel(fpath),
+                })
+    return ops
 
 # ---------------------------------------------------------------------------
 # 11. DB Schema
@@ -621,6 +667,7 @@ surface = {
         'cron_jobs': extract_cron_jobs(module_path),
         'rest_routes': _rest,
         'graphql': extract_graphql(module_path),
+        'graphql_operations': extract_graphql_operations(module_path),
         'db_schema': extract_db_schema(module_path),
         'extension_attributes': extract_extension_attributes(module_path),
     },
