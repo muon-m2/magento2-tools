@@ -6,6 +6,37 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.15.0] — 2026-06-20 — Multi-document docs-generate (developer/user guides + REST/GraphQL API references)
+
+`magento2-docs-generate` (`1.0.0 → 1.1.0`) now generates a full documentation set from a
+module's own code instead of a single technical reference — all read-only, Markdown-only,
+and statically derived (no running Magento instance required).
+
+### Added
+
+- **Four new generated documents** under `{module}/docs/`, each produced only when applicable:
+  `developer-guide.md` (always — `@api` usage snippets from real signatures, extension
+  points, and Mermaid architecture / event-flow / ER diagrams), `user-guide.md` (when a
+  user-facing surface exists — admin config / admin UI / storefront / email walkthroughs
+  plus a screenshot **capture-guidance appendix**, never broken `![]` embeds),
+  `api-reference.md` (when REST routes exist — per-endpoint request/response/error
+  examples + sequence diagrams), and `graphql-reference.md` (when GraphQL operations exist
+  — per-operation example query/variables/response/errors + sequence diagrams).
+- **Illustrative-example carve-out to the "never invent facts" rule.** Request/response/error
+  examples are skeletons generated from real DTO getters / GraphQL field types, captioned
+  *"Example — illustrative, generated from the schema"* — never fabricated data. Error models
+  are derived from Magento conventions (REST envelope + status mapping; GraphQL `errors[]`
+  + `category`).
+- **Expanded surface extractor** (`extract-surface.sh`, single JSON contract): new
+  `api_methods`, `graphql_operations`, and `user_surface` keys; `rest_routes` enriched with
+  `request_shape` / `response_shape` / `throws` (service-method resolution + bounded DTO
+  getter walk with `use`-statement short-name resolution, module-local only, graceful
+  degradation, method-scoped `@throws`, PHP 8 union-type handling); `graphql` fields enriched
+  to `{name, type}`.
+- New extractor contract test + fixture module (`tests/test-docs-generate-extraction.sh`,
+  `tests/fixtures/docs-generate/`); 16 new placeholder tokens; `--docs` flag extended with
+  the new conditional doc types.
+
 ## [1.14.1] — 2026-06-19 — README dependency-graph completeness
 
 Documentation-only patch. No skill, command, agent, script, or template changed — only
