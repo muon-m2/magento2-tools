@@ -1,0 +1,15 @@
+# Write this file to the module root as `.gitignore`.
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.log
+*.swp
+
+# Dependencies & build artifacts
+/vendor/
+node_modules/
+
+# IDE
+/.idea/
+/.vscode/

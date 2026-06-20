@@ -76,6 +76,14 @@ From templates:
 ### Phase 3 — Enable & verify
 
 - `xmllint --noout` on XML, `node --check` on JS, `php -l` on PHP.
+- **Apply the shared module-hygiene baseline (required).** After generating the companion
+  module's PHP files, run
+  `${CLAUDE_PLUGIN_ROOT}/skills/magento2-context/scripts/add-license-headers.sh {ctx.magento_root}/app/code/{Vendor}/{Module}Breeze {Vendor}`
+  to stamp the standard copyright header onto every new `.php` (idempotent — it skips files
+  that already carry it, so re-running when merging into an existing companion is safe). When
+  adding a `composer.json` `require` entry, resolve a **bounded** constraint via
+  `${CLAUDE_PLUGIN_ROOT}/skills/magento2-context/scripts/resolve-dep-constraint.sh <vendor/package>`
+  — never `"*"`. See `magento2-context/references/module-hygiene.md`.
 - ```
   {ctx.magento_cli} setup:upgrade
   {ctx.magento_cli} setup:static-content:deploy -f

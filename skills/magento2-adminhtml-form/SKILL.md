@@ -112,6 +112,12 @@ report. Run it and confirm it fails for the right reason. See
 - Run the Phase 3A test with `{ctx.runner} vendor/bin/phpunit`; confirm it now **passes**; run
   the module suite to confirm no regressions.
 - Confirm the five naming-contract names agree (the blank-form check).
+- **Apply the shared module-hygiene baseline (required).** After generating or modifying PHP files, run
+  `${CLAUDE_PLUGIN_ROOT}/skills/magento2-context/scripts/add-license-headers.sh {ctx.magento_root}/app/code/{Vendor}/{Module} {Vendor}`
+  to stamp the standard copyright header onto every new `.php` (idempotent — it skips files that already
+  carry it). If you add a `composer.json` `require` entry, resolve a **bounded** constraint via
+  `${CLAUDE_PLUGIN_ROOT}/skills/magento2-context/scripts/resolve-dep-constraint.sh <vendor/package>` —
+  never `"*"`. See `magento2-context/references/module-hygiene.md`.
 - Optionally run `magento2-module-review` on the module → zero Critical/High.
 - `scripts/verify-form.sh` runs the XML + PHP lints in one pass.
 

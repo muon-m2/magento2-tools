@@ -91,6 +91,12 @@ Present the plan. Wait for approval.
 ### Phase 4 — Verify
 
 - `php -l` on each generated `.php`; `xmllint --noout` on each generated XML.
+- **Apply the shared module-hygiene baseline (required).** After generating or modifying PHP files, run
+  `${CLAUDE_PLUGIN_ROOT}/skills/magento2-context/scripts/add-license-headers.sh {ctx.magento_root}/app/code/{Vendor}/{Module} {Vendor}`
+  to stamp the standard copyright header onto every new `.php` (idempotent — it skips files that already
+  carry it). When adding a `composer.json` `require` entry, resolve a **bounded** constraint via
+  `${CLAUDE_PLUGIN_ROOT}/skills/magento2-context/scripts/resolve-dep-constraint.sh <vendor/package>` —
+  never `"*"`. See `magento2-context/references/module-hygiene.md`.
 - Run `magento2-module-review --diff` on the module. **Gate: zero Critical/High.**
 - Where a running Magento is available, suggest `setup:di:compile` as a smoke check (not required).
 

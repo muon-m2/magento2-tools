@@ -140,6 +140,14 @@ See `${CLAUDE_SKILL_DIR}/references/console-command-anatomy.md`,
 - `xmllint --noout` on every generated `.xml` file.
 - Run the Phase 3A tests with `{ctx.runner} vendor/bin/phpunit` and confirm they now
   **pass** (they failed before 3B); run the module suite to confirm nothing else broke.
+- **Apply the shared module-hygiene baseline (required).** After generating or modifying
+  PHP files, run
+  `${CLAUDE_PLUGIN_ROOT}/skills/magento2-context/scripts/add-license-headers.sh {ctx.magento_root}/app/code/{Vendor}/{Module} {Vendor}`
+  to stamp the standard copyright header onto every new `.php` (idempotent — it skips files
+  that already carry it). When adding a `composer.json` `require` entry, resolve a
+  **bounded** constraint via
+  `${CLAUDE_PLUGIN_ROOT}/skills/magento2-context/scripts/resolve-dep-constraint.sh <vendor/package>` —
+  never `"*"`. See `magento2-context/references/module-hygiene.md`.
 - Run `magento2-module-review --diff` (gate: zero Critical/High findings).
 - Consult `${CLAUDE_SKILL_DIR}/references/pitfalls.md` before declaring Phase 4 done.
 

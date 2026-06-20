@@ -52,6 +52,20 @@ for f in registration.php composer.json etc/module.xml etc/di.xml README.md CHAN
     fi
 done
 
+# LICENSE file (Marketplace/EQP blocker) — must match the composer `license` field
+if [[ -f "${module_path}/LICENSE.txt" || -f "${module_path}/LICENSE" ]]; then
+    ok "LICENSE file present"
+else
+    fail "LICENSE file missing — add LICENSE.txt matching the composer license field"
+fi
+
+# .gitignore (Marketplace info-level recommendation)
+if [[ -f "${module_path}/.gitignore" ]]; then
+    ok ".gitignore present"
+else
+    warn ".gitignore missing — add one (vendor/, node_modules/, *.log, .DS_Store)"
+fi
+
 # Forbidden directories
 if [[ -d "${module_path}/Helper" ]]; then
     fail "Helper/ directory present — use Service/ or ViewModel/ instead"
@@ -120,6 +134,12 @@ if [[ -f "${module_path}/composer.json" ]]; then
         ok "composer.json license field present"
     else
         fail "composer.json missing license field"
+    fi
+
+    if grep -q '"authors"' "${module_path}/composer.json"; then
+        ok "composer.json authors field present"
+    else
+        warn "composer.json missing authors field (Marketplace warning)"
     fi
 
     if grep -q '"psr-4"' "${module_path}/composer.json" && \
@@ -191,6 +211,20 @@ while IFS= read -r -d '' file; do
     fi
 done < <(find "$module_path" -type f -name '*.php' -not -path '*/Test/*' -print0)
 [[ $strict_missing -eq 0 ]] && ok "declare(strict_types=1) in all production PHP files"
+
+# Copyright/license header in every PHP file (applied by the shared add-license-headers.sh).
+# A miss here means the stamp step did not run — re-run it before reporting done.
+header_missing=0
+while IFS= read -r -d '' file; do
+    # Mirror the stamper: it only stamps files whose first line is exactly `<?php`, so the
+    # gate must not fail shebang-style or non-canonical-first-line scripts it deliberately skips.
+    [[ "$(head -n 1 "$file")" == "<?php" ]] || continue
+    if ! grep -qF "See LICENSE.txt for license details." "$file"; then
+        fail "Missing copyright header: ${file#"$module_path/"} (run magento2-context/scripts/add-license-headers.sh)"
+        header_missing=$((header_missing + 1))
+    fi
+done < <(find "$module_path" -type f -name '*.php' -print0)
+[[ $header_missing -eq 0 ]] && ok "Copyright header present in all PHP files"
 
 # Forbidden constructs in production PHP.
 # The final alternative targets the @ error-suppression operator, which always precedes a
@@ -326,6 +360,15 @@ if [[ -d "${module_path}/Model" ]]; then
         fi
     done < <(find "${module_path}/Model" -maxdepth 1 -name '*Repository.php' -print0 2>/dev/null)
     [[ $repo_missing -eq 0 ]] && ok "Unit tests found for all Model/*Repository.php classes"
+fi
+
+# MFTF functional coverage when a UI surface is present (Marketplace weighs this).
+if [[ -d "${module_path}/view/adminhtml" || -d "${module_path}/view/frontend" ]]; then
+    if find "${module_path}/Test/Mftf" -name '*.xml' -print -quit 2>/dev/null | grep -q .; then
+        ok "MFTF test present for UI surface"
+    else
+        warn "UI surface declared but no MFTF test under Test/Mftf/ (Marketplace functional coverage)"
+    fi
 fi
 
 # =============================================================================

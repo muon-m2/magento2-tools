@@ -146,7 +146,15 @@ refactor.
 5. Run the full test suite for the affected module, then the project's static checks
    (`{ctx.tools}` — PHPCS/PHPStan). Confirm no other tests broke and the patch is clean
    (REFACTOR: tidy only the lines you touched, keeping the test green).
-6. Commit per `references/commit-format.md`:
+6. **Apply the shared module-hygiene baseline (required).** After modifying or adding PHP
+   files (the patch and the new regression test), run
+   `${CLAUDE_PLUGIN_ROOT}/skills/magento2-context/scripts/add-license-headers.sh {ctx.magento_root}/app/code/{Vendor}/{Module} {Vendor}`
+   to stamp the standard copyright header onto every new `.php` (idempotent — it skips files
+   that already carry it, so existing patched files are left as-is). On the rare occasion the
+   fix adds a `composer.json` `require` entry, resolve a **bounded** constraint via
+   `${CLAUDE_PLUGIN_ROOT}/skills/magento2-context/scripts/resolve-dep-constraint.sh <vendor/package>`
+   — never `"*"`. See `magento2-context/references/module-hygiene.md`.
+7. Commit per `references/commit-format.md`:
    ```
    [bug-fix] {Module}: {symptom}
 

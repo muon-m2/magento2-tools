@@ -86,6 +86,15 @@ Per operation:
 - `xmllint --noout` on every XML file.
 - `node --check` on every JS file.
 - `npm run lint` if the project has a JS linter.
+- **Apply the shared module-hygiene baseline (required).** After generating or modifying PHP
+  files, run
+  `${CLAUDE_PLUGIN_ROOT}/skills/magento2-context/scripts/add-license-headers.sh <path> {Vendor}`
+  — where `<path>` is the host `app/code/{Vendor}/{Module}/` (or the
+  `app/design/frontend/{Vendor}/{Theme}/` theme dir) — to stamp the standard copyright header
+  onto every new `.php` (idempotent — it skips files that already carry it). When adding a
+  `composer.json` `require` entry, resolve a **bounded** constraint via
+  `${CLAUDE_PLUGIN_ROOT}/skills/magento2-context/scripts/resolve-dep-constraint.sh <vendor/package>`
+  — never `"*"`. See `magento2-context/references/module-hygiene.md`.
 
 ### Phase 4 — Report
 

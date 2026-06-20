@@ -77,6 +77,14 @@ Otherwise scaffold manually from templates:
 - `xmllint --noout` on `theme.xml` and the layout file.
 - `php -l` on `registration.php`.
 - Confirm the parent theme code matches an installed `theme.breeze.packages` entry.
+- **Apply the shared module-hygiene baseline (required).** After generating the theme's PHP
+  files, run
+  `${CLAUDE_PLUGIN_ROOT}/skills/magento2-context/scripts/add-license-headers.sh {ctx.magento_root}/app/design/frontend/{Vendor}/{Theme} {Vendor}`
+  to stamp the standard copyright header onto every new `.php` (e.g. `registration.php`;
+  idempotent — it skips files that already carry it). When adding a `composer.json` `require`
+  entry, resolve a **bounded** constraint via
+  `${CLAUDE_PLUGIN_ROOT}/skills/magento2-context/scripts/resolve-dep-constraint.sh <vendor/package>`
+  — never `"*"`. See `magento2-context/references/module-hygiene.md`.
 
 ### Phase 4 — Report
 

@@ -6,6 +6,44 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.14.0] — 2026-06-19 — Marketplace-hygiene baseline (generators emit marketplace-clean modules)
+
+Generators now bake in the packaging/compliance contract that `magento2-marketplace-prep` audits, so a
+freshly scaffolded module clears the systematic first-try Marketplace/EQP blockers and warnings instead
+of scoring 0/100. The audit contract is mirrored generator-side in the new shared
+`magento2-context/references/module-hygiene.md`.
+
+### Added
+
+- **Tier 1 — `magento2-module-create` 1.8.0 → 1.9.0.** Two always-created templates — `LICENSE.txt`
+  (proprietary EULA; swap for the SPDX text when `license` is an SPDX id) and `gitignore`
+  (→ module `.gitignore`); an `authors` block in `composer.json` derived from `git config user.name`
+  (fallback `gh api user`) and `git config user.email` — never `{Vendor}`; a shared
+  `add-license-headers.sh` post-step that stamps the standard copyright header (referencing `LICENSE.txt`)
+  onto every `.php`, idempotently. `verify-created.sh` now gates LICENSE, `.gitignore`, `authors`,
+  wildcard-free constraints, and the header on every PHP file.
+- **Tier 2 — cross-cutting hygiene.** New shared `magento2-context/references/module-hygiene.md` (the
+  generator-side contract), `magento2-context/scripts/add-license-headers.sh` (relocated here as the
+  single source), and `magento2-context/scripts/resolve-dep-constraint.sh` (resolves a bounded composer
+  constraint via `composer show` → `composer.lock` → `composer.json`, never `*`). All 16 PHP-generating
+  skills now run the shared stamper as a finalization step (patch bumps). Self-enforcing via
+  `tests/test-license-header-coverage.sh`.
+- **Tier 3 — MFTF smoke + preflight.** `magento2-module-create` auto-adds a minimal MFTF smoke test
+  under `Test/Mftf/` when a UI surface is declared (`mftf-test.xml` + `mftf-actiongroup.xml`), so
+  Marketplace functional coverage is non-zero; Step 7 offers a `magento2-marketplace-prep` /
+  `check-readiness.sh` readiness preflight before packaging.
+
+### Changed
+
+- Patch bumps for the 16 wired generators (`adminhtml-form`, `adminhtml-listing`, `system-config`,
+  `webapi-create`, `eav-attribute`, `extension-point`, `graphql-create`, `message-queue`, `cli-command`,
+  `indexer`, `data-migration`, `test-generate`, `frontend-create`, `bug-fix`, `breeze-child-theme`,
+  `breeze-module-adapt`). `magento2-context` held at 1.7.0 (resolution contract unchanged; the new
+  scripts/reference are shared infra it does not itself invoke).
+- `tests/test-placeholder-tokens.sh` now skips MFTF `{{…}}` mustache refs. New tests:
+  `test-license-headers.sh`, `test-dep-constraint.sh`, `test-license-header-coverage.sh`.
+- Skill count unchanged (32); no new skills.
+
 ## [1.13.0] — 2026-06-19 — Breeze (Swissup Breezefront) support
 
 ### Added

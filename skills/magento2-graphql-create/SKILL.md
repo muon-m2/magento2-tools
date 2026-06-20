@@ -73,6 +73,14 @@ Present the plan. Wait for approval.
 - `xmllint --noout` on `etc/graphql/di.xml`.
 - `php -l` on each resolver.
 - Schema validity: parse via Magento's schema parser if CLI is available.
+- **Apply the shared module-hygiene baseline (required).** After generating or modifying PHP
+  files, run
+  `${CLAUDE_PLUGIN_ROOT}/skills/magento2-context/scripts/add-license-headers.sh {ctx.magento_root}/app/code/{Vendor}/{Module} {Vendor}`
+  to stamp the standard copyright header onto every new `.php` (idempotent — it skips files that
+  already carry it). When adding a `composer.json` `require` entry, resolve a **bounded**
+  constraint via
+  `${CLAUDE_PLUGIN_ROOT}/skills/magento2-context/scripts/resolve-dep-constraint.sh <vendor/package>` —
+  never `"*"`. See `magento2-context/references/module-hygiene.md`.
 
 ### Phase 5 — Report
 

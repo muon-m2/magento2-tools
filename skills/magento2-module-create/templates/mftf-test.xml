@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tests xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="urn:magento:mftf:Test/etc/testSchema.xsd">
+    <test name="{Vendor}{ModuleName}SmokeTest">
+        <annotations>
+            <features value="{Vendor}_{ModuleName}"/>
+            <stories value="Smoke"/>
+            <title value="{Vendor}_{ModuleName} module smoke test"/>
+            <description value="Verifies the {Vendor}_{ModuleName} module is installed and the admin area loads."/>
+            <severity value="MINOR"/>
+            <group value="{Vendor}_{ModuleName}"/>
+        </annotations>
+        <before>
+            <actionGroup ref="AdminLoginActionGroup" stepKey="loginAsAdmin"/>
+        </before>
+        <after>
+            <actionGroup ref="AdminLogoutActionGroup" stepKey="logout"/>
+        </after>
+        <!-- Backend frontName is configurable; reference it via _ENV, never the literal "admin". -->
+        <amOnPage url="{{_ENV.MAGENTO_BACKEND_NAME}}/admin/dashboard/" stepKey="goToDashboard"/>
+        <waitForPageLoad stepKey="waitForDashboard"/>
+        <seeInCurrentUrl url="{{_ENV.MAGENTO_BACKEND_NAME}}" stepKey="seeAdminArea"/>
+    </test>
+</tests>

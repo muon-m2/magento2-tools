@@ -70,8 +70,11 @@ checklist with zero post-creation fixes required.
 2. **Build creation plan.**
     - For each declared surface, list the exact files to create using `references/surfaces.md`.
     - Shared files created regardless of surfaces: `registration.php`, `etc/module.xml`, `composer.json`,
-      `etc/di.xml`, `README.md`, `CHANGELOG.md`.
+      `etc/di.xml`, `README.md`, `CHANGELOG.md`, `LICENSE.txt`, `.gitignore`.
     - Auto-add `i18n/en_US.csv` when any UI surface (`admin_ui`, `frontend_ui`) is declared.
+    - Auto-add a minimal MFTF smoke test under `Test/Mftf/` (`templates/mftf-test.xml`, plus
+      `templates/mftf-actiongroup.xml` for UI surfaces) when any UI surface (`admin_ui`, `frontend_ui`)
+      is declared — Marketplace weighs functional coverage alongside the unit tests.
     - Auto-add `Test/Unit/` for all non-vendor modules.
     - Gather open questions about entity names, service method signatures, or config paths.
       Ask them all at once — do not interrupt mid-generation.
@@ -92,14 +95,23 @@ checklist with zero post-creation fixes required.
     - Use the matching template from `templates/` as the structural base for each file type.
     - Apply `references/naming-conventions.md` to all identifiers: classes, interfaces, tables,
       config paths, ACL IDs, route handles, event names.
-    - Apply `references/composer-metadata.md` rules to `composer.json`.
+    - Apply `references/composer-metadata.md` rules to `composer.json` — including the `authors` block.
+      Derive the author **name** from `git config user.name` (fallback `gh api user` for the GitHub
+      identity) and the **email** from `git config user.email`. Do not use `{Vendor}` as the author
+      name; ask the user only if both git and GitHub identities are empty.
+    - Create the shared compliance files (both always required):
+        - `LICENSE.txt` from `templates/LICENSE.txt` (proprietary EULA using `{Vendor}`). Its contents
+          must match the composer `license` field — if `license` is an SPDX id (`OSL-3.0`, `MIT`, …),
+          write that license's standard text instead.
+        - `.gitignore` from `templates/gitignore` (write it to the module root **with** the leading dot).
     - Apply these rules to **every generated PHP file**:
         - **Coding style:** follow PER-CS 3.0 as the baseline; where it conflicts with the
           Magento 2 coding standard or framework requirements, Magento 2 wins. `--standard=Magento2`
           PHPCS is the enforcement gate. See `magento2-context/references/php-coding-style.md`.
           (The specific Magento-precedence cases below — `strict_types`, PHPDoc FQCN, naming — are
           where Magento overrides the PER-CS default.)
-        - `<?php` on line 1, blank line, then `declare(strict_types=1);`.
+        - `<?php` on line 1, then `declare(strict_types=1);`. Do **not** hand-write the copyright
+          header — it is applied uniformly to every PHP file by the stamp step in Step 5.
         - Namespace `{Vendor}\{ModuleName}` plus sub-namespace matching the directory path.
         - All constructor parameters and return types explicitly typed; no missing type hints.
         - Constructor injection only; promoted `readonly` properties; no `ObjectManager::getInstance()`.
@@ -143,9 +155,24 @@ checklist with zero post-creation fixes required.
       `README.md` under Installation: `setup:db-declaration:generate-whitelist --module-name={Vendor}_{ModuleName}`.
 
 5. **Verify compliance.**
+    - **Stamp copyright headers (required, run first).** After all files are generated, run
+      `${CLAUDE_PLUGIN_ROOT}/skills/magento2-context/scripts/add-license-headers.sh {module_path} {Vendor}`.
+      It prepends the
+      standard header (pointing at `LICENSE.txt`) to every `.php` file, idempotently — safe to re-run in
+      `--mode=augment`. If the script is unavailable, prepend the block by hand to each PHP file:
+      ```php
+      <?php
+      /**
+       * Copyright © {Vendor}. All rights reserved.
+       * See LICENSE.txt for license details.
+       */
+      ```
     - Run `php -l` on every generated PHP file. Fix syntax errors before proceeding.
     - Run `xmllint --noout` on every generated XML file. Fix well-formedness errors before proceeding.
     - Run `composer validate --no-check-publish` on the generated `composer.json`.
+    - **Run the creation gate:** `${CLAUDE_SKILL_DIR}/scripts/verify-created.sh {module_path}`. It checks
+      the required files (incl. `LICENSE.txt`), composer metadata (no wildcard constraints, `authors`),
+      and the copyright header on every PHP file. Treat any ✗ as blocking — fix and re-run before Step 6.
     - Run available quality tools opportunistically (phpcs, phpstan) using the same probing approach as
       `magento2-module-review`. Unavailable tools are reported, not treated as failures.
     - Do NOT run `bin/magento setup:di:compile`, `setup:upgrade`, or
@@ -191,13 +218,19 @@ checklist with zero post-creation fixes required.
         3. Run the `magento2-deploy` skill to enable and deploy.
         4. Run the `magento2-module-review` skill on `{Vendor}/{ModuleName}` to confirm the
            full quality gate (PHPCS, PHPStan, PHPUnit) and all 12 review categories pass.
+        5. **Marketplace preflight (when the module is bound for Adobe Marketplace/EQP):** run the
+           `magento2-marketplace-prep` skill (or its read-only
+           `${CLAUDE_PLUGIN_ROOT}/skills/magento2-marketplace-prep/scripts/check-readiness.sh {module_path}`)
+           for a readiness verdict before packaging/`magento2-release`. The Step 5 gate already covers the
+           common blockers (LICENSE, bounded constraints, headers, `authors`).
 
 ## Quick Create Mode
 
 Triggered when the user includes: `quick`, `minimal`, `skeleton`, `bare`, or `scaffold only`.
 
 Creates only the **core** surface files:
-`registration.php`, `etc/module.xml`, `composer.json`, `etc/di.xml`, `README.md`, `CHANGELOG.md`.
+`registration.php`, `etc/module.xml`, `composer.json`, `etc/di.xml`, `README.md`, `CHANGELOG.md`,
+`LICENSE.txt`, `.gitignore`. The copyright-header stamp (Step 5) still runs.
 
 Does not create interfaces, models, controllers, templates, or tests. All files must still fully comply
 with Categories 1, 2, and 3 of the review checklist.
@@ -277,3 +310,11 @@ Templates added in v2 (use these for new surfaces):
 - Email: `email-template.html`, `email_templates.xml`
 - Tests: `test-controller.php`, `test-observer.php`, `test-plugin.php`, `test-resolver.php`,
   `test-repository.php`
+- MFTF (auto-added when a UI surface is declared): `mftf-test.xml` →
+  `Test/Mftf/Test/{Vendor}{ModuleName}SmokeTest.xml`, `mftf-actiongroup.xml` →
+  `Test/Mftf/ActionGroup/`. A minimal admin smoke test so Marketplace functional-coverage is non-zero.
+- Compliance (always created): `LICENSE.txt` (proprietary EULA — swap for the SPDX license text when
+  the composer `license` field is an SPDX id), `gitignore` (write to module root as `.gitignore`). The
+  per-file copyright header is **not** a template — the shared
+  `magento2-context/scripts/add-license-headers.sh` stamps it in Step 5 (see
+  `magento2-context/references/module-hygiene.md`).

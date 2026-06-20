@@ -67,6 +67,12 @@ for skill in sorted(os.listdir("skills")):
             except OSError:
                 continue
             for m in token_re.finditer(text):
+                # Skip MFTF / Handlebars double-brace refs like {{Page.url}} or {{arg}}: the
+                # regex matches the inner {Page.url}/{arg}, which is framework selector syntax,
+                # not a skill placeholder. Same spirit as the space-token exclusion above.
+                if (m.start() > 0 and text[m.start() - 1] == '{'
+                        and m.end() < len(text) and text[m.end()] == '}'):
+                    continue
                 tok = m.group(1)
                 if tok not in registry:
                     problems.setdefault(tok, set()).add(path)

@@ -92,6 +92,14 @@ integration gap in the Phase 4 report.
   (it failed before 2B). Run the affected module's suite to confirm nothing else broke.
 - Dry-run: optional `--dry-run` flag on generated CLI command outputs what would be
   imported without writing.
+- **Apply the shared module-hygiene baseline (required).** After generating or modifying
+  PHP files, run
+  `${CLAUDE_PLUGIN_ROOT}/skills/magento2-context/scripts/add-license-headers.sh {ctx.magento_root}/app/code/{Vendor}/{Module} {Vendor}`
+  to stamp the standard copyright header onto every new `.php` (idempotent — it skips files
+  that already carry it). When adding a `composer.json` `require` entry, resolve a
+  **bounded** constraint via
+  `${CLAUDE_PLUGIN_ROOT}/skills/magento2-context/scripts/resolve-dep-constraint.sh <vendor/package>` —
+  never `"*"`. See `magento2-context/references/module-hygiene.md`.
 
 ### Phase 4 — Report
 

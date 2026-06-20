@@ -4,6 +4,12 @@
     "type": "magento2-module",
     "license": "proprietary",
     "version": "1.0.0",
+    "authors": [
+        {
+            "name": "{author}",
+            "email": "{author_email}"
+        }
+    ],
     "require": {
         "php": "{php_constraint}",
         "magento/framework": "{framework_constraint}"

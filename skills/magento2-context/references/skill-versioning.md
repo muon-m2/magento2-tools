@@ -10,39 +10,68 @@ skills evolve.
 | Skill                      | Version | Bumped when                                                         |
 |----------------------------|---------|---------------------------------------------------------------------|
 | magento2-context           | 1.7.0   | JSON schema changes, new resolution rules, new tool probes          |
-| magento2-module-create     | 1.8.0   | New template added, surface added, naming rule changed              |
+| magento2-module-create     | 1.9.0   | New template added, surface added, naming rule changed              |
 | magento2-module-review     | 2.3.1   | New checklist category, severity calibration change, new JSON field, fix-routing change |
 | magento2-feature-implement | 2.10.1  | New phase, new approval gate, mode added, new task types (I/C/L/Q), template structure change, delegation/fallback discipline |
-| magento2-bug-fix           | 1.0.2   | Workflow phase change, RCA format change                            |
+| magento2-bug-fix           | 1.0.3   | Workflow phase change, RCA format change                            |
 | magento2-deploy            | 1.2.1   | Deploy plan template change, rollback recipe change                 |
-| magento2-test-generate     | 1.1.2   | Generator pattern change, new test type added                       |
+| magento2-test-generate     | 1.1.3   | Generator pattern change, new test type added                       |
 | magento2-module-upgrade    | 1.1.0   | New deprecation map, BC-break detection rules                       |
 | magento2-security-audit    | 1.2.1   | New CVE source, new pattern, severity calibration change            |
 | magento2-performance-audit | 1.1.1   | New pattern, new runtime check, severity calibration change         |
 | magento2-debug             | 1.2.0   | New mode added, output format change                                |
-| magento2-eav-attribute     | 1.2.1   | New entity type supported, new input type, template change          |
-| magento2-graphql-create    | 1.0.3   | New resolver pattern, schema-migration rule change                  |
-| magento2-frontend-create   | 1.0.1   | New theme detection rule, new component pattern                     |
-| magento2-data-migration    | 1.2.0   | New idempotency strategy, new importer pattern                      |
+| magento2-eav-attribute     | 1.2.2   | New entity type supported, new input type, template change          |
+| magento2-graphql-create    | 1.0.4   | New resolver pattern, schema-migration rule change                  |
+| magento2-frontend-create   | 1.0.2   | New theme detection rule, new component pattern                     |
+| magento2-data-migration    | 1.2.1   | New idempotency strategy, new importer pattern                      |
 | magento2-release           | 1.1.1   | New tag convention, new publish target                              |
 | magento2-i18n              | 1.2.0   | New extraction pattern, new placeholder rule                        |
-| magento2-adminhtml-form    | 1.0.0   | New template/surface added, field-type pattern, controller change   |
-| magento2-adminhtml-listing | 1.0.1   | New template/column type, mass-action change, wiring change         |
-| magento2-webapi-create     | 1.0.0   | New template/route/auth-scope, service-contract change, custom-action pattern |
-| magento2-extension-point   | 1.0.0   | New mode/template added, interception pattern change                          |
-| magento2-system-config     | 1.0.0   | New field type/template, config-reader pattern change                         |
-| magento2-cli-command       | 1.0.0   | New mode/template, command or cron pattern change                             |
-| magento2-message-queue     | 1.0.0   | New connection type/template, topic or consumer pattern change                |
+| magento2-adminhtml-form    | 1.0.1   | New template/surface added, field-type pattern, controller change   |
+| magento2-adminhtml-listing | 1.0.2   | New template/column type, mass-action change, wiring change         |
+| magento2-webapi-create     | 1.0.1   | New template/route/auth-scope, service-contract change, custom-action pattern |
+| magento2-extension-point   | 1.0.1   | New mode/template added, interception pattern change                          |
+| magento2-system-config     | 1.0.1   | New field type/template, config-reader pattern change                         |
+| magento2-cli-command       | 1.0.1   | New mode/template, command or cron pattern change                             |
+| magento2-message-queue     | 1.0.1   | New connection type/template, topic or consumer pattern change                |
 | magento2-static-analysis   | 1.0.0   | New tool/rule, autofix-safety calibration change                              |
 | magento2-docs-generate     | 1.0.0   | New surface extractor, doc-structure change                                   |
-| magento2-indexer           | 1.0.0   | New indexer/mview pattern, dimension support                                  |
+| magento2-indexer           | 1.0.1   | New indexer/mview pattern, dimension support                                  |
 | magento2-marketplace-prep  | 1.0.0   | New EQP check, readiness-scoring calibration                                  |
 | magento2-accessibility-audit | 1.0.0 | New WCAG rule, runtime pass change                                            |
-| magento2-breeze-child-theme | 1.0.0 | New template/parent variant, theme-layout change                              |
-| magento2-breeze-module-adapt | 1.0.0 | New template/surface, widget-conversion or sequence rule change               |
+| magento2-breeze-child-theme | 1.0.1 | New template/parent variant, theme-layout change                              |
+| magento2-breeze-module-adapt | 1.0.1 | New template/surface, widget-conversion or sequence rule change               |
 | magento2-breeze-compat-audit | 1.0.0 | New check/pattern, severity calibration change                                |
 
 ## Changelog (last update: 2026-06-19)
+
+- **Plugin 1.14.0 — Marketplace-hygiene baseline (generators emit marketplace-clean modules).**
+  Closes the systematic first-try Marketplace/EQP blockers + warnings surfaced by
+  `magento2-marketplace-prep` (the audit contract is now mirrored on the generator side in the new
+  shared `magento2-context/references/module-hygiene.md`).
+  - **Tier 1 — `magento2-module-create 1.8.0 → 1.9.0`.** New always-created templates `LICENSE.txt`
+    (proprietary EULA) + `gitignore` (→ module `.gitignore`); an `authors` block in `composer.json`
+    (name/email from `git config user.name`/`user.email`, fallback `gh api user` — never `{Vendor}`);
+    a shared `add-license-headers.sh` post-step stamping the copyright header (referencing `LICENSE.txt`)
+    onto every `.php`, idempotently. `verify-created.sh` now gates LICENSE, `.gitignore`, `authors`,
+    bounded constraints (already gated), and the header on every PHP file. New `{author}`/`{author_email}`
+    placeholder derivations.
+  - **Tier 2 — cross-cutting hygiene (shared infra + 16 generators wired).** New shared assets under
+    `magento2-context`: `references/module-hygiene.md` (the contract), `scripts/add-license-headers.sh`
+    (relocated here as the single source), and `scripts/resolve-dep-constraint.sh` (bounded constraint
+    resolver — composer show → composer.lock → composer.json, never `*`). Context version held at 1.7.0
+    (its resolution contract is unchanged; these are shared infra it does not itself invoke). Every
+    PHP-generating skill now runs the shared stamper as a finalization step — patch bumps:
+    `adminhtml-form 1.0.1`, `adminhtml-listing 1.0.2`, `system-config 1.0.1`, `webapi-create 1.0.1`,
+    `eav-attribute 1.2.2`, `extension-point 1.0.1`, `graphql-create 1.0.4`, `message-queue 1.0.1`,
+    `cli-command 1.0.1`, `indexer 1.0.1`, `data-migration 1.2.1`, `test-generate 1.1.3`,
+    `frontend-create 1.0.2`, `bug-fix 1.0.3`, `breeze-child-theme 1.0.1`, `breeze-module-adapt 1.0.1`.
+    Self-enforcing via `tests/test-license-header-coverage.sh`.
+  - **Tier 3 — `magento2-module-create` (same 1.9.0).** Minimal MFTF smoke test auto-added under
+    `Test/Mftf/` when a UI surface is declared (`templates/mftf-test.xml` + `mftf-actiongroup.xml`) so
+    Marketplace functional coverage is non-zero; `verify-created.sh` nudges when a UI surface lacks MFTF.
+    Step 7 offers a `magento2-marketplace-prep` / `check-readiness.sh` preflight before packaging.
+  - New tests: `test-license-headers.sh`, `test-dep-constraint.sh`, `test-license-header-coverage.sh`;
+    `test-placeholder-tokens.sh` now skips MFTF `{{…}}` mustache refs.
 
 - **Plugin 1.13.0 — Breeze (Swissup Breezefront) support — three new skills + context detection.**
   Adds first-class Breeze theme support to the suite.
