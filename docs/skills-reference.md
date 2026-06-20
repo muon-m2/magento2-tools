@@ -563,20 +563,31 @@ the ActionInterface name-clash resolution. Use for "add a custom index". Dimensi
 Generate or refresh a module's **technical documentation** from its own code — public
 `@api` surface, events fired and observed, plugins, preferences, admin config paths, CLI
 commands, cron jobs, REST routes, GraphQL types, DB schema, and module dependencies.
-Read-only: extracts facts from real files, writes Markdown only. Produces a `README.md`,
-a `docs/technical-reference.md`, and a `CHANGELOG.md` scaffold inside the documented
-module, plus a run report under `.docs/docs-generated/`. Every table entry cites its
-source file path.
+Read-only: extracts facts from real files, writes Markdown only. Produces up to seven
+documents inside the module — a `README.md`, `docs/technical-reference.md`,
+`docs/developer-guide.md`, conditional `docs/user-guide.md` (when an admin/storefront
+surface exists), conditional `docs/api-reference.md` (when REST routes exist), conditional
+`docs/graphql-reference.md` (when GraphQL operations exist), and a `CHANGELOG.md` scaffold
+— plus a run report under `.docs/docs-generated/`. Illustrative JSON examples are derived
+from real DTO/GraphQL field types and captioned accordingly. Mermaid diagrams are generated
+only from extracted facts. Screenshot paths are listed in an appendix; no image embeds are
+written. Every table entry cites its source file path.
 
 - **Invocation:** *"document this module"*; *"generate module docs for Acme_OrderExport"*;
-  `--module=Acme_OrderExport`; `--docs=readme,technical-reference,changelog` (default: all
-  three).
+  `--module=Acme_OrderExport`; `--docs=readme,technical-reference,developer-guide,user-guide,api-reference,graphql-reference,changelog`
+  (default: every applicable doc; conditional docs are omitted automatically when their
+  surface is absent).
 - **Phases:** resolve context (hard-stop if module absent) → scope (which module, which
-  docs) → extract surface via `scripts/extract-surface.sh` + present doc plan (gate) →
-  render templates → verify (no unsubstituted tokens, no empty tables, Markdown only) →
-  report to `.docs/docs-generated/`.
+  docs) → extract surface via `scripts/extract-surface.sh` + present doc plan with
+  api_methods/GraphQL-ops/user-surface counts and which conditional docs will be
+  produced or omitted (gate) → render templates → verify (no unsubstituted tokens, no
+  empty tables, no `![]` embeds, example captions present, Mermaid balanced, Markdown
+  only) → report to `.docs/docs-generated/`.
 - **Outputs:** `{module}/README.md`, `{module}/docs/technical-reference.md`,
-  `{module}/CHANGELOG.md` (scaffold); `.docs/docs-generated/{Vendor}_{Module}-{date}.md`.
+  `{module}/docs/developer-guide.md`, `{module}/docs/user-guide.md` (conditional),
+  `{module}/docs/api-reference.md` (conditional), `{module}/docs/graphql-reference.md`
+  (conditional), `{module}/CHANGELOG.md` (scaffold);
+  `.docs/docs-generated/{Vendor}_{Module}-{date}.md`.
 - **Related:** `magento2-module-review` for architecture/quality review (findings, not docs);
   `magento2-release` to consume `CHANGELOG.md` after docs are in place.
 

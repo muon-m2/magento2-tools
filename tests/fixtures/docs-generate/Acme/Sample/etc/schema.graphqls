@@ -1,0 +1,13 @@
+type Query {
+    acmeSample(id: Int!): Sample @resolver(class: "Acme\\Sample\\Model\\Resolver\\Sample")
+}
+
+type Mutation {
+    saveAcmeSample(email: String!): Sample @resolver(class: "Acme\\Sample\\Model\\Resolver\\Save")
+}
+
+type Sample {
+    entity_id: Int
+    customer_email: String
+    active: Boolean
+}

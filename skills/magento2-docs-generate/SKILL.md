@@ -2,11 +2,12 @@
 name: magento2-docs-generate
 description:
     Generate or refresh a module's technical documentation from its own code — public
-    @api surface, events fired and observed, plugins, preferences, config paths, CLI
-    commands, cron jobs, REST/GraphQL surface, DB schema, dependencies — plus a README
-    and CHANGELOG scaffold. Use for 'document this module' / 'generate module docs'.
-    Read-only analysis; writes Markdown only. For an architecture/quality review use
-    `magento2-module-review`.
+    @api surface, events, plugins, REST/GraphQL routes, DB schema, dependencies — plus
+    a README, developer guide, user guide (when a user surface exists), REST API reference
+    (when REST routes exist), GraphQL reference (when GraphQL ops exist), technical
+    reference, and CHANGELOG scaffold with illustrative examples derived from the schema.
+    Use for 'document this module' / 'generate module docs'. Read-only analysis; writes
+    Markdown only. For an architecture/quality review use `magento2-module-review`.
 ---
 
 # Magento 2 Docs Generate
@@ -25,8 +26,22 @@ It **never** modifies PHP or XML files.
 - **OMIT empty surfaces.** If a surface (events, plugins, REST routes, etc.) has no
   entries, that section is omitted entirely. No empty tables; no placeholder text.
 - **Markdown only.** This skill never modifies PHP, XML, JSON, or any non-Markdown file.
-  Output is `{module}/README.md`, `{module}/docs/technical-reference.md`, and
-  `{module}/CHANGELOG.md` (scaffold), plus a run report under `.docs/docs-generated/`.
+  Output is the set of Markdown docs selected in Phase 1 (README, technical reference,
+  developer/user guides, REST/GraphQL references, CHANGELOG scaffold — each produced only
+  when applicable), plus a run report under `.docs/docs-generated/`.
+- **Illustrative examples only.** JSON example blocks are generated from real DTO or
+  GraphQL field types (names and types extracted from the schema). Every such block must
+  carry the caption `> Example — illustrative, generated from the schema` immediately
+  before the fenced block. Examples never assert actual runtime data or behaviour.
+- **No screenshot embeds.** Image embeds (`![]()`) are never written. Instead, include
+  a "Screenshots to capture" appendix that lists navigation paths and suggested
+  `docs/images/<name>.png` filenames so a human can supply the images later.
+- **Mermaid from facts only.** Every Mermaid diagram is generated strictly from extracted
+  facts (surfaces, dependencies, routes). No edges, nodes, or labels may be invented.
+  See `${CLAUDE_SKILL_DIR}/references/doc-structure.md` for Mermaid recipes.
+- **Derived error models.** Error envelopes and HTTP status mappings are derived from
+  Magento conventions (REST: `{"message":"…","parameters":{}}` envelope + standard HTTP
+  codes; GraphQL: `errors[].message` + `extensions.category`). They are never invented.
 
 ## Workflow
 
@@ -47,10 +62,16 @@ Determine:
 1. **Which module** — from the user's request or via `--module=Vendor_Module`.
    Resolve the absolute module path.
 2. **Which docs to produce** — any combination of:
-   - `readme` → `{module}/README.md`
-   - `technical-reference` → `{module}/docs/technical-reference.md`
-   - `changelog` → `{module}/CHANGELOG.md` (scaffold only; no history invented)
-   Default: produce all three.
+   - `readme`               → `{module}/README.md`
+   - `technical-reference`  → `{module}/docs/technical-reference.md`
+   - `developer-guide`      → `{module}/docs/developer-guide.md`
+   - `user-guide`           → `{module}/docs/user-guide.md`            (only if a user surface exists)
+   - `api-reference`        → `{module}/docs/api-reference.md`         (only if REST routes exist)
+   - `graphql-reference`    → `{module}/docs/graphql-reference.md`     (only if GraphQL operations exist)
+   - `changelog`            → `{module}/CHANGELOG.md` (scaffold only; no history invented)
+   Default: produce every applicable doc. Omit `user-guide` when no user surface is
+   present, `api-reference` when no REST routes exist, and `graphql-reference` when no
+   GraphQL operations are found.
 
 ### Phase 2 — Extract Surface (GATE)
 
@@ -64,8 +85,11 @@ Run `${CLAUDE_SKILL_DIR}/scripts/extract-surface.sh` with the module path, which
 From the surface JSON, present the **doc plan** to the user:
 
 - Which docs will be written and why.
-- Which surfaces were found (events: N, plugins: N, REST routes: N, …).
+- Which surfaces were found: events: N, plugins: N, REST routes: N, api_methods: N,
+  GraphQL ops: N, user surface: yes/no (breakdown: admin_config/admin_ui/storefront/emails).
 - Which surfaces are absent and will be omitted.
+- Which of the new docs (`developer-guide`, `user-guide`, `api-reference`,
+  `graphql-reference`) will be produced or omitted, with the reason for each omission.
 
 **WAIT for "proceed" before writing any files.**
 
@@ -75,9 +99,14 @@ Fill the chosen templates with extracted facts:
 
 - `${CLAUDE_SKILL_DIR}/templates/readme.md` → `{module}/README.md`
 - `${CLAUDE_SKILL_DIR}/templates/technical-reference.md` → `{module}/docs/technical-reference.md`
+- `${CLAUDE_SKILL_DIR}/templates/developer-guide.md` → `{module}/docs/developer-guide.md`
+- `${CLAUDE_SKILL_DIR}/templates/user-guide.md` → `{module}/docs/user-guide.md` (conditional)
+- `${CLAUDE_SKILL_DIR}/templates/api-reference.md` → `{module}/docs/api-reference.md` (conditional)
+- `${CLAUDE_SKILL_DIR}/templates/graphql-reference.md` → `{module}/docs/graphql-reference.md` (conditional)
 - `${CLAUDE_SKILL_DIR}/templates/changelog-scaffold.md` → `{module}/CHANGELOG.md`
 
-Follow the section order defined in
+Follow the section order, example-derivation rules, error-model conventions,
+screenshot-appendix format, and Mermaid recipes defined in
 `${CLAUDE_SKILL_DIR}/references/doc-structure.md`.
 
 Each table row in the technical reference must include the source file path so readers
@@ -91,6 +120,14 @@ Before saving any file:
 - Internal links (e.g. `[API Surface](#api-surface)`) resolve within the document.
 - No section contains an empty table or placeholder text such as "N/A" or "fill me in".
 - Confirm the skill has not written any `.php` or `.xml` file.
+- Every JSON example block parses as valid JSON (mental parse or `jq` check).
+- Every example block carries the caption `> Example — illustrative, generated from the schema`.
+- Every ` ```mermaid ``` ` block is properly fenced, brace/arrow-balanced, and uses
+  sanitized node ids (no spaces or special characters).
+- No `![]` image embeds appear anywhere in the output.
+- The `{DOCUMENTATION_LINKS}` token in `README.md` lists only the docs that were
+  actually produced in this run (registered in
+  `magento2-context/references/placeholder-schema.md`).
 
 ### Phase 5 — Report
 
@@ -99,16 +136,20 @@ Write a run report to
 
 - Module path documented.
 - Docs produced (paths).
+- New docs omitted (with reason, e.g. "user-guide omitted — no user surface found").
 - Surface inventory: entries found per category.
 - Surfaces omitted (not found in the module).
-- Skill version: `magento2-docs-generate@1.0.0`.
+- Examples skipped due to unresolved types (list field names and the unresolved type).
+- Skill version: `magento2-docs-generate@1.1.0`.
 
 ## Inputs
 
 ```
 /magento2-docs-generate --module=Acme_OrderExport
 /magento2-docs-generate --module=Acme_OrderExport --docs=readme,technical-reference
+/magento2-docs-generate --module=Acme_OrderExport --docs=readme,developer-guide,api-reference
 /magento2-docs-generate --module=Acme_OrderExport --docs=changelog
+/magento2-docs-generate --module=Acme_OrderExport --docs=readme,technical-reference,developer-guide,user-guide,api-reference,graphql-reference,changelog
 ```
 
 ## Outputs
@@ -118,6 +159,10 @@ Written INSIDE the documented module:
 ```
 {module}/README.md
 {module}/docs/technical-reference.md
+{module}/docs/developer-guide.md
+{module}/docs/user-guide.md          (conditional — only when a user surface exists)
+{module}/docs/api-reference.md       (conditional — only when REST routes exist)
+{module}/docs/graphql-reference.md   (conditional — only when GraphQL operations exist)
 {module}/CHANGELOG.md
 ```
 
@@ -151,6 +196,10 @@ location** rule in `magento2-context/SKILL.md`.
 
 - `templates/readme.md` → `{module}/README.md`
 - `templates/technical-reference.md` → `{module}/docs/technical-reference.md`
+- `templates/developer-guide.md` → `{module}/docs/developer-guide.md`
+- `templates/user-guide.md` → `{module}/docs/user-guide.md` (conditional)
+- `templates/api-reference.md` → `{module}/docs/api-reference.md` (conditional)
+- `templates/graphql-reference.md` → `{module}/docs/graphql-reference.md` (conditional)
 - `templates/changelog-scaffold.md` → `{module}/CHANGELOG.md`
 
 All tokens used in templates are registered in

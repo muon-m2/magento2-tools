@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Webapi:etc/webapi.xsd">
+    <route url="/V1/acme-sample/:id" method="GET">
+        <service class="Acme\Sample\Api\SampleRepositoryInterface" method="getById"/>
+        <resources><resource ref="Acme_Sample::view"/></resources>
+    </route>
+    <route url="/V1/acme-sample" method="POST">
+        <service class="Acme\Sample\Api\SampleRepositoryInterface" method="save"/>
+        <resources><resource ref="Acme_Sample::manage"/></resources>
+    </route>
+    <route url="/V1/acme-sample/upsert" method="PUT">
+        <service class="Acme\Sample\Api\SampleRepositoryInterface" method="upsert"/>
+        <resources><resource ref="Acme_Sample::manage"/></resources>
+    </route>
+    <!-- Service contract lives in another module: the example walker cannot resolve
+         it module-locally, so request_shape/response_shape must stay null. -->
+    <route url="/V1/acme-sample/external/:id" method="GET">
+        <service class="Magento\Customer\Api\CustomerRepositoryInterface" method="getById"/>
+        <resources><resource ref="anonymous"/></resources>
+    </route>
+</routes>
