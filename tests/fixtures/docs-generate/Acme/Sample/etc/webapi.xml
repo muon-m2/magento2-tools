@@ -9,4 +9,10 @@
         <service class="Acme\Sample\Api\SampleRepositoryInterface" method="save"/>
         <resources><resource ref="Acme_Sample::manage"/></resources>
     </route>
+    <!-- Service contract lives in another module: the example walker cannot resolve
+         it module-locally, so request_shape/response_shape must stay null. -->
+    <route url="/V1/acme-sample/external/:id" method="GET">
+        <service class="Magento\Customer\Api\CustomerRepositoryInterface" method="getById"/>
+        <resources><resource ref="anonymous"/></resources>
+    </route>
 </routes>

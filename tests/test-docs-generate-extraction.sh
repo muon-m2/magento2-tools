@@ -26,7 +26,7 @@ def need(cond, msg):
 # existing-key regression guard
 for k in ("api","events_observed","plugins","rest_routes","graphql","db_schema"):
     need(k in s, f"missing existing key {k}")
-need(len(s["rest_routes"]) == 2, "expected 2 REST routes")
+need(len(s["rest_routes"]) == 3, "expected 3 REST routes")
 need("api_methods" in s, "missing api_methods key")
 ams = [m for m in s["api_methods"] if m["method"] == "getById"]
 need(ams, "getById not extracted as an api method")
@@ -54,5 +54,14 @@ need(us.get("admin_ui", {}).get("menu"), "admin menu not extracted")
 need(us.get("admin_ui", {}).get("acl"), "acl not extracted")
 need(us.get("storefront", {}).get("routes"), "storefront route not extracted")
 need(us.get("emails") and us["emails"][0]["id"] == "acme_sample_notify", "email template not extracted")
+# --- negative paths: graceful degradation when resolution leaves the module ---
+need(g["response_shape"].get("store") == "string",
+     'out-of-module DTO getter type should degrade to "string"')
+ext = [r for r in s["rest_routes"] if "external" in r["url"]]
+need(ext, "external (out-of-module-service) route not present")
+need(ext[0].get("response_shape") is None,
+     "out-of-module service class should yield null response_shape")
+need(ext[0].get("request_shape") is None,
+     "out-of-module service class should yield null request_shape")
 print("PASS")
 PY
