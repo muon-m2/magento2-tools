@@ -27,5 +27,9 @@ def need(cond, msg):
 for k in ("api","events_observed","plugins","rest_routes","graphql","db_schema"):
     need(k in s, f"missing existing key {k}")
 need(len(s["rest_routes"]) == 2, "expected 2 REST routes")
+need("api_methods" in s, "missing api_methods key")
+ams = [m for m in s["api_methods"] if m["method"] == "getById"]
+need(ams, "getById not extracted as an api method")
+need(ams[0]["return_type"].endswith("SampleInterface"), "getById return type not captured")
 print("PASS")
 PY

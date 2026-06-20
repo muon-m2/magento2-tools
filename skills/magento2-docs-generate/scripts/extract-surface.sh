@@ -111,6 +111,48 @@ def extract_api(base):
     return entries
 
 # ---------------------------------------------------------------------------
+# 1b. Public @api method signatures
+# ---------------------------------------------------------------------------
+METHOD_RE = re.compile(
+    r'public\s+function\s+(\w+)\s*\(([^)]*)\)\s*:\s*\??([\\\w\[\]]+)'
+)
+
+def extract_api_methods(base):
+    """Public method signatures of @api interfaces/classes."""
+    entries = []
+    api_files = set()
+    for dirpath, _dirs, files in os.walk(base):
+        for fname in files:
+            if not fname.endswith('.php'):
+                continue
+            fpath = os.path.join(dirpath, fname)
+            try:
+                with open(fpath, encoding='utf-8', errors='replace') as fh:
+                    text = fh.read()
+            except OSError:
+                continue
+            if '@api' not in text:
+                continue
+            cm = re.search(r'\b(?:interface|class)\s+(\w+)', text)
+            cls = cm.group(1) if cm else fname[:-4]
+            for m in METHOD_RE.finditer(text):
+                params = []
+                for p in m.group(2).split(','):
+                    p = p.strip()
+                    pm = re.search(r'([\\\w\[\]\|]+)\s+\$(\w+)', p)
+                    if pm:
+                        params.append({'name': pm.group(2), 'type': pm.group(1)})
+                entries.append({
+                    'class': cls,
+                    'method': m.group(1),
+                    'params': params,
+                    'return_type': m.group(3),
+                    'file': rel(fpath),
+                    'line': text[:m.start()].count('\n') + 1,
+                })
+    return entries
+
+# ---------------------------------------------------------------------------
 # 2. Events observed — etc/events.xml and area variants
 # ---------------------------------------------------------------------------
 def extract_events_observed(base):
@@ -446,6 +488,7 @@ surface = {
     'module_path': module_path,
     'surfaces': {
         'api': extract_api(module_path),
+        'api_methods': extract_api_methods(module_path),
         'events_observed': extract_events_observed(module_path),
         'events_fired': extract_events_fired(module_path),
         'plugins': plugins,
