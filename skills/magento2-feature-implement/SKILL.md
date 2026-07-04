@@ -672,7 +672,7 @@ unit tests.
 1. If T* tasks were included in the plan: confirm all T* tasks are marked complete and that test
    files exist in `Test/Unit/`. Do not rewrite tests already created in Phase 5.
    If no T* tasks were generated (e.g. single-module, simple feature): delegate to
-   `magento2-test-generate --types=unit,integration,api` for each module.
+   `magento2-test-generate --types=unit,integration,api --docs-root=.docs/{FeatureName}` for each module.
    Inline fallback (when `magento2-test-generate` is absent): write unit tests now for
    every `Api/`, `Service/`, and `Model/` class — do not skip and report it as a limitation.
 2. Run all tests using the probed `{runner}`:
