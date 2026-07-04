@@ -154,7 +154,7 @@ For test files: `${CLAUDE_SKILL_DIR}/templates/test-plugin-unit.php` and
 ### Phase 5 — Report
 
 Write a brief Markdown report to
-`.docs/extension-points/{Vendor}_{Module}-{mode}-{slug}-{date}.md`:
+`{output_root}/extension-points/{Vendor}_{Module}-{mode}-{slug}-{date}.md`:
 
 - Files generated
 - Test path + red→green evidence
@@ -167,8 +167,10 @@ Write a brief Markdown report to
 ```
 /magento2-extension-point --mode=plugin --target=Magento\Checkout\Model\Cart --method=addProduct --type=after --module=Acme_Checkout
 /magento2-extension-point --mode=observer --event=sales_order_save_after --module=Acme_Sales
-/magento2-extension-point --mode=preference --for=Magento\Catalog\Api\ProductRepositoryInterface --module=Acme_Catalog
+/magento2-extension-point --mode=preference --for=Magento\Catalog\Api\ProductRepositoryInterface --module=Acme_Catalog [--docs-root=<path>]
 ```
+
+`--docs-root=<path>` — output-root override; see "Output root" below.
 
 ## Outputs
 
@@ -181,12 +183,20 @@ Write a brief Markdown report to
 {ctx.magento_root}/app/code/{Vendor}/{Module}/Test/Unit/Plugin/{PluginName}Test.php
 {ctx.magento_root}/app/code/{Vendor}/{Module}/Test/Unit/Observer/{ObserverName}Test.php
 
-.docs/extension-points/{Vendor}_{Module}-{mode}-{slug}-{date}.md
+{output_root}/extension-points/{Vendor}_{Module}-{mode}-{slug}-{date}.md
 ```
 
-`.docs/` is anchored at the project root (`{ctx.docs_root}`), never under
-`{ctx.magento_root}`, `app/code`, or a module dir. See the **Artifact location** rule in
+`{output_root}` defaults to `.docs` (`{ctx.docs_root}`), anchored at the project root, never
+under `{ctx.magento_root}`, `app/code`, or a module dir. See the **Artifact location** rule in
 `magento2-context/SKILL.md`.
+
+### Output root (`--docs-root`)
+
+This skill accepts `--docs-root=<path>` (see
+`magento2-context/references/artifact-layout.md`). When set, write the run report (and any
+report artifacts) under `<path>/extension-points/`; otherwise default to
+`{ctx.docs_root}/extension-points/`. `magento2-feature-implement` passes this so a feature
+run's reports collect under its folder.
 
 ## Reference Files
 

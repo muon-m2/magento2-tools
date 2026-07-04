@@ -154,7 +154,7 @@ See `${CLAUDE_SKILL_DIR}/references/console-command-anatomy.md`,
 ### Phase 5 — Report
 
 Write a brief Markdown report to
-`.docs/cli-commands/{Vendor}_{Module}-{mode}-{slug}-{date}.md` listing:
+`{output_root}/cli-commands/{Vendor}_{Module}-{mode}-{slug}-{date}.md` listing:
 
 - Mode (`command` or `cron`)
 - Command/job name
@@ -172,7 +172,12 @@ Write a brief Markdown report to
 
 /magento2-cli-command --mode=cron --module=Acme_Orders --class=SyncOrders \
   --job=acme_orders_sync --schedule="*/15 * * * *" --service=Acme\Orders\Service\OrderSyncer
+
+/magento2-cli-command --mode=command --module=Acme_Orders --class=SyncOrdersCommand \
+  --name=acme:orders:sync --service=Acme\Orders\Service\OrderSyncer --docs-root=<path>
 ```
+
+`--docs-root=<path>` — output-root override; see "Output root" below.
 
 ## Outputs
 
@@ -184,12 +189,20 @@ Write a brief Markdown report to
 {ctx.magento_root}/app/code/{Vendor}/{Module}/etc/crontab.xml                        # cron mode (merge)
 {ctx.magento_root}/app/code/{Vendor}/{Module}/Test/Unit/Cron/{CronJobName}Test.php   # cron mode
 
-.docs/cli-commands/{Vendor}_{Module}-{mode}-{slug}-{date}.md
+{output_root}/cli-commands/{Vendor}_{Module}-{mode}-{slug}-{date}.md
 ```
 
-`.docs/` is anchored at the project root (`{ctx.docs_root}`), never under
-`{ctx.magento_root}`, `app/code`, or a module dir. See the **Artifact location** rule in
+`{output_root}` defaults to `.docs` (`{ctx.docs_root}`), anchored at the project root, never
+under `{ctx.magento_root}`, `app/code`, or a module dir. See the **Artifact location** rule in
 `magento2-context/SKILL.md`.
+
+### Output root (`--docs-root`)
+
+This skill accepts `--docs-root=<path>` (see
+`magento2-context/references/artifact-layout.md`). When set, write the run report (and any
+report artifacts) under `<path>/cli-commands/`; otherwise default to
+`{ctx.docs_root}/cli-commands/`. `magento2-feature-implement` passes this so a feature
+run's reports collect under its folder.
 
 ## Reference Files
 

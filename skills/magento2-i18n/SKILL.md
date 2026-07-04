@@ -76,7 +76,7 @@ Via `${CLAUDE_SKILL_DIR}/scripts/validate-csv.sh`:
 
 ### Phase 5 — Report
 
-`.docs/i18n/{Vendor}_{Module}-{date}.md`:
+`{output_root}/i18n/{Vendor}_{Module}-{date}.md`:
 
 - Phrases added per locale
 - Translations missing per locale
@@ -86,7 +86,7 @@ Via `${CLAUDE_SKILL_DIR}/scripts/validate-csv.sh`:
 ## Inputs
 
 ```
-/magento2-i18n [--locales=en_US,de_DE,fr_FR] [--machine-translate] [--module=<Vendor>_<Module>]
+/magento2-i18n [--locales=en_US,de_DE,fr_FR] [--machine-translate] [--module=<Vendor>_<Module>] [--docs-root=<path>]
 ```
 
 ## Outputs
@@ -94,11 +94,20 @@ Via `${CLAUDE_SKILL_DIR}/scripts/validate-csv.sh`:
 ```
 {ctx.magento_root}/app/code/{Vendor}/{Module}/i18n/{locale}.csv (updated)
 
-.docs/i18n/{Vendor}_{Module}-{date}.md
+{output_root}/i18n/{Vendor}_{Module}-{date}.md
 ```
 
-`.docs/` is anchored at the project root (`{ctx.docs_root}`), never under `{ctx.magento_root}`,
-`app/code`, or a module dir. See the **Artifact location** rule in `magento2-context/SKILL.md`.
+`{output_root}` defaults to `.docs` (`{ctx.docs_root}`), anchored at the project root, never
+under `{ctx.magento_root}`, `app/code`, or a module dir. See the **Artifact location** rule in
+`magento2-context/SKILL.md`.
+
+### Output root (`--docs-root`)
+
+This skill accepts `--docs-root=<path>` (see
+`magento2-context/references/artifact-layout.md`). When set, write the run report (and any
+report artifacts) under `<path>/i18n/`; otherwise default to
+`{ctx.docs_root}/i18n/`. `magento2-feature-implement` passes this so a feature run's
+reports collect under its folder.
 
 ## Reference Files
 

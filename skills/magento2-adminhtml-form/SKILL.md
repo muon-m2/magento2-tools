@@ -123,7 +123,7 @@ report. Run it and confirm it fails for the right reason. See
 
 ### Phase 5 — Report
 
-Brief Markdown saved to `.docs/adminhtml-forms/{Vendor}_{Module}-{entity}-form-{date}.md`:
+Brief Markdown saved to `{output_root}/adminhtml-forms/{Vendor}_{Module}-{entity}-form-{date}.md`:
 
 - Files generated/modified + surfaces enabled
 - Test path + red→green evidence (or recorded gap)
@@ -135,8 +135,10 @@ Brief Markdown saved to `.docs/adminhtml-forms/{Vendor}_{Module}-{entity}-form-{
 ## Inputs
 
 ```
-/magento2-adminhtml-form --module=Acme_Faq --entity=Faq --primary=faq_id --wysiwyg=content --listing=acme_faq_listing
+/magento2-adminhtml-form --module=Acme_Faq --entity=Faq --primary=faq_id --wysiwyg=content --listing=acme_faq_listing [--docs-root=<path>]
 ```
+
+`--docs-root=<path>` — output-root override; see "Output root" below.
 
 ## Outputs
 
@@ -150,11 +152,19 @@ Brief Markdown saved to `.docs/adminhtml-forms/{Vendor}_{Module}-{entity}-form-{
 {ctx.magento_root}/app/code/{Vendor}/{Module}/etc/acl.xml
 {ctx.magento_root}/app/code/{Vendor}/{Module}/Test/Integration/.../{Entity}FormTest.php   # test-first (Phase 3A)
 
-.docs/adminhtml-forms/{Vendor}_{Module}-{entity}-form-{date}.md
+{output_root}/adminhtml-forms/{Vendor}_{Module}-{entity}-form-{date}.md
 ```
 
-`.docs/` is anchored at the project root (`{ctx.docs_root}`), never under `{ctx.magento_root}`.
-See the **Artifact location** rule in `magento2-context/SKILL.md`.
+`{output_root}` defaults to `.docs` (`{ctx.docs_root}`), anchored at the project root, never
+under `{ctx.magento_root}`. See the **Artifact location** rule in `magento2-context/SKILL.md`.
+
+### Output root (`--docs-root`)
+
+This skill accepts `--docs-root=<path>` (see
+`magento2-context/references/artifact-layout.md`). When set, write the run report (and any
+report artifacts) under `<path>/adminhtml-forms/`; otherwise default to
+`{ctx.docs_root}/adminhtml-forms/`. `magento2-feature-implement` passes this so a feature
+run's reports collect under its folder.
 
 ## Reference Files
 
