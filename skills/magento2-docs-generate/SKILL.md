@@ -35,7 +35,7 @@ It **never** modifies PHP or XML files.
   before the fenced block. Examples never assert actual runtime data or behaviour.
 - **No screenshot embeds.** Image embeds (`![]()`) are never written. Instead, include
   a "Screenshots to capture" appendix that lists navigation paths and suggested
-  `docs/images/<name>.png` filenames so a human can supply the images later.
+  `docs/screenshots/<name>.png` filenames so a human can supply the images later.
 - **Mermaid from facts only.** Every Mermaid diagram is generated strictly from extracted
   facts (surfaces, dependencies, routes). No edges, nodes, or labels may be invented.
   See `${CLAUDE_SKILL_DIR}/references/doc-structure.md` for Mermaid recipes.

@@ -340,7 +340,7 @@ GraphQL errors use the standard Magento extension envelope on the `errors` array
 The `{USER_GUIDE_SCREENSHOTS}` section in the User Guide is a **Markdown checklist** — never an
 `![]()` image embed. Each checklist item gives:
 1. A human-navigable path to the UI element.
-2. A suggested filename for the screenshot file under `docs/images/`.
+2. A suggested filename for the screenshot file under `docs/screenshots/`.
 
 **Navigation path derivation:**
 
@@ -353,7 +353,7 @@ The `{USER_GUIDE_SCREENSHOTS}` section in the User Guide is a **Markdown checkli
 **Checklist item format:**
 
 ```
-- [ ] **{Label}** — navigate to `{navigation_path}`; save as `docs/images/{name}.png`
+- [ ] **{Label}** — navigate to `{navigation_path}`; save as `docs/screenshots/{name}.png`
 ```
 
 Where `{name}` is a lowercase, hyphenated slug derived from the navigation path
