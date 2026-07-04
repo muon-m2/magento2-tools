@@ -87,6 +87,8 @@ proceed.}
 During RCA investigation, the `magento2-explorer` agent can be dispatched to map the suspect
 execution path — tracing the call chain from entry point through plugins, observers, and
 preferences — so the defect location can be pinpointed without manually reading every interceptor.
+When dispatched, `magento2-explorer` honors the `CLAUDE.md` directive `Explorer model: {tier}`
+if set; otherwise its `haiku` frontmatter default applies.
 
 ## Quality Bar
 

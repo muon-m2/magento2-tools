@@ -440,6 +440,10 @@ db_schema) is exempt. Follow `references/tdd-mode.md` and the loop in
 ### Existing module tasks (X*)
 
 1. Identify the exact files to add or modify.
+   Before editing unfamiliar code you may dispatch `magento2-explorer` to map its execution
+   paths and extension points first (per `references/task-breakdown-guide.md` type table). When
+   you do, honor the `CLAUDE.md` directive `Explorer model: {tier}` if set; otherwise the
+   explorer's `haiku` frontmatter default applies.
 2. Apply changes following all rules in `CLAUDE.md` and `magento2-module-create/references/`.
    **TDD mode (on):** if the change adds behaviour (not pure config/scaffold), write the failing
    test first and watch it fail for the right reason before applying the production change, per
