@@ -770,14 +770,20 @@ is **mandatory** in `feature` and `extend` modes, **reduced** in `hotfix` mode, 
    technical reference (architecture, data model, module interactions, extension points,
    sequence/flow diagrams in Mermaid). Link to the per-module references rather than restating them.
 
-3. **Developer-scope guide.** Write or refresh `guides/developer-guide.html` — how a developer
-   integrates with and extends the feature: service contracts, events, plugins, DI, and worked code
-   examples. When the feature exposes a REST or GraphQL surface, embed request/response payload
-   examples (reuse the raw S2 captures under `.docs/{FeatureName}/smoke/raw/S2/` where available)
-   and also save curated, redacted examples under `api-examples/`.
+3. **Developer-scope overview.** Write or refresh `guides/developer-guide.html` — the HTML overview
+   that links to the per-module docs generated in step 1 (each module's `docs/developer-guide.md`):
+   service contracts, events, plugins, DI, and worked code examples showing how the modules **compose**
+   as a feature. Cross-link into each module's own developer guide for its per-module detail — do not
+   re-author or duplicate that content here. When the feature exposes a REST or GraphQL surface, embed
+   request/response payload examples (reuse the raw S2 captures under
+   `.docs/{FeatureName}/smoke/raw/S2/` where available) and also save curated, redacted examples under
+   `api-examples/`.
 
-4. **User-scope guide.** Write or refresh `user-docs/user-guide.html` — admin configuration and
-   end-user workflows, **with screenshots**. Reuse the Phase 6B screenshots under
+4. **User-scope overview.** Write or refresh `user-docs/user-guide.html` — the HTML overview that
+   links to the per-module docs generated in step 1 (each module's `docs/user-guide.md`, when
+   present): admin configuration and end-user workflows across the feature, **with screenshots**.
+   Cross-link into each module's own user guide for its per-module detail — do not re-author or
+   duplicate that content here. Reuse the Phase 6B screenshots under
    `.docs/{FeatureName}/smoke/screenshots/` (copy the relevant ones into `user-docs/screenshots/`),
    or capture fresh ones with the smoke browser driver for screens smoke did not exercise.
 
@@ -789,8 +795,9 @@ is **mandatory** in `feature` and `extend` modes, **reduced** in `hotfix` mode, 
    final code — never leave a previously generated doc describing an earlier design. Apply the
    feature's shared CSS color schema inline to every HTML file (per the Core Rules).
 
-7. Run the completeness checklist in `references/documentation-guide.md`. **Do not proceed to
-   Phase 7B until every required artifact for the current mode exists on disk.**
+7. Run the completeness checklist in `references/documentation-guide.md` — including that each HTML
+   overview's cross-links into the per-module docs resolve to files that exist on disk. **Do not
+   proceed to Phase 7B until every required artifact for the current mode exists on disk.**
 
 ---
 

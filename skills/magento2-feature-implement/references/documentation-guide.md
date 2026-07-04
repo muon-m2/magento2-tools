@@ -59,21 +59,33 @@ technical references rather than restating them.
 
 ### Developer guide
 
-`guides/developer-guide.html` — how a developer **integrates with and extends** the feature:
+`guides/developer-guide.html` — a feature-scoped **overview**, not a per-module manual. It
+cross-links into each affected module's `{module}/docs/developer-guide.md` (written by
+`magento2-docs-generate` in step 1) for the authoritative per-module detail, and covers how a
+developer **integrates with and extends** the feature as a whole:
 
 - Service contracts and DTOs they call, with signatures.
 - Events they can observe and plugins/preferences they can attach.
 - DI wiring and configuration knobs that affect behaviour.
 - Worked code examples (the smallest real snippet that demonstrates each integration point).
 - When the feature exposes a REST/GraphQL surface: request/response payload examples (see below).
+- How the modules **compose** as a feature — link to each module's own `docs/developer-guide.md`
+  for its integration surface; do not re-author or duplicate that module's guide content here.
 
 ### User guide
 
-`user-docs/user-guide.html` — how an **admin or end user** configures and uses the feature:
+`user-docs/user-guide.html` — a feature-scoped **overview**, not a per-module manual. It
+cross-links into each affected module's `{module}/docs/user-guide.md` (written by
+`magento2-docs-generate` in step 1, when the module has a user surface) for the authoritative
+per-module detail, and covers how an **admin or end user** configures and uses the feature as a
+whole:
 
 - Admin configuration: where the settings live (Stores → Configuration path), what each does.
 - End-user / storefront workflows, step by step.
 - **Screenshots** of each significant screen (see below).
+- How the modules combine into one end-to-end workflow — link to each module's own
+  `docs/user-guide.md` for its configuration/workflow detail; do not re-author or duplicate that
+  module's guide content here.
 
 Both HTML guides must apply the feature's shared CSS color schema inline (primary, secondary,
 background, text, accent), defined once for the feature and identical across every HTML file —
@@ -143,7 +155,7 @@ A doc that describes code that no longer exists is a defect, not documentation.
 
 | Mode | Phase 7A scope |
 |------|----------------|
-| `feature` | Full set: per-module docs via `magento2-docs-generate`, `spec.md`, developer + user HTML guides with screenshots, API payload examples when a REST/GraphQL surface exists, plus applicable artifacts. |
+| `feature` | Full set: per-module docs via `magento2-docs-generate`, `spec.md`, developer + user HTML overviews (cross-linked into the per-module docs) with screenshots, API payload examples when a REST/GraphQL surface exists, plus applicable artifacts. |
 | `extend` | Update the affected module's docs; refresh the developer/user guide sections the new surface touches; add API examples if the surface is REST/GraphQL. `spec.md` only if the design changed. |
 | `hotfix` | Reduced: refresh the touched module's `technical-reference.md` + add a `CHANGELOG.md` note. No full guide set unless the hotfix changed admin/API behaviour a user or developer relies on. |
 | `spike` | Skipped. The promotion checklist must list "generate full documentation in `feature` mode" as a merge prerequisite. |
@@ -158,7 +170,9 @@ Phase 7B may not start until, **for the current mode's scope**, all of the follo
       the output exists on disk.
 - [ ] `spec.md` exists and its diagrams are Mermaid (when required for the mode).
 - [ ] `guides/developer-guide.html` and `user-docs/user-guide.html` exist (when required), share the
-      feature's CSS color schema, and contain no unfilled placeholder text.
+      feature's CSS color schema, and every cross-link into a module's `docs/developer-guide.md` /
+      `docs/user-guide.md` resolves to a file that exists on disk — the gate checks that the links
+      resolve, not that the module's guide content is re-authored inline.
 - [ ] Screenshots exist for every admin/storefront screen the user guide references.
 - [ ] If the feature exposes a REST/GraphQL surface, `api-examples/` holds a request+response
       example per endpoint/operation, with secrets/PII redacted.

@@ -35,7 +35,7 @@ It **never** modifies PHP or XML files.
   before the fenced block. Examples never assert actual runtime data or behaviour.
 - **No screenshot embeds.** Image embeds (`![]()`) are never written. Instead, include
   a "Screenshots to capture" appendix that lists navigation paths and suggested
-  `docs/images/<name>.png` filenames so a human can supply the images later.
+  `docs/screenshots/<name>.png` filenames so a human can supply the images later.
 - **Mermaid from facts only.** Every Mermaid diagram is generated strictly from extracted
   facts (surfaces, dependencies, routes). No edges, nodes, or labels may be invented.
   See `${CLAUDE_SKILL_DIR}/references/doc-structure.md` for Mermaid recipes.
@@ -140,7 +140,7 @@ Write a run report to
 - Surface inventory: entries found per category.
 - Surfaces omitted (not found in the module).
 - Examples skipped due to unresolved types (list field names and the unresolved type).
-- Skill version: `magento2-docs-generate@1.2.0`.
+- Skill version: `magento2-docs-generate@1.3.0`.
 
 ## Inputs
 
@@ -197,6 +197,8 @@ run's reports collect under its folder.
   README and technical-reference documents.
 - `magento2-context/references/naming.md` — shared naming conventions.
 - `magento2-context/references/placeholder-schema.md` — token registry.
+- `magento2-context/references/changelog-format.md` — canonical CHANGELOG structure and
+  entry-category vocabulary rendered by `templates/changelog-scaffold.md`.
 
 ## Scripts
 

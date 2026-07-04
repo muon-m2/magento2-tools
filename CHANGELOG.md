@@ -6,6 +6,20 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased] — Documentation consolidation
+
+### Changed
+
+- Documentation is now single-sourced: `magento2-docs-generate` owns every module doc type
+  (README, CHANGELOG, guides, references). `magento2-module-create` and
+  `magento2-feature-implement` delegate; the feature-level HTML guides link into the module
+  Markdown instead of duplicating it. One canonical CHANGELOG format lives in
+  `magento2-context/references/changelog-format.md`.
+
+### Added
+
+- Single-surface generators now emit a "run docs-generate to refresh" note after mutating a module.
+
 ## [1.16.0] — 2026-07-04 — Unified artifact output root (`--docs-root`)
 
 Every `magento2-*` skill now writes its result artifacts under one overridable output root,

@@ -106,6 +106,11 @@ Theme generation requires:
 {ctx.magento_cli} setup:static-content:deploy -f
 ```
 
+> **Docs may now be stale.** This change modified module code. Run
+> `magento2-docs-generate --module={Vendor}_{Module}` to refresh the module's README,
+> CHANGELOG, and `docs/*.md` (technical reference, guides, and API references as
+> applicable).
+
 ## Inputs
 
 ```

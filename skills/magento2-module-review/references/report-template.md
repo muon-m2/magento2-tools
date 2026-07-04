@@ -8,7 +8,7 @@ Reviewer: Claude Code using `magento2-module-review`
 Skill versions:
 
 - magento2-module-review@2.4.0
-  - magento2-context@1.8.0
+  - magento2-context@1.9.0
 
 ## Executive Summary
 

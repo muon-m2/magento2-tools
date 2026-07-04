@@ -177,6 +177,11 @@ report artifacts) under `<path>/message-queues/`; otherwise default to
 `{ctx.docs_root}/message-queues/`. `magento2-feature-implement` passes this so a feature
 run's reports collect under its folder.
 
+> **Docs may now be stale.** This change modified module code. Run
+> `magento2-docs-generate --module={Vendor}_{Module}` to refresh the module's README,
+> CHANGELOG, and `docs/*.md` (technical reference, guides, and API references as
+> applicable).
+
 ## Inputs
 
 ```

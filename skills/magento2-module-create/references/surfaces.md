@@ -45,7 +45,11 @@ No additional directories beyond `etc/`.
 - Always include `entity_id` primary key (unsigned int, auto-increment).
 - Always include `created_at` and `updated_at` timestamp columns.
 - `db_schema_whitelist.json` must be present when `db_schema.xml` exists — initialize as `{}`.
-  Document the regeneration command in `README.md` (JSON has no comment syntax).
+  Do not document the regeneration command in `README.md` yourself (JSON has no comment
+  syntax to explain the empty file, but the README isn't this skill's to write either):
+  `magento2-docs-generate` owns `README.md` and includes the
+  `setup:db-declaration:generate-whitelist --module-name={Vendor}_{ModuleName}` command in its
+  Installation section for modules with a declarative schema.
 - Never create `Setup/InstallSchema.php` or `Setup/UpgradeSchema.php`.
 
 ---

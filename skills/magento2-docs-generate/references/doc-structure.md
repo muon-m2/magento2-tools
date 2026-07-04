@@ -15,7 +15,17 @@ Rendered from `templates/readme.md`. Target file: `{module}/README.md`.
 2. **Description** — one paragraph from `{MODULE_DESCRIPTION}`.
 3. **Requirements** — Magento version, PHP version (from composer.json `require`).
 4. **Installation** — `bin/magento module:enable {Vendor}_{Module}` +
-   `bin/magento setup:upgrade`.
+   `bin/magento setup:upgrade` + `bin/magento cache:flush`, plus the conditional
+   declarative-schema whitelist step described immediately below.
+
+   **Conditional whitelist step:** the Installation section additionally includes, after
+   `setup:upgrade`, `bin/magento setup:db-declaration:generate-whitelist
+   --module-name={Vendor}_{Module}` when the module declares a `db_schema.xml`
+   (declarative schema) surface. Omitted entirely — no paragraph, no command — when the
+   module has no `db_schema.xml`, following the same "omit when the surface is absent"
+   rule as the Features/Configuration/Public API sections below. This step was previously
+   (and incorrectly) documented as something `magento2-module-create` writes into
+   `README.md`; docs-generate now owns it since it owns the whole README.
 
 ### Documentation link (always present)
 
@@ -27,6 +37,20 @@ Rendered from `templates/readme.md`. Target file: `{module}/README.md`.
 ### Closing sections (always present)
 
 6. **Dependencies** — `{DEPENDENCIES_LIST}` from `composer.json require`.
+
+### Richer sections (conditional — each omitted, heading and all, when its surface is absent)
+
+Rendered between **Dependencies** and **Documentation** in `templates/readme.md`. These were
+consolidated from module-create's README template so that docs-generate is the single owner
+of every module README; each follows the skill's existing "OMIT empty surfaces" rule — never
+render an empty table or a placeholder row.
+
+| Section | Heading | Token | Derived from | Omit when |
+|---------|---------|-------|---------------|-----------|
+| Features | `## Features` | `{FEATURES_LIST}` | `module.xml` + the module's declared surfaces (a bulleted summary of what the module does, derived from its API/config/CLI/queue/GraphQL/REST surfaces) | The module has no summarizable surface (rare — a stub module) |
+| Configuration | `## Configuration` | `{CONFIG_TABLE}` | `etc/adminhtml/system.xml` (Field / Description / Default columns) | `etc/adminhtml/system.xml` has no fields (no admin configuration) |
+| Public API | `## Public API` | `{PUBLIC_API_TABLE}` | `@api`-annotated interfaces under `Api/` (Interface / Description columns) | The module declares no `@api` interfaces |
+| Known Limitations | `## Known Limitations` | `{KNOWN_LIMITATIONS}` | Extractor- or user-supplied notes on intentional constraints or out-of-scope behavior | No limitations are supplied — never invented by the generator |
 
 ---
 
@@ -326,7 +350,7 @@ GraphQL errors use the standard Magento extension envelope on the `errors` array
 The `{USER_GUIDE_SCREENSHOTS}` section in the User Guide is a **Markdown checklist** — never an
 `![]()` image embed. Each checklist item gives:
 1. A human-navigable path to the UI element.
-2. A suggested filename for the screenshot file under `docs/images/`.
+2. A suggested filename for the screenshot file under `docs/screenshots/`.
 
 **Navigation path derivation:**
 
@@ -339,7 +363,7 @@ The `{USER_GUIDE_SCREENSHOTS}` section in the User Guide is a **Markdown checkli
 **Checklist item format:**
 
 ```
-- [ ] **{Label}** — navigate to `{navigation_path}`; save as `docs/images/{name}.png`
+- [ ] **{Label}** — navigate to `{navigation_path}`; save as `docs/screenshots/{name}.png`
 ```
 
 Where `{name}` is a lowercase, hyphenated slug derived from the navigation path
