@@ -130,7 +130,8 @@ The skill produces **two automation artifacts** and **one LLM deliverable**:
    - EQP findings
    - Cross-module findings
    - Skipped checks and `scanner_errors`
-   The Markdown is saved as `.docs/audits/security-{scope}-{date}.md` by the LLM, not
+   The Markdown is saved as `{output_root}/audits/{Vendor}_{Module}-security-{date}.md`
+   (module scope; site/vendor scope: `security-{scope}-{date}.md`) by the LLM, not
    by a script. It is intended as a human-readable narrative on top of the JSON/SARIF
    artifacts.
 
@@ -158,11 +159,20 @@ The skill produces **two automation artifacts** and **one LLM deliverable**:
 
 ## Outputs
 
+Module scope (basename uses the underscore module name, e.g. `Acme_OrderExport`):
 ```
-.docs/audits/security-{scope}-{date}.json    # automation artifact (build-findings.sh)
-.docs/audits/security-{scope}-{date}.sarif   # automation artifact (build-findings.sh)
-.docs/audits/security-{scope}-{date}.md      # LLM deliverable, written in Phase 7
+{output_root}/audits/{Vendor}_{Module}-security-{date}.json    # automation artifact (build-findings.sh)
+{output_root}/audits/{Vendor}_{Module}-security-{date}.sarif   # automation artifact (build-findings.sh)
+{output_root}/audits/{Vendor}_{Module}-security-{date}.md      # LLM deliverable, written in Phase 7
 ```
+Site/vendor scope:
+```
+{output_root}/audits/security-{scope}-{date}.json
+{output_root}/audits/security-{scope}-{date}.sarif
+{output_root}/audits/security-{scope}-{date}.md
+```
+`{output_root}` defaults to `.docs` (`{ctx.docs_root}`); see the `--docs-root`/`DOCS_ROOT`
+recipe in `magento2-context/references/artifact-layout.md`.
 
 ## Severity Calibration
 

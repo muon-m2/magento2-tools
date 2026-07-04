@@ -16,11 +16,15 @@
 #   PHPSTAN             phpstan binary path (default: auto-resolved)
 #   PHPMD               phpmd binary path (default: auto-resolved)
 #   RECTOR              rector binary path (default: auto-resolved)
-#   OUTPUT_DIR          default: .docs/quality
+#   DOCS_ROOT           default: .docs — project-root artifact dir ({ctx.docs_root}).
+#                       Pass an absolute or project-root path so an in-`src/` cwd cannot
+#                       redirect output into the Magento tree. See magento2-context/SKILL.md.
+#   OUTPUT_DIR          default: {DOCS_ROOT}/quality
 #   SKILL_VERSION       default: 1.0.0
 #
 # Output:
-#   Writes {OUTPUT_DIR}/quality-{SCOPE}-{YYYY-MM-DD}.json + .sarif. Stdout echoes the JSON.
+#   Writes {OUTPUT_DIR}/{TARGET_MODULE}-quality-{YYYY-MM-DD}.json (module scope) or
+#   {OUTPUT_DIR}/quality-{SCOPE}-{YYYY-MM-DD}.json (site/diff scope) + .sarif. Stdout echoes JSON.
 
 set -uo pipefail
 
@@ -34,7 +38,8 @@ PHPCS="${PHPCS:-}"
 PHPSTAN="${PHPSTAN:-}"
 PHPMD="${PHPMD:-}"
 RECTOR="${RECTOR:-}"
-OUTPUT_DIR="${OUTPUT_DIR:-.docs/quality}"
+DOCS_ROOT="${DOCS_ROOT:-.docs}"
+OUTPUT_DIR="${OUTPUT_DIR:-${DOCS_ROOT}/quality}"
 SKILL_VERSION="${SKILL_VERSION:-1.0.0}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -122,7 +127,11 @@ export TARGET_MODULE TARGET_PATH SCOPE
 export SKILL_NAME="magento2-static-analysis"
 export SKILL_VERSION
 export OUTPUT_KIND="quality"
-export OUTPUT_BASENAME="quality-${SCOPE}-${DATE}"
+if [ "$SCOPE" = "module" ]; then
+    export OUTPUT_BASENAME="${TARGET_MODULE}-quality-${DATE}"
+else
+    export OUTPUT_BASENAME="quality-${SCOPE}-${DATE}"
+fi
 export OUTPUT_DIR
 export SKILL_VERSIONS_JSON="[\"magento2-static-analysis@${SKILL_VERSION}\",\"magento2-context@1.7.0\"]"
 

@@ -16,7 +16,8 @@
 #   SKILL_VERSION   default: 1.0.0
 #
 # Output:
-#   Writes {OUTPUT_DIR}/breeze-compat-{SCOPE}-{YYYY-MM-DD}.json + .sarif. Stdout echoes JSON.
+#   Writes {OUTPUT_DIR}/{TARGET_MODULE}-breeze-compat-{YYYY-MM-DD}.json (module scope) or
+#   {OUTPUT_DIR}/breeze-compat-{SCOPE}-{YYYY-MM-DD}.json (site scope) + .sarif. Stdout echoes JSON.
 
 set -uo pipefail
 
@@ -91,7 +92,11 @@ export TARGET_MODULE TARGET_PATH SCOPE
 export SKILL_NAME="magento2-breeze-compat-audit"
 export SKILL_VERSION
 export OUTPUT_KIND="compatibility"
-export OUTPUT_BASENAME="breeze-compat-${SCOPE}-${DATE}"
+if [ "$SCOPE" = "module" ]; then
+    export OUTPUT_BASENAME="${TARGET_MODULE}-breeze-compat-${DATE}"
+else
+    export OUTPUT_BASENAME="breeze-compat-${SCOPE}-${DATE}"
+fi
 export OUTPUT_DIR
 export SKILL_VERSIONS_JSON="[\"magento2-breeze-compat-audit@${SKILL_VERSION}\",\"magento2-context@1.7.0\"]"
 

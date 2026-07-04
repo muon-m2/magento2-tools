@@ -126,14 +126,23 @@ Flags:
 
 ## Outputs
 
+Module scope (basename uses the underscore module name, e.g. `Acme_OrderExport`):
 ```
-.docs/audits/perf-{scope}-{date}.json    # automation artifact (build-findings.sh)
-.docs/audits/perf-{scope}-{date}.sarif   # automation artifact (build-findings.sh)
-.docs/audits/perf-{scope}-{date}.md      # LLM deliverable, written in Phase 5
+{output_root}/audits/{Vendor}_{Module}-perf-{date}.json    # automation artifact (build-findings.sh)
+{output_root}/audits/{Vendor}_{Module}-perf-{date}.sarif   # automation artifact (build-findings.sh)
+{output_root}/audits/{Vendor}_{Module}-perf-{date}.md      # LLM deliverable, written in Phase 5
+```
+Site scope:
+```
+{output_root}/audits/perf-{scope}-{date}.json
+{output_root}/audits/perf-{scope}-{date}.sarif
+{output_root}/audits/perf-{scope}-{date}.md
 ```
 
-`.docs/` is anchored at the project root (`{ctx.docs_root}`), never under `{ctx.magento_root}`,
-`app/code`, or a module dir. See the **Artifact location** rule in `magento2-context/SKILL.md`.
+`{output_root}` (`.docs` by default, `{ctx.docs_root}`) is anchored at the project root,
+never under `{ctx.magento_root}`, `app/code`, or a module dir. See the **Artifact location**
+rule in `magento2-context/SKILL.md` and the `--docs-root`/`DOCS_ROOT` recipe in
+`magento2-context/references/artifact-layout.md`.
 
 ## Reference Files
 

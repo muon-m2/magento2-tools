@@ -19,7 +19,8 @@
 #   SKILL_VERSION       default: 1.1.1
 #
 # Output:
-#   Writes {OUTPUT_DIR}/perf-{SCOPE}-{YYYY-MM-DD}.json + .sarif. Stdout echoes the JSON.
+#   Writes {OUTPUT_DIR}/{TARGET_MODULE}-perf-{YYYY-MM-DD}.json (module scope) or
+#   {OUTPUT_DIR}/perf-{SCOPE}-{YYYY-MM-DD}.json (site scope) + .sarif. Stdout echoes the JSON.
 
 set -uo pipefail
 
@@ -137,7 +138,11 @@ export TARGET_MODULE TARGET_PATH SCOPE
 export SKILL_NAME="magento2-performance-audit"
 export SKILL_VERSION
 export OUTPUT_KIND="performance"
-export OUTPUT_BASENAME="perf-${SCOPE}-${DATE}"
+if [ "$SCOPE" = "module" ]; then
+    export OUTPUT_BASENAME="${TARGET_MODULE}-perf-${DATE}"
+else
+    export OUTPUT_BASENAME="perf-${SCOPE}-${DATE}"
+fi
 export OUTPUT_DIR
 export SKILL_VERSIONS_JSON="[\"magento2-performance-audit@${SKILL_VERSION}\",\"magento2-context@1.7.0\"]"
 

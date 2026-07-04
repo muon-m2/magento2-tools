@@ -97,7 +97,8 @@ Re-run `${CLAUDE_SKILL_DIR}/scripts/run-analysis.sh` on the same scope. Report:
 Write three artifacts:
 
 1. **Markdown** — narrative report saved to
-   `.docs/quality/{Vendor}_{Module}-quality-{YYYY-MM-DD}.md`. Sections: scope summary,
+   `{output_root}/quality/{Vendor}_{Module}-quality-{YYYY-MM-DD}.md` (module scope;
+   site/diff scope: `quality-{scope}-{YYYY-MM-DD}.md`). Sections: scope summary,
    auto-fix summary (before/after counts), residual findings by severity/tool, proposed
    risky rector rules (manual action needed), skipped tools.
 2. **JSON + SARIF** — built by `${CLAUDE_SKILL_DIR}/scripts/build-findings.sh` using
@@ -130,11 +131,20 @@ Write three artifacts:
 
 ## Outputs
 
+Module scope (basename uses the underscore module name, e.g. `Acme_OrderExport`):
 ```
-.docs/quality/{Vendor}_{Module}-quality-{date}.md    # Markdown narrative (LLM, Phase 5)
-.docs/quality/quality-{scope}-{date}.json            # JSON findings (build-findings.sh)
-.docs/quality/quality-{scope}-{date}.sarif           # SARIF (build-findings.sh)
+{output_root}/quality/{Vendor}_{Module}-quality-{date}.md    # Markdown narrative (LLM, Phase 5)
+{output_root}/quality/{Vendor}_{Module}-quality-{date}.json  # JSON findings (build-findings.sh)
+{output_root}/quality/{Vendor}_{Module}-quality-{date}.sarif # SARIF (build-findings.sh)
 ```
+Site/diff scope:
+```
+{output_root}/quality/quality-{scope}-{date}.md
+{output_root}/quality/quality-{scope}-{date}.json
+{output_root}/quality/quality-{scope}-{date}.sarif
+```
+`{output_root}` defaults to `.docs` (`{ctx.docs_root}`); see the `--docs-root`/`DOCS_ROOT`
+recipe in `magento2-context/references/artifact-layout.md`.
 
 ## Related Skills
 

@@ -66,16 +66,17 @@ Run **two** complementary checks:
 Produce three deliverables:
 
 1. **Markdown readiness report** (LLM deliverable, NOT automated). Written as:
-   `.docs/marketplace/{Vendor}-{Module}-readiness-{date}.md`
+   `{output_root}/marketplace/{Vendor}_{Module}-readiness-{date}.md` (module scope;
+   site scope: `readiness-{scope}-{date}.md`).
    Sections: module identity + summary, readiness score + verdict, blockers, warnings, info,
    EQP static summary, skipped checks / scanner errors, recommended next steps.
 
 2. **JSON + SARIF** (automated via `${CLAUDE_SKILL_DIR}/scripts/build-findings.sh`). The
-   automated basename converts underscores in the module name to hyphens (e.g.
-   `Acme_OrderExport` → `Acme-OrderExport-readiness-{date}`):
+   automated basename uses the underscore module name (e.g. `Acme_OrderExport` →
+   `Acme_OrderExport-readiness-{date}`):
    ```
-   .docs/marketplace/{Vendor}-{Module}-readiness-{date}.json   # OUTPUT_KIND=marketplace
-   .docs/marketplace/{Vendor}-{Module}-readiness-{date}.sarif
+   {output_root}/marketplace/{Vendor}_{Module}-readiness-{date}.json   # OUTPUT_KIND=marketplace
+   {output_root}/marketplace/{Vendor}_{Module}-readiness-{date}.sarif
    ```
    The script aggregates findings from check-readiness.sh — plus the delegated
    `magento2-security-audit` EQP findings when `EQP_FINDINGS_FILE` is provided (Phase 2.2)
@@ -129,14 +130,20 @@ Produce three deliverables:
 
 ## Outputs
 
-Artifact basenames convert underscores in the module name to hyphens
-(`Acme_OrderExport` → `Acme-OrderExport`):
-
+Module scope (basename uses the underscore module name, e.g. `Acme_OrderExport`):
 ```
-.docs/marketplace/{Vendor}-{Module}-readiness-{date}.md     # LLM deliverable (Phase 3)
-.docs/marketplace/{Vendor}-{Module}-readiness-{date}.json   # automated (build-findings.sh)
-.docs/marketplace/{Vendor}-{Module}-readiness-{date}.sarif  # automated (build-findings.sh)
+{output_root}/marketplace/{Vendor}_{Module}-readiness-{date}.md     # LLM deliverable (Phase 3)
+{output_root}/marketplace/{Vendor}_{Module}-readiness-{date}.json   # automated (build-findings.sh)
+{output_root}/marketplace/{Vendor}_{Module}-readiness-{date}.sarif  # automated (build-findings.sh)
 ```
+Site scope:
+```
+{output_root}/marketplace/readiness-{scope}-{date}.md
+{output_root}/marketplace/readiness-{scope}-{date}.json
+{output_root}/marketplace/readiness-{scope}-{date}.sarif
+```
+`{output_root}` defaults to `.docs` (`{ctx.docs_root}`); see the `--docs-root`/`DOCS_ROOT`
+recipe in `magento2-context/references/artifact-layout.md`.
 
 ## Severity Calibration
 

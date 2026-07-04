@@ -11,11 +11,15 @@
 #   SCAN_ROOT           default: src/app/code  (cross-module scan)
 #   SECRET_ROOT         default: SCAN_ROOT without /code, i.e. the app/ tree (secret scan,
 #                       so app/etc/env.php is covered)
-#   OUTPUT_DIR          default: .docs/audits
+#   DOCS_ROOT           default: .docs — project-root artifact dir ({ctx.docs_root}).
+#                       Pass an absolute or project-root path so an in-`src/` cwd cannot
+#                       redirect output into the Magento tree. See magento2-context/SKILL.md.
+#   OUTPUT_DIR          default: {DOCS_ROOT}/audits
 #   SKILL_VERSION       default: 1.2.1
 #
 # Output:
-#   Writes {OUTPUT_DIR}/security-{SCOPE}-{YYYY-MM-DD}.json to stdout AND saves to file.
+#   Writes {OUTPUT_DIR}/{TARGET_MODULE}-security-{YYYY-MM-DD}.json (module scope) or
+#   {OUTPUT_DIR}/security-{SCOPE}-{YYYY-MM-DD}.json (site/vendor scope) to stdout AND file.
 
 set -uo pipefail
 
@@ -29,7 +33,8 @@ SCAN_ROOT="${SCAN_ROOT:-$([[ -d app/code ]] && echo app/code || echo src/app/cod
 # Derive the `app/` tree from SCAN_ROOT for secret-scan only; cross-module keeps app/code so its
 # vendor/module discovery is unaffected.
 SECRET_ROOT="${SECRET_ROOT:-${SCAN_ROOT%/code}}"
-OUTPUT_DIR="${OUTPUT_DIR:-.docs/audits}"
+DOCS_ROOT="${DOCS_ROOT:-.docs}"
+OUTPUT_DIR="${OUTPUT_DIR:-${DOCS_ROOT}/audits}"
 SKILL_VERSION="${SKILL_VERSION:-1.2.1}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -118,7 +123,11 @@ export TARGET_MODULE TARGET_PATH SCOPE
 export SKILL_NAME="magento2-security-audit"
 export SKILL_VERSION
 export OUTPUT_KIND="security"
-export OUTPUT_BASENAME="security-${SCOPE}-${DATE}"
+if [ "$SCOPE" = "module" ]; then
+    export OUTPUT_BASENAME="${TARGET_MODULE}-security-${DATE}"
+else
+    export OUTPUT_BASENAME="security-${SCOPE}-${DATE}"
+fi
 export OUTPUT_DIR
 export SKILL_VERSIONS_JSON="[\"magento2-security-audit@${SKILL_VERSION}\",\"magento2-context@1.7.0\"]"
 

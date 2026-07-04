@@ -110,17 +110,18 @@ Never invent runtime findings.
 Produce three deliverables:
 
 1. **Markdown audit report** (LLM deliverable, NOT automated):
-   `.docs/accessibility/{Vendor}-{Module}-a11y-{date}.md`
+   `{output_root}/accessibility/{Vendor}_{Module}-a11y-{date}.md` (module scope;
+   theme/site scope: `a11y-{scope}-{date}.md`).
    Sections: target identity + scope summary, findings by WCAG criterion (Critical/High/Medium/Low/Info),
    static-only caveat, runtime pass status, skipped checks, recommended next steps (each
    naming the executing skill: `magento2-frontend-create` for template fixes).
 
 2. **JSON + SARIF** (automated via `${CLAUDE_SKILL_DIR}/scripts/build-findings.sh`). The
-   automated basename converts underscores in the module name to hyphens (e.g.
-   `Acme_Storefront` → `Acme-Storefront-a11y-{date}`):
+   automated basename uses the underscore module name (e.g. `Acme_Storefront` →
+   `Acme_Storefront-a11y-{date}`):
    ```
-   .docs/accessibility/{Vendor}-{Module}-a11y-{date}.json   # OUTPUT_KIND=accessibility
-   .docs/accessibility/{Vendor}-{Module}-a11y-{date}.sarif
+   {output_root}/accessibility/{Vendor}_{Module}-a11y-{date}.json   # OUTPUT_KIND=accessibility
+   {output_root}/accessibility/{Vendor}_{Module}-a11y-{date}.sarif
    ```
 
 ## WCAG Checks (Summary)
@@ -171,14 +172,20 @@ See `references/wcag-rules.md` for the full static check catalog.
 
 ## Outputs
 
-Artifact basenames convert underscores in the module name to hyphens
-(`Acme_Storefront` → `Acme-Storefront`):
-
+Module scope (basename uses the underscore module name, e.g. `Acme_Storefront`):
 ```
-.docs/accessibility/{Vendor}-{Module}-a11y-{date}.md    # LLM deliverable (Phase 4)
-.docs/accessibility/{Vendor}-{Module}-a11y-{date}.json  # automated (build-findings.sh)
-.docs/accessibility/{Vendor}-{Module}-a11y-{date}.sarif # automated (build-findings.sh)
+{output_root}/accessibility/{Vendor}_{Module}-a11y-{date}.md    # LLM deliverable (Phase 4)
+{output_root}/accessibility/{Vendor}_{Module}-a11y-{date}.json  # automated (build-findings.sh)
+{output_root}/accessibility/{Vendor}_{Module}-a11y-{date}.sarif # automated (build-findings.sh)
 ```
+Theme/site scope:
+```
+{output_root}/accessibility/a11y-{scope}-{date}.md
+{output_root}/accessibility/a11y-{scope}-{date}.json
+{output_root}/accessibility/a11y-{scope}-{date}.sarif
+```
+`{output_root}` defaults to `.docs` (`{ctx.docs_root}`); see the `--docs-root`/`DOCS_ROOT`
+recipe in `magento2-context/references/artifact-layout.md`.
 
 ## Related Skills
 

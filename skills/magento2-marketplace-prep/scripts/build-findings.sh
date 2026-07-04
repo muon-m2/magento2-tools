@@ -10,14 +10,18 @@
 #   TARGET_MODULE       e.g. "Acme_OrderExport"
 #   TARGET_PATH         e.g. "src/app/code/Acme/OrderExport"
 #   SCOPE               "module" | "site"  (default: module)
-#   OUTPUT_DIR          default: .docs/marketplace
+#   DOCS_ROOT           default: .docs — project-root artifact dir ({ctx.docs_root}).
+#                       Pass an absolute or project-root path so an in-`src/` cwd cannot
+#                       redirect output into the Magento tree. See magento2-context/SKILL.md.
+#   OUTPUT_DIR          default: {DOCS_ROOT}/marketplace
 #   SKILL_VERSION       default: 1.0.0
 #   EQP_FINDINGS_FILE   optional: path to a JSON array of EQP static findings produced by
 #                       magento2-security-audit's EQP pass (SKILL.md Phase 2.2). When set and
 #                       readable, those findings are merged into the combined findings list.
 #
 # Output:
-#   Writes {OUTPUT_DIR}/{Module}-readiness-{YYYY-MM-DD}.json + .sarif. Stdout echoes the JSON.
+#   Writes {OUTPUT_DIR}/{TARGET_MODULE}-readiness-{YYYY-MM-DD}.json (module scope) or
+#   {OUTPUT_DIR}/readiness-{SCOPE}-{YYYY-MM-DD}.json (site scope) + .sarif. Stdout echoes JSON.
 
 set -uo pipefail
 
@@ -25,7 +29,8 @@ set -uo pipefail
 : "${TARGET_PATH:?TARGET_PATH is required}"
 
 SCOPE="${SCOPE:-module}"
-OUTPUT_DIR="${OUTPUT_DIR:-.docs/marketplace}"
+DOCS_ROOT="${DOCS_ROOT:-.docs}"
+OUTPUT_DIR="${OUTPUT_DIR:-${DOCS_ROOT}/marketplace}"
 SKILL_VERSION="${SKILL_VERSION:-1.0.0}"
 EQP_FINDINGS_FILE="${EQP_FINDINGS_FILE:-}"
 
@@ -119,10 +124,11 @@ PY
 # ---------------------------------------------------------------------------
 DATE="$(date -u +%Y-%m-%d)"
 
-# Derive a module slug for the output basename.
-# TARGET_MODULE may be "Acme_OrderExport"; convert to "Acme_OrderExport-readiness-YYYY-MM-DD".
-MODULE_SLUG="${TARGET_MODULE//_/-}"
-OUTPUT_BASENAME="${MODULE_SLUG}-readiness-${DATE}"
+if [ "$SCOPE" = "module" ]; then
+    OUTPUT_BASENAME="${TARGET_MODULE}-readiness-${DATE}"
+else
+    OUTPUT_BASENAME="readiness-${SCOPE}-${DATE}"
+fi
 
 export FINDINGS_FILE
 export TARGET_MODULE TARGET_PATH SCOPE

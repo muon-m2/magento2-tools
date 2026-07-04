@@ -88,12 +88,33 @@ PY
 DATE="$(date -u +%Y-%m-%d)"
 FAIL=0
 
-run_builder magento2-security-audit "magento2-security-audit" "security" "security-module-${DATE}" || FAIL=1
-run_builder magento2-performance-audit "magento2-performance-audit" "performance" "perf-module-${DATE}" || FAIL=1
-run_builder magento2-static-analysis "magento2-static-analysis" "quality" "quality-module-${DATE}" || FAIL=1
-run_builder magento2-marketplace-prep "magento2-marketplace-prep" "marketplace" "Acme-Test-readiness-${DATE}" || FAIL=1
-run_builder magento2-accessibility-audit "magento2-accessibility-audit" "accessibility" "Acme-Test-a11y-${DATE}" || FAIL=1
-run_builder magento2-breeze-compat-audit "magento2-breeze-compat-audit" "compatibility" "breeze-compat-module-${DATE}" || FAIL=1
+run_builder magento2-security-audit "magento2-security-audit" "security" "Acme_Test-security-${DATE}" || FAIL=1
+run_builder magento2-performance-audit "magento2-performance-audit" "performance" "Acme_Test-perf-${DATE}" || FAIL=1
+run_builder magento2-static-analysis "magento2-static-analysis" "quality" "Acme_Test-quality-${DATE}" || FAIL=1
+run_builder magento2-marketplace-prep "magento2-marketplace-prep" "marketplace" "Acme_Test-readiness-${DATE}" || FAIL=1
+run_builder magento2-accessibility-audit "magento2-accessibility-audit" "accessibility" "Acme_Test-a11y-${DATE}" || FAIL=1
+run_builder magento2-breeze-compat-audit "magento2-breeze-compat-audit" "compatibility" "Acme_Test-breeze-compat-${DATE}" || FAIL=1
+
+# DOCS_ROOT redirect: with DOCS_ROOT set and no OUTPUT_DIR, output must land under
+# {DOCS_ROOT}/{category}, not .docs/{category}.
+redirect_check() { # skill category basename
+    local skill="$1" category="$2" basename="$3"
+    local root="${WORK}/feat"
+    rm -rf "$root"
+    TARGET_MODULE="Acme_Test" TARGET_PATH="src/app/code/Acme/Test" SCOPE="module" \
+        SCAN_ROOT="src/app/code" COMPOSER_LOCK="/dev/null" DOCS_ROOT="$root" \
+        bash "$OLDPWD/skills/${skill}/scripts/build-findings.sh" >/dev/null 2>"${root}.err"
+    if [ ! -f "${root}/${category}/${basename}.json" ]; then
+        echo "FAIL: ${skill} ignored DOCS_ROOT (expected ${root}/${category}/${basename}.json)"
+        cat "${root}.err"; return 1
+    fi
+    return 0
+}
+
+redirect_check magento2-security-audit      audits         "Acme_Test-security-${DATE}"  || FAIL=1
+redirect_check magento2-static-analysis     quality        "Acme_Test-quality-${DATE}"   || FAIL=1
+redirect_check magento2-marketplace-prep    marketplace    "Acme_Test-readiness-${DATE}" || FAIL=1
+redirect_check magento2-accessibility-audit accessibility  "Acme_Test-a11y-${DATE}"      || FAIL=1
 
 cd "$OLDPWD"
 exit "$FAIL"
