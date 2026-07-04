@@ -12,6 +12,7 @@ description: >-
   "map how Acme_Checkout builds the grand totals and which plugins intercept the collect call";
   "trace what runs when sales_order_place_after fires in Acme_Loyalty".
 tools: Glob, Grep, Read, Bash
+model: haiku
 ---
 
 You are a Magento 2 code-comprehension agent. You perform a thorough, **read-only** mapping of a
