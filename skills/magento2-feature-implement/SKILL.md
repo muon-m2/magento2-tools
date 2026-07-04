@@ -81,10 +81,10 @@ the full implementation from analysis through tested, reviewed, reported deliver
   `references/task-breakdown-guide.md` §"Model tier (advisory)". It is **advisory only**: the
   harness cannot pin a Skill-tool sub-skill invocation to a specific model, so every sequential
   task runs on the session model regardless of its tier. The field guides manual `/model`
-  switching and future per-skill pinning (Claude Code issues #17283 / #17772). The **one** place a
+  switching and future per-skill model pinning if the harness gains it. The **one** place a
   tier takes live effect is the read-only `magento2-explorer` subagent, whose default tier is
   `haiku` — overridable per project via the `CLAUDE.md` directive `Explorer model: {tier}`
-  (`haiku`/`sonnet`/`opus`/`inherit`). `magento2-reviewer` is never downgraded.
+  (`haiku`/`sonnet`/`opus`). `magento2-reviewer` is never downgraded.
 - **Delegate by probing, never by assumption.** The `magento2-*` sub-skills ship in the **same
   plugin** as this skill — if this skill is running, the plugin is installed and they are
   Skill-invocable. Decide a sub-skill's availability by *attempting* its `Skill` invocation and

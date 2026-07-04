@@ -69,7 +69,7 @@ Skills read your project's `CLAUDE.md` for these lines:
 | `Allow smoke on production: true` | feature-implement smoke runner | Permits Phase 6B smoke tests against a production base URL (refused otherwise) |
 | `Feature implement: per-task commits = on` | feature-implement | Same as `MAGENTO2_FI_PER_TASK_COMMITS=1` / `--per-task-commits` |
 | `Feature implement: tdd = on` | feature-implement | Same as `MAGENTO2_FI_TDD=1` / `--tdd` — behaviour tasks implemented test-first (red → green → refactor) |
-| `Explorer model: haiku` | feature-implement / module-review / bug-fix | Model tier (`haiku`/`sonnet`/`opus`/`inherit`) for the read-only `magento2-explorer` comprehension agent. Defaults to `haiku`; `inherit` uses the session model. Does not affect `magento2-reviewer`. |
+| `Explorer model: sonnet` | feature-implement / module-review / bug-fix | Model tier (`haiku`/`sonnet`/`opus`) for the read-only `magento2-explorer` comprehension agent. Defaults to `haiku`; name the tier that matches your session model to run it there. Does not affect `magento2-reviewer`. |
 | MySQL slow-log path | performance-audit / debug | Where to read the slow query log when non-default |
 
 `CLAUDE.md` participates in the context cache key, so editing it takes effect on the
