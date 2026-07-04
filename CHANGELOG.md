@@ -6,7 +6,7 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased] — Backlog cleanup (docs polish + internal refactor)
+## [1.17.1] — 2026-07-04 — Backlog cleanup (docs polish + internal refactor)
 
 ### Changed
 
