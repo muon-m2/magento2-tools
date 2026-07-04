@@ -61,7 +61,7 @@ to `.claude/.cache/magento2-context.json`.
 {
   "schemaVersion": "1.0",
   "skill": "magento2-context",
-  "skillVersion": "1.8.0",
+  "skillVersion": "1.9.0",
   "resolvedAt": "2026-05-26T14:30:00Z",
   "cacheKey": "lock:sha256-...;json:sha256-...;claude:sha256-...;m2:sha256-...;env:<M2_MAGENTO_ROOT>|<M2_PHP_CONTAINER>",
 
