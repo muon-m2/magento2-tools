@@ -6,6 +6,19 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased] — Backlog cleanup (docs polish + internal refactor)
+
+### Changed
+
+- Internal-only cleanup, no behavior change: docs polish (unified the `{Vendor}_{Module}`
+  filename token + placeholder notation in `magento2-context/references/artifact-layout.md`;
+  `magento2-module-review` output-root heading level; `magento2-i18n` `--docs-root` inputs
+  bullet; `magento2-deploy` snapshot.sh phrasing; `magento2-module-create` docs table now
+  lists `api-reference`/`graphql-reference`); refactor: the six audit builders now emit
+  `scanner_errors` via `emit-json.sh`'s `SCANNER_ERRORS_FILE` and share a
+  `resolve-basename.sh` helper (byte-identical output); hardened
+  `tests/test-artifact-layout.sh`.
+
 ## [1.17.0] — 2026-07-04 — Documentation consolidation
 
 `magento2-docs-generate` is now the single owner of every module documentation type; other

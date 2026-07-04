@@ -118,6 +118,7 @@ PY
 # Emit via shared pipeline.
 # ---------------------------------------------------------------------------
 DATE="$(date -u +%Y-%m-%d)"
+export TARGET_MODULE TARGET_PATH SCOPE
 
 if [ -f "$RESOLVE_BASENAME" ]; then
     OUTPUT_BASENAME="$(DATE="$DATE" bash "$RESOLVE_BASENAME" a11y)"
@@ -130,7 +131,6 @@ else
 fi
 
 export FINDINGS_FILE
-export TARGET_MODULE TARGET_PATH SCOPE
 export SKILL_NAME="magento2-accessibility-audit"
 export SKILL_VERSION
 export OUTPUT_KIND="accessibility"
