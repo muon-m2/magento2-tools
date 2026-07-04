@@ -116,8 +116,9 @@ Brief Markdown saved to `{output_root}/adminhtml-listings/{Vendor}_{Module}-{ent
 - Links to `magento2-module-review` and `magento2-test-generate`
 
 > **Docs may now be stale.** This change modified module code. Run
-> `magento2-docs-generate --module={Vendor}_{Module}` to refresh the module's README and
-> technical reference.
+> `magento2-docs-generate --module={Vendor}_{Module}` to refresh the module's README,
+> CHANGELOG, and `docs/*.md` (technical reference, guides, and API references as
+> applicable).
 
 ## Inputs
 

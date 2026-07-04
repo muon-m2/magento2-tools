@@ -206,10 +206,11 @@ checklist with zero post-creation fixes required.
       examples under `docs/api-examples/` and reference them from the developer guide.
     - Add other helpful artifacts (Postman collection, ER/sequence diagram) under `docs/artifacts/`
       as the surfaces warrant. Omit those that do not apply — no empty placeholder files.
-    - **Quick Create Mode:** the delegation call above naturally produces only `README.md` +
-      `CHANGELOG.md` when no other surfaces are declared. **`--mode=augment`:** re-run the delegation
-      so every doc reflects the augmented surfaces — never leave a doc describing the pre-augment
-      module.
+    - **Quick Create Mode:** the delegation call above naturally produces `README.md`,
+      `CHANGELOG.md`, and `docs/technical-reference.md` when no other surfaces are declared —
+      `magento2-docs-generate` always emits the technical reference, even for a surface-less
+      module. **`--mode=augment`:** re-run the delegation so every doc reflects the augmented
+      surfaces — never leave a doc describing the pre-augment module.
     - Run the completeness checklist in `references/documentation-guide.md`. Do not proceed to Step 7
       until every required artifact for the current mode exists on disk.
 
@@ -243,8 +244,9 @@ Creates only the **core** surface files:
 Does not create interfaces, models, controllers, templates, or tests. All files must still fully comply
 with Categories 1, 2, and 3 of the review checklist.
 
-Documentation (Step 6) is reduced to `README.md` + `CHANGELOG.md` — the full doc set
-(technical reference, developer/user guides, API examples) is generated when surfaces are added.
+Documentation (Step 6) is reduced to `README.md` + `CHANGELOG.md` + `docs/technical-reference.md`
+(what `magento2-docs-generate` always produces for a surface-less module) — the rest of the full
+doc set (developer/user guides, API examples) is generated when surfaces are added.
 
 After creation, list all skipped surfaces and state:
 *"Run `/module-create {ModuleName} {surface}` to add a surface when ready."*

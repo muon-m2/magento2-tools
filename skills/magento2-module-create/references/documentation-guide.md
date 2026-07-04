@@ -9,8 +9,9 @@ Because this skill **works without a running Magento instance**, the documentati
 system. Where an artifact genuinely needs a running instance (screenshots), insert a clearly marked
 placeholder that names the screen to capture post-deploy — never fabricate it.
 
-Step 6 is **full** in a normal create, **reduced** in Quick Create Mode (README + CHANGELOG only),
-and **refresh-only** in `--mode=augment` (update the docs the new surfaces touch).
+Step 6 is **full** in a normal create, **reduced** in Quick Create Mode (README + CHANGELOG +
+`docs/technical-reference.md`), and **refresh-only** in `--mode=augment` (update the docs the new
+surfaces touch).
 
 ---
 
@@ -100,7 +101,7 @@ Omit any artifact that does not apply — do not create empty placeholder files.
 | Mode | Step 6 scope |
 |------|--------------|
 | Normal create | Full set via one `magento2-docs-generate` delegation call: README, CHANGELOG, technical reference, developer guide (when a public surface exists), user guide + screenshots (when a UI surface exists); plus API examples (when REST/GraphQL) and applicable artifacts, written separately by this skill. |
-| Quick Create | Reduced: `README.md` + `CHANGELOG.md` only — matches the core-only file set. State that the full doc set is generated when surfaces are added. |
+| Quick Create | Reduced: `README.md` + `CHANGELOG.md` + `docs/technical-reference.md` — matches what `magento2-docs-generate` always produces for a surface-less module. State that the rest of the full doc set (developer/user guides, API examples) is generated when surfaces are added. |
 | `--mode=augment` | Refresh-only: re-run `magento2-docs-generate` (refreshes README/CHANGELOG/technical-reference/developer-guide/user-guide) and refresh the API examples for the surfaces the augment added. Never leave a doc describing the pre-augment module. |
 
 ---
