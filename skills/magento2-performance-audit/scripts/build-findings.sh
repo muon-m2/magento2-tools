@@ -37,6 +37,7 @@ SKILL_VERSION="${SKILL_VERSION:-1.2.0}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 EMIT_JSON="${SCRIPT_DIR}/../../magento2-module-review/scripts/emit-json.sh"
 EMIT_SARIF="${SCRIPT_DIR}/../../magento2-module-review/scripts/emit-sarif.sh"
+RESOLVE_BASENAME="${SCRIPT_DIR}/../../magento2-module-review/scripts/resolve-basename.sh"
 
 if [ ! -f "$EMIT_JSON" ]; then
     echo "build-findings: shared JSON emitter not found at $EMIT_JSON" >&2
@@ -138,30 +139,23 @@ export TARGET_MODULE TARGET_PATH SCOPE
 export SKILL_NAME="magento2-performance-audit"
 export SKILL_VERSION
 export OUTPUT_KIND="performance"
-if [ "$SCOPE" = "module" ]; then
-    export OUTPUT_BASENAME="${TARGET_MODULE}-perf-${DATE}"
+if [ -f "$RESOLVE_BASENAME" ]; then
+    OUTPUT_BASENAME="$(DATE="$DATE" bash "$RESOLVE_BASENAME" perf)"
 else
-    export OUTPUT_BASENAME="perf-${SCOPE}-${DATE}"
+    if [ "$SCOPE" = "module" ]; then
+        OUTPUT_BASENAME="${TARGET_MODULE}-perf-${DATE}"
+    else
+        OUTPUT_BASENAME="perf-${SCOPE}-${DATE}"
+    fi
 fi
+export OUTPUT_BASENAME
 export OUTPUT_DIR
 export SKILL_VERSIONS_JSON="[\"magento2-performance-audit@${SKILL_VERSION}\",\"magento2-context@1.9.0\"]"
+export SCANNER_ERRORS_FILE
 
 bash "$EMIT_JSON" > /dev/null
 
 OUTPUT_FILE="${OUTPUT_DIR}/${OUTPUT_BASENAME}.json"
-if [ -f "$OUTPUT_FILE" ] && [ -f "$SCANNER_ERRORS_FILE" ]; then
-    python3 - "$OUTPUT_FILE" "$SCANNER_ERRORS_FILE" <<'PY'
-import json, sys
-doc_path, err_path = sys.argv[1], sys.argv[2]
-with open(doc_path) as fh:
-    doc = json.load(fh)
-with open(err_path) as fh:
-    errors = json.load(fh)
-doc['scanner_errors'] = errors
-with open(doc_path, 'w') as fh:
-    json.dump(doc, fh, indent=2)
-PY
-fi
 
 # Emit SARIF alongside JSON.
 SARIF_OUTPUT="${OUTPUT_DIR}/${OUTPUT_BASENAME}.sarif"

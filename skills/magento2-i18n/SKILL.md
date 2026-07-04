@@ -89,6 +89,8 @@ Via `${CLAUDE_SKILL_DIR}/scripts/validate-csv.sh`:
 /magento2-i18n [--locales=en_US,de_DE,fr_FR] [--machine-translate] [--module=<Vendor>_<Module>] [--docs-root=<path>]
 ```
 
+`--docs-root=<path>` — output-root override; see "Output root" below.
+
 ## Outputs
 
 ```

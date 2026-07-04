@@ -102,7 +102,7 @@ missing tool or unavailable Magento runtime is an environment limitation, not a 
     - Create a v2 report summarising resolved findings, items delegated to other skills (naming the
       skill per item), and residual risk.
 
-## Output Root (`--docs-root`)
+### Output root (`--docs-root`)
 
 This skill accepts `--docs-root=<path>` (see
 `magento2-context/references/artifact-layout.md`). When set, run the emitter with

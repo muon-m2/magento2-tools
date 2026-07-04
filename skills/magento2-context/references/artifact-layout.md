@@ -8,8 +8,8 @@ artifacts and **what** it names them. Consumed by every artifact-producing skill
 All artifacts are written under an **output root**, resolved once per run:
 
 - **Default:** `{ctx.docs_root}` — i.e. `.docs`, anchored at the project root.
-- **Override:** the `--docs-root=<path>` argument. When a caller (e.g.
-  `magento2-feature-implement`) passes it, the skill writes under `<path>` instead
+- **Override:** the `--docs-root={path}` argument. When a caller (e.g.
+  `magento2-feature-implement`) passes it, the skill writes under `{path}` instead
   of `.docs`. Scripts read it from the `DOCS_ROOT` env var.
 
 Every artifact goes to **`{output_root}/{category}/{basename}`**. The output root is
@@ -18,22 +18,23 @@ the ROOT only — the skill always appends its own `{category}` subdirectory.
 ### Recipe — scripts (bash)
 
     DOCS_ROOT="${DOCS_ROOT:-.docs}"
-    OUTPUT_DIR="${OUTPUT_DIR:-${DOCS_ROOT}/<category>}"
+    OUTPUT_DIR="${OUTPUT_DIR:-${DOCS_ROOT}/{category}}"
 
 ### Recipe — skills (SKILL.md)
 
-> This skill accepts `--docs-root=<path>` (see
+> This skill accepts `--docs-root={path}` (see
 > `magento2-context/references/artifact-layout.md`). When set, write artifacts under
-> `<path>/<category>/` (scripts: pass `DOCS_ROOT=<path>`); otherwise default to
-> `{ctx.docs_root}/<category>/`.
+> `{path}/{category}/` (scripts: pass `DOCS_ROOT={path}`); otherwise default to
+> `{ctx.docs_root}/{category}/`.
 
 Because env vars do NOT persist across Skill-tool Bash calls, `--docs-root` is always
 passed explicitly per invocation — never assumed from a prior `export`.
 
 ## Filename scheme
 
-- **Module scope:** `{TARGET_MODULE}-{kind}-{YYYY-MM-DD}` — underscore module name,
-  e.g. `Acme_OrderExport-security-2026-07-03`.
+- **Module scope:** `{Vendor}_{Module}-{kind}-{YYYY-MM-DD}` (the underscore-joined module
+  name that scripts read as the `TARGET_MODULE` env var) — e.g.
+  `Acme_OrderExport-security-2026-07-03`.
 - **Site / vendor scope:** `{kind}-{scope}-{YYYY-MM-DD}`, e.g. `security-site-2026-07-03`.
 
 Markdown, JSON, and SARIF of one run share the basename apart from the extension.
