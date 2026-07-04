@@ -37,6 +37,7 @@ EQP_FINDINGS_FILE="${EQP_FINDINGS_FILE:-}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 EMIT_JSON="${SCRIPT_DIR}/../../magento2-module-review/scripts/emit-json.sh"
 EMIT_SARIF="${SCRIPT_DIR}/../../magento2-module-review/scripts/emit-sarif.sh"
+RESOLVE_BASENAME="${SCRIPT_DIR}/../../magento2-module-review/scripts/resolve-basename.sh"
 
 if [ ! -f "$EMIT_JSON" ]; then
     echo "build-findings: shared JSON emitter not found at $EMIT_JSON" >&2
@@ -124,10 +125,14 @@ PY
 # ---------------------------------------------------------------------------
 DATE="$(date -u +%Y-%m-%d)"
 
-if [ "$SCOPE" = "module" ]; then
-    OUTPUT_BASENAME="${TARGET_MODULE}-readiness-${DATE}"
+if [ -f "$RESOLVE_BASENAME" ]; then
+    OUTPUT_BASENAME="$(DATE="$DATE" bash "$RESOLVE_BASENAME" readiness)"
 else
-    OUTPUT_BASENAME="readiness-${SCOPE}-${DATE}"
+    if [ "$SCOPE" = "module" ]; then
+        OUTPUT_BASENAME="${TARGET_MODULE}-readiness-${DATE}"
+    else
+        OUTPUT_BASENAME="readiness-${SCOPE}-${DATE}"
+    fi
 fi
 
 export FINDINGS_FILE
@@ -138,24 +143,23 @@ export OUTPUT_KIND="marketplace"
 export OUTPUT_BASENAME
 export OUTPUT_DIR
 export SKILL_VERSIONS_JSON="[\"magento2-marketplace-prep@${SKILL_VERSION}\",\"magento2-context@1.9.0\"]"
+export SCANNER_ERRORS_FILE
 
 bash "$EMIT_JSON" > /dev/null
 
 # ---------------------------------------------------------------------------
-# Inject scanner_errors and compute readiness score.
+# Compute readiness score. scanner_errors is already included by emit-json.sh
+# via the exported SCANNER_ERRORS_FILE — no re-write needed for that field here.
 # ---------------------------------------------------------------------------
 OUTPUT_FILE="${OUTPUT_DIR}/${OUTPUT_BASENAME}.json"
-if [ -f "$OUTPUT_FILE" ] && [ -f "$SCANNER_ERRORS_FILE" ]; then
-    python3 - "$OUTPUT_FILE" "$SCANNER_ERRORS_FILE" <<'PY'
+if [ -f "$OUTPUT_FILE" ]; then
+    python3 - "$OUTPUT_FILE" <<'PY'
 import json
 import sys
 
-doc_path, err_path = sys.argv[1], sys.argv[2]
+doc_path = sys.argv[1]
 with open(doc_path) as fh:
     doc = json.load(fh)
-with open(err_path) as fh:
-    errors = json.load(fh)
-doc['scanner_errors'] = errors
 
 # Compute readiness score from findings.
 severity_weight = {'critical': 25, 'high': 15, 'medium': 5, 'low': 1, 'info': 0}

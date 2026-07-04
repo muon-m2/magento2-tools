@@ -35,6 +35,7 @@ SKILL_VERSION="${SKILL_VERSION:-1.1.0}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 EMIT_JSON="${SCRIPT_DIR}/../../magento2-module-review/scripts/emit-json.sh"
 EMIT_SARIF="${SCRIPT_DIR}/../../magento2-module-review/scripts/emit-sarif.sh"
+RESOLVE_BASENAME="${SCRIPT_DIR}/../../magento2-module-review/scripts/resolve-basename.sh"
 
 if [ ! -f "$EMIT_JSON" ]; then
     echo "build-findings: shared JSON emitter not found at $EMIT_JSON" >&2
@@ -118,10 +119,14 @@ PY
 # ---------------------------------------------------------------------------
 DATE="$(date -u +%Y-%m-%d)"
 
-if [ "$SCOPE" = "module" ]; then
-    OUTPUT_BASENAME="${TARGET_MODULE}-a11y-${DATE}"
+if [ -f "$RESOLVE_BASENAME" ]; then
+    OUTPUT_BASENAME="$(DATE="$DATE" bash "$RESOLVE_BASENAME" a11y)"
 else
-    OUTPUT_BASENAME="a11y-${SCOPE}-${DATE}"
+    if [ "$SCOPE" = "module" ]; then
+        OUTPUT_BASENAME="${TARGET_MODULE}-a11y-${DATE}"
+    else
+        OUTPUT_BASENAME="a11y-${SCOPE}-${DATE}"
+    fi
 fi
 
 export FINDINGS_FILE
@@ -132,28 +137,11 @@ export OUTPUT_KIND="accessibility"
 export OUTPUT_BASENAME
 export OUTPUT_DIR
 export SKILL_VERSIONS_JSON="[\"magento2-accessibility-audit@${SKILL_VERSION}\",\"magento2-context@1.9.0\"]"
+export SCANNER_ERRORS_FILE
 
 bash "$EMIT_JSON" > /dev/null
 
-# ---------------------------------------------------------------------------
-# Inject scanner_errors.
-# ---------------------------------------------------------------------------
 OUTPUT_FILE="${OUTPUT_DIR}/${OUTPUT_BASENAME}.json"
-if [ -f "$OUTPUT_FILE" ] && [ -f "$SCANNER_ERRORS_FILE" ]; then
-    python3 - "$OUTPUT_FILE" "$SCANNER_ERRORS_FILE" <<'PY'
-import json
-import sys
-
-doc_path, err_path = sys.argv[1], sys.argv[2]
-with open(doc_path) as fh:
-    doc = json.load(fh)
-with open(err_path) as fh:
-    errors = json.load(fh)
-doc['scanner_errors'] = errors
-with open(doc_path, 'w') as fh:
-    json.dump(doc, fh, indent=2)
-PY
-fi
 
 # ---------------------------------------------------------------------------
 # Emit SARIF alongside JSON.
