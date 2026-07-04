@@ -6,7 +6,12 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased] — Unified artifact output root (`--docs-root`)
+## [1.16.0] — 2026-07-04 — Unified artifact output root (`--docs-root`)
+
+Every `magento2-*` skill now writes its result artifacts under one overridable output root,
+so a `magento2-feature-implement` run collects all its sub-skills' reports under a single
+`.docs/{FeatureName}/` tree instead of scattering them across ~20 global category folders.
+26 skills bumped; standalone runs are unchanged.
 
 ### Added
 
