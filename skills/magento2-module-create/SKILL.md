@@ -156,8 +156,11 @@ checklist with zero post-creation fixes required.
       commented-out examples in `templates/di.xml` as the base — uncomment and fill in all
       `{placeholders}`.
     - For persistence surfaces: table names as `{vendor_lower}_{module_lower}_{entity}` (snake_case).
-      Create `etc/db_schema_whitelist.json` as `{}`. Document the regeneration command in
-      `README.md` under Installation: `setup:db-declaration:generate-whitelist --module-name={Vendor}_{ModuleName}`.
+      Create `etc/db_schema_whitelist.json` as `{}`. Do not write the regeneration command into
+      `README.md` yourself — `magento2-docs-generate` (Step 6) includes
+      `setup:db-declaration:generate-whitelist --module-name={Vendor}_{ModuleName}` in the generated
+      README's Installation section whenever the module has `db_schema.xml`; this skill also
+      surfaces the same command as a Step 7 next step.
 
 5. **Verify compliance.**
     - **Stamp copyright headers (required, run first).** After all files are generated, run

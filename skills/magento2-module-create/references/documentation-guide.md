@@ -101,7 +101,7 @@ Omit any artifact that does not apply — do not create empty placeholder files.
 |------|--------------|
 | Normal create | Full set via one `magento2-docs-generate` delegation call: README, CHANGELOG, technical reference, developer guide (when a public surface exists), user guide + screenshots (when a UI surface exists); plus API examples (when REST/GraphQL) and applicable artifacts, written separately by this skill. |
 | Quick Create | Reduced: `README.md` + `CHANGELOG.md` only — matches the core-only file set. State that the full doc set is generated when surfaces are added. |
-| `--mode=augment` | Refresh-only: re-run `magento2-docs-generate`, and update the developer/user guide and API examples for the surfaces the augment added. Never leave a doc describing the pre-augment module. |
+| `--mode=augment` | Refresh-only: re-run `magento2-docs-generate` (refreshes README/CHANGELOG/technical-reference/developer-guide/user-guide) and refresh the API examples for the surfaces the augment added. Never leave a doc describing the pre-augment module. |
 
 ---
 

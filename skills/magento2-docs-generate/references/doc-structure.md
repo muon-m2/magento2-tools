@@ -15,7 +15,17 @@ Rendered from `templates/readme.md`. Target file: `{module}/README.md`.
 2. **Description** — one paragraph from `{MODULE_DESCRIPTION}`.
 3. **Requirements** — Magento version, PHP version (from composer.json `require`).
 4. **Installation** — `bin/magento module:enable {Vendor}_{Module}` +
-   `bin/magento setup:upgrade`.
+   `bin/magento setup:upgrade` + `bin/magento cache:flush`, plus the conditional
+   declarative-schema whitelist step described immediately below.
+
+   **Conditional whitelist step:** the Installation section additionally includes, after
+   `setup:upgrade`, `bin/magento setup:db-declaration:generate-whitelist
+   --module-name={Vendor}_{Module}` when the module declares a `db_schema.xml`
+   (declarative schema) surface. Omitted entirely — no paragraph, no command — when the
+   module has no `db_schema.xml`, following the same "omit when the surface is absent"
+   rule as the Features/Configuration/Public API sections below. This step was previously
+   (and incorrectly) documented as something `magento2-module-create` writes into
+   `README.md`; docs-generate now owns it since it owns the whole README.
 
 ### Documentation link (always present)
 
