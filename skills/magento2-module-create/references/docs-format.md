@@ -1,7 +1,10 @@
 # Documentation Format Rules
 
 Apply these rules when generating `README.md` and `CHANGELOG.md` for any module.
-Use `templates/README.md` and `templates/CHANGELOG.md` as the structural base.
+Use `templates/README.md` as the structural base for the README. CHANGELOG structure
+and category vocabulary follow the canonical
+`magento2-context/references/changelog-format.md` — this skill does not ship its own
+CHANGELOG template.
 
 ---
 

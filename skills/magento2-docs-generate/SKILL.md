@@ -197,6 +197,8 @@ run's reports collect under its folder.
   README and technical-reference documents.
 - `magento2-context/references/naming.md` — shared naming conventions.
 - `magento2-context/references/placeholder-schema.md` — token registry.
+- `magento2-context/references/changelog-format.md` — canonical CHANGELOG structure and
+  entry-category vocabulary rendered by `templates/changelog-scaffold.md`.
 
 ## Scripts
 

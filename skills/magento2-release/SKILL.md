@@ -153,7 +153,8 @@ reports collect under its folder.
 ## Reference Files
 
 - `references/semver-rules.md` — conventional commit → version bump rules.
-- `references/changelog-format.md` — Keep a Changelog conventions.
+- `references/changelog-format.md` — commit → category mapping and entry-generation
+  procedure; cites `magento2-context/references/changelog-format.md` for structure.
 - `references/tag-format.md` — multi-module tag prefix rules.
 - `references/publish-targets.md` — Packagist, private Composer registries (Private Packagist / Satis / VCS),
   Marketplace EQP.
