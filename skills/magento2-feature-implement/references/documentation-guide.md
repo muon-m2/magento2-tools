@@ -41,10 +41,14 @@ and renders `README.md`, `docs/technical-reference.md`, and a `CHANGELOG.md` sca
 
 ```
 Skill: magento2-docs-generate
-Args: --module={Vendor}_{Module}
+Args: --module={Vendor}_{Module} --docs-root=.docs/{FeatureName}
 ```
 
-Because it reads from code, re-running it is how docs stay **current** after each change.
+Because it reads from code, re-running it is how docs stay **current** after each change. The
+`{module}/README.md`, `{module}/docs/technical-reference.md`, and `CHANGELOG.md` scaffold are
+written inside the module as usual; the run's own report now lands under
+`.docs/{FeatureName}/docs-generated/` instead of the global `.docs/docs-generated/`, per the
+**One artifact home** Core Rule and `magento2-context/references/artifact-layout.md`.
 
 ### Technical — cross-module spec
 

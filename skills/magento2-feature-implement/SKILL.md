@@ -89,6 +89,9 @@ the full implementation from analysis through tested, reviewed, reported deliver
   module list and the user's environment selection; `magento2-feature-implement` does not run
   `bin/magento` commands itself — `magento2-deploy` owns the deploy plan (and the manual-next-steps
   fallback when it is absent).
+- **One artifact home.** Every sub-skill is invoked with `--docs-root=.docs/{FeatureName}`
+  so the whole run's reports nest under the feature folder (see
+  `magento2-context/references/artifact-layout.md`). Never invoke a sub-skill without it.
 
 ---
 
@@ -123,8 +126,18 @@ Every feature gets its own subfolder under `.docs/`. Create it at the start of P
     │   ├── user-guide.html
     │   └── screenshots/      # Admin/storefront screenshots embedded in the user guide (reuse Phase 6B captures)
     ├── api-examples/         # REST/GraphQL request + response payload samples — when the feature exposes an API
-    └── artifacts/            # Other helpful artifacts (Postman collection, ER/sequence diagrams, sample data)
+    ├── artifacts/            # Other helpful artifacts (Postman collection, ER/sequence diagrams, sample data)
+    ├── reviews/              # .docs/{FeatureName}/reviews/ — magento2-module-review (R* tasks)
+    ├── tests/                # magento2-test-generate coverage reports
+    ├── quality/              # magento2-static-analysis (V* tasks)
+    ├── audits/               # security / performance audits routed from S9
+    ├── docs-generated/       # magento2-docs-generate run reports (Phase 7A)
+    ├── deployments/          # magento2-deploy (D* tasks)
+    └── …                     # any other invoked sub-skill's category dir
 ```
+
+> Sub-skill artifacts nest by category under the feature root per
+> `magento2-context/references/artifact-layout.md`.
 
 **plan.md** is the single source of truth for resuming interrupted runs. It must always contain:
 
@@ -438,7 +451,14 @@ db_schema) is exempt. Follow `references/tdd-mode.md` and the loop in
 
 ### Review tasks (R*)
 
-1. Invoke `magento2-module-review` on the target module.
+1. Invoke `magento2-module-review` on the target module (`--diff` mode after the first pass keeps
+   the review focused on what changed):
+
+   ```
+   Skill: magento2-module-review
+   Args: --docs-root=.docs/{FeatureName} --diff {Vendor}_{Module}
+   ```
+
 2. Fix all Critical and High findings in the same task — do not defer.
 3. Log Medium findings to the final report.
 4. Mark the R* task complete only when all Critical/High findings are resolved.
@@ -450,7 +470,7 @@ Delegate to `magento2-test-generate` when available; fall back to inline generat
 
 ```
 Skill: magento2-test-generate
-Args: --types=unit --missing-only {Vendor}_{Module}
+Args: --types=unit --missing-only --docs-root=.docs/{FeatureName} {Vendor}_{Module}
 ```
 
 `magento2-test-generate` discovers untested classes, writes tests with real assertions, and
@@ -479,7 +499,7 @@ to `magento2-eav-attribute`:
 
 ```
 Skill: magento2-eav-attribute
-Args: --entity=product --code={code} --label="{Label}" --type={input_type} --module={Vendor}_{Module}
+Args: --entity=product --code={code} --label="{Label}" --type={input_type} --module={Vendor}_{Module} --docs-root=.docs/{FeatureName}
 ```
 
 The skill produces the `Setup/Patch/Data/Add{Code}Attribute.php` patch, companion models
@@ -495,7 +515,7 @@ schema migration), generate a G* task per resolver group and delegate to `magent
 
 ```
 Skill: magento2-graphql-create
-Args: --module={Vendor}_{Module} --operation={query|mutation} --auth={customer|admin|anonymous}
+Args: --module={Vendor}_{Module} --operation={query|mutation} --auth={customer|admin|anonymous} --docs-root=.docs/{FeatureName}
 ```
 
 The skill produces schema, resolver, batch loader (if applicable), DI, and unit tests.
@@ -510,7 +530,7 @@ generate an I* task and delegate to `magento2-extension-point`:
 
 ```
 Skill: magento2-extension-point
-Args: --module={Vendor}_{Module} --mode={plugin|observer|preference}
+Args: --module={Vendor}_{Module} --mode={plugin|observer|preference} --docs-root=.docs/{FeatureName}
 ```
 
 The skill produces the interception class, `di.xml` wiring, and a unit test.
@@ -524,7 +544,7 @@ generate a C* task and delegate to `magento2-system-config`:
 
 ```
 Skill: magento2-system-config
-Args: --module={Vendor}_{Module}
+Args: --module={Vendor}_{Module} --docs-root=.docs/{FeatureName}
 ```
 
 The skill produces `system.xml`, `config.xml`, `acl.xml`, and a typed config reader class.
@@ -538,7 +558,7 @@ When the blueprint adds a CLI command or cron job, generate an L* task and deleg
 
 ```
 Skill: magento2-cli-command
-Args: --module={Vendor}_{Module} --mode={command|cron}
+Args: --module={Vendor}_{Module} --mode={command|cron} --docs-root=.docs/{FeatureName}
 ```
 
 The skill produces the command class, `di.xml` registration, and (for cron) `crontab.xml`.
@@ -552,7 +572,7 @@ When the blueprint adds an async message-queue surface, generate a Q* task and d
 
 ```
 Skill: magento2-message-queue
-Args: --module={Vendor}_{Module} --topic={topic.name}
+Args: --module={Vendor}_{Module} --topic={topic.name} --docs-root=.docs/{FeatureName}
 ```
 
 The skill produces the topic DTO, publisher, consumer, and all five queue XML files
@@ -569,7 +589,7 @@ emits ranked findings via the shared emitters:
 
 ```
 Skill: magento2-static-analysis
-Args: --module={Vendor}_{Module}
+Args: --module={Vendor}_{Module} --docs-root=.docs/{FeatureName}
 ```
 
 When `magento2-static-analysis` is absent, run each check inline with the probed `{runner}`.
@@ -604,7 +624,7 @@ rollback steps.
 
 ```
 Skill: magento2-deploy
-Args: --env=local {Vendor}_{ModuleA} {Vendor}_{ModuleB}
+Args: --env=local --docs-root=.docs/{FeatureName} {Vendor}_{ModuleA} {Vendor}_{ModuleB}
 ```
 
 Per-task commit (when enabled): D* tasks make no commit (no files change). Record the
@@ -709,8 +729,10 @@ Scripts: `${CLAUDE_SKILL_DIR}/scripts/smoke-baseline.sh` (S1), `smoke-tail-since
 `smoke-browser.mjs` (browser S3–S7), `curl`/PHP-cURL (S2).
 
 **The loop (S9 decision):** 0 Critical + 0 High → Phase 6 passes → Phase 7. ≥1 Critical/High and
-iteration < 5 → delegate fixes per `smoke-test-guide.md` §Fix Routing, re-deploy via
-`magento2-deploy` if code changed, then re-enter from 6A. ≥1 Critical/High and iteration == 5 →
+iteration < 5 → delegate fixes per `smoke-test-guide.md` §Fix Routing — passing
+`--docs-root=.docs/{FeatureName}` to whichever sub-skill handles the fix, per the **One artifact
+home** Core Rule — re-deploy via `magento2-deploy --docs-root=.docs/{FeatureName}` if code changed,
+then re-enter from 6A. ≥1 Critical/High and iteration == 5 →
 halt and prompt the user. Record each iteration via `templates/smoke-run-report.md` and keep
 `templates/smoke-findings.md` updated (stable finding IDs across iterations).
 
@@ -741,7 +763,7 @@ is **mandatory** in `feature` and `extend` modes, **reduced** in `hotfix` mode, 
 
    ```
    Skill: magento2-docs-generate
-   Args: --module={Vendor}_{Module}
+   Args: --module={Vendor}_{Module} --docs-root=.docs/{FeatureName}
    ```
 
 2. **Technical specification.** Write or refresh `.docs/{FeatureName}/spec.md` — the cross-module
@@ -795,8 +817,13 @@ is **mandatory** in `feature` and `extend` modes, **reduced** in `hotfix` mode, 
 6. Link the Phase 7A documentation set from the report (in Recommended Next Steps or an artifacts
    list): `spec.md`, the developer and user guides, `api-examples/` (when present), and the
    per-module `README.md` / `docs/technical-reference.md`.
-7. Print the report to the conversation.
-8. State explicitly: *"Feature implementation complete. See report above,
+7. **Verify artifact collection.** For every sub-skill invoked this run, confirm its
+   category dir exists under `.docs/{FeatureName}/` (e.g. `reviews/`, `tests/`,
+   `deployments/`). If any expected artifact is missing or was written to a global
+   `.docs/{category}/` instead, note it as a collection gap in the report and (if the
+   file exists globally) move it under the feature folder.
+8. Print the report to the conversation.
+9. State explicitly: *"Feature implementation complete. See report above,
    `.docs/{FeatureName}/report.md`, and the documentation set under `.docs/{FeatureName}/`."*
 
 ---
