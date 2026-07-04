@@ -20,7 +20,7 @@
 #                       Pass an absolute or project-root path so an in-`src/` cwd cannot
 #                       redirect output into the Magento tree. See magento2-context/SKILL.md.
 #   OUTPUT_DIR          default: {DOCS_ROOT}/quality
-#   SKILL_VERSION       default: 1.0.0
+#   SKILL_VERSION       default: 1.1.0
 #
 # Output:
 #   Writes {OUTPUT_DIR}/{TARGET_MODULE}-quality-{YYYY-MM-DD}.json (module scope) or
@@ -40,7 +40,7 @@ PHPMD="${PHPMD:-}"
 RECTOR="${RECTOR:-}"
 DOCS_ROOT="${DOCS_ROOT:-.docs}"
 OUTPUT_DIR="${OUTPUT_DIR:-${DOCS_ROOT}/quality}"
-SKILL_VERSION="${SKILL_VERSION:-1.0.0}"
+SKILL_VERSION="${SKILL_VERSION:-1.1.0}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 EMIT_JSON="${SCRIPT_DIR}/../../magento2-module-review/scripts/emit-json.sh"
@@ -133,7 +133,7 @@ else
     export OUTPUT_BASENAME="quality-${SCOPE}-${DATE}"
 fi
 export OUTPUT_DIR
-export SKILL_VERSIONS_JSON="[\"magento2-static-analysis@${SKILL_VERSION}\",\"magento2-context@1.7.0\"]"
+export SKILL_VERSIONS_JSON="[\"magento2-static-analysis@${SKILL_VERSION}\",\"magento2-context@1.8.0\"]"
 
 bash "$EMIT_JSON" > /dev/null
 

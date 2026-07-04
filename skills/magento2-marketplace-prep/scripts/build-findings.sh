@@ -14,7 +14,7 @@
 #                       Pass an absolute or project-root path so an in-`src/` cwd cannot
 #                       redirect output into the Magento tree. See magento2-context/SKILL.md.
 #   OUTPUT_DIR          default: {DOCS_ROOT}/marketplace
-#   SKILL_VERSION       default: 1.0.0
+#   SKILL_VERSION       default: 1.1.0
 #   EQP_FINDINGS_FILE   optional: path to a JSON array of EQP static findings produced by
 #                       magento2-security-audit's EQP pass (SKILL.md Phase 2.2). When set and
 #                       readable, those findings are merged into the combined findings list.
@@ -31,7 +31,7 @@ set -uo pipefail
 SCOPE="${SCOPE:-module}"
 DOCS_ROOT="${DOCS_ROOT:-.docs}"
 OUTPUT_DIR="${OUTPUT_DIR:-${DOCS_ROOT}/marketplace}"
-SKILL_VERSION="${SKILL_VERSION:-1.0.0}"
+SKILL_VERSION="${SKILL_VERSION:-1.1.0}"
 EQP_FINDINGS_FILE="${EQP_FINDINGS_FILE:-}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -137,7 +137,7 @@ export SKILL_VERSION
 export OUTPUT_KIND="marketplace"
 export OUTPUT_BASENAME
 export OUTPUT_DIR
-export SKILL_VERSIONS_JSON="[\"magento2-marketplace-prep@${SKILL_VERSION}\",\"magento2-context@1.7.0\"]"
+export SKILL_VERSIONS_JSON="[\"magento2-marketplace-prep@${SKILL_VERSION}\",\"magento2-context@1.8.0\"]"
 
 bash "$EMIT_JSON" > /dev/null
 

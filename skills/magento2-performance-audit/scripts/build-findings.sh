@@ -16,7 +16,7 @@
 #                       Pass an absolute or project-root path so an in-`src/` cwd cannot
 #                       redirect output into the Magento tree. See magento2-context/SKILL.md.
 #   OUTPUT_DIR          default: {DOCS_ROOT}/audits
-#   SKILL_VERSION       default: 1.1.1
+#   SKILL_VERSION       default: 1.2.0
 #
 # Output:
 #   Writes {OUTPUT_DIR}/{TARGET_MODULE}-perf-{YYYY-MM-DD}.json (module scope) or
@@ -32,7 +32,7 @@ SCAN_ROOT="${SCAN_ROOT:-$([[ -d app/code ]] && echo app/code || echo src/app/cod
 INCLUDE_RUNTIME="${INCLUDE_RUNTIME:-0}"
 DOCS_ROOT="${DOCS_ROOT:-.docs}"
 OUTPUT_DIR="${OUTPUT_DIR:-${DOCS_ROOT}/audits}"
-SKILL_VERSION="${SKILL_VERSION:-1.1.1}"
+SKILL_VERSION="${SKILL_VERSION:-1.2.0}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 EMIT_JSON="${SCRIPT_DIR}/../../magento2-module-review/scripts/emit-json.sh"
@@ -144,7 +144,7 @@ else
     export OUTPUT_BASENAME="perf-${SCOPE}-${DATE}"
 fi
 export OUTPUT_DIR
-export SKILL_VERSIONS_JSON="[\"magento2-performance-audit@${SKILL_VERSION}\",\"magento2-context@1.7.0\"]"
+export SKILL_VERSIONS_JSON="[\"magento2-performance-audit@${SKILL_VERSION}\",\"magento2-context@1.8.0\"]"
 
 bash "$EMIT_JSON" > /dev/null
 

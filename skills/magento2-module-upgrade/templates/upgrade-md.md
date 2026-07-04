@@ -25,6 +25,6 @@ Append a section per upgrade, newest at the top. Do NOT overwrite older sections
 
 ### Skill versions
 
-- magento2-module-upgrade@1.1.0
-- magento2-module-review@2.3.1
-  - magento2-context@1.7.0
+- magento2-module-upgrade@1.2.0
+- magento2-module-review@2.4.0
+  - magento2-context@1.8.0

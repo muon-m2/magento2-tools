@@ -14,10 +14,10 @@ requires updating this schema and the JSON emitter.
 {
   "schemaVersion": "1.0",
   "skill": "magento2-module-review",
-  "skillVersion": "2.3.0",
+  "skillVersion": "2.4.0",
   "skillVersions": [
-    "magento2-module-review@2.3.1",
-    "magento2-context@1.7.0"
+    "magento2-module-review@2.4.0",
+    "magento2-context@1.8.0"
   ],
   "outputKind": "review",
   "target": {
