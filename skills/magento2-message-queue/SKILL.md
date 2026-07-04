@@ -156,7 +156,7 @@ The SAME topic string must appear in `communication.xml`, `queue_topology.xml`,
 ### Phase 5 — Report
 
 Write a brief Markdown report to
-`.docs/message-queues/{Vendor}_{Module}-{topic}-{date}.md` listing:
+`{output_root}/message-queues/{Vendor}_{Module}-{topic}-{date}.md` listing:
 
 - Topic name, queue name, consumer name, connection
 - Files generated
@@ -165,16 +165,24 @@ Write a brief Markdown report to
 - How to run the consumer: `bin/magento queue:consumers:start {ConsumerName} --max-messages=1000`
 - How to verify wiring: `bin/magento queue:consumers:list`
 
-`.docs/` is anchored at the project root (`{ctx.docs_root}`), never under
-`{ctx.magento_root}`, `app/code`, or a module dir. See the **Artifact location** rule in
+`{output_root}` defaults to `.docs` (`{ctx.docs_root}`), anchored at the project root, never
+under `{ctx.magento_root}`, `app/code`, or a module dir. See the **Artifact location** rule in
 `magento2-context/SKILL.md`.
+
+### Output root (`--docs-root`)
+
+This skill accepts `--docs-root=<path>` (see
+`magento2-context/references/artifact-layout.md`). When set, write the run report (and any
+report artifacts) under `<path>/message-queues/`; otherwise default to
+`{ctx.docs_root}/message-queues/`. `magento2-feature-implement` passes this so a feature
+run's reports collect under its folder.
 
 ## Inputs
 
 ```
 /magento2-message-queue --module=Acme_Orders --topic=acme.orders.order.export \
   --entity=OrderExport --publisher=OrderExportPublisher --consumer=OrderExportConsumer \
-  --queue=acme.orders.export --connection=db
+  --queue=acme.orders.export --connection=db [--docs-root=<path>]
 ```
 
 ## Outputs
@@ -191,7 +199,7 @@ Write a brief Markdown report to
 {ctx.magento_root}/app/code/{Vendor}/{Module}/Model/Consumer/{ConsumerName}.php
 {ctx.magento_root}/app/code/{Vendor}/{Module}/Test/Unit/Model/Consumer/{ConsumerName}Test.php
 
-.docs/message-queues/{Vendor}_{Module}-{topic}-{date}.md
+{output_root}/message-queues/{Vendor}_{Module}-{topic}-{date}.md
 ```
 
 ## Reference Files

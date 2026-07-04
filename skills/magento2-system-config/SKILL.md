@@ -130,7 +130,7 @@ See `${CLAUDE_SKILL_DIR}/references/config-reader-pattern.md` and
 ### Phase 5 — Report
 
 Write a brief Markdown report to
-`.docs/system-config/{Vendor}_{Module}-{SectionId}-{date}.md` listing:
+`{output_root}/system-config/{Vendor}_{Module}-{SectionId}-{date}.md` listing:
 
 - Admin path: `Stores → Configuration → {SectionLabel}`
 - Config paths (one per field: `{vendor_lower}_{module_lower}/{GroupId}/{FieldId}`)
@@ -144,8 +144,10 @@ Write a brief Markdown report to
 
 ```
 /magento2-system-config --module=Acme_Checkout --section=acme_checkout --group=general --field=enable_feature --type=select
-/magento2-system-config --module=Acme_Catalog --section=acme_catalog --group=api --field=api_key --type=obscure
+/magento2-system-config --module=Acme_Catalog --section=acme_catalog --group=api --field=api_key --type=obscure [--docs-root=<path>]
 ```
+
+`--docs-root=<path>` — output-root override; see "Output root" below.
 
 ## Outputs
 
@@ -159,12 +161,20 @@ Write a brief Markdown report to
 {ctx.magento_root}/app/code/{Vendor}/{Module}/Test/Unit/Model/ConfigTest.php
 {ctx.magento_root}/app/code/{Vendor}/{Module}/Test/Unit/Model/Config/Source/{SourceName}Test.php  # optional
 
-.docs/system-config/{Vendor}_{Module}-{SectionId}-{date}.md
+{output_root}/system-config/{Vendor}_{Module}-{SectionId}-{date}.md
 ```
 
-`.docs/` is anchored at the project root (`{ctx.docs_root}`), never under
-`{ctx.magento_root}`, `app/code`, or a module dir. See the **Artifact location** rule in
+`{output_root}` defaults to `.docs` (`{ctx.docs_root}`), anchored at the project root, never
+under `{ctx.magento_root}`, `app/code`, or a module dir. See the **Artifact location** rule in
 `magento2-context/SKILL.md`.
+
+### Output root (`--docs-root`)
+
+This skill accepts `--docs-root=<path>` (see
+`magento2-context/references/artifact-layout.md`). When set, write the run report (and any
+report artifacts) under `<path>/system-config/`; otherwise default to
+`{ctx.docs_root}/system-config/`. `magento2-feature-implement` passes this so a feature
+run's reports collect under its folder.
 
 ## Reference Files
 

@@ -84,10 +84,11 @@ The user types **`release`** to confirm. Anything else cancels.
 ### Phase 5.5 — Render Release Notes
 
 Render `templates/release-notes.md` from the Phase 1 classified commits to
-`.docs/releases/{Module}-{Version}.md` (under the project-root `.docs/`, never under
-`{magento_root}`). This file is the `--notes-file` source for Phase 6 **and** the durable
-release-notes artefact listed in Outputs, so render it even when Phase 6 is skipped —
-otherwise Phase 6's `gh release create --notes-file …` points at a path nothing created.
+`{output_root}/releases/{Module}-{Version}.md` (under the project-root, never under
+`{magento_root}`; `{output_root}` is the `--docs-root` value or `{ctx.docs_root}`). This
+file is the `--notes-file` source for Phase 6 **and** the durable release-notes artefact
+listed in Outputs, so render it even when Phase 6 is skipped — otherwise Phase 6's
+`gh release create --notes-file …` points at a path nothing created.
 
 ### Phase 6 — GitHub Release (Optional)
 
@@ -96,7 +97,7 @@ If `gh` is available and the user authorizes:
 ```
 gh release create {tag} \
     --title "{Vendor}_{Module} {Version}" \
-    --notes-file .docs/releases/{Module}-{Version}.md
+    --notes-file {output_root}/releases/{Module}-{Version}.md
 ```
 
 ### Phase 7 — Publish (Optional)
@@ -116,7 +117,7 @@ See `references/publish-targets.md`. Mostly a no-op for project-internal modules
 ## Inputs
 
 ```
-/magento2-release [--version=X.Y.Z] [--no-publish] [--no-github-release] [--dry-run] <Vendor>_<Module>
+/magento2-release [--version=X.Y.Z] [--no-publish] [--no-github-release] [--dry-run] [--docs-root=<path>] <Vendor>_<Module>
 ```
 
 | Flag                  | Default       | Meaning                           |
@@ -125,6 +126,7 @@ See `references/publish-targets.md`. Mostly a no-op for project-internal modules
 | `--no-publish`        | off           | Skip Phase 7                      |
 | `--no-github-release` | off           | Skip Phase 6                      |
 | `--dry-run`           | off           | Print everything; make no changes |
+| `--docs-root`         | unset         | Output-root override; see "Output root" below |
 
 ## Outputs
 
@@ -134,8 +136,19 @@ CHANGELOG.md (updated)
 git tag {Vendor}_{Module}-{Version}
 GitHub Release page (if Phase 6 ran)
 
-.docs/releases/{Module}-{Version}.md       # Generated release notes
+{output_root}/releases/{Module}-{Version}.md       # Generated release notes
 ```
+
+`{output_root}` defaults to `.docs` (`{ctx.docs_root}`); see the `--docs-root`/`DOCS_ROOT`
+recipe in `magento2-context/references/artifact-layout.md`.
+
+### Output root (`--docs-root`)
+
+This skill accepts `--docs-root=<path>` (see
+`magento2-context/references/artifact-layout.md`). When set, write the run report (and any
+report artifacts) under `<path>/releases/`; otherwise default to
+`{ctx.docs_root}/releases/`. `magento2-feature-implement` passes this so a feature run's
+reports collect under its folder.
 
 ## Reference Files
 

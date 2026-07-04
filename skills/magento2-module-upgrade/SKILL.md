@@ -92,7 +92,9 @@ findings.
 
 ### Phase 7 — Report
 
-Save to `.docs/upgrades/{Vendor}_{Module}-{from}-to-{to}-{date}.md`:
+Save to `{output_root}/upgrades/{Vendor}_{Module}-{from}-to-{to}-{date}.md`, where
+`{output_root}` is the `--docs-root` value when the caller passed one, else
+`{ctx.docs_root}` (see "Output Root" below):
 - Scope (versions, modules, scanners run)
 - Findings (auto-fixed, manually-fixed, BC-breaks)
 - BC-break consumer notice (paste of `UPGRADE.md`)
@@ -105,7 +107,7 @@ Also emit JSON sibling per the shared findings schema (subset: category =
 ## Inputs
 
 ```
-/magento2-module-upgrade --to-magento=2.4.7 --to-php=8.3 <Vendor>_<Module>[,<Module>]
+/magento2-module-upgrade --to-magento=2.4.7 --to-php=8.3 [--docs-root=<path>] <Vendor>_<Module>[,<Module>]
 ```
 
 Flags:
@@ -114,17 +116,27 @@ Flags:
 - `--scan-only` — Phases 0-2 only; no edits.
 - `--auto-fix` — Apply Rector without approval (Phase 3 skipped).
 - `--include-bc-breaks` — Attempt automated BC-break remediation.
+- `--docs-root=<path>` — output-root override; see "Output Root" below.
 
 ## Outputs
 
 ```
-.docs/upgrades/{Vendor}_{Module}-{from}-to-{to}-{date}.md
-.docs/upgrades/{Vendor}_{Module}-{from}-to-{to}-{date}.json
+{output_root}/upgrades/{Vendor}_{Module}-{from}-to-{to}-{date}.md
+{output_root}/upgrades/{Vendor}_{Module}-{from}-to-{to}-{date}.json
 {ctx.magento_root}/app/code/{Vendor}/{Module}/UPGRADE.md   # Consumer notice (always present after upgrade)
 ```
 
-`.docs/` is anchored at the project root (`{ctx.docs_root}`), never under `{ctx.magento_root}`,
-`app/code`, or a module dir. See the **Artifact location** rule in `magento2-context/SKILL.md`.
+`{output_root}` (`.docs` by default, `{ctx.docs_root}`) is anchored at the project root,
+never under `{ctx.magento_root}`, `app/code`, or a module dir. See the **Artifact location**
+rule in `magento2-context/SKILL.md`.
+
+### Output root (`--docs-root`)
+
+This skill has an inline emitter (no `build-findings.sh`): it accepts `--docs-root=<path>`
+(see `magento2-context/references/artifact-layout.md`) and, when set, writes the MD + JSON
+report directly under `<path>/upgrades/`; otherwise they default to
+`{ctx.docs_root}/upgrades/`. Orchestrators such as `magento2-feature-implement` pass this
+to collect a run's artifacts under one folder.
 
 ## Reference Files
 

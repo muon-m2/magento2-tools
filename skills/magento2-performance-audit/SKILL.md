@@ -110,30 +110,51 @@ Builder invocation (for reference; callers normally just run the skill):
 ```bash
 TARGET_MODULE=<Vendor_Module|site> TARGET_PATH=<path> SCOPE=module \
 SCAN_ROOT={ctx.magento_root}/app/code INCLUDE_RUNTIME=0 \
+DOCS_ROOT="${DOCS_ROOT_ARG:-.docs}" \
 bash ${CLAUDE_SKILL_DIR}/scripts/build-findings.sh
 ```
+
+where `DOCS_ROOT_ARG` is the resolved `--docs-root` value (empty ⇒ default `.docs`).
 
 ## Inputs
 
 ```
-/magento2-performance-audit [--runtime] [--scope=module|site] [<Vendor>_<Module>...]
+/magento2-performance-audit [--runtime] [--scope=module|site] [--docs-root=<path>] [<Vendor>_<Module>...]
 ```
 
 Flags:
 - `--runtime` — opt in to runtime checks (Phase 3, 4)
 - `--scope=site` — audit all custom modules + runtime
 - `--format=markdown|json|sarif` — output format
+- `--docs-root=<path>` — output-root override; see "Output Root" below
 
 ## Outputs
 
+Module scope (basename uses the underscore module name, e.g. `Acme_OrderExport`):
 ```
-.docs/audits/perf-{scope}-{date}.json    # automation artifact (build-findings.sh)
-.docs/audits/perf-{scope}-{date}.sarif   # automation artifact (build-findings.sh)
-.docs/audits/perf-{scope}-{date}.md      # LLM deliverable, written in Phase 5
+{output_root}/audits/{Vendor}_{Module}-perf-{date}.json    # automation artifact (build-findings.sh)
+{output_root}/audits/{Vendor}_{Module}-perf-{date}.sarif   # automation artifact (build-findings.sh)
+{output_root}/audits/{Vendor}_{Module}-perf-{date}.md      # LLM deliverable, written in Phase 5
+```
+Site scope:
+```
+{output_root}/audits/perf-{scope}-{date}.json
+{output_root}/audits/perf-{scope}-{date}.sarif
+{output_root}/audits/perf-{scope}-{date}.md
 ```
 
-`.docs/` is anchored at the project root (`{ctx.docs_root}`), never under `{ctx.magento_root}`,
-`app/code`, or a module dir. See the **Artifact location** rule in `magento2-context/SKILL.md`.
+`{output_root}` (`.docs` by default, `{ctx.docs_root}`) is anchored at the project root,
+never under `{ctx.magento_root}`, `app/code`, or a module dir. See the **Artifact location**
+rule in `magento2-context/SKILL.md` and the `--docs-root`/`DOCS_ROOT` recipe in
+`magento2-context/references/artifact-layout.md`.
+
+### Output root (`--docs-root`)
+
+This skill accepts `--docs-root=<path>` (see
+`magento2-context/references/artifact-layout.md`). When set, run the emitter with
+`DOCS_ROOT=<path>` so artifacts land under `<path>/audits/`; otherwise they default
+to `{ctx.docs_root}/audits/`. Orchestrators such as `magento2-feature-implement`
+pass this to collect a run's artifacts under one folder.
 
 ## Reference Files
 

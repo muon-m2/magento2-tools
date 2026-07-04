@@ -109,7 +109,7 @@ Generation rules per test type:
 
 ### Phase 5 — Report
 
-Write to `.docs/tests/{Vendor}_{Module}-coverage-{date}.md`:
+Write to `{output_root}/tests/{Vendor}_{Module}-coverage-{date}.md`:
 
 - Tests generated (count per type)
 - Source classes now covered
@@ -120,7 +120,7 @@ Write to `.docs/tests/{Vendor}_{Module}-coverage-{date}.md`:
 ## Inputs
 
 ```
-/magento2-test-generate [--types=unit,integration,api,js,mftf] [--target-coverage=80] <Vendor>_<Module>
+/magento2-test-generate [--types=unit,integration,api,js,mftf] [--target-coverage=80] [--docs-root=<path>] <Vendor>_<Module>
 ```
 
 | Flag                | Default        | Meaning                                     |
@@ -129,6 +129,7 @@ Write to `.docs/tests/{Vendor}_{Module}-coverage-{date}.md`:
 | `--target-coverage` | 80             | Abort if generated tests can't reach target |
 | `--missing-only`    | on             | Generate only for classes without any test  |
 | `--overwrite`       | off            | Re-generate even where tests exist          |
+| `--docs-root`       | unset          | Output-root override; see "Output root" below |
 
 ## Outputs
 
@@ -139,11 +140,20 @@ Write to `.docs/tests/{Vendor}_{Module}-coverage-{date}.md`:
 {ctx.magento_root}/app/code/{Vendor}/{Module}/view/.../web/js/test/...
 {ctx.magento_root}/app/code/{Vendor}/{Module}/Test/Mftf/...
 
-.docs/tests/{Vendor}_{Module}-coverage-{date}.md
+{output_root}/tests/{Vendor}_{Module}-coverage-{date}.md
 ```
 
-`.docs/` is anchored at the project root (`{ctx.docs_root}`), never under `{ctx.magento_root}`,
-`app/code`, or a module dir. See the **Artifact location** rule in `magento2-context/SKILL.md`.
+`{output_root}` defaults to `.docs` (`{ctx.docs_root}`), anchored at the project root, never
+under `{ctx.magento_root}`, `app/code`, or a module dir. See the **Artifact location** rule in
+`magento2-context/SKILL.md`.
+
+### Output root (`--docs-root`)
+
+This skill accepts `--docs-root=<path>` (see
+`magento2-context/references/artifact-layout.md`). When set, write the run report (and any
+report artifacts) under `<path>/tests/`; otherwise default to
+`{ctx.docs_root}/tests/`. `magento2-feature-implement` passes this so a feature run's
+reports collect under its folder.
 
 ## Reference Files
 

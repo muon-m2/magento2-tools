@@ -28,7 +28,7 @@ It **never** modifies PHP or XML files.
 - **Markdown only.** This skill never modifies PHP, XML, JSON, or any non-Markdown file.
   Output is the set of Markdown docs selected in Phase 1 (README, technical reference,
   developer/user guides, REST/GraphQL references, CHANGELOG scaffold — each produced only
-  when applicable), plus a run report under `.docs/docs-generated/`.
+  when applicable), plus a run report under `{output_root}/docs-generated/`.
 - **Illustrative examples only.** JSON example blocks are generated from real DTO or
   GraphQL field types (names and types extracted from the schema). Every such block must
   carry the caption `> Example — illustrative, generated from the schema` immediately
@@ -132,7 +132,7 @@ Before saving any file:
 ### Phase 5 — Report
 
 Write a run report to
-`.docs/docs-generated/{Vendor}_{Module}-{date}.md` listing:
+`{output_root}/docs-generated/{Vendor}_{Module}-{date}.md` listing:
 
 - Module path documented.
 - Docs produced (paths).
@@ -140,7 +140,7 @@ Write a run report to
 - Surface inventory: entries found per category.
 - Surfaces omitted (not found in the module).
 - Examples skipped due to unresolved types (list field names and the unresolved type).
-- Skill version: `magento2-docs-generate@1.1.0`.
+- Skill version: `magento2-docs-generate@1.2.0`.
 
 ## Inputs
 
@@ -150,7 +150,10 @@ Write a run report to
 /magento2-docs-generate --module=Acme_OrderExport --docs=readme,developer-guide,api-reference
 /magento2-docs-generate --module=Acme_OrderExport --docs=changelog
 /magento2-docs-generate --module=Acme_OrderExport --docs=readme,technical-reference,developer-guide,user-guide,api-reference,graphql-reference,changelog
+/magento2-docs-generate --module=Acme_OrderExport --docs-root=<path>
 ```
+
+`--docs-root=<path>` — output-root override; see "Output root" below.
 
 ## Outputs
 
@@ -169,12 +172,20 @@ Written INSIDE the documented module:
 Run report (project root, NOT inside the module):
 
 ```
-.docs/docs-generated/{Vendor}_{Module}-{date}.md
+{output_root}/docs-generated/{Vendor}_{Module}-{date}.md
 ```
 
-`.docs/` is anchored at the project root (`{ctx.docs_root}`), never under
-`{ctx.magento_root}`, `app/code`, or the module directory itself. See the **Artifact
+`{output_root}` defaults to `.docs` (`{ctx.docs_root}`), anchored at the project root, never
+under `{ctx.magento_root}`, `app/code`, or the module directory itself. See the **Artifact
 location** rule in `magento2-context/SKILL.md`.
+
+### Output root (`--docs-root`)
+
+This skill accepts `--docs-root=<path>` (see
+`magento2-context/references/artifact-layout.md`). When set, write the run report (and any
+report artifacts) under `<path>/docs-generated/`; otherwise default to
+`{ctx.docs_root}/docs-generated/`. `magento2-feature-implement` passes this so a feature
+run's reports collect under its folder.
 
 ## Reference Files
 

@@ -6,6 +6,20 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased] — Unified artifact output root (`--docs-root`)
+
+### Added
+
+- Unified artifact output root: every `magento2-*` skill accepts `--docs-root=<path>`, and
+  `magento2-feature-implement` uses it to collect a whole run's reports under
+  `.docs/{FeatureName}/`. New shared reference `magento2-context/references/artifact-layout.md`.
+
+### Fixed
+
+- All six audit builders now honor `DOCS_ROOT` (four previously ignored it, leaking output
+  into the Magento tree when cwd was `src/`) and use one filename scheme
+  `{Vendor}_{Module}-{kind}-{date}`, fixing cross-module basename collisions.
+
 ## [1.15.0] — 2026-06-20 — Multi-document docs-generate (developer/user guides + REST/GraphQL API references)
 
 `magento2-docs-generate` (`1.0.0 → 1.1.0`) now generates a full documentation set from a

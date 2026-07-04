@@ -11,11 +11,15 @@
 #   TARGET_PATH         e.g. "src/app/code/Acme/Storefront" or "app/design/frontend/Acme/storefront"
 #   SCOPE               "module" | "theme" | "site"  (default: module)
 #   THEME               Active frontend theme (default: "")
-#   OUTPUT_DIR          default: .docs/accessibility
-#   SKILL_VERSION       default: 1.0.0
+#   DOCS_ROOT           default: .docs — project-root artifact dir ({ctx.docs_root}).
+#                       Pass an absolute or project-root path so an in-`src/` cwd cannot
+#                       redirect output into the Magento tree. See magento2-context/SKILL.md.
+#   OUTPUT_DIR          default: {DOCS_ROOT}/accessibility
+#   SKILL_VERSION       default: 1.1.0
 #
 # Output:
-#   Writes {OUTPUT_DIR}/{Module}-a11y-{YYYY-MM-DD}.json + .sarif. Stdout echoes the JSON.
+#   Writes {OUTPUT_DIR}/{TARGET_MODULE}-a11y-{YYYY-MM-DD}.json (module scope) or
+#   {OUTPUT_DIR}/a11y-{SCOPE}-{YYYY-MM-DD}.json (theme/site scope) + .sarif. Stdout echoes JSON.
 
 set -uo pipefail
 
@@ -24,8 +28,9 @@ set -uo pipefail
 
 SCOPE="${SCOPE:-module}"
 THEME="${THEME:-}"
-OUTPUT_DIR="${OUTPUT_DIR:-.docs/accessibility}"
-SKILL_VERSION="${SKILL_VERSION:-1.0.0}"
+DOCS_ROOT="${DOCS_ROOT:-.docs}"
+OUTPUT_DIR="${OUTPUT_DIR:-${DOCS_ROOT}/accessibility}"
+SKILL_VERSION="${SKILL_VERSION:-1.1.0}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 EMIT_JSON="${SCRIPT_DIR}/../../magento2-module-review/scripts/emit-json.sh"
@@ -113,9 +118,11 @@ PY
 # ---------------------------------------------------------------------------
 DATE="$(date -u +%Y-%m-%d)"
 
-# Derive a module slug for the output basename.
-MODULE_SLUG="${TARGET_MODULE//_/-}"
-OUTPUT_BASENAME="${MODULE_SLUG}-a11y-${DATE}"
+if [ "$SCOPE" = "module" ]; then
+    OUTPUT_BASENAME="${TARGET_MODULE}-a11y-${DATE}"
+else
+    OUTPUT_BASENAME="a11y-${SCOPE}-${DATE}"
+fi
 
 export FINDINGS_FILE
 export TARGET_MODULE TARGET_PATH SCOPE
@@ -124,7 +131,7 @@ export SKILL_VERSION
 export OUTPUT_KIND="accessibility"
 export OUTPUT_BASENAME
 export OUTPUT_DIR
-export SKILL_VERSIONS_JSON="[\"magento2-accessibility-audit@${SKILL_VERSION}\",\"magento2-context@1.7.0\"]"
+export SKILL_VERSIONS_JSON="[\"magento2-accessibility-audit@${SKILL_VERSION}\",\"magento2-context@1.8.0\"]"
 
 bash "$EMIT_JSON" > /dev/null
 

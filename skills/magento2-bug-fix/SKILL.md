@@ -86,7 +86,7 @@ Goal: have enough information to attempt reproduction.
     - Any module-specific log mentioned in the symptom.
 4. Grep logs for the symptom signature.
 
-Save the initial collection notes to `.docs/bug-fixes/{slug}/collect.md`.
+Save the initial collection notes to `{output_root}/bug-fixes/{slug}/collect.md`.
 
 ### Phase 2 — Reproduce
 
@@ -104,7 +104,7 @@ Goal: make the failure happen deterministically.
 
 The runtime recipe is scaffolding to *find* the failing assertion; the regression test
 written in Phase 4 is the durable reproduction artifact. Save the recipe to
-`.docs/bug-fixes/{slug}/reproduction.md`.
+`{output_root}/bug-fixes/{slug}/reproduction.md`.
 
 ### Phase 3 — Root-Cause Analysis (APPROVAL GATE)
 
@@ -121,7 +121,7 @@ Goal: locate the exact code line(s) responsible.
     - **Why**: history (last-touched commit, original intent)
     - **Proposed fix**: minimal change description (do not write code yet)
     - **Regression test plan**: which test class, what assertion
-6. Save RCA to `.docs/bug-fixes/{slug}/rca.md`.
+6. Save RCA to `{output_root}/bug-fixes/{slug}/rca.md`.
 7. Present RCA. **Wait for explicit approval** ("proceed", "yes", "approved").
 
 ### Phase 4 — Patch + Regression Test (TDD)
@@ -158,7 +158,7 @@ refactor.
    ```
    [bug-fix] {Module}: {symptom}
 
-   RCA: .docs/bug-fixes/{slug}/rca.md
+   RCA: {output_root}/bug-fixes/{slug}/rca.md
    Files: {list}
    ```
 
@@ -178,7 +178,7 @@ refactor.
 
 ### Phase 7 — Report
 
-Save report per `templates/report.md` to `.docs/bug-fixes/{slug}/report.md`:
+Save report per `templates/report.md` to `{output_root}/bug-fixes/{slug}/report.md`:
 
 - Symptom
 - Reproduction recipe (path)
@@ -227,19 +227,30 @@ Optional flags:
 - `--log=<path>` — additional log file beyond the defaults.
 - `--no-deploy` — skip Phase 6.
 - `--severity=critical|high|medium|low` — pre-classify.
+- `--docs-root=<path>` — output-root override; see "Output root" below.
 
 ## Outputs
 
 ```
-.docs/bug-fixes/{slug}/
+{output_root}/bug-fixes/{slug}/
 ├── collect.md      # Phase 1 evidence
 ├── reproduction.md # Phase 2 recipe
 ├── rca.md          # Phase 3 RCA
 └── report.md       # Phase 7 final report
 ```
 
-`.docs/` is anchored at the project root (`{ctx.docs_root}`), never under `{ctx.magento_root}`,
-`app/code`, or a module dir. See the **Artifact location** rule in `magento2-context/SKILL.md`.
+`{output_root}` defaults to `.docs` (`{ctx.docs_root}`), anchored at the project root, never
+under `{ctx.magento_root}`, `app/code`, or a module dir. See the **Artifact location** rule in
+`magento2-context/SKILL.md`.
+
+### Output root (`--docs-root`)
+
+This skill accepts `--docs-root=<path>` (see
+`magento2-context/references/artifact-layout.md`). When set, write the run report (and any
+report artifacts) under `<path>/bug-fixes/`; otherwise default to
+`{ctx.docs_root}/bug-fixes/`. `magento2-feature-implement` passes this so a feature run's
+reports collect under its folder. The dossier root for a given fix is
+`{output_root}/bug-fixes/{slug}/`.
 
 Plus per-task git commits per `references/commit-format.md`.
 

@@ -97,11 +97,14 @@ Re-run `${CLAUDE_SKILL_DIR}/scripts/run-analysis.sh` on the same scope. Report:
 Write three artifacts:
 
 1. **Markdown** — narrative report saved to
-   `.docs/quality/{Vendor}_{Module}-quality-{YYYY-MM-DD}.md`. Sections: scope summary,
+   `{output_root}/quality/{Vendor}_{Module}-quality-{YYYY-MM-DD}.md` (module scope;
+   site/diff scope: `quality-{scope}-{YYYY-MM-DD}.md`). Sections: scope summary,
    auto-fix summary (before/after counts), residual findings by severity/tool, proposed
    risky rector rules (manual action needed), skipped tools.
 2. **JSON + SARIF** — built by `${CLAUDE_SKILL_DIR}/scripts/build-findings.sh` using
    `OUTPUT_KIND=quality`. Residual findings only (auto-fixed violations are excluded).
+   Run `build-findings.sh` with `DOCS_ROOT=<output_root>` (the resolved `--docs-root`
+   value, or `.docs` by default) so both artifacts land under `{output_root}/quality/`.
 
 ## Reference Files
 
@@ -125,16 +128,33 @@ Write three artifacts:
 ## Inputs
 
 ```
-/magento2-static-analysis [--module=<Vendor>_<Module>] [--diff [<ref>]] [--scope=module|site] [<files>...]
+/magento2-static-analysis [--module=<Vendor>_<Module>] [--diff [<ref>]] [--scope=module|site] [--docs-root=<path>] [<files>...]
 ```
 
 ## Outputs
 
+Module scope (basename uses the underscore module name, e.g. `Acme_OrderExport`):
 ```
-.docs/quality/{Vendor}_{Module}-quality-{date}.md    # Markdown narrative (LLM, Phase 5)
-.docs/quality/quality-{scope}-{date}.json            # JSON findings (build-findings.sh)
-.docs/quality/quality-{scope}-{date}.sarif           # SARIF (build-findings.sh)
+{output_root}/quality/{Vendor}_{Module}-quality-{date}.md    # Markdown narrative (LLM, Phase 5)
+{output_root}/quality/{Vendor}_{Module}-quality-{date}.json  # JSON findings (build-findings.sh)
+{output_root}/quality/{Vendor}_{Module}-quality-{date}.sarif # SARIF (build-findings.sh)
 ```
+Site/diff scope:
+```
+{output_root}/quality/quality-{scope}-{date}.md
+{output_root}/quality/quality-{scope}-{date}.json
+{output_root}/quality/quality-{scope}-{date}.sarif
+```
+`{output_root}` defaults to `.docs` (`{ctx.docs_root}`); see the `--docs-root`/`DOCS_ROOT`
+recipe in `magento2-context/references/artifact-layout.md`.
+
+### Output root (`--docs-root`)
+
+This skill accepts `--docs-root=<path>` (see
+`magento2-context/references/artifact-layout.md`). When set, run the emitter with
+`DOCS_ROOT=<path>` so artifacts land under `<path>/quality/`; otherwise they default
+to `{ctx.docs_root}/quality/`. Orchestrators such as `magento2-feature-implement`
+pass this to collect a run's artifacts under one folder.
 
 ## Related Skills
 

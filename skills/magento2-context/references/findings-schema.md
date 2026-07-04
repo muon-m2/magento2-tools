@@ -14,10 +14,10 @@ requires updating this schema and the JSON emitter.
 {
   "schemaVersion": "1.0",
   "skill": "magento2-module-review",
-  "skillVersion": "2.3.0",
+  "skillVersion": "2.4.0",
   "skillVersions": [
-    "magento2-module-review@2.3.1",
-    "magento2-context@1.7.0"
+    "magento2-module-review@2.4.0",
+    "magento2-context@1.8.0"
   ],
   "outputKind": "review",
   "target": {
@@ -213,21 +213,28 @@ the JSON propagates to SARIF automatically.
 
 ## File Naming
 
-JSON output:
+Output paths follow the unified scheme in
+`magento2-context/references/artifact-layout.md`:
 
-```
-.docs/reviews/{Vendor}_{Module}-review-{YYYY-MM-DD}.json
-.docs/audits/security-{scope}-{YYYY-MM-DD}.json
-.docs/audits/perf-{scope}-{YYYY-MM-DD}.json
-.docs/upgrades/{Vendor}_{Module}-{from}-to-{to}-{YYYY-MM-DD}.json
-.docs/quality/quality-{scope}-{YYYY-MM-DD}.json
-```
+- **Module scope:** `{output_root}/{category}/{Vendor}_{Module}-{kind}-{YYYY-MM-DD}`
+- **Site / vendor scope:** `{output_root}/{category}/{kind}-{scope}-{YYYY-MM-DD}`
 
-All paths are anchored at the project root (`{ctx.docs_root}` = `{project_root}/.docs`) —
-never under `{ctx.magento_root}`, `app/code`, or a module directory. See the **Artifact
-location** rule in `magento2-context/SKILL.md`.
+`{output_root}` is `.docs` by default, or the `--docs-root` value on orchestrated runs.
+The finding-producing skills and their `{category}`/`{kind}` are:
 
-SARIF output: same path, `.sarif` extension.
+| Skill | category | kind |
+|-------|----------|------|
+| magento2-module-review | `reviews` | `review` |
+| magento2-security-audit | `audits` | `security` |
+| magento2-performance-audit | `audits` | `perf` |
+| magento2-static-analysis | `quality` | `quality` |
+| magento2-marketplace-prep | `marketplace` | `readiness` |
+| magento2-accessibility-audit | `accessibility` | `a11y` |
+| magento2-breeze-compat-audit | `breeze-compat` | `breeze-compat` |
+| magento2-module-upgrade | `upgrades` | `upgrade` |
+
+SARIF output: same path, `.sarif` extension. JSON: `.json`. All anchored under
+`{output_root}`, never under `{ctx.magento_root}`/`app/code`/a module dir.
 
 ## Schema Versioning
 

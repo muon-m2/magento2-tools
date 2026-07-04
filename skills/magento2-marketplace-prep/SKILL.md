@@ -66,21 +66,24 @@ Run **two** complementary checks:
 Produce three deliverables:
 
 1. **Markdown readiness report** (LLM deliverable, NOT automated). Written as:
-   `.docs/marketplace/{Vendor}-{Module}-readiness-{date}.md`
+   `{output_root}/marketplace/{Vendor}_{Module}-readiness-{date}.md` (module scope;
+   site scope: `readiness-{scope}-{date}.md`).
    Sections: module identity + summary, readiness score + verdict, blockers, warnings, info,
    EQP static summary, skipped checks / scanner errors, recommended next steps.
 
 2. **JSON + SARIF** (automated via `${CLAUDE_SKILL_DIR}/scripts/build-findings.sh`). The
-   automated basename converts underscores in the module name to hyphens (e.g.
-   `Acme_OrderExport` → `Acme-OrderExport-readiness-{date}`):
+   automated basename uses the underscore module name (e.g. `Acme_OrderExport` →
+   `Acme_OrderExport-readiness-{date}`):
    ```
-   .docs/marketplace/{Vendor}-{Module}-readiness-{date}.json   # OUTPUT_KIND=marketplace
-   .docs/marketplace/{Vendor}-{Module}-readiness-{date}.sarif
+   {output_root}/marketplace/{Vendor}_{Module}-readiness-{date}.json   # OUTPUT_KIND=marketplace
+   {output_root}/marketplace/{Vendor}_{Module}-readiness-{date}.sarif
    ```
    The script aggregates findings from check-readiness.sh — plus the delegated
    `magento2-security-audit` EQP findings when `EQP_FINDINGS_FILE` is provided (Phase 2.2)
    — and invokes the shared `magento2-module-review/scripts/emit-json.sh` with
-   `OUTPUT_KIND=marketplace`.
+   `OUTPUT_KIND=marketplace`. Run `build-findings.sh` with `DOCS_ROOT=<output_root>`
+   (the resolved `--docs-root` value, or `.docs` by default) so both artifacts land
+   under `{output_root}/marketplace/`.
 
 ## Marketplace-Specific Checks (check-readiness.sh)
 
@@ -124,19 +127,33 @@ Produce three deliverables:
 ## Inputs
 
 ```
-/magento2-marketplace-prep [--module=<Vendor>_<Module>] [--format=markdown|json|sarif]
+/magento2-marketplace-prep [--module=<Vendor>_<Module>] [--format=markdown|json|sarif] [--docs-root=<path>]
 ```
 
 ## Outputs
 
-Artifact basenames convert underscores in the module name to hyphens
-(`Acme_OrderExport` → `Acme-OrderExport`):
+Module scope (basename uses the underscore module name, e.g. `Acme_OrderExport`):
+```
+{output_root}/marketplace/{Vendor}_{Module}-readiness-{date}.md     # LLM deliverable (Phase 3)
+{output_root}/marketplace/{Vendor}_{Module}-readiness-{date}.json   # automated (build-findings.sh)
+{output_root}/marketplace/{Vendor}_{Module}-readiness-{date}.sarif  # automated (build-findings.sh)
+```
+Site scope:
+```
+{output_root}/marketplace/readiness-{scope}-{date}.md
+{output_root}/marketplace/readiness-{scope}-{date}.json
+{output_root}/marketplace/readiness-{scope}-{date}.sarif
+```
+`{output_root}` defaults to `.docs` (`{ctx.docs_root}`); see the `--docs-root`/`DOCS_ROOT`
+recipe in `magento2-context/references/artifact-layout.md`.
 
-```
-.docs/marketplace/{Vendor}-{Module}-readiness-{date}.md     # LLM deliverable (Phase 3)
-.docs/marketplace/{Vendor}-{Module}-readiness-{date}.json   # automated (build-findings.sh)
-.docs/marketplace/{Vendor}-{Module}-readiness-{date}.sarif  # automated (build-findings.sh)
-```
+### Output root (`--docs-root`)
+
+This skill accepts `--docs-root=<path>` (see
+`magento2-context/references/artifact-layout.md`). When set, run the emitter with
+`DOCS_ROOT=<path>` so artifacts land under `<path>/marketplace/`; otherwise they default
+to `{ctx.docs_root}/marketplace/`. Orchestrators such as `magento2-feature-implement`
+pass this to collect a run's artifacts under one folder.
 
 ## Severity Calibration
 

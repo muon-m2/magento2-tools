@@ -107,7 +107,7 @@ report. Run it and confirm it fails for the right reason. See
 
 ### Phase 5 — Report
 
-Brief Markdown saved to `.docs/adminhtml-listings/{Vendor}_{Module}-{entity}-listing-{date}.md`:
+Brief Markdown saved to `{output_root}/adminhtml-listings/{Vendor}_{Module}-{entity}-listing-{date}.md`:
 
 - Files generated/modified + surfaces enabled
 - Test path + red→green evidence (or recorded gap)
@@ -118,8 +118,10 @@ Brief Markdown saved to `.docs/adminhtml-listings/{Vendor}_{Module}-{entity}-lis
 ## Inputs
 
 ```
-/magento2-adminhtml-listing --module=Acme_Faq --entity=Faq --primary=faq_id --status --paired-form=acme_faq_faq
+/magento2-adminhtml-listing --module=Acme_Faq --entity=Faq --primary=faq_id --status --paired-form=acme_faq_faq [--docs-root=<path>]
 ```
+
+`--docs-root=<path>` — output-root override; see "Output root" below.
 
 ## Outputs
 
@@ -137,11 +139,19 @@ Brief Markdown saved to `.docs/adminhtml-listings/{Vendor}_{Module}-{entity}-lis
 {ctx.magento_root}/app/code/{Vendor}/{Module}/Model/ResourceModel/{EntityName}/Grid/Collection.php  # optional
 {ctx.magento_root}/app/code/{Vendor}/{Module}/Test/Integration/.../{EntityName}ListingTest.php    # test-first
 
-.docs/adminhtml-listings/{Vendor}_{Module}-{entity}-listing-{date}.md
+{output_root}/adminhtml-listings/{Vendor}_{Module}-{entity}-listing-{date}.md
 ```
 
-`.docs/` is anchored at the project root (`{ctx.docs_root}`), never under `{ctx.magento_root}`.
-See the **Artifact location** rule in `magento2-context/SKILL.md`.
+`{output_root}` defaults to `.docs` (`{ctx.docs_root}`), anchored at the project root, never
+under `{ctx.magento_root}`. See the **Artifact location** rule in `magento2-context/SKILL.md`.
+
+### Output root (`--docs-root`)
+
+This skill accepts `--docs-root=<path>` (see
+`magento2-context/references/artifact-layout.md`). When set, write the run report (and any
+report artifacts) under `<path>/adminhtml-listings/`; otherwise default to
+`{ctx.docs_root}/adminhtml-listings/`. `magento2-feature-implement` passes this so a
+feature run's reports collect under its folder.
 
 ## Reference Files
 

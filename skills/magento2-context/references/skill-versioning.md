@@ -9,40 +9,65 @@ skills evolve.
 
 | Skill                      | Version | Bumped when                                                         |
 |----------------------------|---------|---------------------------------------------------------------------|
-| magento2-context           | 1.7.0   | JSON schema changes, new resolution rules, new tool probes          |
+| magento2-context           | 1.8.0   | JSON schema changes, new resolution rules, new tool probes          |
 | magento2-module-create     | 1.9.0   | New template added, surface added, naming rule changed              |
-| magento2-module-review     | 2.3.1   | New checklist category, severity calibration change, new JSON field, fix-routing change |
-| magento2-feature-implement | 2.10.1  | New phase, new approval gate, mode added, new task types (I/C/L/Q), template structure change, delegation/fallback discipline |
-| magento2-bug-fix           | 1.0.3   | Workflow phase change, RCA format change                            |
-| magento2-deploy            | 1.2.1   | Deploy plan template change, rollback recipe change                 |
-| magento2-test-generate     | 1.1.3   | Generator pattern change, new test type added                       |
-| magento2-module-upgrade    | 1.1.0   | New deprecation map, BC-break detection rules                       |
-| magento2-security-audit    | 1.2.1   | New CVE source, new pattern, severity calibration change            |
-| magento2-performance-audit | 1.1.1   | New pattern, new runtime check, severity calibration change         |
-| magento2-debug             | 1.2.0   | New mode added, output format change                                |
-| magento2-eav-attribute     | 1.2.2   | New entity type supported, new input type, template change          |
+| magento2-module-review     | 2.4.0   | New checklist category, severity calibration change, new JSON field, fix-routing change |
+| magento2-feature-implement | 2.11.0  | New phase, new approval gate, mode added, new task types (I/C/L/Q), template structure change, delegation/fallback discipline |
+| magento2-bug-fix           | 1.1.0   | Workflow phase change, RCA format change                            |
+| magento2-deploy            | 1.3.0   | Deploy plan template change, rollback recipe change                 |
+| magento2-test-generate     | 1.2.0   | Generator pattern change, new test type added                       |
+| magento2-module-upgrade    | 1.2.0   | New deprecation map, BC-break detection rules                       |
+| magento2-security-audit    | 1.3.0   | New CVE source, new pattern, severity calibration change            |
+| magento2-performance-audit | 1.2.0   | New pattern, new runtime check, severity calibration change         |
+| magento2-debug             | 1.3.0   | New mode added, output format change                                |
+| magento2-eav-attribute     | 1.3.0   | New entity type supported, new input type, template change          |
 | magento2-graphql-create    | 1.0.4   | New resolver pattern, schema-migration rule change                  |
 | magento2-frontend-create   | 1.0.2   | New theme detection rule, new component pattern                     |
-| magento2-data-migration    | 1.2.1   | New idempotency strategy, new importer pattern                      |
-| magento2-release           | 1.1.1   | New tag convention, new publish target                              |
-| magento2-i18n              | 1.2.0   | New extraction pattern, new placeholder rule                        |
-| magento2-adminhtml-form    | 1.0.1   | New template/surface added, field-type pattern, controller change   |
-| magento2-adminhtml-listing | 1.0.2   | New template/column type, mass-action change, wiring change         |
+| magento2-data-migration    | 1.3.0   | New idempotency strategy, new importer pattern                      |
+| magento2-release           | 1.2.0   | New tag convention, new publish target                              |
+| magento2-i18n              | 1.3.0   | New extraction pattern, new placeholder rule                        |
+| magento2-adminhtml-form    | 1.1.0   | New template/surface added, field-type pattern, controller change   |
+| magento2-adminhtml-listing | 1.1.0   | New template/column type, mass-action change, wiring change         |
 | magento2-webapi-create     | 1.0.1   | New template/route/auth-scope, service-contract change, custom-action pattern |
-| magento2-extension-point   | 1.0.1   | New mode/template added, interception pattern change                          |
-| magento2-system-config     | 1.0.1   | New field type/template, config-reader pattern change                         |
-| magento2-cli-command       | 1.0.1   | New mode/template, command or cron pattern change                             |
-| magento2-message-queue     | 1.0.1   | New connection type/template, topic or consumer pattern change                |
-| magento2-static-analysis   | 1.0.0   | New tool/rule, autofix-safety calibration change                              |
-| magento2-docs-generate     | 1.1.0   | New docs (developer/user guide, REST+GraphQL reference), example/diagram derivation |
-| magento2-indexer           | 1.0.1   | New indexer/mview pattern, dimension support                                  |
-| magento2-marketplace-prep  | 1.0.0   | New EQP check, readiness-scoring calibration                                  |
-| magento2-accessibility-audit | 1.0.0 | New WCAG rule, runtime pass change                                            |
+| magento2-extension-point   | 1.1.0   | New mode/template added, interception pattern change                          |
+| magento2-system-config     | 1.1.0   | New field type/template, config-reader pattern change                         |
+| magento2-cli-command       | 1.1.0   | New mode/template, command or cron pattern change                             |
+| magento2-message-queue     | 1.1.0   | New connection type/template, topic or consumer pattern change                |
+| magento2-static-analysis   | 1.1.0   | New tool/rule, autofix-safety calibration change                              |
+| magento2-docs-generate     | 1.2.0   | New docs (developer/user guide, REST+GraphQL reference), example/diagram derivation |
+| magento2-indexer           | 1.1.0   | New indexer/mview pattern, dimension support                                  |
+| magento2-marketplace-prep  | 1.1.0   | New EQP check, readiness-scoring calibration                                  |
+| magento2-accessibility-audit | 1.1.0 | New WCAG rule, runtime pass change                                            |
 | magento2-breeze-child-theme | 1.0.1 | New template/parent variant, theme-layout change                              |
 | magento2-breeze-module-adapt | 1.0.1 | New template/surface, widget-conversion or sequence rule change               |
-| magento2-breeze-compat-audit | 1.0.0 | New check/pattern, severity calibration change                                |
+| magento2-breeze-compat-audit | 1.1.0 | New check/pattern, severity calibration change                                |
 
-## Changelog (last update: 2026-06-20)
+## Changelog (last update: 2026-07-04)
+
+- **Plugin (unreleased) — unified artifact output root (`--docs-root`).** Every
+  artifact-producing skill now accepts a `--docs-root=<path>` output-root override (read as
+  `DOCS_ROOT` by scripts), and `magento2-feature-implement` uses it to collect a whole run's
+  reports under `.docs/{FeatureName}/`. New shared reference
+  `magento2-context/references/artifact-layout.md` (category registry, unified filename
+  scheme, `--docs-root` recipe); `findings-schema.md`'s File Naming section now points at it.
+  Fixes the six audit builders (four of which previously ignored `DOCS_ROOT`, leaking output
+  into the Magento tree when cwd was `src/`) to honor it and share one filename scheme
+  `{Vendor}_{Module}-{kind}-{date}` (module scope) / `{kind}-{scope}-{date}` (site/vendor
+  scope), fixing cross-module basename collisions. Minor bump (new optional flag) on every
+  touched skill — the six audit builders' filename-scheme patch folds into the same minor
+  bump. Bumps: `magento2-context 1.7.0 → 1.8.0`, `magento2-module-review 2.3.1 → 2.4.0`,
+  `magento2-security-audit 1.2.1 → 1.3.0`, `magento2-performance-audit 1.1.1 → 1.2.0`,
+  `magento2-static-analysis 1.0.0 → 1.1.0`, `magento2-marketplace-prep 1.0.0 → 1.1.0`,
+  `magento2-accessibility-audit 1.0.0 → 1.1.0`, `magento2-breeze-compat-audit 1.0.0 → 1.1.0`,
+  `magento2-module-upgrade 1.1.0 → 1.2.0`, `magento2-deploy 1.2.1 → 1.3.0`,
+  `magento2-test-generate 1.1.3 → 1.2.0`, `magento2-docs-generate 1.1.0 → 1.2.0`,
+  `magento2-release 1.1.1 → 1.2.0`, `magento2-i18n 1.2.0 → 1.3.0`,
+  `magento2-debug 1.2.0 → 1.3.0`, `magento2-bug-fix 1.0.3 → 1.1.0`,
+  `magento2-adminhtml-form 1.0.1 → 1.1.0`, `magento2-adminhtml-listing 1.0.2 → 1.1.0`,
+  `magento2-cli-command 1.0.1 → 1.1.0`, `magento2-eav-attribute 1.2.2 → 1.3.0`,
+  `magento2-extension-point 1.0.1 → 1.1.0`, `magento2-indexer 1.0.1 → 1.1.0`,
+  `magento2-message-queue 1.0.1 → 1.1.0`, `magento2-system-config 1.0.1 → 1.1.0`,
+  `magento2-data-migration 1.2.1 → 1.3.0`, `magento2-feature-implement 2.10.1 → 2.11.0`.
 
 - **`magento2-docs-generate` 1.0.0 → 1.1.0 — multi-doc expansion.** Four new output
   documents: `developer-guide.md` (always), `user-guide.md` (when a user surface exists),

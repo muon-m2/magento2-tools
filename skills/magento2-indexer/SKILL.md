@@ -157,7 +157,7 @@ See `${CLAUDE_SKILL_DIR}/references/indexer-anatomy.md`,
 ### Phase 5 — Report
 
 Write a brief Markdown report to
-`.docs/indexers/{Vendor}_{Module}-{indexer_id}-{date}.md` listing:
+`{output_root}/indexers/{Vendor}_{Module}-{indexer_id}-{date}.md` listing:
 
 - Indexer id and title
 - Files generated
@@ -173,8 +173,10 @@ Write a brief Markdown report to
 /magento2-indexer --module=Acme_Catalog --class=ProductStock \
   --id=acme_catalog_productstock --title="Acme Product Stock" \
   --source-table=cataloginventory_stock_item --id-column=product_id \
-  --target-table=acme_catalog_productstock_index
+  --target-table=acme_catalog_productstock_index [--docs-root=<path>]
 ```
+
+`--docs-root=<path>` — output-root override; see "Output root" below.
 
 ## Outputs
 
@@ -185,12 +187,20 @@ Write a brief Markdown report to
 {ctx.magento_root}/app/code/{Vendor}/{Module}/Model/Indexer/{IndexerName}Action.php
 {ctx.magento_root}/app/code/{Vendor}/{Module}/Test/Unit/Model/Indexer/{IndexerName}Test.php
 
-.docs/indexers/{Vendor}_{Module}-{indexer_id}-{date}.md
+{output_root}/indexers/{Vendor}_{Module}-{indexer_id}-{date}.md
 ```
 
-`.docs/` is anchored at the project root (`{ctx.docs_root}`), never under
-`{ctx.magento_root}`, `app/code`, or a module dir. See the **Artifact location** rule in
+`{output_root}` defaults to `.docs` (`{ctx.docs_root}`), anchored at the project root, never
+under `{ctx.magento_root}`, `app/code`, or a module dir. See the **Artifact location** rule in
 `magento2-context/SKILL.md`.
+
+### Output root (`--docs-root`)
+
+This skill accepts `--docs-root=<path>` (see
+`magento2-context/references/artifact-layout.md`). When set, write the run report (and any
+report artifacts) under `<path>/indexers/`; otherwise default to
+`{ctx.docs_root}/indexers/`. `magento2-feature-implement` passes this so a feature run's
+reports collect under its folder.
 
 ## Reference Files
 

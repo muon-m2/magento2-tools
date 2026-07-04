@@ -133,12 +133,21 @@ Common flags:
 - `--since=<duration>` — `1h`, `24h`, `7d`
 - `--module=<Vendor>_<Module>` — constrain scope
 - `--format=markdown|json` — output format
-- `--save` — write to `.docs/debug/{mode}-{date}.md`
+- `--save` — write to `{output_root}/debug/{mode}-{date}.md`
+- `--docs-root=<path>` — output-root override for `--save`; see "Output root" below.
 
 ## Outputs
 
 - Markdown to conversation (always)
-- Optional `.docs/debug/{mode}-{date}.md` when `--save`
+- Optional `{output_root}/debug/{mode}-{date}.md` when `--save`
+
+### Output root (`--docs-root`)
+
+This skill accepts `--docs-root=<path>` (see
+`magento2-context/references/artifact-layout.md`). It only affects the opt-in `--save`
+output: when set, write the saved report under `<path>/debug/`; otherwise default to
+`{ctx.docs_root}/debug/`. `magento2-feature-implement` passes this so a feature run's
+reports collect under its folder.
 
 ## Reference Files
 

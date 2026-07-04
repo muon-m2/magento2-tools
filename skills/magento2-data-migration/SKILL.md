@@ -103,7 +103,7 @@ integration gap in the Phase 4 report.
 
 ### Phase 4 — Report
 
-Save to `.docs/migrations/{name}-{date}.md`:
+Save to `{output_root}/migrations/{name}-{date}.md`:
 - Source described
 - Target tables / entities
 - Idempotency strategy
@@ -115,8 +115,10 @@ Save to `.docs/migrations/{name}-{date}.md`:
 ## Inputs
 
 ```
-/magento2-data-migration --type=seed|import|transform [source flags]
+/magento2-data-migration --type=seed|import|transform [source flags] [--docs-root=<path>]
 ```
+
+`--docs-root=<path>` — output-root override; see "Output root" below.
 
 ## Outputs
 
@@ -126,8 +128,20 @@ Save to `.docs/migrations/{name}-{date}.md`:
 {ctx.magento_root}/app/code/{Vendor}/{Module}/Console/Command/{Name}Command.php          # if CLI
 {ctx.magento_root}/app/code/{Vendor}/{Module}/Test/Integration/Setup/Patch/Data/{Name}Test.php  # test-first (Phase 2A)
 
-.docs/migrations/{name}-{date}.md
+{output_root}/migrations/{name}-{date}.md
 ```
+
+`{output_root}` defaults to `.docs` (`{ctx.docs_root}`), anchored at the project root, never
+under `{ctx.magento_root}`, `app/code`, or a module dir. See the **Artifact location** rule in
+`magento2-context/SKILL.md`.
+
+### Output root (`--docs-root`)
+
+This skill accepts `--docs-root=<path>` (see
+`magento2-context/references/artifact-layout.md`). When set, write the run report (and any
+report artifacts) under `<path>/migrations/`; otherwise default to
+`{ctx.docs_root}/migrations/`. `magento2-feature-implement` passes this so a feature run's
+reports collect under its folder.
 
 ## Reference Files
 

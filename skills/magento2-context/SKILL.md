@@ -33,6 +33,11 @@ to `.claude/.cache/magento2-context.json`.
   Never write `.docs/` under `{magento_root}`, `app/code`, or any module directory,
   even if a step changes the shell's cwd. When `magento_root` is `"src"`, `.docs/`
   is a sibling of `src/`, not `src/.docs/`.
+  The output root is overridable per run via the `--docs-root=<path>` argument
+  (scripts read it as the `DOCS_ROOT` env var); orchestrators such as
+  `magento2-feature-implement` use it to collect a whole run's artifacts under one
+  folder. The category layout, filename scheme, and `--docs-root` recipe are defined
+  once in `references/artifact-layout.md`.
 
 ## Workflow
 
@@ -56,7 +61,7 @@ to `.claude/.cache/magento2-context.json`.
 {
   "schemaVersion": "1.0",
   "skill": "magento2-context",
-  "skillVersion": "1.7.0",
+  "skillVersion": "1.8.0",
   "resolvedAt": "2026-05-26T14:30:00Z",
   "cacheKey": "lock:sha256-...;json:sha256-...;claude:sha256-...;m2:sha256-...;env:<M2_MAGENTO_ROOT>|<M2_PHP_CONTAINER>",
 
@@ -204,6 +209,8 @@ Force a refresh by deleting `.claude/.cache/magento2-context.json` or passing `-
 - `references/skill-versioning.md` — current skill versions + bump rules; consumed by every artefact-producing skill.
 - `references/findings-schema.md` — shared JSON + SARIF schema for finding-producing skills (review, security-audit,
   performance-audit, module-upgrade).
+- `references/artifact-layout.md` — category registry, filename scheme, and the
+  `--docs-root`/`DOCS_ROOT` output-root recipe; consumed by every artifact-producing skill.
 
 ## Scripts
 

@@ -157,8 +157,9 @@ A smoke failure does NOT trigger rollback (the deploy completed) but is reported
 
 ### Phase 6 — Report
 
-Write to `.docs/deployments/{YYYY-MM-DD-HHMMSS}-{env}.md` AND the JSON sibling. Use
-`templates/report.md`. Sections:
+Write to `{output_root}/deployments/{YYYY-MM-DD-HHMMSS}-{env}.md` AND the JSON sibling,
+where `{output_root}` is the `--docs-root` value when the caller passed one, else
+`{ctx.docs_root}` (see "Output Root" below). Use `templates/report.md`. Sections:
 
 - Modules deployed (table with version, status)
 - Environment
@@ -195,7 +196,7 @@ Write to `.docs/deployments/{YYYY-MM-DD-HHMMSS}-{env}.md` AND the JSON sibling. 
 ## Inputs
 
 ```
-/magento2-deploy [--env=local|staging|production] [--strict] [--auto] [--snapshot] [--full] [--validate-only] <Vendor>_<Module>...
+/magento2-deploy [--env=local|staging|production] [--strict] [--auto] [--snapshot] [--full] [--validate-only] [--docs-root=<path>] <Vendor>_<Module>...
 ```
 
 | Flag                     | Default                               | Meaning                                                                                                                                                                      |
@@ -207,22 +208,36 @@ Write to `.docs/deployments/{YYYY-MM-DD-HHMMSS}-{env}.md` AND the JSON sibling. 
 | `--full`                 | off (local/staging) / on (prod)       | Run optional steps (maintenance, static-deploy, di:compile).                                                                                                                 |
 | `--validate-only`        | off                                   | Run **only** Phase 0 (context) + Phase 1 (pre-flight) + Phase 2 (plan). Skip Phase 3 onwards. Exit 0 if all required checks pass, 1 otherwise. Safe for release / CI gating. |
 | `--i-know-what-im-doing` | off                                   | Required for `--auto --env=production` combination.                                                                                                                          |
+| `--docs-root=<path>`     | unset                                  | Output-root override; see "Output Root" below.                                                                                                                              |
 
 **Implementation note for `--validate-only`:** when this flag is set, the skill MUST exit after writing the validation
 report. No `setup:upgrade`, no cache flush, no static-content:deploy, no maintenance toggling. The validation report
-follows the same `.docs/deployments/{timestamp}-{env}.{md,json}` layout but with `"mode": "validate-only"` in the JSON
+follows the same `{output_root}/deployments/{timestamp}-{env}.{md,json}` layout but with `"mode": "validate-only"` in the JSON
 and a `Validation only — no deploy executed` banner in the markdown.
 
 ## Outputs
 
 ```
-.docs/deployments/{timestamp}-{env}.md                # Markdown report
-.docs/deployments/{timestamp}-{env}.json              # Machine-readable for CI
-.docs/deployments/{timestamp}-{env}.snapshot.tar.gz   # Optional snapshot for rollback
+{output_root}/deployments/{timestamp}-{env}.md                # Markdown report
+{output_root}/deployments/{timestamp}-{env}.json              # Machine-readable for CI
+{output_root}/deployments/{timestamp}-{env}.snapshot.tar.gz   # Optional snapshot for rollback
 ```
 
-`.docs/` is anchored at the project root (`{ctx.docs_root}`), never under `{ctx.magento_root}`,
-`app/code`, or a module dir. See the **Artifact location** rule in `magento2-context/SKILL.md`.
+`{output_root}` (`.docs` by default, `{ctx.docs_root}`) is anchored at the project root,
+never under `{ctx.magento_root}`, `app/code`, or a module dir. See the **Artifact location**
+rule in `magento2-context/SKILL.md`.
+
+### Output root (`--docs-root`)
+
+This skill has an inline emitter (no `build-findings.sh`): the pre-flight, execute-plan,
+smoke, and snapshot scripts already take their output path from caller-supplied
+`OUTPUT_FILE`/`OUTPUT_DIR` env vars or arguments, so no script changes were needed. The
+skill itself accepts `--docs-root=<path>` (see
+`magento2-context/references/artifact-layout.md`) and, when set, writes the Markdown +
+JSON report and passes `OUTPUT_DIR=<path>/deployments` to `snapshot.sh` so all deploy
+artifacts land under `<path>/deployments/`; otherwise they default to
+`{ctx.docs_root}/deployments/`. Orchestrators such as `magento2-feature-implement` pass
+this to collect a run's artifacts under one folder.
 
 ## Acceptance Criteria
 

@@ -60,7 +60,9 @@ Run `scripts/static-scan.sh <target>` per `references/breeze-compat-checklist.md
 
 ### Phase 3 — Verdict & Emit
 
-Run `scripts/build-findings.sh` to emit JSON + SARIF (and render the Markdown report). Classify:
+Run `scripts/build-findings.sh` to emit JSON + SARIF (and render the Markdown report).
+Run it with `DOCS_ROOT=<output_root>` (the resolved `--docs-root` value, or `.docs` by
+default) so both artifacts land under `{output_root}/breeze-compat/`. Classify:
 - **Compatible out-of-box** — only Info findings (mage-init / no-adapter).
 - **Needs Better Compatibility** — RequireJS/mixins/jQuery-widget findings, no Knockout.
 - **Needs manual adapter** — Knockout/uiComponent findings present.
@@ -70,13 +72,26 @@ Point the user at `magento2-breeze-module-adapt` for the fix.
 ## Inputs
 
 ```
-/magento2-breeze-compat-audit <Vendor_Module> [--scope=module|site]
+/magento2-breeze-compat-audit <Vendor_Module> [--scope=module|site] [--docs-root=<path>]
 ```
 
 ## Outputs
 
-`{ctx.docs_root}/breeze-compat/breeze-compat-{scope}-{YYYY-MM-DD}.{json,sarif}` plus a Markdown
-summary. Findings follow `magento2-context/references/findings-schema.md`.
+Module scope (basename uses the underscore module name, e.g. `Acme_Foo`):
+`{output_root}/breeze-compat/{Vendor}_{Module}-breeze-compat-{YYYY-MM-DD}.{json,sarif}`
+Site scope: `{output_root}/breeze-compat/breeze-compat-{scope}-{YYYY-MM-DD}.{json,sarif}`
+— plus a Markdown summary sharing the same basename. Findings follow
+`magento2-context/references/findings-schema.md`. `{output_root}` defaults to `.docs`
+(`{ctx.docs_root}`); see the `--docs-root`/`DOCS_ROOT` recipe in
+`magento2-context/references/artifact-layout.md`.
+
+### Output root (`--docs-root`)
+
+This skill accepts `--docs-root=<path>` (see
+`magento2-context/references/artifact-layout.md`). When set, run the emitter with
+`DOCS_ROOT=<path>` so artifacts land under `<path>/breeze-compat/`; otherwise they default
+to `{ctx.docs_root}/breeze-compat/`. Orchestrators such as `magento2-feature-implement`
+pass this to collect a run's artifacts under one folder.
 
 ## Reference Files
 
@@ -90,8 +105,9 @@ summary. Findings follow `magento2-context/references/findings-schema.md`.
 
 ## Acceptance Criteria
 
-- Produces `breeze-compat-{scope}-{date}.json` (with `outputKind=compatibility`, `findings[]`,
-  `scanner_errors[]`) and `.sarif`.
+- Produces `{Vendor}_{Module}-breeze-compat-{date}.json` (module scope; site scope:
+  `breeze-compat-{scope}-{date}.json`) with `outputKind=compatibility`, `findings[]`,
+  `scanner_errors[]`, and `.sarif`.
 - Each finding has a severity, `file:line` evidence, and a concrete Breeze remediation.
 - Emits a verdict (compatible / Better Compatibility / manual adapter).
 - Never modifies the scanned module.
