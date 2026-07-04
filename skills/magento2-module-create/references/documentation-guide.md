@@ -29,6 +29,8 @@ and the `magento2-docs-generate` output. The set lives **inside the module**:
 | `docs/user-guide.md` | User / admin | `{module}/docs/user-guide.md` | When the module declares `admin_config`, `admin_ui`, or `frontend_ui` |
 | `docs/screenshots/` | User / admin | `{module}/docs/screenshots/` | When an admin/storefront UI surface is declared |
 | `docs/api-examples/` | Developer | `{module}/docs/api-examples/` | When `rest_api` or `graphql` is declared |
+| `docs/api-reference.md` | Developer | `{module}/docs/api-reference.md` | When `rest_api` declared — produced by docs-generate |
+| `docs/graphql-reference.md` | Developer | `{module}/docs/graphql-reference.md` | When `graphql` declared — produced by docs-generate |
 | `docs/artifacts/` | Helpful extras | `{module}/docs/artifacts/` | As the module's surfaces warrant |
 
 ---
@@ -118,4 +120,6 @@ Step 7 may not start until, **for the current mode's scope**, all of the followi
       references.
 - [ ] If `rest_api`/`graphql` is declared, `docs/api-examples/` holds a request+response example per
       endpoint/operation, with secrets/PII redacted.
+- [ ] If `rest_api` is declared, `docs/api-reference.md` exists (produced by `magento2-docs-generate`).
+- [ ] If `graphql` is declared, `docs/graphql-reference.md` exists (produced by `magento2-docs-generate`).
 - [ ] Every document reflects the code as generated — nothing describes a surface that was not created.

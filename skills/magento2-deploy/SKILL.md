@@ -234,10 +234,11 @@ smoke, and snapshot scripts already take their output path from caller-supplied
 `OUTPUT_FILE`/`OUTPUT_DIR` env vars or arguments, so no script changes were needed. The
 skill itself accepts `--docs-root=<path>` (see
 `magento2-context/references/artifact-layout.md`) and, when set, writes the Markdown +
-JSON report and passes `OUTPUT_DIR=<path>/deployments` to `snapshot.sh` so all deploy
-artifacts land under `<path>/deployments/`; otherwise they default to
-`{ctx.docs_root}/deployments/`. Orchestrators such as `magento2-feature-implement` pass
-this to collect a run's artifacts under one folder.
+JSON report and invokes `snapshot.sh <path>/deployments` (the script's output dir is a
+positional argument, not an env var) so all deploy artifacts land under
+`<path>/deployments/`; otherwise they default to `{ctx.docs_root}/deployments/`.
+Orchestrators such as `magento2-feature-implement` pass this to collect a run's
+artifacts under one folder.
 
 ## Acceptance Criteria
 
