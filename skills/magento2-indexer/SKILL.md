@@ -167,6 +167,10 @@ Write a brief Markdown report to
 - How to check status: `bin/magento indexer:status`
 - How to switch mode: `bin/magento indexer:set-mode [realtime|schedule] {indexer_id}`
 
+> **Docs may now be stale.** This change modified module code. Run
+> `magento2-docs-generate --module={Vendor}_{Module}` to refresh the module's README and
+> technical reference.
+
 ## Inputs
 
 ```

@@ -109,6 +109,10 @@ Brief Markdown:
 - Test coverage delta and the run command.
 - `magento2-module-review` verdict.
 
+> **Docs may now be stale.** This change modified module code. Run
+> `magento2-docs-generate --module={Vendor}_{Module}` to refresh the module's README and
+> technical reference.
+
 ## Inputs
 
 ```

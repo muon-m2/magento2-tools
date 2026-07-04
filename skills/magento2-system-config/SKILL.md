@@ -140,6 +140,10 @@ Write a brief Markdown report to
 - Test path + red→green evidence
 - `bin/magento setup:upgrade` + `bin/magento cache:flush` commands
 
+> **Docs may now be stale.** This change modified module code. Run
+> `magento2-docs-generate --module={Vendor}_{Module}` to refresh the module's README and
+> technical reference.
+
 ## Inputs
 
 ```

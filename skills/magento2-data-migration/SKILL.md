@@ -112,6 +112,10 @@ Save to `{output_root}/migrations/{name}-{date}.md`:
 - Rollback statement (if feasible)
 - Migration command for the user to run
 
+> **Docs may now be stale.** This change modified module code. Run
+> `magento2-docs-generate --module={Vendor}_{Module}` to refresh the module's README and
+> technical reference.
+
 ## Inputs
 
 ```

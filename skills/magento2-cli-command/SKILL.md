@@ -164,6 +164,10 @@ Write a brief Markdown report to
 - (command mode) how to invoke: `bin/magento {CommandName} [args] [options]`
 - (cron mode) how to trigger manually: `bin/magento cron:run --group={CronGroup}`
 
+> **Docs may now be stale.** This change modified module code. Run
+> `magento2-docs-generate --module={Vendor}_{Module}` to refresh the module's README and
+> technical reference.
+
 ## Inputs
 
 ```
