@@ -60,7 +60,9 @@ Run `scripts/static-scan.sh <target>` per `references/breeze-compat-checklist.md
 
 ### Phase 3 — Verdict & Emit
 
-Run `scripts/build-findings.sh` to emit JSON + SARIF (and render the Markdown report). Classify:
+Run `scripts/build-findings.sh` to emit JSON + SARIF (and render the Markdown report).
+Run it with `DOCS_ROOT=<output_root>` (the resolved `--docs-root` value, or `.docs` by
+default) so both artifacts land under `{output_root}/breeze-compat/`. Classify:
 - **Compatible out-of-box** — only Info findings (mage-init / no-adapter).
 - **Needs Better Compatibility** — RequireJS/mixins/jQuery-widget findings, no Knockout.
 - **Needs manual adapter** — Knockout/uiComponent findings present.
@@ -70,7 +72,7 @@ Point the user at `magento2-breeze-module-adapt` for the fix.
 ## Inputs
 
 ```
-/magento2-breeze-compat-audit <Vendor_Module> [--scope=module|site]
+/magento2-breeze-compat-audit <Vendor_Module> [--scope=module|site] [--docs-root=<path>]
 ```
 
 ## Outputs
@@ -82,6 +84,14 @@ Site scope: `{output_root}/breeze-compat/breeze-compat-{scope}-{YYYY-MM-DD}.{jso
 `magento2-context/references/findings-schema.md`. `{output_root}` defaults to `.docs`
 (`{ctx.docs_root}`); see the `--docs-root`/`DOCS_ROOT` recipe in
 `magento2-context/references/artifact-layout.md`.
+
+### Output root (`--docs-root`)
+
+This skill accepts `--docs-root=<path>` (see
+`magento2-context/references/artifact-layout.md`). When set, run the emitter with
+`DOCS_ROOT=<path>` so artifacts land under `<path>/breeze-compat/`; otherwise they default
+to `{ctx.docs_root}/breeze-compat/`. Orchestrators such as `magento2-feature-implement`
+pass this to collect a run's artifacts under one folder.
 
 ## Reference Files
 

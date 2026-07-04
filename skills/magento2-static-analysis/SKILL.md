@@ -103,6 +103,8 @@ Write three artifacts:
    risky rector rules (manual action needed), skipped tools.
 2. **JSON + SARIF** — built by `${CLAUDE_SKILL_DIR}/scripts/build-findings.sh` using
    `OUTPUT_KIND=quality`. Residual findings only (auto-fixed violations are excluded).
+   Run `build-findings.sh` with `DOCS_ROOT=<output_root>` (the resolved `--docs-root`
+   value, or `.docs` by default) so both artifacts land under `{output_root}/quality/`.
 
 ## Reference Files
 
@@ -126,7 +128,7 @@ Write three artifacts:
 ## Inputs
 
 ```
-/magento2-static-analysis [--module=<Vendor>_<Module>] [--diff [<ref>]] [--scope=module|site] [<files>...]
+/magento2-static-analysis [--module=<Vendor>_<Module>] [--diff [<ref>]] [--scope=module|site] [--docs-root=<path>] [<files>...]
 ```
 
 ## Outputs
@@ -145,6 +147,14 @@ Site/diff scope:
 ```
 `{output_root}` defaults to `.docs` (`{ctx.docs_root}`); see the `--docs-root`/`DOCS_ROOT`
 recipe in `magento2-context/references/artifact-layout.md`.
+
+### Output root (`--docs-root`)
+
+This skill accepts `--docs-root=<path>` (see
+`magento2-context/references/artifact-layout.md`). When set, run the emitter with
+`DOCS_ROOT=<path>` so artifacts land under `<path>/quality/`; otherwise they default
+to `{ctx.docs_root}/quality/`. Orchestrators such as `magento2-feature-implement`
+pass this to collect a run's artifacts under one folder.
 
 ## Related Skills
 

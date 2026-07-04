@@ -81,7 +81,9 @@ Produce three deliverables:
    The script aggregates findings from check-readiness.sh — plus the delegated
    `magento2-security-audit` EQP findings when `EQP_FINDINGS_FILE` is provided (Phase 2.2)
    — and invokes the shared `magento2-module-review/scripts/emit-json.sh` with
-   `OUTPUT_KIND=marketplace`.
+   `OUTPUT_KIND=marketplace`. Run `build-findings.sh` with `DOCS_ROOT=<output_root>`
+   (the resolved `--docs-root` value, or `.docs` by default) so both artifacts land
+   under `{output_root}/marketplace/`.
 
 ## Marketplace-Specific Checks (check-readiness.sh)
 
@@ -125,7 +127,7 @@ Produce three deliverables:
 ## Inputs
 
 ```
-/magento2-marketplace-prep [--module=<Vendor>_<Module>] [--format=markdown|json|sarif]
+/magento2-marketplace-prep [--module=<Vendor>_<Module>] [--format=markdown|json|sarif] [--docs-root=<path>]
 ```
 
 ## Outputs
@@ -144,6 +146,14 @@ Site scope:
 ```
 `{output_root}` defaults to `.docs` (`{ctx.docs_root}`); see the `--docs-root`/`DOCS_ROOT`
 recipe in `magento2-context/references/artifact-layout.md`.
+
+### Output root (`--docs-root`)
+
+This skill accepts `--docs-root=<path>` (see
+`magento2-context/references/artifact-layout.md`). When set, run the emitter with
+`DOCS_ROOT=<path>` so artifacts land under `<path>/marketplace/`; otherwise they default
+to `{ctx.docs_root}/marketplace/`. Orchestrators such as `magento2-feature-implement`
+pass this to collect a run's artifacts under one folder.
 
 ## Severity Calibration
 

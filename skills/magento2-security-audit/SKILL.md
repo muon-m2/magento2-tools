@@ -116,7 +116,9 @@ The skill produces **two automation artifacts** and **one LLM deliverable**:
 
 1. **JSON** (automated). Built by `${CLAUDE_SKILL_DIR}/scripts/build-findings.sh`, which aggregates the
    scanners and invokes the shared `magento2-module-review/scripts/emit-json.sh` with
-   `SKILL_NAME=magento2-security-audit` and `OUTPUT_KIND=security`.
+   `SKILL_NAME=magento2-security-audit` and `OUTPUT_KIND=security`. Run
+   `build-findings.sh` with `DOCS_ROOT=<output_root>` (the resolved `--docs-root` value,
+   or `.docs` by default) so the JSON/SARIF land under `{output_root}/audits/`.
 2. **SARIF** (automated). The same `build-findings.sh` invocation now also produces
    SARIF via `magento2-module-review/scripts/emit-sarif.sh`. No separate caller step is
    required.
@@ -154,7 +156,7 @@ The skill produces **two automation artifacts** and **one LLM deliverable**:
 ## Inputs
 
 ```
-/magento2-security-audit [--scope=module|site|vendor] [--include-magento-core] [--format=markdown|json|sarif] [<Vendor>_<Module>...]
+/magento2-security-audit [--scope=module|site|vendor] [--include-magento-core] [--format=markdown|json|sarif] [--docs-root=<path>] [<Vendor>_<Module>...]
 ```
 
 ## Outputs
@@ -173,6 +175,14 @@ Site/vendor scope:
 ```
 `{output_root}` defaults to `.docs` (`{ctx.docs_root}`); see the `--docs-root`/`DOCS_ROOT`
 recipe in `magento2-context/references/artifact-layout.md`.
+
+### Output root (`--docs-root`)
+
+This skill accepts `--docs-root=<path>` (see
+`magento2-context/references/artifact-layout.md`). When set, run the emitter with
+`DOCS_ROOT=<path>` so artifacts land under `<path>/audits/`; otherwise they default
+to `{ctx.docs_root}/audits/`. Orchestrators such as `magento2-feature-implement`
+pass this to collect a run's artifacts under one folder.
 
 ## Severity Calibration
 

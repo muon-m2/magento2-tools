@@ -79,9 +79,12 @@ missing tool or unavailable Magento runtime is an environment limitation, not a 
     - For JSON output (default when invoked from another skill or with `--format=json`):
       build the findings array per `magento2-context/references/findings-schema.md`, then
       pipe it through `${CLAUDE_SKILL_DIR}/scripts/emit-json.sh`. Writes to
-      `.docs/reviews/{Vendor}_{Module}-review-{date}.json` — anchored at the project root
-      (`{ctx.docs_root}`), never under `{ctx.magento_root}`. Pass `DOCS_ROOT={ctx.docs_root}`
-      to `emit-json.sh` so an in-`src/` cwd cannot redirect output into the Magento tree.
+      `{output_root}/reviews/{Vendor}_{Module}-review-{date}.json` — anchored at the project
+      root, never under `{ctx.magento_root}`. `{output_root}` is the `--docs-root` value when
+      the caller passed one, else `{ctx.docs_root}`. Run as:
+      `DOCS_ROOT="${DOCS_ROOT_ARG:-.docs}" bash "${CLAUDE_SKILL_DIR}/scripts/emit-json.sh"`
+      (where `DOCS_ROOT_ARG` is the resolved `--docs-root` value) so an in-`src/` cwd cannot
+      redirect output into the Magento tree. See "Output Root" below.
     - For SARIF output (CI / GitHub Code Scanning): run `${CLAUDE_SKILL_DIR}/scripts/emit-sarif.sh` on the JSON
       output. Writes alongside the JSON file with `.sarif` extension.
     - Update `Reviewer:` to `Claude Code using magento2-module-review` and include the
@@ -98,6 +101,14 @@ missing tool or unavailable Magento runtime is an environment limitation, not a 
     - Add/update tests for behaviour changes.
     - Create a v2 report summarising resolved findings, items delegated to other skills (naming the
       skill per item), and residual risk.
+
+## Output Root (`--docs-root`)
+
+This skill accepts `--docs-root=<path>` (see
+`magento2-context/references/artifact-layout.md`). When set, run the emitter with
+`DOCS_ROOT=<path>` so artifacts land under `<path>/reviews/`; otherwise they default
+to `{ctx.docs_root}/reviews/`. Orchestrators such as `magento2-feature-implement`
+pass this to collect a run's artifacts under one folder.
 
 ## Fix Routing
 
