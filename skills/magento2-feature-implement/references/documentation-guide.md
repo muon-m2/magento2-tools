@@ -70,7 +70,7 @@ developer **integrates with and extends** the feature as a whole:
 - Worked code examples (the smallest real snippet that demonstrates each integration point).
 - When the feature exposes a REST/GraphQL surface: request/response payload examples (see below).
 - How the modules **compose** as a feature — link to each module's own `docs/developer-guide.md`
-  for its integration surface; do not (re-author|duplicate) that module's guide content here.
+  for its integration surface; do not re-author or duplicate that module's guide content here.
 
 ### User guide
 
@@ -84,7 +84,7 @@ whole:
 - End-user / storefront workflows, step by step.
 - **Screenshots** of each significant screen (see below).
 - How the modules combine into one end-to-end workflow — link to each module's own
-  `docs/user-guide.md` for its configuration/workflow detail; do not (re-author|duplicate) that
+  `docs/user-guide.md` for its configuration/workflow detail; do not re-author or duplicate that
   module's guide content here.
 
 Both HTML guides must apply the feature's shared CSS color schema inline (primary, secondary,
@@ -171,8 +171,8 @@ Phase 7B may not start until, **for the current mode's scope**, all of the follo
 - [ ] `spec.md` exists and its diagrams are Mermaid (when required for the mode).
 - [ ] `guides/developer-guide.html` and `user-docs/user-guide.html` exist (when required), share the
       feature's CSS color schema, and every cross-link into a module's `docs/developer-guide.md` /
-      `docs/user-guide.md` resolves to a file that exists on disk — the check is that the links
-      resolve, not that the module's guide content has been re-authored inline.
+      `docs/user-guide.md` resolves to a file that exists on disk — the gate checks that the links
+      resolve, not that the module's guide content is re-authored inline.
 - [ ] Screenshots exist for every admin/storefront screen the user guide references.
 - [ ] If the feature exposes a REST/GraphQL surface, `api-examples/` holds a request+response
       example per endpoint/operation, with secrets/PII redacted.
