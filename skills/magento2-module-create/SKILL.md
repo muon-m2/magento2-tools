@@ -38,12 +38,13 @@ checklist with zero post-creation fixes required.
   → `rest_api` → `graphql` → `cron` → `queue` → `extensions`.
 - **Document before report (required).** Step 6 generates the module's documentation set; Step 7
   (report) may not start until it exists on disk and is current. The set is **code-derived** (this
-  skill assumes no running instance): a technical reference via `magento2-docs-generate`, plus
-  developer-scope and user-scope guides, screenshots (or named placeholders when no instance is
-  available), and — when a REST/GraphQL surface is declared — request/response payload examples, with
-  other helpful artifacts as the surfaces warrant. Reduced in Quick Create Mode; refresh-only in
-  `--mode=augment`. The required artifacts, per-mode scope, and completeness gate live in
-  `references/documentation-guide.md`.
+  skill assumes no running instance) and is **delegated in full to `magento2-docs-generate`**: README,
+  CHANGELOG, technical reference, developer guide (when a public surface exists), and user guide
+  (when a UI/config surface exists, with screenshots or named placeholders when no instance is
+  available). This skill does not hand-write any of those. When a REST/GraphQL surface is declared,
+  this skill separately writes request/response payload examples, plus other helpful artifacts as the
+  surfaces warrant. Reduced in Quick Create Mode; refresh-only in `--mode=augment`. The delegation,
+  per-mode scope, and completeness gate live in `references/documentation-guide.md`.
 
 ## Workflow
 
@@ -71,6 +72,10 @@ checklist with zero post-creation fixes required.
     - For each declared surface, list the exact files to create using `references/surfaces.md`.
     - Shared files created regardless of surfaces: `registration.php`, `etc/module.xml`, `composer.json`,
       `etc/di.xml`, `README.md`, `CHANGELOG.md`, `LICENSE.txt`, `.gitignore`.
+    - `README.md` starts as a **minimal stub** — just `# {ModuleName}` and one sentence describing what
+      the module does — so later steps have a file to reference. Do not hand-write Features,
+      Installation, Configuration, Public API, or other sections here: Step 6 overwrites the stub with
+      the full generated README via `magento2-docs-generate`.
     - Auto-add `i18n/en_US.csv` when any UI surface (`admin_ui`, `frontend_ui`) is declared.
     - Auto-add a minimal MFTF smoke test under `Test/Mftf/` (`templates/mftf-test.xml`, plus
       `templates/mftf-actiongroup.xml` for UI surfaces) when any UI surface (`admin_ui`, `frontend_ui`)
@@ -180,28 +185,28 @@ checklist with zero post-creation fixes required.
     - Record all results: pass / fail / skipped per check.
 
 6. **Generate documentation (required).**
-    - Load `references/documentation-guide.md`. It defines the required artifacts per scope, the
-      per-mode scope, screenshot handling, API payload examples, and the completeness gate.
-    - Delegate the technical reference to `magento2-docs-generate` for the created module:
+    - Load `references/documentation-guide.md`. It defines the delegation, the per-mode scope,
+      screenshot handling, API payload examples, and the completeness gate.
+    - Delegate the **full module doc set** to `magento2-docs-generate` for the created module:
       ```
       Skill: magento2-docs-generate
       Args: --module={Vendor}_{ModuleName}
       ```
-      This (re)generates `docs/technical-reference.md` and refreshes the `README.md` / `CHANGELOG.md`
-      scaffold from the module's own code; reconcile with `references/docs-format.md` (do not duplicate).
-    - When the module exposes a public surface (service contracts, REST/GraphQL, events, plugins),
-      write `docs/developer-guide.md` — integration and extension points with worked code examples
-      drawn from the generated code.
-    - When the module declares `admin_config`, `admin_ui`, or `frontend_ui`, write
-      `docs/user-guide.md` — admin configuration and end-user workflows, with screenshots under
-      `docs/screenshots/`. With no running instance available, insert clearly marked screenshot
-      placeholders naming the screen to capture post-deploy — do not fabricate images.
+      This single call (re)generates `README.md` (overwriting the Step 2 stub), `CHANGELOG.md`,
+      `docs/technical-reference.md`, `docs/developer-guide.md` (when the module exposes a public
+      surface — service contracts, REST/GraphQL, events, plugins), and `docs/user-guide.md` (when
+      `admin_config`, `admin_ui`, or `frontend_ui` is declared, including screenshot placeholders when
+      no running instance is available) — all straight from the module's own code. This skill does not
+      hand-write any of these; `magento2-docs-generate` owns their section structure, per-surface
+      omission rules, and content derivation (see its `references/doc-structure.md`).
     - When `rest_api` or `graphql` is declared, write contract-derived request/response payload
       examples under `docs/api-examples/` and reference them from the developer guide.
     - Add other helpful artifacts (Postman collection, ER/sequence diagram) under `docs/artifacts/`
       as the surfaces warrant. Omit those that do not apply — no empty placeholder files.
-    - **Quick Create Mode:** produce only `README.md` + `CHANGELOG.md`. **`--mode=augment`:** refresh
-      the docs the new surfaces touch — never leave a doc describing the pre-augment module.
+    - **Quick Create Mode:** the delegation call above naturally produces only `README.md` +
+      `CHANGELOG.md` when no other surfaces are declared. **`--mode=augment`:** re-run the delegation
+      so every doc reflects the augmented surfaces — never leave a doc describing the pre-augment
+      module.
     - Run the completeness checklist in `references/documentation-guide.md`. Do not proceed to Step 7
       until every required artifact for the current mode exists on disk.
 
@@ -279,10 +284,10 @@ parallel creation to the user and wait for a yes/no answer before proceeding. Re
 - `references/phpdoc-rules.md`: full PHPDoc generation rules for all class types — scope, format,
   FQCN requirements, brevity rules, and common mistakes to avoid.
 - `references/parallel-create.md`: agent split guidance for large or complex modules.
-- `references/docs-format.md`: README.md section structure and CHANGELOG.md format rules.
-- `references/documentation-guide.md`: Step 6 required documentation set — per-scope artifacts
-  (technical/developer/user), screenshot handling, contract-derived API examples, per-mode scope,
-  and the completeness gate.
+- `references/docs-format.md`: pointer to `magento2-docs-generate`'s templates and
+  `references/doc-structure.md` — this skill does not define its own README/CHANGELOG format.
+- `references/documentation-guide.md`: Step 6 delegation to `magento2-docs-generate` for the full doc
+  set, screenshot handling, contract-derived API examples, per-mode scope, and the completeness gate.
 
 ## Template Inventory
 

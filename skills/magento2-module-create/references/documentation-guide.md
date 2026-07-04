@@ -21,7 +21,7 @@ and the `magento2-docs-generate` output. The set lives **inside the module**:
 
 | Artifact | Scope | Location | Required when |
 |----------|-------|----------|---------------|
-| `README.md` | Overview | `{module}/README.md` | Always (created in Step 2; finalized here) |
+| `README.md` | Overview | `{module}/README.md` | Always (minimal stub in Step 2; regenerated in full here via `magento2-docs-generate`) |
 | `CHANGELOG.md` | History scaffold | `{module}/CHANGELOG.md` | Always |
 | `docs/technical-reference.md` | Technical | `{module}/docs/technical-reference.md` | Always (delegate to `magento2-docs-generate`) |
 | `docs/developer-guide.md` | Developer | `{module}/docs/developer-guide.md` | When the module exposes a public surface (service contracts, REST/GraphQL, events, plugins) |
@@ -34,42 +34,22 @@ and the `magento2-docs-generate` output. The set lives **inside the module**:
 
 ## Per-scope content
 
-### Technical — `docs/technical-reference.md`
-
-Delegate to `magento2-docs-generate` for the module just created. It extracts the public `@api`
-surface, events fired/observed, plugins, preferences, config paths, CLI commands, cron jobs,
-REST/GraphQL routes, DB schema, and dependencies straight from the module's own files.
+The full module documentation set — `README.md`, `CHANGELOG.md`, `docs/technical-reference.md`,
+`docs/developer-guide.md` (when the module exposes a public surface), and `docs/user-guide.md`
+(when a UI/config surface is declared) — is **delegated in full** to `magento2-docs-generate` for
+the module just created:
 
 ```
 Skill: magento2-docs-generate
 Args: --module={Vendor}_{ModuleName}
 ```
 
-Re-running it is how the technical reference stays **current** after any later change. It also
-(re)generates the `README.md` and `CHANGELOG.md` scaffold; reconcile with the README produced
-per `references/docs-format.md` rather than duplicating.
-
-### Developer guide — `docs/developer-guide.md`
-
-How a developer **integrates with and extends** the module:
-
-- Service contracts and DTOs they call, with signatures (from `Api/`).
-- Events they can observe, and plugins/preferences they can attach.
-- DI wiring and configuration knobs that affect behaviour.
-- The smallest real code snippet that demonstrates each integration point.
-- When `rest_api`/`graphql` is declared: request/response payload examples (see below).
-
-Generate every example from the generated code — never describe a method or field that does not
-exist in the module.
-
-### User guide — `docs/user-guide.md`
-
-How an **admin or end user** configures and uses the module:
-
-- Admin configuration: the `Stores → Configuration → {Section}` path and what each field does
-  (from `etc/adminhtml/system.xml`).
-- Admin UI / storefront workflows, step by step (from the declared `admin_ui` / `frontend_ui`).
-- **Screenshots** of each significant screen (see below).
+Re-running it is how every artifact in the set stays **current** after any later change.
+`magento2-docs-generate` owns the section structure, per-surface omission rules, and content
+derivation for each artifact — see its `references/doc-structure.md`. This skill does not
+hand-write README, CHANGELOG, technical-reference, developer-guide, or user-guide content; the
+extracted public `@api` surface, events, plugins, preferences, config paths, CLI commands, cron
+jobs, REST/GraphQL routes, and DB schema all come from `magento2-docs-generate`'s own extraction.
 
 ---
 
@@ -119,7 +99,7 @@ Omit any artifact that does not apply — do not create empty placeholder files.
 
 | Mode | Step 6 scope |
 |------|--------------|
-| Normal create | Full set: `magento2-docs-generate` technical reference; developer guide (when a public surface exists); user guide + screenshots (when a UI surface exists); API examples (when REST/GraphQL); applicable artifacts. |
+| Normal create | Full set via one `magento2-docs-generate` delegation call: README, CHANGELOG, technical reference, developer guide (when a public surface exists), user guide + screenshots (when a UI surface exists); plus API examples (when REST/GraphQL) and applicable artifacts, written separately by this skill. |
 | Quick Create | Reduced: `README.md` + `CHANGELOG.md` only — matches the core-only file set. State that the full doc set is generated when surfaces are added. |
 | `--mode=augment` | Refresh-only: re-run `magento2-docs-generate`, and update the developer/user guide and API examples for the surfaces the augment added. Never leave a doc describing the pre-augment module. |
 
@@ -129,8 +109,8 @@ Omit any artifact that does not apply — do not create empty placeholder files.
 
 Step 7 may not start until, **for the current mode's scope**, all of the following hold:
 
-- [ ] `magento2-docs-generate` has been run for the module and `docs/technical-reference.md` exists.
-- [ ] `README.md` and `CHANGELOG.md` exist with no unfilled `{placeholders}`.
+- [ ] `magento2-docs-generate` has been run for the module; `README.md`, `CHANGELOG.md`, and
+      `docs/technical-reference.md` exist with no unfilled `{placeholders}`.
 - [ ] `docs/developer-guide.md` exists when the module exposes a public surface.
 - [ ] `docs/user-guide.md` exists when a UI/config surface is declared.
 - [ ] Screenshots (or named placeholders) exist for every admin/storefront screen the user guide
