@@ -6,7 +6,11 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased] — Documentation consolidation
+## [1.17.0] — 2026-07-04 — Documentation consolidation
+
+`magento2-docs-generate` is now the single owner of every module documentation type; other
+skills delegate or cross-link instead of shipping duplicate, divergent templates. ~17 skills
+bumped; docs still generate for every module (via delegation now) — no skill removed.
 
 ### Changed
 
