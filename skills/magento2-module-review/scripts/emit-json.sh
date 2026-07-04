@@ -14,7 +14,9 @@
 #   SKILL_VERSION  default: 2.4.0
 #   SKILL_VERSIONS_JSON  Optional JSON array string (e.g. '["foo@1","bar@2"]')
 #                  When set, used verbatim as skillVersions[]; otherwise auto-built.
-#   OUTPUT_KIND     "review" | "security" | "performance" | "upgrade" | "quality" (default: review)
+#   OUTPUT_KIND     "review" | "security" | "performance" | "upgrade" | "quality" |
+#                   "marketplace" | "accessibility" | "compatibility" (default: review)
+#                   Not exhaustive — see findings-schema.md `outputKind` for the full set.
 #   OUTPUT_BASENAME default: "{TARGET_MODULE}-{OUTPUT_KIND}-{YYYY-MM-DD}"
 #   CONTEXT_FILE    default: .claude/.cache/magento2-context.json
 #   SKIPPED_FILE    Optional JSON array of skipped checks

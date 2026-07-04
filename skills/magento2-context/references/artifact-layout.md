@@ -36,7 +36,7 @@ passed explicitly per invocation — never assumed from a prior `export`.
   e.g. `Acme_OrderExport-security-2026-07-03`.
 - **Site / vendor scope:** `{kind}-{scope}-{YYYY-MM-DD}`, e.g. `security-site-2026-07-03`.
 
-Markdown, JSON, and SARIF of one run share the basename bar the extension.
+Markdown, JSON, and SARIF of one run share the basename apart from the extension.
 
 ## Category registry
 
