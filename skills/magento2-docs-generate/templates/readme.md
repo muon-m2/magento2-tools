@@ -19,6 +19,22 @@ Enable the module and run setup upgrade:
 
 {DEPENDENCIES_LIST}
 
+## Features
+
+{FEATURES_LIST}
+
+## Configuration
+
+{CONFIG_TABLE}
+
+## Public API
+
+{PUBLIC_API_TABLE}
+
+## Known Limitations
+
+{KNOWN_LIMITATIONS}
+
 ## Documentation
 
 {DOCUMENTATION_LINKS}

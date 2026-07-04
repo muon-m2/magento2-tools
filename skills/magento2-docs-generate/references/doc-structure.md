@@ -28,6 +28,20 @@ Rendered from `templates/readme.md`. Target file: `{module}/README.md`.
 
 6. **Dependencies** — `{DEPENDENCIES_LIST}` from `composer.json require`.
 
+### Richer sections (conditional — each omitted, heading and all, when its surface is absent)
+
+Rendered between **Dependencies** and **Documentation** in `templates/readme.md`. These were
+consolidated from module-create's README template so that docs-generate is the single owner
+of every module README; each follows the skill's existing "OMIT empty surfaces" rule — never
+render an empty table or a placeholder row.
+
+| Section | Heading | Token | Derived from | Omit when |
+|---------|---------|-------|---------------|-----------|
+| Features | `## Features` | `{FEATURES_LIST}` | `module.xml` + the module's declared surfaces (a bulleted summary of what the module does, derived from its API/config/CLI/queue/GraphQL/REST surfaces) | The module has no summarizable surface (rare — a stub module) |
+| Configuration | `## Configuration` | `{CONFIG_TABLE}` | `etc/adminhtml/system.xml` (Field / Description / Default columns) | `etc/adminhtml/system.xml` has no fields (no admin configuration) |
+| Public API | `## Public API` | `{PUBLIC_API_TABLE}` | `@api`-annotated interfaces under `Api/` (Interface / Description columns) | The module declares no `@api` interfaces |
+| Known Limitations | `## Known Limitations` | `{KNOWN_LIMITATIONS}` | Extractor- or user-supplied notes on intentional constraints or out-of-scope behavior | No limitations are supplied — never invented by the generator |
+
 ---
 
 ## Technical Reference Structure

@@ -159,6 +159,17 @@ technical documentation from extracted code surfaces):
 `{PLUGINS_TABLE}`, `{CONFIG_PATHS_TABLE}`, `{CLI_COMMANDS_TABLE}`, `{CRON_TABLE}`,
 `{REST_ROUTES_TABLE}`, `{GRAPHQL_TABLE}`, `{DB_SCHEMA_TABLE}`, `{EXTENSION_ATTRIBUTES_TABLE}`.
 
+`magento2-docs-generate` README richer-section markers (consolidated from module-create's
+README template; conditional — each is omitted, along with its heading, when the underlying
+surface is absent):
+
+| Token | Owner | Description | Source surface |
+|-------|-------|-------------|-----------------|
+| `{FEATURES_LIST}` | `magento2-docs-generate` | Bulleted list of module capabilities | `module.xml` + declared surfaces (derived summary of what the module does) |
+| `{CONFIG_TABLE}` | `magento2-docs-generate` | Table of admin-configurable fields (Field / Description / Default) | `etc/adminhtml/system.xml` |
+| `{PUBLIC_API_TABLE}` | `magento2-docs-generate` | Table of `@api`-annotated interfaces (Interface / Description) | `@api` interfaces in `Api/` |
+| `{KNOWN_LIMITATIONS}` | `magento2-docs-generate` | Bulleted list of intentional constraints or out-of-scope behavior | Extractor/user-supplied notes; omitted when none are supplied |
+
 `magento2-docs-generate` multi-document markers (substituted when rendering the developer
 guide, user guide, and REST/GraphQL references):
 `{DOCUMENTATION_LINKS}` (README bullet list of produced docs),
@@ -199,6 +210,7 @@ Behaviour
 CHECKLIST_TABLE
 CLI_COMMANDS_TABLE
 CONFIG_PATHS_TABLE
+CONFIG_TABLE
 CRITICAL_COUNT
 CRON_TABLE
 DB_SCHEMA_TABLE
@@ -211,6 +223,9 @@ DEV_GUIDE_OVERVIEW
 DOCUMENTATION_LINKS
 EVENTS_TABLE
 EXTENSION_ATTRIBUTES_TABLE
+FEATURES_LIST
+KNOWN_LIMITATIONS
+PUBLIC_API_TABLE
 EventName
 Class
 ClassUnderTest
