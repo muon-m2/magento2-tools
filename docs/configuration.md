@@ -69,10 +69,16 @@ Skills read your project's `CLAUDE.md` for these lines:
 | `Allow smoke on production: true` | feature-implement smoke runner | Permits Phase 6B smoke tests against a production base URL (refused otherwise) |
 | `Feature implement: per-task commits = on` | feature-implement | Same as `MAGENTO2_FI_PER_TASK_COMMITS=1` / `--per-task-commits` |
 | `Feature implement: tdd = on` | feature-implement | Same as `MAGENTO2_FI_TDD=1` / `--tdd` — behaviour tasks implemented test-first (red → green → refactor) |
+| `Explorer model: haiku` | feature-implement / module-review / bug-fix | Model tier (`haiku`/`sonnet`/`opus`/`inherit`) for the read-only `magento2-explorer` comprehension agent. Defaults to `haiku`; `inherit` uses the session model. Does not affect `magento2-reviewer`. |
 | MySQL slow-log path | performance-audit / debug | Where to read the slow query log when non-default |
 
 `CLAUDE.md` participates in the context cache key, so editing it takes effect on the
 next skill run without manual cache busting.
+
+> The per-task `Model tier (advisory)` fields in `magento2-feature-implement` plans are
+> recommendations only — the harness does not route Skill-tool tasks by tier, so they run on the
+> session model. The one directive that takes live effect is `Explorer model:` above (the read-only
+> explorer subagent). See the feature-implement task-breakdown guide for the tier-by-type mapping.
 
 ## Output conventions
 
