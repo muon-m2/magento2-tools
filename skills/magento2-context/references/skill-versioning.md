@@ -9,10 +9,10 @@ skills evolve.
 
 | Skill                      | Version | Bumped when                                                         |
 |----------------------------|---------|---------------------------------------------------------------------|
-| magento2-context           | 1.8.0   | JSON schema changes, new resolution rules, new tool probes          |
-| magento2-module-create     | 1.9.0   | New template added, surface added, naming rule changed              |
+| magento2-context           | 1.9.0   | JSON schema changes, new resolution rules, new tool probes          |
+| magento2-module-create     | 1.10.0  | New template added, surface added, naming rule changed              |
 | magento2-module-review     | 2.4.0   | New checklist category, severity calibration change, new JSON field, fix-routing change |
-| magento2-feature-implement | 2.11.0  | New phase, new approval gate, mode added, new task types (I/C/L/Q), template structure change, delegation/fallback discipline |
+| magento2-feature-implement | 2.12.0  | New phase, new approval gate, mode added, new task types (I/C/L/Q), template structure change, delegation/fallback discipline |
 | magento2-bug-fix           | 1.1.0   | Workflow phase change, RCA format change                            |
 | magento2-deploy            | 1.3.0   | Deploy plan template change, rollback recipe change                 |
 | magento2-test-generate     | 1.2.0   | Generator pattern change, new test type added                       |
@@ -20,22 +20,22 @@ skills evolve.
 | magento2-security-audit    | 1.3.0   | New CVE source, new pattern, severity calibration change            |
 | magento2-performance-audit | 1.2.0   | New pattern, new runtime check, severity calibration change         |
 | magento2-debug             | 1.3.0   | New mode added, output format change                                |
-| magento2-eav-attribute     | 1.3.0   | New entity type supported, new input type, template change          |
-| magento2-graphql-create    | 1.0.4   | New resolver pattern, schema-migration rule change                  |
-| magento2-frontend-create   | 1.0.2   | New theme detection rule, new component pattern                     |
-| magento2-data-migration    | 1.3.0   | New idempotency strategy, new importer pattern                      |
-| magento2-release           | 1.2.0   | New tag convention, new publish target                              |
+| magento2-eav-attribute     | 1.3.1   | New entity type supported, new input type, template change          |
+| magento2-graphql-create    | 1.0.5   | New resolver pattern, schema-migration rule change                  |
+| magento2-frontend-create   | 1.0.3   | New theme detection rule, new component pattern                     |
+| magento2-data-migration    | 1.3.1   | New idempotency strategy, new importer pattern                      |
+| magento2-release           | 1.2.1   | New tag convention, new publish target                              |
 | magento2-i18n              | 1.3.0   | New extraction pattern, new placeholder rule                        |
-| magento2-adminhtml-form    | 1.1.0   | New template/surface added, field-type pattern, controller change   |
-| magento2-adminhtml-listing | 1.1.0   | New template/column type, mass-action change, wiring change         |
-| magento2-webapi-create     | 1.0.1   | New template/route/auth-scope, service-contract change, custom-action pattern |
-| magento2-extension-point   | 1.1.0   | New mode/template added, interception pattern change                          |
-| magento2-system-config     | 1.1.0   | New field type/template, config-reader pattern change                         |
-| magento2-cli-command       | 1.1.0   | New mode/template, command or cron pattern change                             |
-| magento2-message-queue     | 1.1.0   | New connection type/template, topic or consumer pattern change                |
+| magento2-adminhtml-form    | 1.1.1   | New template/surface added, field-type pattern, controller change   |
+| magento2-adminhtml-listing | 1.1.1   | New template/column type, mass-action change, wiring change         |
+| magento2-webapi-create     | 1.0.2   | New template/route/auth-scope, service-contract change, custom-action pattern |
+| magento2-extension-point   | 1.1.1   | New mode/template added, interception pattern change                          |
+| magento2-system-config     | 1.1.1   | New field type/template, config-reader pattern change                         |
+| magento2-cli-command       | 1.1.1   | New mode/template, command or cron pattern change                             |
+| magento2-message-queue     | 1.1.1   | New connection type/template, topic or consumer pattern change                |
 | magento2-static-analysis   | 1.1.0   | New tool/rule, autofix-safety calibration change                              |
-| magento2-docs-generate     | 1.2.0   | New docs (developer/user guide, REST+GraphQL reference), example/diagram derivation |
-| magento2-indexer           | 1.1.0   | New indexer/mview pattern, dimension support                                  |
+| magento2-docs-generate     | 1.3.0   | New docs (developer/user guide, REST+GraphQL reference), example/diagram derivation |
+| magento2-indexer           | 1.1.1   | New indexer/mview pattern, dimension support                                  |
 | magento2-marketplace-prep  | 1.1.0   | New EQP check, readiness-scoring calibration                                  |
 | magento2-accessibility-audit | 1.1.0 | New WCAG rule, runtime pass change                                            |
 | magento2-breeze-child-theme | 1.0.1 | New template/parent variant, theme-layout change                              |
@@ -43,6 +43,27 @@ skills evolve.
 | magento2-breeze-compat-audit | 1.1.0 | New check/pattern, severity calibration change                                |
 
 ## Changelog (last update: 2026-07-04)
+
+- **Plugin (unreleased) — Documentation Consolidation (Plan B).** `magento2-docs-generate`
+  becomes the single owner of every module doc type (README, CHANGELOG, developer/user
+  guides, REST/GraphQL references, technical reference); `magento2-module-create` and
+  `magento2-feature-implement` delegate to it instead of duplicating doc generation, and the
+  feature-level HTML guides now link into the module Markdown instead of copying it. One
+  canonical CHANGELOG format lives in the new `magento2-context/references/changelog-format.md`,
+  which `magento2-release`'s own `changelog-format.md` now cites rather than redefining. The 12
+  single-surface generators each gained a "run docs-generate to refresh" note emitted after a
+  mutation. Minor bumps (behaviour/capability changed): `magento2-context 1.8.0 → 1.9.0` (new
+  `changelog-format.md` reference + new README tokens), `magento2-docs-generate 1.2.0 → 1.3.0`
+  (now owns the full doc set incl. new README sections), `magento2-module-create 1.9.0 → 1.10.0`
+  (delegates its doc set), `magento2-feature-implement 2.11.0 → 2.12.0` (HTML tier links instead
+  of copying). Patch bumps (lighter, note-only changes): `magento2-release 1.2.0 → 1.2.1` (its
+  `changelog-format.md` now cites the canonical) and the 12 single-surface generators —
+  `magento2-adminhtml-form 1.1.0 → 1.1.1`, `magento2-adminhtml-listing 1.1.0 → 1.1.1`,
+  `magento2-cli-command 1.1.0 → 1.1.1`, `magento2-data-migration 1.3.0 → 1.3.1`,
+  `magento2-eav-attribute 1.3.0 → 1.3.1`, `magento2-extension-point 1.1.0 → 1.1.1`,
+  `magento2-frontend-create 1.0.2 → 1.0.3`, `magento2-graphql-create 1.0.4 → 1.0.5`,
+  `magento2-indexer 1.1.0 → 1.1.1`, `magento2-message-queue 1.1.0 → 1.1.1`,
+  `magento2-system-config 1.1.0 → 1.1.1`, `magento2-webapi-create 1.0.1 → 1.0.2`.
 
 - **Plugin (unreleased) — unified artifact output root (`--docs-root`).** Every
   artifact-producing skill now accepts a `--docs-root=<path>` output-root override (read as

@@ -131,7 +131,7 @@ export SKILL_VERSION
 export OUTPUT_KIND="accessibility"
 export OUTPUT_BASENAME
 export OUTPUT_DIR
-export SKILL_VERSIONS_JSON="[\"magento2-accessibility-audit@${SKILL_VERSION}\",\"magento2-context@1.8.0\"]"
+export SKILL_VERSIONS_JSON="[\"magento2-accessibility-audit@${SKILL_VERSION}\",\"magento2-context@1.9.0\"]"
 
 bash "$EMIT_JSON" > /dev/null
 

@@ -129,7 +129,7 @@ else
     export OUTPUT_BASENAME="security-${SCOPE}-${DATE}"
 fi
 export OUTPUT_DIR
-export SKILL_VERSIONS_JSON="[\"magento2-security-audit@${SKILL_VERSION}\",\"magento2-context@1.8.0\"]"
+export SKILL_VERSIONS_JSON="[\"magento2-security-audit@${SKILL_VERSION}\",\"magento2-context@1.9.0\"]"
 
 bash "$EMIT_JSON" > /dev/null
 
