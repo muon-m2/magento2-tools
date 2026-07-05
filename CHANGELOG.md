@@ -6,7 +6,7 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.19.1] — 2026-07-05 — Breeze-aware frontend-create routing
 
 ### Fixed
 

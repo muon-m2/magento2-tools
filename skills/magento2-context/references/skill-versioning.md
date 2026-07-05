@@ -45,7 +45,7 @@ skills evolve.
 
 ## Changelog (last update: 2026-07-05)
 
-- **Plugin (unreleased) — Breeze-aware `magento2-frontend-create` routing.** The frontend
+- **Plugin 1.19.1 — Breeze-aware `magento2-frontend-create` routing.** The frontend
   scaffolder now reads `theme.breeze` from `magento2-context` and routes Swissup Breeze
   (Breezefront) work to the dedicated skills instead of falling into its Luma default: a
   Breeze `theme` operation → `magento2-breeze-child-theme`; Breeze widget/JS work →
