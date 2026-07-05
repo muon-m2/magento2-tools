@@ -12,7 +12,7 @@ skills evolve.
 | magento2-context           | 1.9.0   | JSON schema changes, new resolution rules, new tool probes          |
 | magento2-module-create     | 1.10.0  | New template added, surface added, naming rule changed              |
 | magento2-module-review     | 2.4.0   | New checklist category, severity calibration change, new JSON field, fix-routing change |
-| magento2-feature-implement | 2.12.0  | New phase, new approval gate, mode added, new task types (I/C/L/Q), template structure change, delegation/fallback discipline |
+| magento2-feature-implement | 2.13.0  | New phase, new approval gate, mode added, new task types (I/C/L/Q), template structure change, delegation/fallback discipline, advisory model-tier field |
 | magento2-bug-fix           | 1.1.0   | Workflow phase change, RCA format change                            |
 | magento2-deploy            | 1.3.0   | Deploy plan template change, rollback recipe change                 |
 | magento2-test-generate     | 1.2.0   | Generator pattern change, new test type added                       |
@@ -44,6 +44,13 @@ skills evolve.
 
 ## Changelog (last update: 2026-07-04)
 
+- **Plugin 1.18.0 — Model tiering.** `magento2-feature-implement` Phase 4 now stamps each task
+  record with an advisory `Model tier (advisory)` field (`opus`/`sonnet`/`haiku`), and the
+  read-only `magento2-explorer` agent defaults to the `haiku` model tier — overridable via the
+  `CLAUDE.md` directive `Explorer model:`, honored by `magento2-feature-implement`,
+  `magento2-module-review`, and `magento2-bug-fix`. Minor bump (capability changed):
+  `magento2-feature-implement 2.12.0 → 2.13.0`. `magento2-module-review` and `magento2-bug-fix`
+  gained additive directive-honoring guidance only and were not bumped (no token ripple).
 - **Plugin (unreleased) — Documentation Consolidation (Plan B).** `magento2-docs-generate`
   becomes the single owner of every module doc type (README, CHANGELOG, developer/user
   guides, REST/GraphQL references, technical reference); `magento2-module-create` and

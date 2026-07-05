@@ -6,7 +6,7 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.18.0] — 2026-07-04 — Model tiering (advisory per-task tiers + haiku explorer)
 
 ### Added
 
