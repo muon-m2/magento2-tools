@@ -91,6 +91,7 @@ def load(path):
 merged = {}          # dedup key -> finding
 scanner_errors = []
 coverage = []
+no_ev = 0            # counter guaranteeing unique keys for evidence-less findings
 
 for path in sys.argv[1:]:
     doc = load(path)
@@ -112,10 +113,21 @@ for path in sys.argv[1:]:
     for f in findings:
         if not isinstance(f, dict):
             continue
-        ev = (f.get('evidence') or [{}])
-        first = ev[0] if ev else {}
-        key = (first.get('file', ''), first.get('line', 0),
-               f.get('category', ''), (f.get('title') or '').strip().lower())
+        ev = f.get('evidence') or []
+        first = ev[0] if (ev and isinstance(ev[0], dict)) else None
+        if not first or not first.get('file'):
+            # The shared schema requires >=1 {file,line} evidence entry. A finding without it is
+            # malformed; keep it (dropping a finding in an audit is riskier than surfacing it) but
+            # give it a UNIQUE key so distinct evidence-less findings never collapse into one, and
+            # flag the schema violation as a consolidate scanner_error.
+            no_ev += 1
+            key = ('__no_evidence__', dimension, f.get('id') or no_ev)
+            scanner_errors.append({'scanner': 'consolidate',
+                'stderr': "finding without evidence kept un-deduped: "
+                          f"{dimension} {f.get('id', '?')} \"{(f.get('title') or '')[:60]}\""})
+        else:
+            key = (first.get('file', ''), first.get('line', 0),
+                   f.get('category', ''), (f.get('title') or '').strip().lower())
         existing = merged.get(key)
         # tag provenance; when the same issue surfaces in several dimensions, record all.
         f = dict(f)
@@ -154,6 +166,13 @@ with open(os.environ['META_FILE'], 'w', encoding='utf-8') as fh:
     json.dump({'audit_verdict': verdict, 'audit_score': score,
                'dimension_coverage': coverage}, fh, indent=2)
 PY
+# The merge/dedup step is fatal: if it fails, abort now rather than emitting a partial or
+# empty document downstream (which would read as "audited, nothing found").
+merge_rc=$?
+if [ "$merge_rc" -ne 0 ] || [ ! -f "$FINDINGS_FILE" ]; then
+    echo "consolidate: merge/dedup step failed (rc=$merge_rc)" >&2
+    exit 4
+fi
 
 DATE="$(date -u +%Y-%m-%d)"
 export FINDINGS_FILE SCANNER_ERRORS_FILE

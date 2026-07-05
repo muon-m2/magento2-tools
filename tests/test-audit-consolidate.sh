@@ -88,5 +88,30 @@ assert len(d['runs'][0]['results']) == 3, 'SARIF mirrors deduped findings'
 PY
 [ "$?" = "0" ] || { echo "FAIL: consolidated SARIF contract"; exit 1; }
 
-echo "audit consolidate: dedup + rank + verdict + JSON/SARIF all correct"
+# ---------------------------------------------------------------------------
+# Evidence-less findings (schema-invalid: no {file,line}) must be KEPT but never
+# collapsed into each other, and flagged as consolidate scanner_errors.
+# ---------------------------------------------------------------------------
+DIM2="$WORK/dims2"; mkdir -p "$DIM2" "$WORK/out2"
+cat > "$DIM2/Acme_Foo-security-1970-01-01.json" <<'JSON'
+{"skill":"magento2-security-audit","outputKind":"security","findings":[
+  {"id":"CVE-1","severity":"high","category":"dependency","title":"Vulnerable package A","evidence":[]},
+  {"id":"CVE-2","severity":"critical","category":"dependency","title":"Vulnerable package B"}
+],"scanner_errors":[]}
+JSON
+INPUT_DIR="$DIM2" TARGET_MODULE="Acme_Foo" TARGET_PATH="src/app/code/Acme/Foo" \
+SCOPE="module" OUTPUT_DIR="$WORK/out2" \
+    bash "$SCRIPT" > /dev/null 2> "$WORK/err2" || {
+    echo "FAIL: consolidate.sh (evidence-less) exited non-zero:"; sed 's/^/    /' "$WORK/err2" >&2; exit 1; }
+J2=$(find "$WORK/out2" -name 'Acme_Foo-audit-*.json' | head -1)
+python3 - "$J2" <<'PY'
+import json, sys
+d = json.load(open(sys.argv[1]))
+assert len(d['findings']) == 2, f"two distinct evidence-less findings must NOT collapse, got {len(d['findings'])}"
+flagged = [e for e in d.get('scanner_errors', []) if e.get('scanner') == 'consolidate']
+assert len(flagged) == 2, f"both evidence-less findings must be flagged, got {len(flagged)}"
+PY
+[ "$?" = "0" ] || { echo "FAIL: evidence-less handling contract"; exit 1; }
+
+echo "audit consolidate: dedup + rank + verdict + JSON/SARIF + evidence-less handling all correct"
 exit 0

@@ -68,9 +68,19 @@ export FINDINGS_FILE TARGET_MODULE TARGET_PATH SCOPE OUTPUT_DIR OUTPUT_BASENAME
 [ -n "${SCANNER_ERRORS_FILE:-}" ] && export SCANNER_ERRORS_FILE
 # SKILL_NAME / SKILL_VERSION / OUTPUT_KIND / SKILL_VERSIONS_JSON are exported by the caller.
 
-bash "$EMIT_JSON" > /dev/null
+# JSON emission is fatal: if emit-json.sh fails (missing python3, invalid findings file, …) abort
+# now with a clear cause rather than continuing and cat-ing a file that was never written. SARIF
+# emission below stays non-fatal by design.
+if ! bash "$EMIT_JSON" > /dev/null; then
+    echo "emit-findings: emit-json.sh failed for '${OUTPUT_BASENAME}'" >&2
+    exit 4
+fi
 
 OUTPUT_FILE="${OUTPUT_DIR}/${OUTPUT_BASENAME}.json"
+if [ ! -f "$OUTPUT_FILE" ]; then
+    echo "emit-findings: expected JSON document not produced at $OUTPUT_FILE" >&2
+    exit 4
+fi
 
 # Per-skill post-JSON injection (runs before SARIF so injected fields propagate to JSON only).
 if [ -n "${POST_JSON_HOOK:-}" ] && [ -f "$POST_JSON_HOOK" ] && [ -f "$OUTPUT_FILE" ]; then
