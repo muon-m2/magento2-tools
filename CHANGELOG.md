@@ -6,7 +6,7 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased] — Findings-emission hub + release-readiness audit orchestrator
+## [1.19.0] — 2026-07-05 — Findings-emission hub + release-readiness audit orchestrator
 
 ### Added
 

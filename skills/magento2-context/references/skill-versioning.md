@@ -43,9 +43,9 @@ skills evolve.
 | magento2-breeze-compat-audit | 1.1.0 | New check/pattern, severity calibration change                                |
 | magento2-audit             | 1.0.0   | New dimension added, consolidation/dedup or verdict rule change                |
 
-## Changelog (last update: 2026-07-04)
+## Changelog (last update: 2026-07-05)
 
-- **Plugin (unreleased) — Findings-emission hub + audit orchestrator.** The shared findings
+- **Plugin 1.19.0 — Findings-emission hub + audit orchestrator.** The shared findings
   emitters (`emit-json.sh` / `emit-sarif.sh` / `resolve-basename.sh`) moved from
   `magento2-module-review/scripts/` into the `magento2-context` hub, joined by a new shared
   `emit-findings.sh` wrapper the six audit `build-findings.sh` scripts now call. `magento2-context`
