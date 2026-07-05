@@ -6,6 +6,24 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+
+- **`magento2-frontend-create` is now Breeze-aware.** The frontend scaffolder previously
+  recognized only Luma / Hyva / custom themes, so on a Swissup Breeze (Breezefront) store a
+  request for a theme or child theme fell into its "Custom → default to Luma" path and
+  produced the wrong structure — even though `magento2-context` already emits a `theme.breeze`
+  object and three dedicated `magento2-breeze-*` skills exist. Routing was one-directional
+  (the Breeze skills named `frontend-create` as their sibling, but not vice-versa). The skill
+  now reads `theme.breeze` and **routes** Breeze work to the right place: a Breeze `theme`
+  operation → `magento2-breeze-child-theme`; Breeze widget/JS work → `magento2-breeze-module-adapt`
+  (scope first with `magento2-breeze-compat-audit`). Adds a Breeze row to the theme-awareness
+  table, a Phase 1 routing branch (mirroring the existing Hyva `ko`→`alpine` nudge), a
+  Core-Rules Breeze-aware note, and reciprocal Related-Skills links. Guarded by a new
+  `check frontend-create …` assertion in `tests/test-routing-discriminators.sh`. Patch bump:
+  `magento2-frontend-create 1.0.3 → 1.0.4`.
+
 ## [1.19.0] — 2026-07-05 — Findings-emission hub + release-readiness audit orchestrator
 
 ### Added

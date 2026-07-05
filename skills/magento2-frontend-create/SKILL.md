@@ -4,7 +4,11 @@ description:
     Frontend-specific scaffolding for Magento 2 — themes, RequireJS modules, Knockout
     components, LESS/CSS, transactional email templates, static asset wiring. Use when
     the user wants to add frontend behaviour or a theme. Detects whether the project
-    uses Luma, Hyva, or a custom theme and generates appropriate scaffolds.
+    uses Luma, Hyva, or a custom theme and generates appropriate scaffolds. For Swissup
+    Breeze (Breezefront) stores — detected via magento2-context (theme.breeze) — defer
+    theme creation to magento2-breeze-child-theme and Breeze widget/JS work to
+    magento2-breeze-module-adapt, since Breeze replaces RequireJS/Knockout with a
+    Cash-based stack.
 ---
 
 # Magento 2 Frontend Create
@@ -15,6 +19,13 @@ Frontend-specific scaffolding `magento2-module-create` doesn't cover.
 
 - **Theme-aware.** Detect theme from `magento2-context` (Luma / Hyva / custom). Hyva
   installs use Alpine.js + Tailwind, NOT Knockout/RequireJS.
+- **Breeze-aware.** `magento2-context` emits a separate `theme.breeze` object
+  (`installed` / `active` / `parent`) for Swissup Breeze (Breezefront) stores. Breeze
+  replaces RequireJS/Knockout/jQuery with a Cash-based stack, and a Breeze child theme
+  has a different layout (`web/css/breeze/_default.less` with `@critical` guards, a
+  `Swissup/breeze-*` parent, a Breeze-only layout handle). This skill does NOT scaffold
+  Breeze themes or Breeze widgets — it **routes** them: theme work → `magento2-breeze-child-theme`,
+  widget/JS adapter work → `magento2-breeze-module-adapt`. See Phase 1.
 - **One operation per invocation.** Each call generates ONE of: theme, RequireJS module,
   KO/Alpine component, LESS scaffold, email template, static asset.
 - **Layout-driven.** Generated assets include the layout XML to activate them, not just
@@ -40,6 +51,21 @@ Ask:
 
 If the theme is Hyva and the user asks for `ko-component`, suggest `alpine-component`
 instead — Hyva doesn't run Knockout.
+
+**Breeze routing (check `theme.breeze` from Phase 0):**
+
+- If `theme.breeze.active` is true (or the user asks for a "Breeze theme" / "Breeze child
+  theme") and the operation is `theme` → **stop and route to `magento2-breeze-child-theme`**.
+  A Breeze child theme is not a Luma/Hyva scaffold; generating one here would produce the
+  wrong structure (Luma `web/css/source/` instead of Breeze `web/css/breeze/` with
+  `@critical` guards, and a Luma parent instead of `Swissup/breeze-*`).
+- If `theme.breeze.active` is true and the operation is `requirejs-module` or `ko-component`,
+  note that Breeze does not run RequireJS/Knockout on Breeze-enhanced pages. Generate the
+  Luma-fallback scaffold if the user still wants it, but **suggest `magento2-breeze-module-adapt`**
+  to add the matching Cash `$.widget` adapter (run `magento2-breeze-compat-audit` first to
+  see what needs adapting).
+- If `theme.breeze.installed` is true but `active` is false, surface that Breeze is installed
+  but not the active theme, and ask which stack the user is targeting before scaffolding.
 
 ### Phase 2 — Generate
 
@@ -153,6 +179,7 @@ Files written under `{ctx.magento_root}/app/code/{Vendor}/{Module}/view/frontend
 |----------------|------------------|
 | Luma | Standard Magento patterns; RequireJS-heavy |
 | Hyva | Tailwind/Alpine.js; no KO; AlpineJS components instead |
+| Breeze (`theme.breeze.active`) | Cash-based stack; no RequireJS/KO. Route theme → `magento2-breeze-child-theme`, widgets → `magento2-breeze-module-adapt` |
 | Custom | Ask user; default to Luma unless told otherwise |
 
 ## Acceptance Criteria
@@ -167,5 +194,7 @@ Files written under `{ctx.magento_root}/app/code/{Vendor}/{Module}/view/frontend
 | Phase | Skill |
 |-------|-------|
 | 0 | `magento2-context` |
+| 1 (Breeze theme) | `magento2-breeze-child-theme` — scaffold a Swissup Breeze child theme |
+| 1 (Breeze widget/JS) | `magento2-breeze-module-adapt` — build the Breeze Cash adapter; `magento2-breeze-compat-audit` to scope it first |
 | (after Phase 3) | `magento2-module-review` for the host module |
 | (caller) | `magento2-feature-implement` Phase 5 (F* tasks) |
