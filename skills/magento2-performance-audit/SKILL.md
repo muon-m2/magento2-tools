@@ -171,7 +171,10 @@ pass this to collect a run's artifacts under one folder.
 - `${CLAUDE_SKILL_DIR}/scripts/static-perf.sh` — static pattern scan over module sources.
 - `${CLAUDE_SKILL_DIR}/scripts/runtime-checks.sh` — bin/magento + redis-cli + mysql probes.
 - `${CLAUDE_SKILL_DIR}/scripts/build-findings.sh` — aggregate scanner output; emit JSON + SARIF via the
-  shared emitters. Structurally identical to `magento2-security-audit/scripts/build-findings.sh`.
+  shared `magento2-context/scripts/emit-findings.sh` pipeline. Structurally identical to
+  `magento2-security-audit/scripts/build-findings.sh`.
+- `magento2-context/references/findings-schema.md` — JSON findings-document structure the emitted
+  `.json` conforms to (`outputKind=performance`).
 
 ## Severity
 

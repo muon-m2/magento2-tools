@@ -97,6 +97,10 @@ pass this to collect a run's artifacts under one folder.
 
 - `references/breeze-compat-checklist.md` — the full check table with patterns, severities, and
   Breeze remediation per row.
+- `magento2-context/references/severity.md` — the shared five-point severity scale the per-row
+  severities calibrate against.
+- `magento2-context/references/findings-schema.md` — JSON findings-document structure
+  (`outputKind=compatibility`).
 
 ## Scripts
 

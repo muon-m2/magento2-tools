@@ -374,8 +374,8 @@ per-change commits; BC breaks documented in `UPGRADE.md` rather than silently fi
 
 - **Invocation:** `--to-magento=X.Y.Z --to-php=X.Y [--scan-only] [--auto-fix]
   [--include-bc-breaks] <modules>`.
-- **Outputs:** `.docs/upgrades/{Module}-{from}-to-{to}-{date}.md|.json`; module
-  `UPGRADE.md`.
+- **Outputs:** `.docs/upgrades/{Module}-{from}-to-{to}-{date}.md|.json|.sarif` (JSON + SARIF
+  via the shared hub emitter); module `UPGRADE.md`.
 
 ### magento2-release
 

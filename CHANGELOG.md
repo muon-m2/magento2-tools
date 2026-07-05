@@ -23,6 +23,19 @@ This project adheres to [Semantic Versioning](https://semver.org/).
   (security's `magento_core_cve_status`, marketplace's readiness score) runs via a `POST_JSON_HOOK`
   so behaviour is preserved.
 
+### Fixed
+
+- **`magento2-module-upgrade` now emits SARIF.** It previously wrote Markdown + JSON only via an
+  inline emitter, so its deprecation / BC-break findings could not feed CI / GitHub Code Scanning
+  like every other findings skill. It now routes findings through the shared hub emitter
+  (`scripts/emit-report.sh` → `emit-findings.sh`), producing a schema-valid `.json` plus a `.sarif`
+  sibling, and cites the shared `severity.md` + `findings-schema.md`. Regression-guarded by
+  `tests/test-upgrade-emitter.sh`.
+- **Findings-contract citations made uniform.** `magento2-performance-audit` now cites
+  `findings-schema.md` and `magento2-breeze-compat-audit` now cites `severity.md` — closing the
+  drift where each had adopted only half of the shared findings contract. All seven
+  findings-emitting skills now emit SARIF and cite both shared standards.
+
 ## [1.18.0] — 2026-07-04 — Model tiering (advisory per-task tiers + haiku explorer)
 
 ### Added
