@@ -6,7 +6,21 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased] — Findings-emission hub
+## [Unreleased] — Findings-emission hub + release-readiness audit orchestrator
+
+### Added
+
+- **`magento2-audit` — a read-only release-readiness orchestrator (new skill, `/magento2-tools:audit`).**
+  The *inspect* counterpart to `magento2-feature-implement`: one command runs every findings dimension
+  (architecture/quality/security review via the `magento2-reviewer` agent, plus `magento2-security-audit`,
+  `magento2-performance-audit`, `magento2-static-analysis`, and — where the surface warrants —
+  `magento2-accessibility-audit`, `magento2-marketplace-prep`, `magento2-breeze-compat-audit`), fans them
+  out in parallel, and **consolidates** them via `scripts/consolidate.sh` into ONE deduplicated,
+  severity-ranked report + one merged SARIF (`outputKind=audit`). Duplicates across dimensions collapse to
+  a single finding tagged with every dimension that raised it (highest severity wins); an overall
+  `PASS`/`CONDITIONAL`/`FAIL` verdict + score is computed. Regression-guarded by
+  `tests/test-audit-consolidate.sh`.
+- New `audit` value in the shared findings-schema `outputKind` enum, for the consolidated document.
 
 ### Changed
 

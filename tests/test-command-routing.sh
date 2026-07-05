@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # test-command-routing.sh — every commands/*.md must be a well-formed thin pass-through to a
-# real magento2-* skill, and the set must be exactly the 14 expected shortcuts. Write commands
+# real magento2-* skill, and the set must be exactly the 15 expected shortcuts. Write commands
 # must be user-only (disable-model-invocation: true).
 set -uo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
@@ -22,7 +22,8 @@ test:magento2-test-generate
 upgrade:magento2-module-upgrade
 i18n:magento2-i18n
 lint:magento2-static-analysis
-scaffold:magento2-module-create"
+scaffold:magento2-module-create
+audit:magento2-audit"
 
 if [ ! -d "$CMD_DIR" ]; then echo "FAIL: $CMD_DIR/ directory not found"; exit 1; fi
 
@@ -50,7 +51,7 @@ for cmd in deploy bugfix feature release upgrade lint; do
 done
 
 # 2b. read-only commands must NOT be user-only (auto-invokable)
-for cmd in context snapshot review security perf test i18n; do
+for cmd in context snapshot review security perf test i18n audit; do
     f="$CMD_DIR/$cmd.md"
     [ -f "$f" ] || continue
     grep -qE '^disable-model-invocation: +true' "$f" \
@@ -77,5 +78,5 @@ for f in "$CMD_DIR"/*.md; do
 done
 
 [ "$FAIL" -eq 0 ] || { echo "RESULT: FAIL"; exit 1; }
-echo "command routing: 14 commands valid, well-formed, routed to real skills"
+echo "command routing: 15 commands valid, well-formed, routed to real skills"
 exit 0

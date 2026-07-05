@@ -140,6 +140,31 @@ SELECT→INSERT→DELETE, keyset-paginated). Destructive patches require
 
 ## Quality
 
+### magento2-audit
+
+Read-only **release-readiness orchestrator** — the umbrella over this whole group. Runs every
+findings dimension (architecture/quality/security review via the `magento2-reviewer` agent, plus
+the scripted `magento2-security-audit`, `magento2-performance-audit`, `magento2-static-analysis`,
+and — where the surface warrants — `magento2-accessibility-audit`, `magento2-marketplace-prep`,
+`magento2-breeze-compat-audit`), fans them out in parallel, then **consolidates** them into ONE
+deduplicated, severity-ranked report + one merged SARIF. The *inspect* counterpart to
+`magento2-feature-implement`. For a single dimension, invoke that dimension's skill directly.
+
+- **Invocation:** `[--scope=module|site] [--include=<dim,dim>] [--exclude=<dim,dim>]
+  [--release-readiness] <Vendor>_<Module>`.
+- **Phases:** context → dimension selection (surface-adaptive) → parallel fan-out (reviewer
+  subagents + scripted `build-findings.sh` scanners) → consolidate (`scripts/consolidate.sh`:
+  dedup by `file:line`+category+title, severity-rank, verdict/score) → consolidated report.
+- **Consolidation:** duplicates across dimensions collapse to one finding tagged with every
+  dimension that raised it, keeping the highest severity; overall `PASS`/`CONDITIONAL`/`FAIL`
+  verdict + score.
+- **Outputs:** `.docs/audits/{Vendor}_{Module}-audit-{date}.md|.json|.sarif` (`outputKind=audit`);
+  per-dimension artifacts remain under their own category dirs.
+- **Related:** dispatches `magento2-module-review` + every specialist audit; route findings to
+  `magento2-bug-fix` / `magento2-feature-implement` / `magento2-module-upgrade` for remediation.
+
+---
+
 ### magento2-static-analysis
 
 Action skill — run the full static-analysis gate (phpcs Magento2, phpstan, phpmd,
@@ -171,6 +196,7 @@ review without fixing, use `magento2-module-review`.
 
 | Intent | Skill | Defers to |
 |--------|-------|-----------|
+| Full release-readiness audit — every dimension, one consolidated report + merged SARIF | `magento2-audit` | orchestrates all of the below |
 | Run the static toolchain and auto-fix to green (CI gate) | `magento2-static-analysis` | `magento2-module-review` |
 | Review architecture/quality/security without touching code | `magento2-module-review` | — |
 | Deep security scan (CVEs, secrets, EQP) | `magento2-security-audit` | `magento2-module-review` |

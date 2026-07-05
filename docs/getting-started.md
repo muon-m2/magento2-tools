@@ -5,7 +5,7 @@ without changing a single line of your project.
 
 ## What this is
 
-`magento2-tools` is a **Claude Code plugin**: a set of 32 *skills* (structured,
+`magento2-tools` is a **Claude Code plugin**: a set of 33 *skills* (structured,
 reviewable workflows) that teach Claude Code how to do end-to-end Magento 2 engineering
 the way an experienced Magento developer would — with reproduction before fixes,
 approval gates before code changes, reviews after every change, and reports for

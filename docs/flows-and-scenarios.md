@@ -67,7 +67,7 @@ Dotted edges: context resolution (all skills). Solid edges: workflow delegation.
 
 ### Shared infrastructure
 
-Four pieces keep the 32 skills consistent:
+Four pieces keep the 33 skills consistent:
 
 1. **The context document.** One JSON object (cached at
    `.claude/.cache/magento2-context.json`) holding vendor, layout, edition, versions,
