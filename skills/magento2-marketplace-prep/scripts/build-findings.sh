@@ -35,12 +35,10 @@ SKILL_VERSION="${SKILL_VERSION:-1.1.0}"
 EQP_FINDINGS_FILE="${EQP_FINDINGS_FILE:-}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-EMIT_JSON="${SCRIPT_DIR}/../../magento2-module-review/scripts/emit-json.sh"
-EMIT_SARIF="${SCRIPT_DIR}/../../magento2-module-review/scripts/emit-sarif.sh"
-RESOLVE_BASENAME="${SCRIPT_DIR}/../../magento2-module-review/scripts/resolve-basename.sh"
+EMIT_FINDINGS="${SCRIPT_DIR}/../../magento2-context/scripts/emit-findings.sh"
 
-if [ ! -f "$EMIT_JSON" ]; then
-    echo "build-findings: shared JSON emitter not found at $EMIT_JSON" >&2
+if [ ! -f "$EMIT_FINDINGS" ]; then
+    echo "build-findings: shared emitter not found at $EMIT_FINDINGS" >&2
     exit 2
 fi
 
@@ -121,97 +119,15 @@ print(json.dumps(merged, indent=2))
 PY
 
 # ---------------------------------------------------------------------------
-# Emit via shared pipeline.
+# Emit via the shared hub pipeline (JSON + SARIF). The readiness score/verdict is
+# injected between JSON and SARIF by the POST_JSON_HOOK. scanner_errors is carried by
+# emit-json.sh via SCANNER_ERRORS_FILE.
 # ---------------------------------------------------------------------------
-DATE="$(date -u +%Y-%m-%d)"
-export TARGET_MODULE TARGET_PATH SCOPE
-
-if [ -f "$RESOLVE_BASENAME" ]; then
-    OUTPUT_BASENAME="$(DATE="$DATE" bash "$RESOLVE_BASENAME" readiness)"
-else
-    if [ "$SCOPE" = "module" ]; then
-        OUTPUT_BASENAME="${TARGET_MODULE}-readiness-${DATE}"
-    else
-        OUTPUT_BASENAME="readiness-${SCOPE}-${DATE}"
-    fi
-fi
-
-export FINDINGS_FILE
+export FINDINGS_FILE SCANNER_ERRORS_FILE
+export TARGET_MODULE TARGET_PATH SCOPE OUTPUT_DIR
 export SKILL_NAME="magento2-marketplace-prep"
 export SKILL_VERSION
 export OUTPUT_KIND="marketplace"
-export OUTPUT_BASENAME
-export OUTPUT_DIR
 export SKILL_VERSIONS_JSON="[\"magento2-marketplace-prep@${SKILL_VERSION}\",\"magento2-context@1.9.0\"]"
-export SCANNER_ERRORS_FILE
 
-bash "$EMIT_JSON" > /dev/null
-
-# ---------------------------------------------------------------------------
-# Compute readiness score. scanner_errors is already included by emit-json.sh
-# via the exported SCANNER_ERRORS_FILE — no re-write needed for that field here.
-# ---------------------------------------------------------------------------
-OUTPUT_FILE="${OUTPUT_DIR}/${OUTPUT_BASENAME}.json"
-if [ -f "$OUTPUT_FILE" ]; then
-    python3 - "$OUTPUT_FILE" <<'PY'
-import json
-import sys
-
-doc_path = sys.argv[1]
-with open(doc_path) as fh:
-    doc = json.load(fh)
-
-# Compute readiness score from findings.
-severity_weight = {'critical': 25, 'high': 15, 'medium': 5, 'low': 1, 'info': 0}
-score = 100
-blocker_count = 0
-for f in doc.get('findings', []):
-    sev = f.get('severity', 'info')
-    score -= severity_weight.get(sev, 0)
-    if sev in ('critical', 'high'):
-        blocker_count += 1
-
-score = max(score, 0)
-
-if blocker_count > 0:
-    verdict = "FAIL"
-elif score >= 85:
-    verdict = "PASS"
-else:
-    verdict = "CONDITIONAL"
-
-doc['readiness_score'] = score
-doc['readiness_verdict'] = verdict
-
-with open(doc_path, 'w') as fh:
-    json.dump(doc, fh, indent=2)
-PY
-fi
-
-# ---------------------------------------------------------------------------
-# Emit SARIF alongside JSON.
-# ---------------------------------------------------------------------------
-SARIF_OUTPUT="${OUTPUT_DIR}/${OUTPUT_BASENAME}.sarif"
-if [ -f "$EMIT_SARIF" ] && [ -f "$OUTPUT_FILE" ]; then
-    if ! bash "$EMIT_SARIF" "$OUTPUT_FILE" > "$SARIF_OUTPUT" 2> "${TMP_DIR}/sarif.err"; then
-        python3 - "$OUTPUT_FILE" "${TMP_DIR}/sarif.err" <<'PY'
-import json, os, sys
-doc_path, err_path = sys.argv[1], sys.argv[2]
-try:
-    with open(doc_path) as fh:
-        doc = json.load(fh)
-    err = open(err_path).read().strip() if os.path.exists(err_path) else ""
-    doc.setdefault("scanner_errors", []).append({
-        "scanner": "emit-sarif",
-        "stderr": err or "emit-sarif.sh failed with non-zero exit",
-    })
-    with open(doc_path, "w") as fh:
-        json.dump(doc, fh, indent=2)
-except Exception:
-    pass
-PY
-    fi
-fi
-
-# Echo the final JSON document for callers that read stdout.
-cat "$OUTPUT_FILE"
+BASENAME_KIND="readiness" POST_JSON_HOOK="${SCRIPT_DIR}/compute-readiness-score.sh" bash "$EMIT_FINDINGS"

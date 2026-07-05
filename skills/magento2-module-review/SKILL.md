@@ -78,14 +78,14 @@ missing tool or unavailable Magento runtime is an environment limitation, not a 
     - For HTML output: use `templates/report.html`. Load this file only when the user requests HTML.
     - For JSON output (default when invoked from another skill or with `--format=json`):
       build the findings array per `magento2-context/references/findings-schema.md`, then
-      pipe it through `${CLAUDE_SKILL_DIR}/scripts/emit-json.sh`. Writes to
+      pipe it through `${CLAUDE_PLUGIN_ROOT}/skills/magento2-context/scripts/emit-json.sh`. Writes to
       `{output_root}/reviews/{Vendor}_{Module}-review-{date}.json` — anchored at the project
       root, never under `{ctx.magento_root}`. `{output_root}` is the `--docs-root` value when
       the caller passed one, else `{ctx.docs_root}`. Run as:
-      `DOCS_ROOT="${DOCS_ROOT_ARG:-.docs}" bash "${CLAUDE_SKILL_DIR}/scripts/emit-json.sh"`
+      `DOCS_ROOT="${DOCS_ROOT_ARG:-.docs}" bash "${CLAUDE_PLUGIN_ROOT}/skills/magento2-context/scripts/emit-json.sh"`
       (where `DOCS_ROOT_ARG` is the resolved `--docs-root` value) so an in-`src/` cwd cannot
       redirect output into the Magento tree. See "Output Root" below.
-    - For SARIF output (CI / GitHub Code Scanning): run `${CLAUDE_SKILL_DIR}/scripts/emit-sarif.sh` on the JSON
+    - For SARIF output (CI / GitHub Code Scanning): run `${CLAUDE_PLUGIN_ROOT}/skills/magento2-context/scripts/emit-sarif.sh` on the JSON
       output. Writes alongside the JSON file with `.sarif` extension.
     - Update `Reviewer:` to `Claude Code using magento2-module-review` and include the
       `Skill versions:` block from `references/report-template.md`.
@@ -193,9 +193,10 @@ for the Magento-specific calibration matrix.
 - `references/evidence-citation.md`: citation rules for grep, XML, missing-file, and cross-file findings.
 - `references/report-template.md`: Markdown report structure.
 - `templates/report.html`: HTML report template (load only for HTML output).
-- `${CLAUDE_SKILL_DIR}/scripts/emit-json.sh`: writes the findings JSON document per the shared schema
-  (`magento2-context/references/findings-schema.md`).
-- `${CLAUDE_SKILL_DIR}/scripts/emit-sarif.sh`: converts a JSON document to SARIF 2.1.0 for GitHub Code Scanning.
+- `${CLAUDE_PLUGIN_ROOT}/skills/magento2-context/scripts/emit-json.sh`: writes the findings JSON document per
+  the shared schema (`magento2-context/references/findings-schema.md`). Owned by the `magento2-context` hub
+  and reused by every findings-emitting skill.
+- `${CLAUDE_PLUGIN_ROOT}/skills/magento2-context/scripts/emit-sarif.sh`: converts a JSON document to SARIF 2.1.0 for GitHub Code Scanning.
 - `${CLAUDE_SKILL_DIR}/scripts/diff-scope.sh`: lists files changed in a module since a git ref (powers diff mode).
 - `references/diff-mode.md`: invocation and algorithm for `--diff` mode.
 - `references/tier3-checks.md`: WCAG, plugin/preference collision, PCI scope, GDPR data

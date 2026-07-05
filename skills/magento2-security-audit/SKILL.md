@@ -115,12 +115,13 @@ Cross-cutting checks — see `${CLAUDE_SKILL_DIR}/scripts/cross-module-scan.sh`.
 The skill produces **two automation artifacts** and **one LLM deliverable**:
 
 1. **JSON** (automated). Built by `${CLAUDE_SKILL_DIR}/scripts/build-findings.sh`, which aggregates the
-   scanners and invokes the shared `magento2-module-review/scripts/emit-json.sh` with
+   scanners and invokes the shared `magento2-context/scripts/emit-findings.sh` pipeline with
    `SKILL_NAME=magento2-security-audit` and `OUTPUT_KIND=security`. Run
    `build-findings.sh` with `DOCS_ROOT=<output_root>` (the resolved `--docs-root` value,
-   or `.docs` by default) so the JSON/SARIF land under `{output_root}/audits/`.
-2. **SARIF** (automated). The same `build-findings.sh` invocation now also produces
-   SARIF via `magento2-module-review/scripts/emit-sarif.sh`. No separate caller step is
+   or `.docs` by default) so the JSON/SARIF land under `{output_root}/audits/`. The
+   `magento_core_cve_status` block is injected by `scripts/inject-cve-status.sh` (POST_JSON_HOOK).
+2. **SARIF** (automated). The same `build-findings.sh` invocation also produces
+   SARIF via the shared `magento2-context/scripts/emit-findings.sh` pipeline. No separate caller step is
    required.
 3. **Markdown summary** (LLM deliverable, NOT automated). The Markdown report is
    written by the skill in the conversation, with these sections:

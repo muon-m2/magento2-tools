@@ -94,7 +94,20 @@ for root, dirs, files in os.walk("skills"):
         own = owning_skill(path)
         try:
             with open(path, encoding="utf-8", errors="replace") as fh:
-                for lineno, line in enumerate(fh, start=1):
+                content = fh.read()
+        except OSError:
+            continue
+        # A shared script may declare a back-compat default identity for a DIFFERENT skill
+        # than the directory it lives in — the shared emit-json.sh lives under
+        # magento2-context but defaults SKILL_NAME to magento2-module-review for back-compat.
+        # Attribute its self-version markers to that declared default when present, so the
+        # check still catches drift against the RIGHT skill's registry row.
+        self_own = own
+        mdecl = re.search(r'SKILL_NAME="\$\{SKILL_NAME:-(magento2-[a-z0-9-]+)\}"', content)
+        if mdecl and mdecl.group(1) in current:
+            self_own = mdecl.group(1)
+        try:
+                for lineno, line in enumerate(content.splitlines(), start=1):
                     for m in skill_at_re.finditer(line):
                         skill, version = m.group(1), m.group(2)
                         if skill not in current:
@@ -106,35 +119,35 @@ for root, dirs, files in os.walk("skills"):
                                 f"{path}:{lineno} '{skill}@{version}' "
                                 f"!= registry '{skill}@{current[skill]}'"
                             )
-                    if own and own in current:
+                    if self_own and self_own in current:
                         for m in self_ver_bash_re.finditer(line):
                             v = m.group(1)
-                            if v != current[own]:
+                            if v != current[self_own]:
                                 problems.append(
                                     f"{path}:{lineno} SKILL_VERSION default '{v}' "
-                                    f"!= registry '{own}@{current[own]}'"
+                                    f"!= registry '{self_own}@{current[self_own]}'"
                                 )
                         for m in self_ver_doc_re.finditer(line):
                             v = m.group(1)
-                            if v != current[own]:
+                            if v != current[self_own]:
                                 problems.append(
                                     f"{path}:{lineno} SKILL_VERSION header-comment '{v}' "
-                                    f"!= registry '{own}@{current[own]}'"
+                                    f"!= registry '{self_own}@{current[self_own]}'"
                                 )
                         for m in self_ver_py_re.finditer(line):
                             v = m.group(1)
-                            if v != current[own]:
+                            if v != current[self_own]:
                                 problems.append(
                                     f"{path}:{lineno} Python SKILL_VERSION fallback '{v}' "
-                                    f"!= registry '{own}@{current[own]}'"
+                                    f"!= registry '{self_own}@{current[self_own]}'"
                                 )
                         if f"{os.sep}scripts{os.sep}" in path:
                             for m in self_ver_json_re.finditer(line):
                                 v = m.group(1)
-                                if v != current[own]:
+                                if v != current[self_own]:
                                     problems.append(
                                         f"{path}:{lineno} \"skillVersion\" literal '{v}' "
-                                        f"!= registry '{own}@{current[own]}'"
+                                        f"!= registry '{self_own}@{current[self_own]}'"
                                     )
         except OSError:
             continue

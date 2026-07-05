@@ -13,7 +13,7 @@ if ! command -v python3 >/dev/null 2>&1; then
 fi
 
 SCHEMA="skills/magento2-context/references/findings-schema.md"
-EMIT_JSON="skills/magento2-module-review/scripts/emit-json.sh"
+EMIT_JSON="skills/magento2-context/scripts/emit-json.sh"
 FIX_DIR="tests/golden/fixtures"
 
 for f in "$SCHEMA" "$EMIT_JSON" "$FIX_DIR/findings.json" "$FIX_DIR/context.json"; do

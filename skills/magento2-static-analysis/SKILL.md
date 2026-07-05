@@ -122,8 +122,8 @@ Write three artifacts:
 - `${CLAUDE_SKILL_DIR}/scripts/apply-fixes.sh` — runs safe fixers (phpcbf, php-cs-fixer
   only); never touches `vendor/`. Rector is never auto-applied.
 - `${CLAUDE_SKILL_DIR}/scripts/build-findings.sh` — assembles residual findings into the
-  shared JSON+SARIF format using the `emit-json.sh` / `emit-sarif.sh` emitters owned by
-  `magento2-module-review`.
+  shared JSON+SARIF format using the `emit-findings.sh` pipeline (emit-json.sh /
+  emit-sarif.sh) owned by the `magento2-context` hub.
 
 ## Inputs
 

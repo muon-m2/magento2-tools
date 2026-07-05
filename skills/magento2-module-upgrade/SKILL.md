@@ -101,8 +101,14 @@ Save to `{output_root}/upgrades/{Vendor}_{Module}-{from}-to-{to}-{date}.md`, whe
 - Test results
 - Recommended next steps
 
-Also emit JSON sibling per the shared findings schema (subset: category =
-`deprecation` / `bc_break` / `magento_compat` / `php_compat`).
+Also emit the JSON + SARIF siblings. Assemble the findings array per the shared schema
+(`magento2-context/references/findings-schema.md`; category = `deprecation` / `bc_break` /
+`magento_compat` / `php_compat`, severity per `magento2-context/references/severity.md`),
+write it to a temp file, then run `${CLAUDE_SKILL_DIR}/scripts/emit-report.sh` with
+`FINDINGS_FILE`, `TARGET_MODULE`, `TARGET_PATH`, `OUTPUT_BASENAME=<Vendor>_<Module>-<from>-to-<to>-<date>`,
+and `DOCS_ROOT=<output_root>`. It routes through the shared `magento2-context` hub emitter, so
+the JSON is schema-valid and the `.sarif` sibling feeds CI / GitHub Code Scanning like every
+other findings skill. (Previously an inline emitter wrote JSON only — no SARIF.)
 
 ## Inputs
 
@@ -123,6 +129,7 @@ Flags:
 ```
 {output_root}/upgrades/{Vendor}_{Module}-{from}-to-{to}-{date}.md
 {output_root}/upgrades/{Vendor}_{Module}-{from}-to-{to}-{date}.json
+{output_root}/upgrades/{Vendor}_{Module}-{from}-to-{to}-{date}.sarif
 {ctx.magento_root}/app/code/{Vendor}/{Module}/UPGRADE.md   # Consumer notice (always present after upgrade)
 ```
 
@@ -132,11 +139,12 @@ rule in `magento2-context/SKILL.md`.
 
 ### Output root (`--docs-root`)
 
-This skill has an inline emitter (no `build-findings.sh`): it accepts `--docs-root=<path>`
-(see `magento2-context/references/artifact-layout.md`) and, when set, writes the MD + JSON
-report directly under `<path>/upgrades/`; otherwise they default to
-`{ctx.docs_root}/upgrades/`. Orchestrators such as `magento2-feature-implement` pass this
-to collect a run's artifacts under one folder.
+This skill accepts `--docs-root=<path>` (see `magento2-context/references/artifact-layout.md`).
+The MD report is authored in-conversation and written under `<path>/upgrades/`; the JSON + SARIF
+are produced by `scripts/emit-report.sh`, which passes `DOCS_ROOT=<path>` to the shared
+`magento2-context` hub emitter so both land under `<path>/upgrades/`. When unset they default to
+`{ctx.docs_root}/upgrades/`. Orchestrators such as `magento2-feature-implement` pass this to
+collect a run's artifacts under one folder.
 
 ## Reference Files
 
@@ -146,6 +154,11 @@ to collect a run's artifacts under one folder.
 - `references/rector-rule-sets.md` — Rector sets by Magento version.
 - `references/bc-break-notification.md` — how to write UPGRADE.md entries.
 - `references/scanner-tools.md` — tool probe catalogue.
+- `${CLAUDE_SKILL_DIR}/scripts/emit-report.sh` — emits the findings JSON + SARIF via the shared
+  `magento2-context` hub emitter (`emit-findings.sh`).
+- `magento2-context/references/severity.md` — shared five-point severity scale for findings.
+- `magento2-context/references/findings-schema.md` — JSON findings-document structure and the
+  `outputKind` enum (`upgrade` for this skill).
 
 ## Templates
 

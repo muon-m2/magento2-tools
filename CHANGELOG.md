@@ -6,6 +6,50 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased] — Findings-emission hub + release-readiness audit orchestrator
+
+### Added
+
+- **`magento2-audit` — a read-only release-readiness orchestrator (new skill, `/magento2-tools:audit`).**
+  The *inspect* counterpart to `magento2-feature-implement`: one command runs every findings dimension
+  (architecture/quality/security review via the `magento2-reviewer` agent, plus `magento2-security-audit`,
+  `magento2-performance-audit`, `magento2-static-analysis`, and — where the surface warrants —
+  `magento2-accessibility-audit`, `magento2-marketplace-prep`, `magento2-breeze-compat-audit`), fans them
+  out in parallel, and **consolidates** them via `scripts/consolidate.sh` into ONE deduplicated,
+  severity-ranked report + one merged SARIF (`outputKind=audit`). Duplicates across dimensions collapse to
+  a single finding tagged with every dimension that raised it (highest severity wins); an overall
+  `PASS`/`CONDITIONAL`/`FAIL` verdict + score is computed. Regression-guarded by
+  `tests/test-audit-consolidate.sh`.
+- New `audit` value in the shared findings-schema `outputKind` enum, for the consolidated document.
+
+### Changed
+
+- **Findings emitters moved into the `magento2-context` hub.** `emit-json.sh`, `emit-sarif.sh`,
+  and `resolve-basename.sh` now live in `skills/magento2-context/scripts/` instead of
+  `skills/magento2-module-review/scripts/`. This removes the fragile cross-skill dependency where
+  six audit skills reached a sibling skill's scripts dir (`../../magento2-module-review/scripts/`)
+  and matches the stated architecture — `magento2-context` is the universal leaf and now owns the
+  shared output contract. Emitted JSON/SARIF is byte-identical (golden snapshot unchanged).
+- **New shared `emit-findings.sh` wrapper.** The six audit `build-findings.sh` scripts
+  (security / performance / static-analysis / marketplace-prep / accessibility / breeze-compat)
+  no longer each inline the ~40-line path-resolution + `emit-json` + SARIF-with-fallback tail;
+  they call one shared `magento2-context/scripts/emit-findings.sh`. Per-skill post-JSON injection
+  (security's `magento_core_cve_status`, marketplace's readiness score) runs via a `POST_JSON_HOOK`
+  so behaviour is preserved.
+
+### Fixed
+
+- **`magento2-module-upgrade` now emits SARIF.** It previously wrote Markdown + JSON only via an
+  inline emitter, so its deprecation / BC-break findings could not feed CI / GitHub Code Scanning
+  like every other findings skill. It now routes findings through the shared hub emitter
+  (`scripts/emit-report.sh` → `emit-findings.sh`), producing a schema-valid `.json` plus a `.sarif`
+  sibling, and cites the shared `severity.md` + `findings-schema.md`. Regression-guarded by
+  `tests/test-upgrade-emitter.sh`.
+- **Findings-contract citations made uniform.** `magento2-performance-audit` now cites
+  `findings-schema.md` and `magento2-breeze-compat-audit` now cites `severity.md` — closing the
+  drift where each had adopted only half of the shared findings contract. All seven
+  findings-emitting skills now emit SARIF and cite both shared standards.
+
 ## [1.18.0] — 2026-07-04 — Model tiering (advisory per-task tiers + haiku explorer)
 
 ### Added

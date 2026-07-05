@@ -23,7 +23,7 @@ OUTPUT_KIND="security" \
 OUTPUT_DIR="$WORK/out" \
 OUTPUT_BASENAME="custom-name" \
 SKILL_VERSIONS_JSON='["magento2-security-audit@9.9.9","magento2-context@1.0.0"]' \
-bash skills/magento2-module-review/scripts/emit-json.sh > "$WORK/stdout.json" 2>/dev/null
+bash skills/magento2-context/scripts/emit-json.sh > "$WORK/stdout.json" 2>/dev/null
 
 if [ ! -f "$WORK/out/custom-name.json" ]; then
     echo "FAIL: expected output file at $WORK/out/custom-name.json"

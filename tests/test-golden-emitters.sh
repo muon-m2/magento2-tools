@@ -21,8 +21,8 @@ fi
 
 GOLDEN_DIR="tests/golden"
 FIX_DIR="$GOLDEN_DIR/fixtures"
-EMIT_JSON="skills/magento2-module-review/scripts/emit-json.sh"
-EMIT_SARIF="skills/magento2-module-review/scripts/emit-sarif.sh"
+EMIT_JSON="skills/magento2-context/scripts/emit-json.sh"
+EMIT_SARIF="skills/magento2-context/scripts/emit-sarif.sh"
 PLACEHOLDER="1970-01-01T00:00:00Z"
 
 WORK="$(mktemp -d)"

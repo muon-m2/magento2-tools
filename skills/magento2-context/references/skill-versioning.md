@@ -41,9 +41,19 @@ skills evolve.
 | magento2-breeze-child-theme | 1.0.1 | New template/parent variant, theme-layout change                              |
 | magento2-breeze-module-adapt | 1.0.1 | New template/surface, widget-conversion or sequence rule change               |
 | magento2-breeze-compat-audit | 1.1.0 | New check/pattern, severity calibration change                                |
+| magento2-audit             | 1.0.0   | New dimension added, consolidation/dedup or verdict rule change                |
 
 ## Changelog (last update: 2026-07-04)
 
+- **Plugin (unreleased) — Findings-emission hub + audit orchestrator.** The shared findings
+  emitters (`emit-json.sh` / `emit-sarif.sh` / `resolve-basename.sh`) moved from
+  `magento2-module-review/scripts/` into the `magento2-context` hub, joined by a new shared
+  `emit-findings.sh` wrapper the six audit `build-findings.sh` scripts now call. `magento2-context`
+  gained the additive schema `outputKind=audit` and now hosts the shared emitters — additive only, so
+  it is **not** version-bumped (a bump would ripple its `@ver` token across ~20 unrelated files).
+  `magento2-module-upgrade` now routes through the shared emitter (gains SARIF). New
+  `magento2-audit@1.0.0` orchestrator consolidates every findings dimension into one ranked report +
+  merged SARIF.
 - **Plugin 1.18.0 — Model tiering.** `magento2-feature-implement` Phase 4 now stamps each task
   record with an advisory `Model tier (advisory)` field (`opus`/`sonnet`/`haiku`), and the
   read-only `magento2-explorer` agent defaults to the `haiku` model tier — overridable via the
