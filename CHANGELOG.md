@@ -6,6 +6,19 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- `magento2-feature-implement` Phase 4 now stamps each task record with an advisory
+  `Model tier (advisory)` field (`opus`/`sonnet`/`haiku`) recommending the model tier per task
+  type. Advisory only — the harness cannot pin Skill-tool tasks to a model; the field guides
+  manual `/model` switching and future per-skill pinning.
+- `magento2-explorer` (read-only comprehension agent used by `magento2-feature-implement`,
+  `magento2-module-review`, and `magento2-bug-fix`) now defaults to the `haiku` model tier — a
+  cost/speed reduction for read-only mapping — overridable via the `CLAUDE.md` directive
+  `Explorer model: <tier>`. `magento2-reviewer` is unchanged.
+
 ## [1.17.1] — 2026-07-04 — Backlog cleanup (docs polish + internal refactor)
 
 ### Changed

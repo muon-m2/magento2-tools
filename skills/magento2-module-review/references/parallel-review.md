@@ -63,7 +63,10 @@ structured comprehension map and Mermaid call-chain diagram. Fall back to `subag
 if `magento2-explorer` is unavailable, then to `subagent_type: 'claude'`. Run the explorer step
 first; pass its comprehension map to the per-dimension `magento2-reviewer` subagents so they start
 with a shared understanding of the module's structure. The per-dimension judging still uses
-`magento2-reviewer`.
+`magento2-reviewer`. When dispatching `magento2-explorer`, pass `model` from the `CLAUDE.md`
+directive `Explorer model: {tier}` if the project sets one; otherwise the agent's own default tier
+(`haiku`) applies. This keeps the read-only comprehension pass cheap without affecting the
+per-dimension `magento2-reviewer` judging, which is never downgraded.
 
 ## Model Guidance
 
@@ -71,5 +74,7 @@ In Claude Code, pass the `model` parameter on the `Agent` tool call to control p
 
 - Pass `model: "opus"` for security and architecture subtasks (final synthesis, auth/ACL review, DI analysis).
 - Pass `model: "haiku"` for bounded evidence collection, file inventories, and mechanical checklist passes.
+- The read-only `magento2-explorer` inventory pass defaults to `haiku` (set in its agent
+  frontmatter); override per project with the `CLAUDE.md` directive `Explorer model: {tier}`.
 - Do not ask subagents to edit files unless the user requested fixes and each subagent has a disjoint write scope.
 - Do not duplicate the same review scope across multiple subagents unless independent confirmation is explicitly needed.

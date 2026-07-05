@@ -76,6 +76,15 @@ the full implementation from analysis through tested, reviewed, reported deliver
   `Feature implement: per-task commits = on`, or `MAGENTO2_FI_PER_TASK_COMMITS=1` is set,
   every completed task in Phase 5 produces a focused git commit. See
   `references/per-task-commits.md` for format, scoping rules, and failure handling. Off by default.
+- **Model tiering (advisory).** Each Phase 4 task record carries a `Model tier (advisory)` field
+  (`opus`/`sonnet`/`haiku`) recommending the tier that task would ideally run on — see
+  `references/task-breakdown-guide.md` §"Model tier (advisory)". It is **advisory only**: the
+  harness cannot pin a Skill-tool sub-skill invocation to a specific model, so every sequential
+  task runs on the session model regardless of its tier. The field guides manual `/model`
+  switching and future per-skill model pinning if the harness gains it. The **one** place a
+  tier takes live effect is the read-only `magento2-explorer` subagent, whose default tier is
+  `haiku` — overridable per project via the `CLAUDE.md` directive `Explorer model: {tier}`
+  (`haiku`/`sonnet`/`opus`). `magento2-reviewer` is never downgraded.
 - **Delegate by probing, never by assumption.** The `magento2-*` sub-skills ship in the **same
   plugin** as this skill — if this skill is running, the plugin is installed and they are
   Skill-invocable. Decide a sub-skill's availability by *attempting* its `Skill` invocation and
@@ -277,8 +286,10 @@ skill treats the request as a new feature.
    are written separately, from `templates/task-record.md` (step 6, before the approval gate) —
    they are never embedded in `plan.md`.
 3. Assign task IDs using the `{TypePrefix}{Number}` format from the guide.
-4. For each task, fill in: type, target, depends on, skill invoked, estimate, description,
-   and acceptance criteria. When TDD mode is on (see Core Rules), a behaviour-bearing task's
+4. For each task, fill in: type, target, depends on, skill invoked, recommended model tier
+   (advisory), estimate, description, and acceptance criteria. Assign the tier from the
+   default-by-type table in `references/task-breakdown-guide.md` §"Model tier (advisory)".
+   When TDD mode is on (see Core Rules), a behaviour-bearing task's
    acceptance criteria are also its **RED test list** — each criterion becomes a failing test
    written before the task's implementation code (`references/tdd-mode.md`).
 5. Produce the execution flow diagram (Mermaid `flowchart TD`) and the dependency graph
@@ -440,6 +451,10 @@ db_schema) is exempt. Follow `references/tdd-mode.md` and the loop in
 ### Existing module tasks (X*)
 
 1. Identify the exact files to add or modify.
+   Before editing unfamiliar code you may dispatch `magento2-explorer` to map its execution
+   paths and extension points first (per `references/task-breakdown-guide.md` type table). When
+   you do, honor the `CLAUDE.md` directive `Explorer model: {tier}` if set; otherwise the
+   explorer's `haiku` frontmatter default applies.
 2. Apply changes following all rules in `CLAUDE.md` and `magento2-module-create/references/`.
    **TDD mode (on):** if the change adds behaviour (not pure config/scaffold), write the failing
    test first and watch it fail for the right reason before applying the production change, per

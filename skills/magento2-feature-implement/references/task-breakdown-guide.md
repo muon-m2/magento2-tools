@@ -59,6 +59,7 @@ Type: Create Module | Modify Module | Test | Review | Validate | Deploy | Report
 Target: {module name or file path}
 Depends on: {comma-separated IDs, or "none"}
 Skill: {skill invoked, or "manual"}
+Model tier (advisory): {opus | sonnet | haiku}
 Estimate: {S = <30 min | M = 30–90 min | L = >90 min}
 
 Description:
@@ -77,6 +78,30 @@ Acceptance criteria:
 ```
 
 Estimate is informational only. Do not block execution on estimates.
+
+---
+
+## Model tier (advisory)
+
+Each task record carries a `Model tier (advisory)` field — the model tier the task would ideally
+run on. It is **advisory only**: the harness cannot pin a Skill-tool sub-skill invocation to a
+specific model today, so these tasks run on the session model regardless (see SKILL.md
+§"Model tiering (advisory)"). The field guides manual `/model` switching and future per-skill
+pinning. The one place a tier takes live effect is the read-only `magento2-explorer` subagent
+(its `haiku` frontmatter default + the `Explorer model` directive).
+
+Default tier by task type:
+
+| Tier | Task types | Why |
+|------|-----------|-----|
+| `opus` | `X`, `R`, `S9` triage | edits to unfamiliar code, review judgment, and security/perf triage — a weaker model here misses findings or mis-wires DI |
+| `sonnet` | `M`, `T`, `I`, `G`, `F`, `S2`/`S4`/`S6`/`S7`, `P` | scaffolding, tests, extension points, scenario-bearing smoke, and report synthesis — correctness matters but the shape is known |
+| `haiku` | `C`, `L`, `Q`, `E`, `V`, `D`, `S1`/`S3`/`S5`/`S8` | mechanical admin config, tool-running, and script-driven smoke |
+
+The planner may raise a specific task above its default, recording a one-line reason on the task's
+`Model tier (advisory)` line: a `G` surface with batch loaders / auth / schema migration → `opus`;
+an architecturally novel `M` module → `opus`. Never downgrade `R` reviews or `S9` triage below
+`opus`.
 
 ---
 

@@ -36,6 +36,7 @@ Type: Create Module
 Target: `{ctx.magento_root}/app/code/{Vendor}/{ModuleA}`
 Depends on: none
 Skill: `magento2-module-create`
+Model tier (advisory): sonnet
 Estimate: M
 
 Description:
@@ -66,6 +67,7 @@ Type: Review
 Target: `{ctx.magento_root}/app/code/{Vendor}/{ModuleA}`
 Depends on: M1
 Skill: `magento2-module-review`
+Model tier (advisory): opus
 Estimate: S
 
 Description:
@@ -90,6 +92,7 @@ Type: Create Module
 Target: `{ctx.magento_root}/app/code/{Vendor}/{ModuleB}`
 Depends on: R1
 Skill: `magento2-module-create`
+Model tier (advisory): sonnet
 Estimate: M
 
 Description:
@@ -107,6 +110,7 @@ Type: Review
 Target: `{ctx.magento_root}/app/code/{Vendor}/{ModuleB}`
 Depends on: M2
 Skill: `magento2-module-review`
+Model tier (advisory): opus
 Estimate: S
 
 Description:
@@ -123,6 +127,7 @@ Type: Modify Module
 Target: `{ctx.magento_root}/app/code/{Vendor}/{ExistingModule}`
 Depends on: R1
 Skill: manual
+Model tier (advisory): opus
 Estimate: S
 
 Description:
@@ -142,6 +147,7 @@ Type: Test
 Target: `{ctx.magento_root}/app/code/{Vendor}/{ModuleA}/Test/Unit/`
 Depends on: R1
 Skill: manual
+Model tier (advisory): sonnet
 Estimate: M
 
 Description:
@@ -160,6 +166,7 @@ Type: Test
 Target: `{ctx.magento_root}/app/code/{Vendor}/{ModuleB}/Test/Unit/`
 Depends on: R2
 Skill: manual
+Model tier (advisory): sonnet
 Estimate: S
 
 Description:
@@ -176,6 +183,7 @@ Type: Validate
 Target: all {Vendor} modules
 Depends on: T1, T2
 Skill: `magento2-module-review`
+Model tier (advisory): haiku
 Estimate: S
 
 Description:
@@ -199,6 +207,7 @@ itself; `magento2-deploy` owns the deploy plan (it is the component that runs th
 steps). If `magento2-deploy` is genuinely absent, offer the enable / `setup:upgrade` /
 `setup:di:compile` / `cache:flush` commands as manual next steps for the user to run — do not
 auto-run them (SKILL.md Phase 5 §Deploy task).
+Model tier (advisory): haiku
 Estimate: S
 
 Description:
@@ -219,6 +228,7 @@ Target: `.docs/{FeatureName}/smoke/baseline.txt`
 Depends on: D1
 Skill: `magento2-feature-implement` (uses `scripts/smoke-baseline.sh` + environment probe per
 `references/smoke-runner.md`)
+Model tier (advisory): haiku
 Estimate: S
 
 Description:
@@ -238,6 +248,7 @@ Type: Smoke
 Target: `.docs/{FeatureName}/smoke/scenarios.md` + `smoke/raw/S2/*.txt`
 Depends on: S1
 Skill: `magento2-feature-implement` (curl / php-curl driven; per `references/smoke-runner.md` §2)
+Model tier (advisory): sonnet
 Estimate: M (skip if feature exposes no REST surface)
 
 Description:
@@ -258,6 +269,7 @@ Type: Smoke
 Target: `.docs/{FeatureName}/smoke/screenshots/run-{N}/admin-login.png`
 Depends on: S1
 Skill: `magento2-feature-implement` (uses `scripts/smoke-browser.mjs admin-login`)
+Model tier (advisory): haiku
 Estimate: S
 
 Acceptance criteria:
@@ -272,6 +284,7 @@ Type: Smoke
 Target: per-section results in `run-{N}.md`
 Depends on: S3
 Skill: `magento2-feature-implement` (uses `scripts/smoke-browser.mjs stores-config-walk`)
+Model tier (advisory): sonnet
 Estimate: M (skip if feature adds/changes no admin config)
 
 Acceptance criteria:
@@ -287,6 +300,7 @@ Type: Smoke
 Target: per-grid results in `run-{N}.md`
 Depends on: S3
 Skill: `magento2-feature-implement` (uses `scripts/smoke-browser.mjs grid`)
+Model tier (advisory): haiku
 Estimate: S
 
 Acceptance criteria:
@@ -302,6 +316,7 @@ Type: Smoke
 Target: per-route results + screenshots in `run-{N}.md`
 Depends on: S3
 Skill: `magento2-feature-implement` (uses `scripts/smoke-browser.mjs visit`)
+Model tier (advisory): sonnet
 Estimate: M
 
 Acceptance criteria:
@@ -317,6 +332,7 @@ Type: Smoke
 Target: per-step results in `run-{N}.md`
 Depends on: S1
 Skill: `magento2-feature-implement` (uses `scripts/smoke-browser.mjs customer-flow`)
+Model tier (advisory): sonnet
 Estimate: M
 
 Acceptance criteria:
@@ -332,6 +348,7 @@ Type: Smoke
 Target: `.docs/{FeatureName}/smoke/raw/S8/exception-diff.log`
 Depends on: S2, S3, S4, S5, S6, S7
 Skill: `magento2-feature-implement` (uses `scripts/smoke-tail-since.sh`)
+Model tier (advisory): haiku
 Estimate: S
 
 Acceptance criteria:
@@ -346,6 +363,7 @@ Type: Smoke
 Target: `.docs/{FeatureName}/smoke/run-{N}.md` + `findings.md` + updated `plan.md`
 Depends on: S8
 Skill: `magento2-feature-implement` (uses `templates/smoke-run-report.md` + `templates/smoke-findings.md`)
+Model tier (advisory): opus
 Estimate: S
 
 Description:
@@ -367,6 +385,7 @@ Type: Report
 Target: `.docs/{FeatureName}/report.md`
 Depends on: S9 (with PASS decision, or user `accept-known-issues` after halt)
 Skill: manual
+Model tier (advisory): sonnet
 Estimate: S
 
 Description:
