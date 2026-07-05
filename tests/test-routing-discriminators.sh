@@ -48,6 +48,7 @@ check static-analysis     magento2-module-review
 check indexer             magento2-module-create magento2-performance-audit
 check marketplace-prep    magento2-security-audit magento2-release
 check accessibility-audit magento2-frontend-create magento2-module-review
+check frontend-create      magento2-breeze-child-theme magento2-breeze-module-adapt
 check breeze-child-theme   magento2-frontend-create
 check breeze-module-adapt  magento2-extension-point magento2-breeze-compat-audit
 check breeze-compat-audit  magento2-module-review magento2-breeze-module-adapt

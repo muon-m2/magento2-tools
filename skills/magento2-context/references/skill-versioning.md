@@ -22,7 +22,7 @@ skills evolve.
 | magento2-debug             | 1.3.0   | New mode added, output format change                                |
 | magento2-eav-attribute     | 1.3.1   | New entity type supported, new input type, template change          |
 | magento2-graphql-create    | 1.0.5   | New resolver pattern, schema-migration rule change                  |
-| magento2-frontend-create   | 1.0.3   | New theme detection rule, new component pattern                     |
+| magento2-frontend-create   | 1.0.4   | New theme detection rule, new component pattern, new theme-routing rule |
 | magento2-data-migration    | 1.3.1   | New idempotency strategy, new importer pattern                      |
 | magento2-release           | 1.2.1   | New tag convention, new publish target                              |
 | magento2-i18n              | 1.3.0   | New extraction pattern, new placeholder rule                        |
@@ -45,6 +45,17 @@ skills evolve.
 
 ## Changelog (last update: 2026-07-05)
 
+- **Plugin (unreleased) — Breeze-aware `magento2-frontend-create` routing.** The frontend
+  scaffolder now reads `theme.breeze` from `magento2-context` and routes Swissup Breeze
+  (Breezefront) work to the dedicated skills instead of falling into its Luma default: a
+  Breeze `theme` operation → `magento2-breeze-child-theme`; Breeze widget/JS work →
+  `magento2-breeze-module-adapt` (scope first with `magento2-breeze-compat-audit`). Adds a
+  Breeze row to the theme-awareness table, a Phase 1 routing branch, a Core-Rules
+  Breeze-aware note, and reciprocal Related-Skills links (the three `magento2-breeze-*`
+  skills already named `frontend-create` as their sibling; now the link is bidirectional).
+  Guarded by a new `check frontend-create magento2-breeze-child-theme magento2-breeze-module-adapt`
+  line in `tests/test-routing-discriminators.sh`. Patch bump:
+  `magento2-frontend-create 1.0.3 → 1.0.4` (additive routing guidance, no token ripple).
 - **Plugin 1.19.0 — Findings-emission hub + audit orchestrator.** The shared findings
   emitters (`emit-json.sh` / `emit-sarif.sh` / `resolve-basename.sh`) moved from
   `magento2-module-review/scripts/` into the `magento2-context` hub, joined by a new shared
