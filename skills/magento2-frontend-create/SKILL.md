@@ -7,8 +7,8 @@ description:
     uses Luma, Hyva, or a custom theme and generates appropriate scaffolds. For Swissup
     Breeze (Breezefront) stores — detected via magento2-context (theme.breeze) — defer
     theme creation to magento2-breeze-child-theme and Breeze widget/JS work to
-    magento2-breeze-module-adapt, since Breeze replaces RequireJS/Knockout with a
-    Cash-based stack.
+    magento2-breeze-module-adapt, since Breeze replaces RequireJS/Knockout/jQuery with
+    a Cash-based stack.
 ---
 
 # Magento 2 Frontend Create
