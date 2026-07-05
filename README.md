@@ -72,9 +72,9 @@ Developer documentation lives in [`docs/`](docs/README.md):
 
 | Skill | Purpose |
 |-------|---------|
-| `magento2-context` | Resolves project context (vendor, runner, Magento root/version, tools). The hub every other skill delegates environment questions to. |
+| `magento2-context` | Resolves project context (vendor, runner, Magento root/version, tools). The hub every other skill delegates environment questions to. Owns the shared findings emitters (`emit-findings.sh` / `emit-json.sh` / `emit-sarif.sh`). |
 | `magento2-module-create` | Scaffold a new module. |
-| `magento2-module-review` | Review a module / diff against standards. Owns the shared JSON/SARIF emitters. |
+| `magento2-module-review` | Review a module / diff against standards. Reuses the hub's shared JSON/SARIF emitters. |
 | `magento2-feature-implement` | End-to-end feature workflow; orchestrates most other skills. |
 | `magento2-bug-fix` | Reproduce → RCA → minimal TDD fix → regression test → review → deploy. |
 | `magento2-deploy` | Pre-flight validation, ordered deploy, rollback. |
@@ -108,11 +108,12 @@ Developer documentation lives in [`docs/`](docs/README.md):
 ### Dependency graph
 
 `magento2-context` is the universal leaf — every other skill resolves environment through
-it and it depends on nothing. `magento2-feature-implement` is the top orchestrator.
-`magento2-module-review` owns the shared findings emitters that the audit skills reuse.
+it and it depends on nothing. It also owns the shared findings emitters
+(`emit-findings.sh` → `emit-json.sh` / `emit-sarif.sh`) that every findings-emitting skill
+reuses. `magento2-feature-implement` is the top orchestrator.
 
 ```
-magento2-context  ◄── (called by all others; depends on nothing)
+magento2-context  ◄── (called by all others; depends on nothing; owns the shared findings emitters)
 
 magento2-feature-implement ──► module-create, module-review, test-generate,
                                eav-attribute, graphql-create, webapi-create,
@@ -125,7 +126,7 @@ magento2-feature-implement ──► module-create, module-review, test-generate
 magento2-bug-fix           ──► context, module-review, deploy, data-migration, debug
 magento2-deploy            ──► context, module-upgrade, release
 magento2-module-create     ──► context, module-review
-magento2-module-review     ──► context        (+ emit-json.sh / emit-sarif.sh shared here)
+magento2-module-review     ──► context        (+ reuses context's emit-findings.sh)
 magento2-security-audit    ──► context, module-review, module-upgrade
 magento2-performance-audit ──► context, module-review, security-audit
 magento2-eav-attribute     ──► context, module-create, module-review
@@ -145,13 +146,13 @@ magento2-system-config       ──► context, module-create, module-review
 magento2-cli-command         ──► context, module-create, module-review, system-config
 magento2-message-queue       ──► context, module-create, module-review
 magento2-indexer             ──► context, module-create, module-review
-magento2-static-analysis     ──► context, module-review   (+ reuses emit-json.sh / emit-sarif.sh)
+magento2-static-analysis     ──► context, module-review   (+ reuses context's emit-findings.sh)
 magento2-docs-generate       ──► context
-magento2-marketplace-prep    ──► context, module-review, security-audit   (+ reuses emit-json.sh / emit-sarif.sh)
-magento2-accessibility-audit ──► context, module-review   (+ reuses emit-json.sh / emit-sarif.sh)
+magento2-marketplace-prep    ──► context, module-review, security-audit   (+ reuses context's emit-findings.sh)
+magento2-accessibility-audit ──► context, module-review   (+ reuses context's emit-findings.sh)
 magento2-breeze-child-theme  ──► context
 magento2-breeze-module-adapt ──► context, breeze-compat-audit
-magento2-breeze-compat-audit ──► context, module-review   (+ reuses emit-json.sh / emit-sarif.sh)
+magento2-breeze-compat-audit ──► context, module-review   (+ reuses context's emit-findings.sh)
 ```
 
 ## Commands

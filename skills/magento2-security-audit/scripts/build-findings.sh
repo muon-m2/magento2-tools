@@ -38,12 +38,10 @@ OUTPUT_DIR="${OUTPUT_DIR:-${DOCS_ROOT}/audits}"
 SKILL_VERSION="${SKILL_VERSION:-1.3.0}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-EMIT_JSON="${SCRIPT_DIR}/../../magento2-module-review/scripts/emit-json.sh"
-EMIT_SARIF="${SCRIPT_DIR}/../../magento2-module-review/scripts/emit-sarif.sh"
-RESOLVE_BASENAME="${SCRIPT_DIR}/../../magento2-module-review/scripts/resolve-basename.sh"
+EMIT_FINDINGS="${SCRIPT_DIR}/../../magento2-context/scripts/emit-findings.sh"
 
-if [ ! -f "$EMIT_JSON" ]; then
-    echo "build-findings: shared JSON emitter not found at $EMIT_JSON" >&2
+if [ ! -f "$EMIT_FINDINGS" ]; then
+    echo "build-findings: shared emitter not found at $EMIT_FINDINGS" >&2
     exit 2
 fi
 
@@ -118,97 +116,14 @@ for path in sys.argv[1:]:
 print(json.dumps(merged, indent=2))
 PY
 
-DATE="$(date -u +%Y-%m-%d)"
-export FINDINGS_FILE
-export TARGET_MODULE TARGET_PATH SCOPE
+# Emit via the shared hub pipeline (JSON + SARIF). The magento_core_cve_status block is
+# injected between JSON and SARIF by the POST_JSON_HOOK so it lands in JSON only, matching
+# the prior behaviour. scanner_errors is carried by emit-json.sh via SCANNER_ERRORS_FILE.
+export FINDINGS_FILE SCANNER_ERRORS_FILE
+export TARGET_MODULE TARGET_PATH SCOPE OUTPUT_DIR
 export SKILL_NAME="magento2-security-audit"
 export SKILL_VERSION
 export OUTPUT_KIND="security"
-if [ -f "$RESOLVE_BASENAME" ]; then
-    OUTPUT_BASENAME="$(DATE="$DATE" bash "$RESOLVE_BASENAME" security)"
-else
-    if [ "$SCOPE" = "module" ]; then
-        OUTPUT_BASENAME="${TARGET_MODULE}-security-${DATE}"
-    else
-        OUTPUT_BASENAME="security-${SCOPE}-${DATE}"
-    fi
-fi
-export OUTPUT_BASENAME
-export OUTPUT_DIR
 export SKILL_VERSIONS_JSON="[\"magento2-security-audit@${SKILL_VERSION}\",\"magento2-context@1.9.0\"]"
-export SCANNER_ERRORS_FILE
 
-bash "$EMIT_JSON" > /dev/null
-
-# Derive Magento-core CVE coverage status so consumers can act on the absence of live
-# data without inferring it from missing findings. Read the data file's status marker.
-CVE_DATA_FILE="${SCRIPT_DIR}/../references/magento-cve-data.yaml"
-MAGENTO_CORE_CVE_STATUS="missing"
-MAGENTO_CORE_CVE_REFRESHED=""
-if [ -f "$CVE_DATA_FILE" ]; then
-    MAGENTO_CORE_CVE_STATUS="$(grep -E '^status:' "$CVE_DATA_FILE" | head -1 | sed -E 's/^status:\s*//; s/\s+$//' || true)"
-    MAGENTO_CORE_CVE_REFRESHED="$(grep -E '^last_refreshed:' "$CVE_DATA_FILE" | head -1 | sed -E 's/^last_refreshed:\s*//; s/\s+$//' || true)"
-fi
-[ -z "$MAGENTO_CORE_CVE_STATUS" ] && MAGENTO_CORE_CVE_STATUS="missing"
-
-# Inject magento_core_cve_status into the emitted document so inert CVE coverage is
-# visible to consumers. scanner_errors is already included by emit-json.sh via the
-# exported SCANNER_ERRORS_FILE — no re-write needed for that field here.
-OUTPUT_FILE="${OUTPUT_DIR}/${OUTPUT_BASENAME}.json"
-if [ -f "$OUTPUT_FILE" ]; then
-    MAGENTO_CORE_CVE_STATUS="$MAGENTO_CORE_CVE_STATUS" \
-    MAGENTO_CORE_CVE_REFRESHED="$MAGENTO_CORE_CVE_REFRESHED" \
-    python3 - "$OUTPUT_FILE" <<'PY'
-import json, os, sys
-doc_path = sys.argv[1]
-with open(doc_path) as fh:
-    doc = json.load(fh)
-
-status = os.environ.get('MAGENTO_CORE_CVE_STATUS', 'missing').strip() or 'missing'
-refreshed = os.environ.get('MAGENTO_CORE_CVE_REFRESHED', '').strip()
-note_by_status = {
-    'live':          'Live Magento CVE data loaded; matching is authoritative.',
-    'illustrative':  'Magento CVE source is illustrative — matches are reported as candidates, not confirmed advisories.',
-    'missing':       'Magento CVE data file not found; Magento-core CVE matching disabled.',
-}
-note = note_by_status.get(status, f"Unknown Magento CVE data status '{status}'.")
-doc['magento_core_cve_status'] = {
-    'status': status,
-    'last_refreshed': refreshed or None,
-    'note': note,
-    'source': 'magento2-security-audit/references/magento-cve-data.yaml',
-}
-
-with open(doc_path, 'w') as fh:
-    json.dump(doc, fh, indent=2)
-PY
-fi
-
-# Emit SARIF alongside JSON so the SKILL.md output triple (Markdown + JSON + SARIF) is
-# actually produced by a single invocation rather than requiring callers to remember
-# the SARIF step. Skip silently when emit-sarif.sh is unavailable; record the failure
-# under scanner_errors so consumers know.
-SARIF_OUTPUT="${OUTPUT_DIR}/${OUTPUT_BASENAME}.sarif"
-if [ -f "$EMIT_SARIF" ] && [ -f "$OUTPUT_FILE" ]; then
-    if ! bash "$EMIT_SARIF" "$OUTPUT_FILE" > "$SARIF_OUTPUT" 2> "${TMP_DIR}/sarif.err"; then
-        python3 - "$OUTPUT_FILE" "${TMP_DIR}/sarif.err" <<'PY'
-import json, sys
-doc_path, err_path = sys.argv[1], sys.argv[2]
-try:
-    with open(doc_path) as fh:
-        doc = json.load(fh)
-    err = open(err_path).read().strip() if __import__("os").path.exists(err_path) else ""
-    doc.setdefault("scanner_errors", []).append({
-        "scanner": "emit-sarif",
-        "stderr": err or "emit-sarif.sh failed with non-zero exit",
-    })
-    with open(doc_path, "w") as fh:
-        json.dump(doc, fh, indent=2)
-except Exception:
-    pass
-PY
-    fi
-fi
-
-# Echo the final JSON document for callers that read stdout.
-cat "$OUTPUT_FILE"
+BASENAME_KIND="security" POST_JSON_HOOK="${SCRIPT_DIR}/inject-cve-status.sh" bash "$EMIT_FINDINGS"

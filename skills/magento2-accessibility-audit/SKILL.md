@@ -147,8 +147,7 @@ See `references/wcag-rules.md` for the full static check catalog.
 - `${CLAUDE_SKILL_DIR}/scripts/scan-templates.sh` — read-only static scan; outputs a
   JSON array of findings conforming to `magento2-context/references/findings-schema.md`.
 - `${CLAUDE_SKILL_DIR}/scripts/build-findings.sh` — aggregates scan output and emits
-  via the shared `magento2-module-review/scripts/emit-json.sh` /
-  `magento2-module-review/scripts/emit-sarif.sh` pipeline.
+  via the shared `magento2-context/scripts/emit-findings.sh` pipeline (JSON + SARIF).
   `OUTPUT_KIND=accessibility`, `SKILL_NAME=magento2-accessibility-audit`.
 
 ## Reference Files

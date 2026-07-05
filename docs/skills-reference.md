@@ -182,8 +182,8 @@ review without fixing, use `magento2-module-review`.
 
 Static-evidence review of a module (or a diff): architecture, security, persistence,
 DI, frontend escaping, ACL/config, cron/queue, APIs, PHPDoc/SOLID/DRY, tests. No
-environment assumptions; tools used opportunistically. Owns the shared JSON/SARIF
-emitters.
+environment assumptions; tools used opportunistically. Reuses the shared JSON/SARIF
+emitters owned by the `magento2-context` hub.
 
 - **Invocation:** *"review Acme_Checkout"*; `--diff [<ref>]` (default `origin/main`)
   for changed-files-only; "quick review" for a Tier-1 pass; `--format=json|sarif`;

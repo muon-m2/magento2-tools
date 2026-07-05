@@ -6,6 +6,23 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased] — Findings-emission hub
+
+### Changed
+
+- **Findings emitters moved into the `magento2-context` hub.** `emit-json.sh`, `emit-sarif.sh`,
+  and `resolve-basename.sh` now live in `skills/magento2-context/scripts/` instead of
+  `skills/magento2-module-review/scripts/`. This removes the fragile cross-skill dependency where
+  six audit skills reached a sibling skill's scripts dir (`../../magento2-module-review/scripts/`)
+  and matches the stated architecture — `magento2-context` is the universal leaf and now owns the
+  shared output contract. Emitted JSON/SARIF is byte-identical (golden snapshot unchanged).
+- **New shared `emit-findings.sh` wrapper.** The six audit `build-findings.sh` scripts
+  (security / performance / static-analysis / marketplace-prep / accessibility / breeze-compat)
+  no longer each inline the ~40-line path-resolution + `emit-json` + SARIF-with-fallback tail;
+  they call one shared `magento2-context/scripts/emit-findings.sh`. Per-skill post-JSON injection
+  (security's `magento_core_cve_status`, marketplace's readiness score) runs via a `POST_JSON_HOOK`
+  so behaviour is preserved.
+
 ## [1.18.0] — 2026-07-04 — Model tiering (advisory per-task tiers + haiku explorer)
 
 ### Added

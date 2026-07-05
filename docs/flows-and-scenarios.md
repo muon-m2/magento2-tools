@@ -7,18 +7,18 @@ and end-to-end scenario walkthroughs.
 ## Architecture: hub and spoke
 
 `magento2-context` is the universal leaf — every other skill resolves environment
-questions through it, and it depends on nothing. `magento2-feature-implement` is the
-top orchestrator. `magento2-module-review` owns the shared findings emitters
-(JSON/SARIF) that the audit skills reuse.
+questions through it, and it depends on nothing. It also owns the shared findings
+emitters (JSON/SARIF) that every findings-emitting skill reuses.
+`magento2-feature-implement` is the top orchestrator.
 
 ```mermaid
 graph TD
-    CTX[magento2-context<br/>hub: vendor, runner, CLI, versions, theme, tools]
+    CTX[magento2-context<br/>hub: vendor, runner, CLI, versions, theme, tools<br/>+ shared JSON/SARIF emitters]
 
     FI[magento2-feature-implement<br/>orchestrator]
     BF[magento2-bug-fix]
     MC[magento2-module-create]
-    MR[magento2-module-review<br/>+ shared JSON/SARIF emitters]
+    MR[magento2-module-review]
     TG[magento2-test-generate]
     DEP[magento2-deploy]
     UPG[magento2-module-upgrade]

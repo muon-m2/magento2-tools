@@ -80,7 +80,7 @@ Produce three deliverables:
    ```
    The script aggregates findings from check-readiness.sh — plus the delegated
    `magento2-security-audit` EQP findings when `EQP_FINDINGS_FILE` is provided (Phase 2.2)
-   — and invokes the shared `magento2-module-review/scripts/emit-json.sh` with
+   — and invokes the shared `magento2-context/scripts/emit-findings.sh` pipeline with
    `OUTPUT_KIND=marketplace`. Run `build-findings.sh` with `DOCS_ROOT=<output_root>`
    (the resolved `--docs-root` value, or `.docs` by default) so both artifacts land
    under `{output_root}/marketplace/`.
@@ -120,9 +120,9 @@ Produce three deliverables:
   read-only checks and outputs a findings JSON array conforming to
   `magento2-context/references/findings-schema.md`.
 - `${CLAUDE_SKILL_DIR}/scripts/build-findings.sh` — aggregates check-readiness output and
-  emits via the shared `magento2-module-review/scripts/emit-json.sh` /
-  `magento2-module-review/scripts/emit-sarif.sh` pipeline.
-  `OUTPUT_KIND=marketplace`, `SKILL_NAME=magento2-marketplace-prep`.
+  emits via the shared `magento2-context/scripts/emit-findings.sh` pipeline (JSON + SARIF).
+  `OUTPUT_KIND=marketplace`, `SKILL_NAME=magento2-marketplace-prep`. The readiness
+  score/verdict is injected by `scripts/compute-readiness-score.sh` (POST_JSON_HOOK).
 
 ## Inputs
 
