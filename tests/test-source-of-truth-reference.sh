@@ -21,7 +21,7 @@ require -iF "Source-of-Truth"        "source-of-truth hierarchy heading"
 require -F  "developer.adobe.com"    "Adobe Commerce docs allowlist host"
 require -F  "devdocs.magento.com"    "DevDocs allowlist host"
 require -iF "Allowed reads"          "allowed-reads (exceptions) section"
-require -iF "do not"                 "the no-scan prohibition"
+require -iF "is banned"      "the no-scan prohibition"
 require -F  "Sources:"               "the report-affirmation line"
 
 [ "$FAIL" -eq 0 ] && echo "PASS: source-of-truth reference is complete"
