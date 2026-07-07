@@ -299,7 +299,7 @@ parallel creation to the user and wait for a yes/no answer before proceeding. Re
   `references/doc-structure.md` — this skill does not define its own README/CHANGELOG format.
 - `references/documentation-guide.md`: Step 6 delegation to `magento2-docs-generate` for the full doc
   set, screenshot handling, contract-derived API examples, per-mode scope, and the completeness gate.
-- `magento2-context/references/source-of-truth.md`: source-of-truth hierarchy + the
+- `magento2-context/references/source-of-truth.md` — source-of-truth hierarchy + the
   no-unrelated-module-scanning rule (allowed reads, live-doc fetch protocol, report affirmation).
 
 ## Template Inventory

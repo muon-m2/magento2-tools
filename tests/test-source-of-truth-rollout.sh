@@ -15,6 +15,7 @@ IN_SCOPE=(
 OUT_OF_SCOPE=(
   magento2-module-review magento2-security-audit magento2-performance-audit
   magento2-accessibility-audit magento2-breeze-compat-audit magento2-static-analysis
+  magento2-audit magento2-marketplace-prep magento2-debug
 )
 FAIL=0
 

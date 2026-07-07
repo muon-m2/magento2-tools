@@ -187,7 +187,7 @@ run's reports collect under its folder.
 - `references/frontend-impact.md` — listing, sorting, search, layered nav.
 - `magento2-context/references/tdd-discipline.md` — shared test-first loop applied in Phase 3A
   (integration patterns: `magento2-test-generate/references/integration-patterns.md`).
-- `magento2-context/references/source-of-truth.md`: source-of-truth hierarchy + the
+- `magento2-context/references/source-of-truth.md` — source-of-truth hierarchy + the
   no-unrelated-module-scanning rule (allowed reads, live-doc fetch protocol, report affirmation).
 
 ## Templates

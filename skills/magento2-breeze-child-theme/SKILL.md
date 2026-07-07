@@ -116,7 +116,7 @@ A registered Breeze child theme under `{ctx.magento_root}/app/design/frontend/{V
 
 - `references/breeze-theme-patterns.md` — directory layout, parent choice, `@critical` LESS
   guard, `web/css/breeze/` vs `web/css/source/` and activation.
-- `magento2-context/references/source-of-truth.md`: source-of-truth hierarchy + the
+- `magento2-context/references/source-of-truth.md` — source-of-truth hierarchy + the
   no-unrelated-module-scanning rule (allowed reads, live-doc fetch protocol, report affirmation).
 
 ## Templates

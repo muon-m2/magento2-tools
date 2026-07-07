@@ -126,7 +126,7 @@ Interactive flow drives the rest.
 - `references/store-scope.md` — per-store handling in resolvers.
 - `references/schema-migration.md` — non-breaking vs breaking schema changes.
 - `references/n-plus-one-prevention.md` — when to use batch resolver vs eager-load.
-- `magento2-context/references/source-of-truth.md`: source-of-truth hierarchy + the
+- `magento2-context/references/source-of-truth.md` — source-of-truth hierarchy + the
   no-unrelated-module-scanning rule (allowed reads, live-doc fetch protocol, report affirmation).
 
 ## Templates

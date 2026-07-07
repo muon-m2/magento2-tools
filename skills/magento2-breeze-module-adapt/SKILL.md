@@ -114,7 +114,7 @@ A companion module under `{ctx.magento_root}/app/code/{Vendor}/{Module}Breeze/`.
   `better_compatibility`).
 - `references/breeze-js-conversion.md` — mapping RequireJS/Knockout/jQuery widgets to Breeze Cash
   `$.widget`, `data-mage-init`/`x-magento-init` handling, Cash gaps.
-- `magento2-context/references/source-of-truth.md`: source-of-truth hierarchy + the
+- `magento2-context/references/source-of-truth.md` — source-of-truth hierarchy + the
   no-unrelated-module-scanning rule (allowed reads, live-doc fetch protocol, report affirmation).
 
 ## Templates

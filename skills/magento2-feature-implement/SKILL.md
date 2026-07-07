@@ -878,7 +878,7 @@ is **mandatory** in `feature` and `extend` modes, **reduced** in `hotfix` mode, 
 - `${CLAUDE_SKILL_DIR}/scripts/smoke-baseline.sh`: S1 — capture `var/log/exception.log` baseline.
 - `${CLAUDE_SKILL_DIR}/scripts/smoke-tail-since.sh`: S8 — diff `var/log/exception.log` since baseline.
 - `${CLAUDE_SKILL_DIR}/scripts/smoke-browser.mjs`: S3–S7 — headless browser driver (Playwright → Puppeteer → CDP).
-- `magento2-context/references/source-of-truth.md`: source-of-truth hierarchy + the
+- `magento2-context/references/source-of-truth.md` — source-of-truth hierarchy + the
   no-unrelated-module-scanning rule (allowed reads, live-doc fetch protocol, report affirmation).
 
 ## Related Skills

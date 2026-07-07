@@ -168,7 +168,7 @@ reports collect under its folder.
 - `references/js-test-patterns.md` — Jasmine + RequireJS + KO patterns.
 - `references/mftf-patterns.md` — MFTF section/page/test structure.
 - `references/coverage-rules.md` — 80% target, exceptions, exemptions.
-- `magento2-context/references/source-of-truth.md`: source-of-truth hierarchy + the
+- `magento2-context/references/source-of-truth.md` — source-of-truth hierarchy + the
   no-unrelated-module-scanning rule (allowed reads, live-doc fetch protocol, report affirmation).
 
 ## Templates

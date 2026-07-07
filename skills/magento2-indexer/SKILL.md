@@ -227,7 +227,7 @@ reports collect under its folder.
 - `magento2-context/references/tdd-discipline.md` — shared test-first RED/GREEN loop.
 - `magento2-context/references/php-coding-style.md` — PER-CS + Magento coding style.
 - `magento2-context/references/placeholder-schema.md` — token registry.
-- `magento2-context/references/source-of-truth.md`: source-of-truth hierarchy + the
+- `magento2-context/references/source-of-truth.md` — source-of-truth hierarchy + the
   no-unrelated-module-scanning rule (allowed reads, live-doc fetch protocol, report affirmation).
 
 ## Templates

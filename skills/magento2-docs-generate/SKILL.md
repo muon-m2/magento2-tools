@@ -203,7 +203,7 @@ run's reports collect under its folder.
 - `magento2-context/references/placeholder-schema.md` — token registry.
 - `magento2-context/references/changelog-format.md` — canonical CHANGELOG structure and
   entry-category vocabulary rendered by `templates/changelog-scaffold.md`.
-- `magento2-context/references/source-of-truth.md`: source-of-truth hierarchy + the
+- `magento2-context/references/source-of-truth.md` — source-of-truth hierarchy + the
   no-unrelated-module-scanning rule (allowed reads, live-doc fetch protocol, report affirmation).
 
 ## Scripts

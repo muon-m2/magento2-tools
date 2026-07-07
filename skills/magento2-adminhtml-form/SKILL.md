@@ -190,7 +190,7 @@ run's reports collect under its folder.
 - `references/edition-differences.md` — Open Source vs Adobe Commerce (staging, B2B).
 - `references/pitfalls.md` — blank-form / silent-save / 404 root causes and fixes.
 - `magento2-context/references/tdd-discipline.md` — shared test-first loop (Phase 3A).
-- `magento2-context/references/source-of-truth.md`: source-of-truth hierarchy + the
+- `magento2-context/references/source-of-truth.md` — source-of-truth hierarchy + the
   no-unrelated-module-scanning rule (allowed reads, live-doc fetch protocol, report affirmation).
 
 ## Templates

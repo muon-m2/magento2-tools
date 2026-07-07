@@ -176,7 +176,7 @@ feature run's reports collect under its folder.
 - `references/pairing-with-form.md` — actions column / Add-New button targeting the form's routes; reusing acl/menu/routes; `admin-1column` layout.
 - `references/pitfalls.md` — empty grid, inert mass actions, broken actionsColumn, wrong layout handle.
 - `magento2-context/references/tdd-discipline.md` — shared test-first loop (Phase 3A).
-- `magento2-context/references/source-of-truth.md`: source-of-truth hierarchy + the
+- `magento2-context/references/source-of-truth.md` — source-of-truth hierarchy + the
   no-unrelated-module-scanning rule (allowed reads, live-doc fetch protocol, report affirmation).
 
 ## Templates

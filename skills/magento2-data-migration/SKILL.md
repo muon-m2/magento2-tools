@@ -163,7 +163,7 @@ reports collect under its folder.
 - `references/rollback-strategies.md` — when rollback is feasible; how to implement.
 - `magento2-context/references/tdd-discipline.md` — shared test-first loop; the Phase 2A test
   reuses `magento2-test-generate/templates/test-integration-data-patch.php` as its skeleton.
-- `magento2-context/references/source-of-truth.md`: source-of-truth hierarchy + the
+- `magento2-context/references/source-of-truth.md` — source-of-truth hierarchy + the
   no-unrelated-module-scanning rule (allowed reads, live-doc fetch protocol, report affirmation).
 
 ## Templates

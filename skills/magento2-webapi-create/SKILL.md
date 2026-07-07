@@ -149,7 +149,7 @@ Interactive flow drives the rest.
 - `references/error-handling.md` — exception → HTTP-status mapping; throw the right framework exception.
 - `references/extension-attributes.md` — `extension_attributes.xml` and the generated extension interface.
 - `references/webapi-testing.md` — `WebapiAbstract`, REST vs SOAP adapters, asserting status codes.
-- `magento2-context/references/source-of-truth.md`: source-of-truth hierarchy + the
+- `magento2-context/references/source-of-truth.md` — source-of-truth hierarchy + the
   no-unrelated-module-scanning rule (allowed reads, live-doc fetch protocol, report affirmation).
 
 ## Templates

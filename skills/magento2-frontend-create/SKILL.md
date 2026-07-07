@@ -163,7 +163,7 @@ Files written under `{ctx.magento_root}/app/code/{Vendor}/{Module}/view/frontend
 - `references/less-css-rules.md` — `_module.less` convention, var/mixin scoping.
 - `references/email-template-rules.md` — Magento-specific variable syntax, fallback paths.
 - `references/static-asset-rules.md` — publish path, fallback chain.
-- `magento2-context/references/source-of-truth.md`: source-of-truth hierarchy + the
+- `magento2-context/references/source-of-truth.md` — source-of-truth hierarchy + the
   no-unrelated-module-scanning rule (allowed reads, live-doc fetch protocol, report affirmation).
 
 ## Templates
