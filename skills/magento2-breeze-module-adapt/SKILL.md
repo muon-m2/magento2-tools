@@ -43,6 +43,12 @@ frontend JS usually needs a Breeze adapter (or Better Compatibility mode).
   array instead of hand-porting every widget. See `references/breeze-js-conversion.md`.
 - **Coding style.** Generated PHP follows PER-CS 3.0 with Magento 2 precedence;
   `--standard=Magento2` PHPCS is the gate (`magento2-context/references/php-coding-style.md`).
+- **Source of truth.** Generate from templates → shared references → baked-in Magento 2 knowledge
+  → official Magento/Adobe docs (live-fetched only when uncertain). Do NOT read, grep, or "study"
+  other modules under `app/code`/`vendor/*`/Magento core to infer conventions, entity shapes,
+  naming, or wiring. Narrow exceptions: the target module/class of this operation, and the specific
+  contract of a module this code explicitly depends on. Affirm sources in the final report. See
+  `magento2-context/references/source-of-truth.md`.
 
 ## Workflow
 
@@ -108,6 +114,8 @@ A companion module under `{ctx.magento_root}/app/code/{Vendor}/{Module}Breeze/`.
   `better_compatibility`).
 - `references/breeze-js-conversion.md` — mapping RequireJS/Knockout/jQuery widgets to Breeze Cash
   `$.widget`, `data-mage-init`/`x-magento-init` handling, Cash gaps.
+- `magento2-context/references/source-of-truth.md`: source-of-truth hierarchy + the
+  no-unrelated-module-scanning rule (allowed reads, live-doc fetch protocol, report affirmation).
 
 ## Templates
 

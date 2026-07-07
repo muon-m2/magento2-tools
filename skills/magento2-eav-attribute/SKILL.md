@@ -37,6 +37,12 @@ indexer integration.
 - **Coding style.** Generated PHP follows PER-CS 3.0 as the baseline, with the Magento 2 coding
   standard taking precedence on any conflict; `--standard=Magento2` PHPCS is the gate. See
   `magento2-context/references/php-coding-style.md`.
+- **Source of truth.** Generate from templates → shared references → baked-in Magento 2 knowledge
+  → official Magento/Adobe docs (live-fetched only when uncertain). Do NOT read, grep, or "study"
+  other modules under `app/code`/`vendor/*`/Magento core to infer conventions, entity shapes,
+  naming, or wiring. Narrow exceptions: the target module/class of this operation, and the specific
+  contract of a module this code explicitly depends on. Affirm sources in the final report. See
+  `magento2-context/references/source-of-truth.md`.
 
 ## Workflow
 
@@ -181,6 +187,8 @@ run's reports collect under its folder.
 - `references/frontend-impact.md` — listing, sorting, search, layered nav.
 - `magento2-context/references/tdd-discipline.md` — shared test-first loop applied in Phase 3A
   (integration patterns: `magento2-test-generate/references/integration-patterns.md`).
+- `magento2-context/references/source-of-truth.md`: source-of-truth hierarchy + the
+  no-unrelated-module-scanning rule (allowed reads, live-doc fetch protocol, report affirmation).
 
 ## Templates
 

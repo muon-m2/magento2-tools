@@ -38,6 +38,12 @@ form. Never the legacy `Magento\Backend\Block\Widget\Grid`.
 - **Edition awareness.** Detect `{ctx.edition}`. A basic grid is Open Source-compatible. Flag Commerce-only features (e.g. advanced column types, staging) and gate them. See `references/edition-differences.md`.
 - **Test-first.** Write the failing test before the listing code (red → green) and watch it fail for the right reason. See `magento2-context/references/tdd-discipline.md`.
 - **Coding style.** Generated PHP follows PER-CS 3.0 baseline, Magento 2 standard taking precedence; `--standard=Magento2` PHPCS is the gate. See `magento2-context/references/php-coding-style.md`.
+- **Source of truth.** Generate from templates → shared references → baked-in Magento 2 knowledge
+  → official Magento/Adobe docs (live-fetched only when uncertain). Do NOT read, grep, or "study"
+  other modules under `app/code`/`vendor/*`/Magento core to infer conventions, entity shapes,
+  naming, or wiring. Narrow exceptions: the target module/class of this operation, and the specific
+  contract of a module this code explicitly depends on. Affirm sources in the final report. See
+  `magento2-context/references/source-of-truth.md`.
 
 ## Workflow
 
@@ -170,6 +176,8 @@ feature run's reports collect under its folder.
 - `references/pairing-with-form.md` — actions column / Add-New button targeting the form's routes; reusing acl/menu/routes; `admin-1column` layout.
 - `references/pitfalls.md` — empty grid, inert mass actions, broken actionsColumn, wrong layout handle.
 - `magento2-context/references/tdd-discipline.md` — shared test-first loop (Phase 3A).
+- `magento2-context/references/source-of-truth.md`: source-of-truth hierarchy + the
+  no-unrelated-module-scanning rule (allowed reads, live-doc fetch protocol, report affirmation).
 
 ## Templates
 

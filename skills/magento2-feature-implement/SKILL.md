@@ -101,6 +101,10 @@ the full implementation from analysis through tested, reviewed, reported deliver
 - **One artifact home.** Every sub-skill is invoked with `--docs-root=.docs/{FeatureName}`
   so the whole run's reports nest under the feature folder (see
   `magento2-context/references/artifact-layout.md`). Never invoke a sub-skill without it.
+- **Source of truth.** During planning and generation, do NOT scan unrelated modules under
+  `app/code`/`vendor/*`/Magento core for conventions; the generator sub-skills build from their
+  templates + shared references. Read only the target of the change and the contracts of modules it
+  explicitly depends on. See `magento2-context/references/source-of-truth.md`.
 
 ---
 
@@ -874,6 +878,8 @@ is **mandatory** in `feature` and `extend` modes, **reduced** in `hotfix` mode, 
 - `${CLAUDE_SKILL_DIR}/scripts/smoke-baseline.sh`: S1 — capture `var/log/exception.log` baseline.
 - `${CLAUDE_SKILL_DIR}/scripts/smoke-tail-since.sh`: S8 — diff `var/log/exception.log` since baseline.
 - `${CLAUDE_SKILL_DIR}/scripts/smoke-browser.mjs`: S3–S7 — headless browser driver (Playwright → Puppeteer → CDP).
+- `magento2-context/references/source-of-truth.md`: source-of-truth hierarchy + the
+  no-unrelated-module-scanning rule (allowed reads, live-doc fetch protocol, report affirmation).
 
 ## Related Skills
 

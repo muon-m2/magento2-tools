@@ -42,6 +42,10 @@ It **never** modifies PHP or XML files.
 - **Derived error models.** Error envelopes and HTTP status mappings are derived from
   Magento conventions (REST: `{"message":"…","parameters":{}}` envelope + standard HTTP
   codes; GraphQL: `errors[].message` + `extensions.category`). They are never invented.
+- **Source of truth.** Derive output only from the target module's own code plus templates, shared
+  references, and baked-in Magento 2 knowledge (official Magento/Adobe docs live-fetched only when
+  uncertain). Do NOT read or "study" *other* modules under `app/code`/`vendor/*`/Magento core to
+  infer conventions. See `magento2-context/references/source-of-truth.md`.
 
 ## Workflow
 
@@ -199,6 +203,8 @@ run's reports collect under its folder.
 - `magento2-context/references/placeholder-schema.md` — token registry.
 - `magento2-context/references/changelog-format.md` — canonical CHANGELOG structure and
   entry-category vocabulary rendered by `templates/changelog-scaffold.md`.
+- `magento2-context/references/source-of-truth.md`: source-of-truth hierarchy + the
+  no-unrelated-module-scanning rule (allowed reads, live-doc fetch protocol, report affirmation).
 
 ## Scripts
 

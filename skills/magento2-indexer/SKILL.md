@@ -57,6 +57,12 @@ logic.
   Magento 2 coding standard taking precedence; `--standard=Magento2` is the gate.
   `declare(strict_types=1)` on every file; no `final` on any class.
   See `magento2-context/references/php-coding-style.md`.
+- **Source of truth.** Generate from templates → shared references → baked-in Magento 2 knowledge
+  → official Magento/Adobe docs (live-fetched only when uncertain). Do NOT read, grep, or "study"
+  other modules under `app/code`/`vendor/*`/Magento core to infer conventions, entity shapes,
+  naming, or wiring. Narrow exceptions: the target module/class of this operation, and the specific
+  contract of a module this code explicitly depends on. Affirm sources in the final report. See
+  `magento2-context/references/source-of-truth.md`.
 
 ## Workflow
 
@@ -221,6 +227,8 @@ reports collect under its folder.
 - `magento2-context/references/tdd-discipline.md` — shared test-first RED/GREEN loop.
 - `magento2-context/references/php-coding-style.md` — PER-CS + Magento coding style.
 - `magento2-context/references/placeholder-schema.md` — token registry.
+- `magento2-context/references/source-of-truth.md`: source-of-truth hierarchy + the
+  no-unrelated-module-scanning rule (allowed reads, live-doc fetch protocol, report affirmation).
 
 ## Templates
 

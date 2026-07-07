@@ -45,6 +45,12 @@ checklist with zero post-creation fixes required.
   this skill separately writes request/response payload examples, plus other helpful artifacts as the
   surfaces warrant. Reduced in Quick Create Mode; refresh-only in `--mode=augment`. The delegation,
   per-mode scope, and completeness gate live in `references/documentation-guide.md`.
+- **Source of truth.** Generate from templates → shared references → baked-in Magento 2 knowledge
+  → official Magento/Adobe docs (live-fetched only when uncertain). Do NOT read, grep, or "study"
+  other modules under `app/code`/`vendor/*`/Magento core to infer conventions, entity shapes,
+  naming, or wiring. Narrow exceptions: the target module/class of this operation, and the specific
+  contract of a module this code explicitly depends on. Affirm sources in the final report. See
+  `magento2-context/references/source-of-truth.md`.
 
 ## Workflow
 
@@ -293,6 +299,8 @@ parallel creation to the user and wait for a yes/no answer before proceeding. Re
   `references/doc-structure.md` — this skill does not define its own README/CHANGELOG format.
 - `references/documentation-guide.md`: Step 6 delegation to `magento2-docs-generate` for the full doc
   set, screenshot handling, contract-derived API examples, per-mode scope, and the completeness gate.
+- `magento2-context/references/source-of-truth.md`: source-of-truth hierarchy + the
+  no-unrelated-module-scanning rule (allowed reads, live-doc fetch protocol, report affirmation).
 
 ## Template Inventory
 

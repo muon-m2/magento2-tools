@@ -32,6 +32,10 @@ Fill the test gap for an existing module. Five test types covered:
   genuinely untestable as written, surface it as a finding and recommend
   `magento2-bug-fix` or a refactor task — do not refactor source.
 - **Type-safe mocks.** Use `MockObject&InterfaceName` typing on every mock property.
+- **Source of truth.** Derive output only from the target module's own code plus templates, shared
+  references, and baked-in Magento 2 knowledge (official Magento/Adobe docs live-fetched only when
+  uncertain). Do NOT read or "study" *other* modules under `app/code`/`vendor/*`/Magento core to
+  infer conventions. See `magento2-context/references/source-of-truth.md`.
 
 ## Workflow
 
@@ -164,6 +168,8 @@ reports collect under its folder.
 - `references/js-test-patterns.md` — Jasmine + RequireJS + KO patterns.
 - `references/mftf-patterns.md` — MFTF section/page/test structure.
 - `references/coverage-rules.md` — 80% target, exceptions, exemptions.
+- `magento2-context/references/source-of-truth.md`: source-of-truth hierarchy + the
+  no-unrelated-module-scanning rule (allowed reads, live-doc fetch protocol, report affirmation).
 
 ## Templates
 
