@@ -6,6 +6,21 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased] — Generator source-of-truth-first
+
+### Changed
+
+- **Generators now build from templates + references + Magento standards, never from unrelated
+  local modules.** Adds a shared `magento2-context/references/source-of-truth.md` (source-of-truth
+  hierarchy, a prohibition on scanning unrelated `app/code`/`vendor` modules for conventions, the
+  narrow allowed-reads exceptions — target module and directly-declared-dependency contracts — and
+  an uncertainty-gated official-doc fetch protocol allowlisted to `developer.adobe.com` /
+  `devdocs.magento.com`). A `**Source of truth.**` Core Rule bullet and a Reference-Files pointer
+  were added to all 18 generator skills (15 code generators, `magento2-docs-generate`,
+  `magento2-test-generate`, and `magento2-feature-implement`). Read-only audit/review skills are
+  unchanged. Guarded by `tests/test-source-of-truth-reference.sh` and
+  `tests/test-source-of-truth-rollout.sh`.
+
 ## [1.19.1] — 2026-07-05 — Breeze-aware frontend-create routing
 
 ### Fixed
