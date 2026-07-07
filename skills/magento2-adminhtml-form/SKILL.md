@@ -53,6 +53,12 @@ Never the legacy `Magento\Backend\Block\Widget\Form`.
 - **Coding style.** Generated PHP follows PER-CS 3.0 baseline, Magento 2 standard taking
   precedence; `--standard=Magento2` PHPCS is the gate. See
   `magento2-context/references/php-coding-style.md`.
+- **Source of truth.** Generate from templates → shared references → baked-in Magento 2 knowledge
+  → official Magento/Adobe docs (live-fetched only when uncertain). Do NOT read, grep, or "study"
+  other modules under `app/code`/`vendor/*`/Magento core to infer conventions, entity shapes,
+  naming, or wiring. Narrow exceptions: the target module/class of this operation, and the specific
+  contract of a module this code explicitly depends on. Affirm sources in the final report. See
+  `magento2-context/references/source-of-truth.md`.
 
 ## Workflow
 
@@ -184,6 +190,8 @@ run's reports collect under its folder.
 - `references/edition-differences.md` — Open Source vs Adobe Commerce (staging, B2B).
 - `references/pitfalls.md` — blank-form / silent-save / 404 root causes and fixes.
 - `magento2-context/references/tdd-discipline.md` — shared test-first loop (Phase 3A).
+- `magento2-context/references/source-of-truth.md` — source-of-truth hierarchy + the
+  no-unrelated-module-scanning rule (allowed reads, live-doc fetch protocol, report affirmation).
 
 ## Templates
 

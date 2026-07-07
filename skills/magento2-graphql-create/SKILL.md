@@ -30,6 +30,12 @@ Schema-first GraphQL generation. Produces:
 - **Coding style.** Generated PHP follows PER-CS 3.0 as the baseline, with the Magento 2 coding
   standard taking precedence on any conflict; `--standard=Magento2` PHPCS is the gate. See
   `magento2-context/references/php-coding-style.md`.
+- **Source of truth.** Generate from templates → shared references → baked-in Magento 2 knowledge
+  → official Magento/Adobe docs (live-fetched only when uncertain). Do NOT read, grep, or "study"
+  other modules under `app/code`/`vendor/*`/Magento core to infer conventions, entity shapes,
+  naming, or wiring. Narrow exceptions: the target module/class of this operation, and the specific
+  contract of a module this code explicitly depends on. Affirm sources in the final report. See
+  `magento2-context/references/source-of-truth.md`.
 
 ## Workflow
 
@@ -120,6 +126,8 @@ Interactive flow drives the rest.
 - `references/store-scope.md` — per-store handling in resolvers.
 - `references/schema-migration.md` — non-breaking vs breaking schema changes.
 - `references/n-plus-one-prevention.md` — when to use batch resolver vs eager-load.
+- `magento2-context/references/source-of-truth.md` — source-of-truth hierarchy + the
+  no-unrelated-module-scanning rule (allowed reads, live-doc fetch protocol, report affirmation).
 
 ## Templates
 
