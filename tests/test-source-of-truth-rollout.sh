@@ -22,9 +22,9 @@ FAIL=0
 for s in "${IN_SCOPE[@]}"; do
     f="skills/$s/SKILL.md"
     [ -f "$f" ] || { echo "FAIL: $f not found"; FAIL=1; continue; }
-    grep -qE '^\s*-\s*\*\*Source of truth\.\*\*' "$f" \
+    grep -qE '^[[:space:]]*-[[:space:]]*\*\*Source of truth\.\*\*' "$f" \
         || { echo "FAIL: $f missing **Source of truth.** Core Rule bullet"; FAIL=1; }
-    grep -qE '^\s*-\s*`magento2-context/references/source-of-truth\.md`' "$f" \
+    grep -qE '^[[:space:]]*-[[:space:]]*`magento2-context/references/source-of-truth\.md`' "$f" \
         || { echo "FAIL: $f missing source-of-truth.md reference pointer"; FAIL=1; }
 done
 
