@@ -144,7 +144,7 @@ Write a run report to
 - Surface inventory: entries found per category.
 - Surfaces omitted (not found in the module).
 - Examples skipped due to unresolved types (list field names and the unresolved type).
-- Skill version: `magento2-docs-generate@1.3.0`.
+- Skill version: `magento2-docs-generate@1.3.1`.
 
 ## Inputs
 

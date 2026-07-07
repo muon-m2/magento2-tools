@@ -6,7 +6,7 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased] — Generator source-of-truth-first
+## [1.20.0] — 2026-07-07 — Generator source-of-truth-first
 
 ### Changed
 
@@ -20,6 +20,8 @@ This project adheres to [Semantic Versioning](https://semver.org/).
   `magento2-test-generate`, and `magento2-feature-implement`). Read-only audit/review skills are
   unchanged. Guarded by `tests/test-source-of-truth-reference.sh` and
   `tests/test-source-of-truth-rollout.sh`.
+- Skill patch-bumps (behavioral rule added to each): all 18 touched skills — see
+  `skills/magento2-context/references/skill-versioning.md`.
 
 ## [1.19.1] — 2026-07-05 — Breeze-aware frontend-create routing
 
