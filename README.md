@@ -251,9 +251,9 @@ matching CHANGELOG section as its notes (extracted by `scripts/release-notes.sh`
 CHANGELOG, and tag stay manual.
 
 Also bump the version badge in the [landing page](https://muon-m2.github.io/magento2-tools/)
-hero — the `Claude Code plugin · vX.Y.Z` string in `index.html` on the `gh-pages` branch — and
-re-push `gh-pages` so the published site matches the release. It is a static string with no
-runtime lookup, so it does not update on its own.
+hero — the `Claude Code plugin · vX.Y.Z` string in `index.html` on the `gh-pages` branch — then
+commit and push the updated `gh-pages` branch so the published site matches the release. It is a
+static string with no runtime lookup, so it does not update on its own.
 
 ## Versioning
 
