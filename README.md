@@ -4,6 +4,8 @@ A Claude Code **plugin** of skills for end-to-end Magento 2 engineering: scaffol
 review, testing, bug-fixing, deployment, auditing, and more — built around a shared
 context-resolver so the same toolkit adapts to any project and environment.
 
+🌐 **Website:** <https://muon-m2.github.io/magento2-tools/>
+
 ## Install
 
 ```
@@ -247,6 +249,11 @@ triggers [`.github/workflows/release.yml`](.github/workflows/release.yml), which
 suite, asserts the tag matches both manifest versions, and publishes a GitHub Release with the
 matching CHANGELOG section as its notes (extracted by `scripts/release-notes.sh`). The bump,
 CHANGELOG, and tag stay manual.
+
+Also bump the version badge in the [landing page](https://muon-m2.github.io/magento2-tools/)
+hero — the `Claude Code plugin · vX.Y.Z` string in `index.html` on the `gh-pages` branch — and
+re-push `gh-pages` so the published site matches the release. It is a static string with no
+runtime lookup, so it does not update on its own.
 
 ## Versioning
 
