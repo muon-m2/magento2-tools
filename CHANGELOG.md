@@ -6,6 +6,15 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **Project landing page** at <https://muon-m2.github.io/magento2-tools/> — a single
+  self-contained GitHub Pages site (served from the `gh-pages` branch) linking to the
+  documentation and repository. Linked from the README; the Releasing section documents
+  bumping the hero version badge at each release.
+
 ## [1.20.0] — 2026-07-07 — Generator source-of-truth-first
 
 ### Changed
