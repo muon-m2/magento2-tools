@@ -9,7 +9,7 @@
     queue_publisher.xml, queue_topology.xml, and the publisher's TOPIC constant.
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:noNamespaceSchemaLocation="urn:magento:framework:MessageQueue/etc/communication.xsd">
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Communication/etc/communication.xsd">
     <topic name="{TopicName}"
            request="{Vendor}\{Module}\Api\Data\{EntityName}Interface"/>
 </config>
