@@ -176,7 +176,10 @@ else:
                 "high", "metadata",
                 "composer.json 'require' does not include a PHP version constraint",
                 composer_path, 1,
-                "Add a 'php' constraint (e.g. '>=8.1 <8.4') to 'require'.",
+                "Add a 'php' constraint to 'require' enumerating the PHP versions your "
+                "target Magento supports (e.g. '~8.3.0||~8.4.0||~8.5.0', which is what "
+                "Magento 2.4.9 core declares). Keep it bounded — an open-ended '>=8.3' "
+                "claims support for PHP versions that do not exist yet.",
                 "Add the constraint and run: composer validate",
                 subcategory="php-constraint-missing",
                 tags=["eqp", "marketplace", "blocker"],

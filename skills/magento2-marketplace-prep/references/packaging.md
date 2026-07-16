@@ -41,7 +41,7 @@ the following structure:
     }
   ],
   "require": {
-    "php": ">=8.1",
+    "php": "~8.3.0||~8.4.0||~8.5.0",
     "magento/framework": ">=102.0 <104"
   },
   "autoload": {
@@ -76,6 +76,27 @@ Marketplace requires **stable** version constraints only:
 | `@dev` | **No** | Dev stability flag |
 | `*` (wildcard alone) | **No** | Unbounded constraint |
 | `~1.0.0` | Yes | Tilde range (patch only) |
+
+### The `php` constraint
+
+Do not copy the example above verbatim — derive it. Enumerate the PHP versions supported
+by every Magento version your extension targets, and bound it at both ends:
+
+- **Mirror the core.** Each Magento release declares its own `php` constraint in
+  `composer.json`. Match it for the versions you support, then take the union. Magento
+  2.4.9 declares `~8.3.0||~8.4.0||~8.5.0`; 2.4.8 declares `~8.2.0||~8.3.0||~8.4.0`. An
+  extension supporting both would use `~8.2.0||~8.3.0||~8.4.0||~8.5.0`.
+- **Never leave it open-ended.** `>=8.3` claims support for PHP versions that do not exist
+  yet and cannot have been tested. EQP permits it (the M9 unbounded check skips `php`), but
+  it is a support liability, not a passing grade.
+- **Do not set the ceiling below a supported PHP.** A constraint like `>=8.1 <8.4` refuses
+  to install on PHP 8.4 and 8.5 — both supported by current Magento — so the extension
+  silently drops off modern stores.
+
+Note that Magento's *installable* PHP floor and its *production-supported* floor can
+differ. For 2.4.9, PHP 8.3 satisfies the composer constraint but Adobe designates it
+upgrade-only and validates against 8.5 — so a constraint that admits 8.3 is legitimate for
+upgrade paths while 8.3 is not a target worth advertising support for.
 
 ## Validating the Package
 
