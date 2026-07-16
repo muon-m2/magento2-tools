@@ -45,7 +45,7 @@ skills evolve.
 
 ## Changelog (last update: 2026-07-16)
 
-- **Plugin Unreleased — Dangling schema URNs fixed.** Four generators emitted an
+- **Plugin 1.20.1 — Dangling schema URNs fixed.** Four generators emitted an
   `xsi:noNamespaceSchemaLocation` URN resolving to a non-existent `.xsd`, so generated modules
   failed schema validation at runtime despite being well-formed XML: `config.xml` pointed at
   `framework:App/etc/config.xsd` (correct: `module:Magento_Store:etc/config.xsd`),

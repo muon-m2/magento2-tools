@@ -6,7 +6,7 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.20.1] — 2026-07-16 — Landing page + schema URN fixes
 
 ### Added
 
