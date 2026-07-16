@@ -35,6 +35,29 @@ jget_php() {
     fi
 }
 
+# Read `extra.magento_version` off a named package in composer.lock.
+# Usage: lock_extra_magento_version <lock-file> <package-name>
+#
+# jget_php walks a dot path, but lock packages live in a `packages` ARRAY and must be
+# found by name — hence a separate helper rather than a path expression.
+lock_extra_magento_version() {
+    local file="$1"; local pkg="$2"
+    if command -v php >/dev/null 2>&1; then
+        php -r "
+            \$d = json_decode(file_get_contents('$file'), true);
+            if (!is_array(\$d)) { exit(0); }
+            foreach (['packages', 'packages-dev'] as \$sect) {
+                if (!isset(\$d[\$sect]) || !is_array(\$d[\$sect])) { continue; }
+                foreach (\$d[\$sect] as \$p) {
+                    if (!is_array(\$p) || (\$p['name'] ?? '') !== '$pkg') { continue; }
+                    \$v = \$p['extra']['magento_version'] ?? null;
+                    if (is_scalar(\$v)) { echo \$v; exit(0); }
+                }
+            }
+        " 2>/dev/null || true
+    fi
+}
+
 # --- Helpers ---
 # Portable JSON string escaping. Tab handling uses a literal tab via printf rather than
 # sed's `\t` (BSD/macOS sed treats `\t` in the pattern as the letter "t", which corrupted
@@ -313,6 +336,8 @@ FRAMEWORK_CONSTRAINT="null"
 
 COMPOSER_JSON="${MAGENTO_ROOT}/composer.json"
 [[ ! -f "$COMPOSER_JSON" && -f "composer.json" ]] && COMPOSER_JSON="composer.json"
+COMPOSER_LOCK="${MAGENTO_ROOT}/composer.lock"
+[[ ! -f "$COMPOSER_LOCK" && -f "composer.lock" ]] && COMPOSER_LOCK="composer.lock"
 
 if [[ -f "$COMPOSER_JSON" ]] && command -v php >/dev/null 2>&1; then
     ent=$(jget_php "$COMPOSER_JSON" "require.magento/product-enterprise-edition")
@@ -338,9 +363,27 @@ if [[ -f "$COMPOSER_JSON" ]] && command -v php >/dev/null 2>&1; then
     elif [[ -n "$mageos" ]]; then
         # Mage-OS — the community fork; its product metapackage is mage-os/product-community-edition.
         EDITION="mage-os"
-        MAGENTO_VERSION=$(printf '%s' "$mageos" | sed -E 's/[~^>=<* ]//g' | head -c 40)
         EDITION_SRC="${COMPOSER_JSON}:mage-os/product-community-edition"
-        MAGENTO_VERSION_SRC="$EDITION_SRC"
+        # Mage-OS versions its distribution INDEPENDENTLY of Magento: Mage-OS 3.2.0 is
+        # based on Magento 2.4.9. So — unlike every branch above — the `require`
+        # constraint here is NOT a Magento version, and stripping its operators yields
+        # "3.2.0", which matches no 2.4.x range in cve-scan.sh's version_in_range() or in
+        # the BC-break matrix. That produced silent false negatives on security scans.
+        #
+        # The base is published as extra.magento_version on the metapackage; composer.lock
+        # carries the installed, pinned metadata, so it is the source of truth.
+        base=""
+        [[ -f "$COMPOSER_LOCK" ]] && base=$(lock_extra_magento_version "$COMPOSER_LOCK" "mage-os/product-community-edition")
+        if [[ -n "$base" ]]; then
+            MAGENTO_VERSION="$base"
+            MAGENTO_VERSION_SRC="${COMPOSER_LOCK}:mage-os/product-community-edition:extra.magento_version"
+        else
+            # Honest gap: with no lock entry we cannot map the distribution version onto a
+            # Magento base. Falling back to the constraint would resurrect the bug above,
+            # so leave it null and say why — downstream can probe the CLI or ask the user.
+            MAGENTO_VERSION="null"
+            MAGENTO_VERSION_SRC="unresolved: no composer.lock entry for mage-os/product-community-edition (Mage-OS distribution version is not a Magento version)"
+        fi
     fi
     pc=$(jget_php "$COMPOSER_JSON" "require.php")
     [[ -n "$pc" ]] && PHP_CONSTRAINT="$pc"
