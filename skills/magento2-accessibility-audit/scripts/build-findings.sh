@@ -120,6 +120,6 @@ export TARGET_MODULE TARGET_PATH SCOPE OUTPUT_DIR
 export SKILL_NAME="magento2-accessibility-audit"
 export SKILL_VERSION
 export OUTPUT_KIND="accessibility"
-export SKILL_VERSIONS_JSON="[\"magento2-accessibility-audit@${SKILL_VERSION}\",\"magento2-context@1.9.0\"]"
+export SKILL_VERSIONS_JSON="[\"magento2-accessibility-audit@${SKILL_VERSION}\",\"magento2-context@1.10.0\"]"
 
 BASENAME_KIND="a11y" bash "$EMIT_FINDINGS"

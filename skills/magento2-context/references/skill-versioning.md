@@ -9,7 +9,7 @@ skills evolve.
 
 | Skill                      | Version | Bumped when                                                         |
 |----------------------------|---------|---------------------------------------------------------------------|
-| magento2-context           | 1.9.0   | JSON schema changes, new resolution rules, new tool probes          |
+| magento2-context           | 1.10.0  | JSON schema changes, new resolution rules, new tool probes          |
 | magento2-module-create     | 1.10.2  | New template added, surface added, naming rule changed              |
 | magento2-module-review     | 2.4.0   | New checklist category, severity calibration change, new JSON field, fix-routing change |
 | magento2-feature-implement | 2.13.1  | New phase, new approval gate, mode added, new task types (I/C/L/Q), template structure change, delegation/fallback discipline, advisory model-tier field |
@@ -44,6 +44,19 @@ skills evolve.
 | magento2-audit             | 1.0.0   | New dimension added, consolidation/dedup or verdict rule change                |
 
 ## Changelog (last update: 2026-07-16)
+
+- **`magento2-context` 1.9.0 → 1.10.0 — `distribution_version` added.** The context JSON now
+  reports what is actually installed alongside the Magento base. On the `magento/*` editions
+  the two are identical (those metapackages version in lockstep with Magento); on Mage-OS
+  they diverge — Mage-OS 3.2.0 is based on Magento 2.4.9 — and the distribution version is
+  read from the `mage-os/product-community-edition` entry in `composer.lock`, falling back to
+  the composer.json constraint (disclosed in `resolution_source`) when no lock is present.
+  Additive and optional, so `schemaVersion` stays `1.0`.
+  - CTX-9: `distribution_version` mirrors `magento_version` on non-fork editions so consumers
+    read one field with no edition branching. On Mage-OS it is the only patch-level signal —
+    3.0.0/3.1.0/3.2.0 all report base 2.4.9, and only 3.2.0 carries Adobe's isolated patch
+    `249-2026-07-001`. Guarded by `tests/test-context-distribution-version.sh` and
+    `tests/test-context-mageos-base-version.sh`.
 
 - **Plugin 1.20.1 — Dangling schema URNs fixed.** Four generators emitted an
   `xsi:noNamespaceSchemaLocation` URN resolving to a non-existent `.xsd`, so generated modules

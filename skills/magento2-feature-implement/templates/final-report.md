@@ -9,7 +9,7 @@ Skill versions:
 - magento2-feature-implement@2.13.1
   - magento2-module-create@1.10.2
   - magento2-module-review@2.4.0
-  - magento2-context@1.9.0
+  - magento2-context@1.10.0
 
 ---
 

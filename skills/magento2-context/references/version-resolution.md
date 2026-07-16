@@ -58,6 +58,44 @@ Two consequences worth knowing:
   zero `magento/*` packages, so nothing detects it by grepping the lock for
   `magento/product-community-edition`.
 
+### `distribution_version`
+
+`distribution_version` records **what is actually installed**, as opposed to the Magento
+base `magento_version` records.
+
+| edition | `magento_version` | `distribution_version` |
+|---|---|---|
+| `open-source` | constraint on `magento/product-community-edition` | mirrors `magento_version` |
+| `commerce` | constraint on `magento/product-enterprise-edition` | mirrors `magento_version` |
+| `commerce-cloud` | constraint (enterprise, else cloud metapackage) | mirrors `magento_version` |
+| `mage-os` | lock `extra.magento_version`, else `null` | lock package `version`, else stripped constraint |
+
+Mirroring on the `magento/*` editions is truthful rather than a placeholder: those product
+metapackages version in lockstep with Magento. Mage-OS is the only known distribution that
+versions independently, so it is the only branch where the two fields differ.
+
+The four Mage-OS shapes:
+
+| composer.lock | `magento_version` | `distribution_version` |
+|---|---|---|
+| present, entry found | `2.4.9` (from `extra.magento_version`) | `3.2.0` (from lock `version`) |
+| present, no entry | `null` + reason | `3.2.0` (from constraint) |
+| absent | `null` + reason | `3.2.0` (from constraint) |
+| absent, constraint unparseable | `null` + reason | `null` + reason |
+
+Note the deliberate asymmetry: falling back to the composer.json constraint is **forbidden**
+for `magento_version` (the constraint says nothing about the base — that is the bug guarded
+by `tests/test-context-mageos-base-version.sh`) but **legitimate** for
+`distribution_version`, because the constraint *is* a distribution constraint. When it is
+used, the source string says `(constraint, not a pinned version)` so a reader can tell an
+exact release from an approximation.
+
+> **Why this field exists.** Mage-OS `3.0.0`, `3.1.0` and `3.2.0` all report
+> `extra.magento_version: 2.4.9`, and only `3.2.0` carries Adobe's isolated security patch
+> `249-2026-07-001` (shipped 2026-07-14). `magento_version` therefore cannot distinguish a
+> patched Mage-OS store from an unpatched one; `distribution_version` is the only signal
+> that can.
+
 ## `php_constraint`
 
 1. **`src/composer.json`** — read `require.php`.

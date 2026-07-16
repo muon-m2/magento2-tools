@@ -128,6 +128,6 @@ export TARGET_MODULE TARGET_PATH SCOPE OUTPUT_DIR
 export SKILL_NAME="magento2-marketplace-prep"
 export SKILL_VERSION
 export OUTPUT_KIND="marketplace"
-export SKILL_VERSIONS_JSON="[\"magento2-marketplace-prep@${SKILL_VERSION}\",\"magento2-context@1.9.0\"]"
+export SKILL_VERSIONS_JSON="[\"magento2-marketplace-prep@${SKILL_VERSION}\",\"magento2-context@1.10.0\"]"
 
 BASENAME_KIND="readiness" POST_JSON_HOOK="${SCRIPT_DIR}/compute-readiness-score.sh" bash "$EMIT_FINDINGS"

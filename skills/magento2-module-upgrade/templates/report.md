@@ -6,7 +6,7 @@ Skill versions:
   - magento2-module-upgrade@1.2.0
   - magento2-module-review@2.4.0
   - magento2-test-generate@1.2.1
-  - magento2-context@1.9.0
+  - magento2-context@1.10.0
 
 ## Scope
 

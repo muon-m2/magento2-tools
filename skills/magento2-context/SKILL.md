@@ -61,7 +61,7 @@ to `.claude/.cache/magento2-context.json`.
 {
   "schemaVersion": "1.0",
   "skill": "magento2-context",
-  "skillVersion": "1.9.0",
+  "skillVersion": "1.10.0",
   "resolvedAt": "2026-05-26T14:30:00Z",
   "cacheKey": "lock:sha256-...;json:sha256-...;claude:sha256-...;m2:sha256-...;env:<M2_MAGENTO_ROOT>|<M2_PHP_CONTAINER>",
 
@@ -74,6 +74,7 @@ to `.claude/.cache/magento2-context.json`.
   "docs_root": ".docs",
   "edition": "open-source",
   "magento_version": "2.4.7-p1",
+  "distribution_version": "2.4.7-p1",
 
   "php_version": "8.2.15",
   "php_constraint": "~8.2.0",
@@ -123,6 +124,7 @@ to `.claude/.cache/magento2-context.json`.
     "composer": "{runner} + composer",
     "edition": "src/composer.json:magento/product-community-edition",
     "magento_version": "src/composer.json:magento/product-community-edition",
+    "distribution_version": "src/composer.json:magento/product-community-edition (mirrors magento_version)",
     "php_version": "docker-compose:php -r",
     "theme.frontend": "src/composer.json:hyva-themes/* dependency",
     "theme.adminhtml": "src/app/etc/config.php:themes[].area=adminhtml"
@@ -148,6 +150,17 @@ to `.claude/.cache/magento2-context.json`.
   Use this when you need to branch on the runner *mode* rather than its string form.
   Treat `null` as "no PHP environment detected"; `bare` is valid even though `runner`
   is empty.
+- `magento_version` / `distribution_version` — two different questions. `magento_version`
+  is the **Magento base**: which Magento APIs exist, and what version ranges (CVE
+  advisories, the BC-break matrix) compare against. `distribution_version` is **what you
+  actually installed**. On the `magento/*` editions they are identical, because those
+  product metapackages version in lockstep with Magento. On Mage-OS they diverge —
+  Mage-OS `3.2.0` is based on Magento `2.4.9` — and the distribution version is the only
+  patch-level signal, since `3.0.0`, `3.1.0` and `3.2.0` all report base `2.4.9`.
+  Read `distribution_version` to answer "which release is deployed?" and `magento_version`
+  to answer "which Magento is this?". Mage-OS mirrors this same split in its own API
+  (`ProductMetadata::getVersion()` vs `getDistributionVersion()`). See
+  `references/version-resolution.md`.
 - `theme.frontend` / `theme.adminhtml` — active theme as resolved from
   `app/etc/config.php`. `null` when no active theme can be confirmed; never silently
   defaulted to `custom`. Always read alongside `theme.frontend_source` /
