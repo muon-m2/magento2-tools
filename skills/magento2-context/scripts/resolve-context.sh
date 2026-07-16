@@ -398,6 +398,31 @@ if [[ -f "$COMPOSER_JSON" ]] && command -v php >/dev/null 2>&1; then
             MAGENTO_VERSION="null"
             MAGENTO_VERSION_SRC="unresolved: no composer.lock entry for mage-os/product-community-edition (Mage-OS distribution version is not a Magento version)"
         fi
+
+        # Distribution version = the Mage-OS release actually installed (3.2.0), as
+        # opposed to the Magento base it is built on (2.4.9). This is the patch-level
+        # signal: 3.0.0/3.1.0/3.2.0 all report base 2.4.9, so magento_version alone
+        # cannot tell a patched store from an unpatched one.
+        #
+        # Unlike the base, the composer.json constraint IS a distribution constraint —
+        # so stripping it is a legitimate fallback here, exactly as the magento/*
+        # branches do. Note the deliberate asymmetry with MAGENTO_VERSION above, where
+        # that same fallback is the bug this file guards against.
+        dist=""
+        [[ -f "$COMPOSER_LOCK" ]] && dist=$(lock_pkg_get "$COMPOSER_LOCK" "mage-os/product-community-edition" "version")
+        if [[ -n "$dist" ]]; then
+            DISTRIBUTION_VERSION="$dist"
+            DISTRIBUTION_VERSION_SRC="${COMPOSER_LOCK}:mage-os/product-community-edition:version"
+        else
+            dist=$(printf '%s' "$mageos" | sed -E 's/[~^>=<* ]//g' | head -c 40)
+            if [[ -n "$dist" ]]; then
+                DISTRIBUTION_VERSION="$dist"
+                DISTRIBUTION_VERSION_SRC="${COMPOSER_JSON}:mage-os/product-community-edition (constraint, not a pinned version)"
+            else
+                DISTRIBUTION_VERSION="null"
+                DISTRIBUTION_VERSION_SRC="unresolved: the mage-os/product-community-edition constraint yielded no version"
+            fi
+        fi
     fi
     pc=$(jget_php "$COMPOSER_JSON" "require.php")
     [[ -n "$pc" ]] && PHP_CONSTRAINT="$pc"

@@ -90,6 +90,27 @@ if "composer.lock" not in src:
     print(f"FAIL: resolution_source.magento_version={src!r} "
           f"(expected it to cite composer.lock)")
     sys.exit(1)
+
+# The distribution version is the Mage-OS release actually installed — and the ONLY
+# signal that distinguishes a patched store from an unpatched one, since 3.0.0, 3.1.0
+# and 3.2.0 all report base 2.4.9 while only 3.2.0 carries Adobe's July patch.
+dv = d.get("distribution_version")
+dv_src = d.get("resolution_source", {}).get("distribution_version") or ""
+
+if dv != "3.2.0":
+    print(f"FAIL: distribution_version={dv!r} (expected '3.2.0' from the "
+          f"composer.lock package version)")
+    sys.exit(1)
+
+if dv == d.get("magento_version"):
+    print("FAIL: distribution_version mirrors magento_version on Mage-OS — the two "
+          "MUST diverge here (3.2.0 is based on 2.4.9)")
+    sys.exit(1)
+
+if "composer.lock" not in dv_src:
+    print(f"FAIL: resolution_source.distribution_version={dv_src!r} "
+          f"(expected it to cite composer.lock)")
+    sys.exit(1)
 PY
 [ $? -eq 0 ] || exit 1
 
@@ -128,6 +149,29 @@ if not src:
 # edition must survive: we still know it is a Mage-OS store, we just lack the base.
 if d.get("edition") != "mage-os":
     print(f"FAIL: edition={d.get('edition')!r} (expected 'mage-os' even without a lock)")
+    sys.exit(1)
+
+# Losing the base is no reason to also suppress the distribution. Unlike the base, the
+# composer.json constraint IS a distribution constraint, so stripping "~3.2.0" -> "3.2.0"
+# is legitimate here. This asymmetry is deliberate: the same fallback is FORBIDDEN for
+# magento_version above.
+dv = d.get("distribution_version")
+dv_src = d.get("resolution_source", {}).get("distribution_version") or ""
+
+if dv != "3.2.0":
+    print(f"FAIL: distribution_version={dv!r} with no lock (expected '3.2.0' stripped "
+          f"from the composer.json constraint)")
+    sys.exit(1)
+
+if not dv_src:
+    print("FAIL: distribution_version set but resolution_source is empty")
+    sys.exit(1)
+
+# The source must reveal this came from a constraint, not a pinned version — a reader
+# must be able to tell an exact release from an approximation.
+if "constraint" not in dv_src:
+    print(f"FAIL: resolution_source.distribution_version={dv_src!r} does not disclose "
+          f"that the value came from a constraint rather than a pinned version")
     sys.exit(1)
 PY
 [ $? -eq 0 ] || exit 1
