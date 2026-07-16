@@ -50,7 +50,7 @@ a DTO rather than an array:
 
 `request` is the FQCN of the message interface. The framework uses it to (de)serialize the
 payload on publish and to type-check the consumer's argument. Schema URN:
-`urn:magento:framework:MessageQueue/etc/communication.xsd`.
+`urn:magento:framework:Communication/etc/communication.xsd`.
 
 ### queue_publisher.xml — where to publish
 

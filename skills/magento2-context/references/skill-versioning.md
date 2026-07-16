@@ -10,7 +10,7 @@ skills evolve.
 | Skill                      | Version | Bumped when                                                         |
 |----------------------------|---------|---------------------------------------------------------------------|
 | magento2-context           | 1.9.0   | JSON schema changes, new resolution rules, new tool probes          |
-| magento2-module-create     | 1.10.1  | New template added, surface added, naming rule changed              |
+| magento2-module-create     | 1.10.2  | New template added, surface added, naming rule changed              |
 | magento2-module-review     | 2.4.0   | New checklist category, severity calibration change, new JSON field, fix-routing change |
 | magento2-feature-implement | 2.13.1  | New phase, new approval gate, mode added, new task types (I/C/L/Q), template structure change, delegation/fallback discipline, advisory model-tier field |
 | magento2-bug-fix           | 1.1.0   | Workflow phase change, RCA format change                            |
@@ -27,12 +27,12 @@ skills evolve.
 | magento2-release           | 1.2.1   | New tag convention, new publish target                              |
 | magento2-i18n              | 1.3.0   | New extraction pattern, new placeholder rule                        |
 | magento2-adminhtml-form    | 1.1.2   | New template/surface added, field-type pattern, controller change   |
-| magento2-adminhtml-listing | 1.1.2   | New template/column type, mass-action change, wiring change         |
+| magento2-adminhtml-listing | 1.1.3   | New template/column type, mass-action change, wiring change         |
 | magento2-webapi-create     | 1.0.3   | New template/route/auth-scope, service-contract change, custom-action pattern |
 | magento2-extension-point   | 1.1.2   | New mode/template added, interception pattern change                          |
-| magento2-system-config     | 1.1.2   | New field type/template, config-reader pattern change                         |
+| magento2-system-config     | 1.1.3   | New field type/template, config-reader pattern change                         |
 | magento2-cli-command       | 1.1.2   | New mode/template, command or cron pattern change                             |
-| magento2-message-queue     | 1.1.2   | New connection type/template, topic or consumer pattern change                |
+| magento2-message-queue     | 1.1.3   | New connection type/template, topic or consumer pattern change                |
 | magento2-static-analysis   | 1.1.0   | New tool/rule, autofix-safety calibration change                              |
 | magento2-docs-generate     | 1.3.1   | New docs (developer/user guide, REST+GraphQL reference), example/diagram derivation |
 | magento2-indexer           | 1.1.2   | New indexer/mview pattern, dimension support                                  |
@@ -43,8 +43,20 @@ skills evolve.
 | magento2-breeze-compat-audit | 1.1.0 | New check/pattern, severity calibration change                                |
 | magento2-audit             | 1.0.0   | New dimension added, consolidation/dedup or verdict rule change                |
 
-## Changelog (last update: 2026-07-05)
+## Changelog (last update: 2026-07-16)
 
+- **Plugin Unreleased — Dangling schema URNs fixed.** Four generators emitted an
+  `xsi:noNamespaceSchemaLocation` URN resolving to a non-existent `.xsd`, so generated modules
+  failed schema validation at runtime despite being well-formed XML: `config.xml` pointed at
+  `framework:App/etc/config.xsd` (correct: `module:Magento_Store:etc/config.xsd`),
+  `communication.xml` at `framework:MessageQueue/…` and `framework-message-queue:…` (correct:
+  `framework:Communication/etc/communication.xsd`), and adminhtml `routes.xml` at
+  `module:Magento_Backend:etc/routes.xsd` (correct: `framework:App/etc/routes.xsd`, as
+  `magento2-adminhtml-form` already used). All 27 shipped URNs were verified against
+  `magento/magento2` 2.4-develop; new `tests/test-template-urn.sh` pins them to a verified
+  allowlist. Patch bumps: `magento2-module-create 1.10.1 → 1.10.2` (token ripple:
+  `magento2-feature-implement/templates/final-report.md`), `magento2-adminhtml-listing 1.1.2 → 1.1.3`,
+  `magento2-system-config 1.1.2 → 1.1.3`, `magento2-message-queue 1.1.2 → 1.1.3`.
 - **Plugin 1.19.1 — Breeze-aware `magento2-frontend-create` routing.** The frontend
   scaffolder now reads `theme.breeze` from `magento2-context` and routes Swissup Breeze
   (Breezefront) work to the dedicated skills instead of falling into its Luma default: a

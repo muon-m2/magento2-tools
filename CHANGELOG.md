@@ -15,6 +15,32 @@ This project adheres to [Semantic Versioning](https://semver.org/).
   documentation and repository. Linked from the README; the Releasing section documents
   bumping the hero version badge at each release.
 
+### Fixed
+
+- **Three dangling schema URNs in generated XML.** Four generators emitted an
+  `xsi:noNamespaceSchemaLocation` pointing at an `.xsd` that does not exist, so a generated
+  module failed validation at runtime (`Could not find schema file` on cache flush /
+  `setup:upgrade`) even though the XML was well-formed:
+  - `etc/config.xml` used `urn:magento:framework:App/etc/config.xsd` — `App/etc/` ships no
+    `config.xsd`; the schema is `urn:magento:module:Magento_Store:etc/config.xsd`
+    (`magento2-system-config`).
+  - `etc/communication.xml` used `urn:magento:framework:MessageQueue/etc/communication.xsd`
+    (`magento2-message-queue`) and `urn:magento:framework-message-queue:etc/communication.xsd`
+    (`magento2-module-create`) — `communication.xsd` lives in neither; it is
+    `urn:magento:framework:Communication/etc/communication.xsd`. The sibling
+    `framework-message-queue` URNs for `topology`/`publisher`/`consumer` were already correct.
+  - `etc/adminhtml/routes.xml` used `urn:magento:module:Magento_Backend:etc/routes.xsd`
+    (`magento2-module-create`, `magento2-adminhtml-listing`) — admin routes use the same
+    `urn:magento:framework:App/etc/routes.xsd` as frontend routes, as
+    `magento2-adminhtml-form` already did.
+
+  All 27 URNs shipped in the repo were verified against `magento/magento2` 2.4-develop; the
+  remaining 24 were already correct. New `tests/test-template-urn.sh` pins every URN to a
+  verified allowlist — `test-template-xml-lint.sh` only proves well-formedness and never
+  resolves the schema location, which is how these shipped. Patch bumps:
+  `magento2-module-create 1.10.1 → 1.10.2`, `magento2-adminhtml-listing 1.1.2 → 1.1.3`,
+  `magento2-system-config 1.1.2 → 1.1.3`, `magento2-message-queue 1.1.2 → 1.1.3`.
+
 ## [1.20.0] — 2026-07-07 — Generator source-of-truth-first
 
 ### Changed

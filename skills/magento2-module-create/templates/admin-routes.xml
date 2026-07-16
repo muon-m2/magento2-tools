@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/routes.xsd">
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:App/etc/routes.xsd">
     <router id="admin">
         <route id="{vendor_lower}_{module_lower}" frontName="{vendor_lower}_{module_lower}">
             <module name="{Vendor}_{ModuleName}" before="Magento_Backend"/>
