@@ -414,13 +414,28 @@ if [[ -f "$COMPOSER_JSON" ]] && command -v php >/dev/null 2>&1; then
             DISTRIBUTION_VERSION="$dist"
             DISTRIBUTION_VERSION_SRC="${COMPOSER_LOCK}:mage-os/product-community-edition:version"
         else
-            dist=$(printf '%s' "$mageos" | sed -E 's/[~^>=<* ]//g' | head -c 40)
-            if [[ -n "$dist" ]]; then
+            # IMPORTANT (CTX-Compound): strip operator CHARACTERS only — deliberately NOT
+            # the space — because this sed does not PARSE the constraint, it deletes
+            # characters. A simple constraint ("~3.2.0") strips cleanly to "3.2.0", but a
+            # compound/range constraint (">=3.0 <4.0") used to strip the space too and
+            # glue the two bounds into "3.04.0" — a PLAUSIBLE-LOOKING but WRONG version
+            # that compares cleanly and can silently fall outside an affected CVE range.
+            # That is a silent false negative, worse than failing closed. Leaving the
+            # space in place means the validation below (which has no room for whitespace
+            # in its grammar) rejects any leftover space instead of us trusting a
+            # concatenation.
+            dist=$(printf '%s' "$mageos" | sed -E 's/[~^>=<*]//g' | head -c 40)
+            # Validate the sed OUTPUT before trusting it: only a single, well-formed
+            # version (optionally with a -pN patch suffix) is accepted. Anything else —
+            # a leftover space from a compound constraint, wildcards that don't fully
+            # strip ("3.2.*" -> "3.2."), stray text — nulls out with a reason naming the
+            # raw constraint, rather than publishing a fiction.
+            if [[ -n "$dist" && "$dist" =~ ^[0-9]+(\.[0-9]+)*(-p[0-9]+)?$ ]]; then
                 DISTRIBUTION_VERSION="$dist"
                 DISTRIBUTION_VERSION_SRC="${COMPOSER_JSON}:mage-os/product-community-edition (constraint, not a pinned version)"
             else
                 DISTRIBUTION_VERSION="null"
-                DISTRIBUTION_VERSION_SRC="unresolved: the mage-os/product-community-edition constraint yielded no version"
+                DISTRIBUTION_VERSION_SRC="unresolved: the mage-os/product-community-edition constraint (\"${mageos}\") could not be parsed into a single version"
             fi
         fi
     fi

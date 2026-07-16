@@ -176,4 +176,58 @@ if "constraint" not in dv_src:
 PY
 [ $? -eq 0 ] || exit 1
 
+# --- Honest gap: a COMPOUND constraint must not garble into a plausible-wrong version --
+# The stripped-operators fallback above (`sed -E 's/[~^>=<* ]//g'`) is legitimate for a
+# simple constraint like "~3.2.0" -> "3.2.0". But it does not PARSE — it just deletes
+# operator characters — so a compound constraint mangles into digits glued together:
+#   ">=3.0 <4.0"  -> "3.04.0"   which cve-scan's parse_version() reads as (3, 4, 0, 0):
+#                                a PLAUSIBLE-LOOKING but WRONG version that can compare
+#                                cleanly and fall outside an affected range.
+# That is a silent false negative, not a fail-closed gap — worse than the "3.2." case
+# (from "3.2.*"), which at least fails to parse. The fix validates the sed output against
+# `^[0-9]+(\.[0-9]+)*(-p[0-9]+)?$` and nulls it out with an explanatory reason when it
+# does not match, rather than publishing a number nobody asked for.
+cat > "$WORK/composer.json" <<'EOF'
+{
+  "require": {
+    "mage-os/product-community-edition": ">=3.0 <4.0"
+  }
+}
+EOF
+# No composer.lock — already removed above; the constraint fallback is what runs.
+
+OUT="$(cd "$WORK" && bash skills/magento2-context/scripts/resolve-context.sh --no-cache 2>/dev/null || true)"
+
+python3 - "$OUT" <<'PY'
+import sys, json
+d = json.loads(sys.argv[1])
+
+dv = d.get("distribution_version")
+dv_src = d.get("resolution_source", {}).get("distribution_version") or ""
+
+if dv == "3.04.0":
+    print("FAIL: distribution_version=3.04.0 — the compound constraint '>=3.0 <4.0' was "
+          "garbled by stripping operators instead of being parsed. This is a PLAUSIBLE "
+          "but WRONG version that can silently fall outside an affected CVE range.")
+    sys.exit(1)
+
+if dv is not None:
+    print(f"FAIL: distribution_version={dv!r} (expected JSON null — a compound "
+          f"constraint cannot be resolved to a single version)")
+    sys.exit(1)
+
+# A null must always explain itself, and must name the raw constraint so a reader can
+# see exactly what could not be parsed.
+if not dv_src:
+    print("FAIL: distribution_version is null but resolution_source.distribution_version "
+          "is empty (honest-gap rule: a gap must say why)")
+    sys.exit(1)
+
+if ">=3.0 <4.0" not in dv_src:
+    print(f"FAIL: resolution_source.distribution_version={dv_src!r} does not cite the "
+          f"raw constraint that could not be parsed")
+    sys.exit(1)
+PY
+[ $? -eq 0 ] || exit 1
+
 exit 0

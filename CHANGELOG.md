@@ -20,7 +20,7 @@ This project adheres to [Semantic Versioning](https://semver.org/).
   composer.json constraint — disclosed in `resolution_source` as
   `"(constraint, not a pinned version)"` — when no lock is present. Additive and optional,
   so `schemaVersion` stays `1.0`. Skill bump: `magento2-context 1.9.0 → 1.10.0` (with the
-  `@version` token refs in 20 dependent skills tracking the hub).
+  `@version` token refs in 19 files across 13 dependent skills tracking the hub).
 
   This is the Mage-OS patch-level signal: `3.0.0`, `3.1.0` and `3.2.0` **all** report base
   `2.4.9`, and only `3.2.0` carries Adobe's isolated security patch `249-2026-07-001`
@@ -52,6 +52,22 @@ This project adheres to [Semantic Versioning](https://semver.org/).
   `magento/product-mage-os-edition`, a package that exists nowhere, and recommended upgrading
   to a Magento version the distribution cannot install; they now cite
   `mage-os/product-community-edition` and point at the Mage-OS release whose base is fixed.
+
+- **Commerce Cloud stores silently reported clean by the security audit** — the same bug
+  class and the same function as the Mage-OS fix above, just the other fork. `cve-scan.sh`'s
+  `advisory_edition()` mapped only `mage-os` onto the advisory vocabulary and passed every
+  other edition through unchanged; `commerce-cloud` therefore equalled neither `open-source`
+  nor `commerce`, so **every** advisory was skipped and a vulnerable Commerce Cloud store
+  reported clean. Commerce Cloud ships the cloud metapackage on top of the enterprise
+  edition — it is Adobe Commerce plus a deployment layer, not a separate product line — so a
+  `commerce` advisory genuinely applies; it now maps onto `commerce` (and, unlike Mage-OS,
+  does not additionally inherit `open-source` advisories, since Cloud is not a fork of Open
+  Source). Findings on `commerce-cloud`, `commerce`, and `open-source` stores also cited
+  fictional packages (`magento/product-commerce-cloud-edition`,
+  `magento/product-commerce-edition`, `magento/product-open-source-edition` — none exist);
+  package-name lookup is now an explicit mapping onto the real metapackages
+  (`magento/product-enterprise-edition`, `magento/product-community-edition`) instead of
+  interpolating the edition string into a name.
 
 - **Two false rows in the PHP support matrix.** 2.4.8 was documented as requiring a minimum of
   PHP 8.3 and having "dropped PHP 8.1 and 8.2" — marked `status: live`, the marker that
