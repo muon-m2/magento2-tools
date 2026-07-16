@@ -337,6 +337,8 @@ EDITION="null"
 EDITION_SRC=""
 MAGENTO_VERSION="null"
 MAGENTO_VERSION_SRC=""
+DISTRIBUTION_VERSION="null"
+DISTRIBUTION_VERSION_SRC=""
 PHP_CONSTRAINT="null"
 FRAMEWORK_CONSTRAINT="null"
 
@@ -356,16 +358,22 @@ if [[ -f "$COMPOSER_JSON" ]] && command -v php >/dev/null 2>&1; then
         MAGENTO_VERSION=$(printf '%s' "${ent:-$cloud}" | sed -E 's/[~^>=<* ]//g' | head -c 40)
         EDITION_SRC="${COMPOSER_JSON}:magento/magento-cloud-metapackage"
         MAGENTO_VERSION_SRC="$EDITION_SRC"
+        DISTRIBUTION_VERSION="$MAGENTO_VERSION"
+        DISTRIBUTION_VERSION_SRC="${MAGENTO_VERSION_SRC} (mirrors magento_version)"
     elif [[ -n "$ent" ]]; then
         EDITION="commerce"
         MAGENTO_VERSION=$(printf '%s' "$ent" | sed -E 's/[~^>=<* ]//g' | head -c 40)
         EDITION_SRC="${COMPOSER_JSON}:magento/product-enterprise-edition"
         MAGENTO_VERSION_SRC="$EDITION_SRC"
+        DISTRIBUTION_VERSION="$MAGENTO_VERSION"
+        DISTRIBUTION_VERSION_SRC="${MAGENTO_VERSION_SRC} (mirrors magento_version)"
     elif [[ -n "$com" ]]; then
         EDITION="open-source"
         MAGENTO_VERSION=$(printf '%s' "$com" | sed -E 's/[~^>=<* ]//g' | head -c 40)
         EDITION_SRC="${COMPOSER_JSON}:magento/product-community-edition"
         MAGENTO_VERSION_SRC="$EDITION_SRC"
+        DISTRIBUTION_VERSION="$MAGENTO_VERSION"
+        DISTRIBUTION_VERSION_SRC="${MAGENTO_VERSION_SRC} (mirrors magento_version)"
     elif [[ -n "$mageos" ]]; then
         # Mage-OS — the community fork; its product metapackage is mage-os/product-community-edition.
         EDITION="mage-os"
@@ -609,6 +617,7 @@ cat > "$CACHE_TMP" <<EOF
   "docs_root": ".docs",
   "edition": $(json_or_null "$EDITION"),
   "magento_version": $(json_or_null "$MAGENTO_VERSION"),
+  "distribution_version": $(json_or_null "$DISTRIBUTION_VERSION"),
 
   "php_version": $(json_or_null "$PHP_VERSION"),
   "php_constraint": $(json_or_null "$PHP_CONSTRAINT"),
@@ -658,6 +667,7 @@ cat > "$CACHE_TMP" <<EOF
     "composer": $(json_or_null "$COMPOSER_CMD_SRC"),
     "edition": $(json_or_null "$EDITION_SRC"),
     "magento_version": $(json_or_null "$MAGENTO_VERSION_SRC"),
+    "distribution_version": $(json_or_null "$DISTRIBUTION_VERSION_SRC"),
     "php_version": $(json_or_null "$PHP_VERSION_SRC"),
     "theme.frontend": $(json_or_null "$THEME_FRONTEND_SRC"),
     "theme.adminhtml": $(json_or_null "$THEME_ADMIN_SRC")
