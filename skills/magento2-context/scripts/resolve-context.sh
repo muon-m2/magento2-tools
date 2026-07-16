@@ -35,13 +35,15 @@ jget_php() {
     fi
 }
 
-# Read `extra.magento_version` off a named package in composer.lock.
-# Usage: lock_extra_magento_version <lock-file> <package-name>
+# Read a dot-path field off a named package in composer.lock.
+# Usage: lock_pkg_get <lock-file> <package-name> <dot-path>
+#   lock_pkg_get composer.lock mage-os/product-community-edition extra.magento_version
+#   lock_pkg_get composer.lock mage-os/product-community-edition version
 #
-# jget_php walks a dot path, but lock packages live in a `packages` ARRAY and must be
-# found by name — hence a separate helper rather than a path expression.
-lock_extra_magento_version() {
-    local file="$1"; local pkg="$2"
+# jget_php walks a dot path from the document root, but lock packages live in a
+# `packages` ARRAY and must be found by name first — hence a separate helper.
+lock_pkg_get() {
+    local file="$1"; local pkg="$2"; local path="$3"
     if command -v php >/dev/null 2>&1; then
         php -r "
             \$d = json_decode(file_get_contents('$file'), true);
@@ -50,7 +52,11 @@ lock_extra_magento_version() {
                 if (!isset(\$d[\$sect]) || !is_array(\$d[\$sect])) { continue; }
                 foreach (\$d[\$sect] as \$p) {
                     if (!is_array(\$p) || (\$p['name'] ?? '') !== '$pkg') { continue; }
-                    \$v = \$p['extra']['magento_version'] ?? null;
+                    \$v = \$p;
+                    foreach (explode('.', '$path') as \$k) {
+                        if (is_array(\$v) && array_key_exists(\$k, \$v)) { \$v = \$v[\$k]; }
+                        else { exit(0); }
+                    }
                     if (is_scalar(\$v)) { echo \$v; exit(0); }
                 }
             }
@@ -373,7 +379,7 @@ if [[ -f "$COMPOSER_JSON" ]] && command -v php >/dev/null 2>&1; then
         # The base is published as extra.magento_version on the metapackage; composer.lock
         # carries the installed, pinned metadata, so it is the source of truth.
         base=""
-        [[ -f "$COMPOSER_LOCK" ]] && base=$(lock_extra_magento_version "$COMPOSER_LOCK" "mage-os/product-community-edition")
+        [[ -f "$COMPOSER_LOCK" ]] && base=$(lock_pkg_get "$COMPOSER_LOCK" "mage-os/product-community-edition" "extra.magento_version")
         if [[ -n "$base" ]]; then
             MAGENTO_VERSION="$base"
             MAGENTO_VERSION_SRC="${COMPOSER_LOCK}:mage-os/product-community-edition:extra.magento_version"
