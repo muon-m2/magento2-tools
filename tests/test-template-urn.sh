@@ -68,7 +68,32 @@ is_known() {
     return 1
 }
 
+# A guard that silently passes when its own scan breaks is worse than no guard — that is
+# precisely how the URNs this test exists to catch shipped in the first place. So prove the
+# scan actually ran before trusting a pass: the targets must exist, grep must not error, and
+# the scan must find URNs. Never suppress the scan's stderr.
+SCAN_DIRS=(skills tests/fixtures)
+for dir in "${SCAN_DIRS[@]}"; do
+    if [ ! -d "$dir" ]; then
+        echo "FAIL: scan directory '$dir' not found — the URN guard would pass without scanning."
+        echo "    If a directory moved, update SCAN_DIRS; do not let this test go quiet."
+        exit 1
+    fi
+done
+
 # `grep -roE` emits `<path>:<match>`; the match always begins at `urn:magento:`.
+# grep exits 0 = matches, 1 = no match, >1 = real error (unreadable path, bad regex).
+HITS="$(grep -roE "urn:magento:[A-Za-z0-9_:/.-]+" "${SCAN_DIRS[@]}")"
+STATUS=$?
+if [ "$STATUS" -gt 1 ]; then
+    echo "FAIL: URN scan errored (grep exit $STATUS) — refusing to report a pass."
+    exit 1
+fi
+if [ -z "$HITS" ]; then
+    echo "FAIL: no 'urn:magento:' found under ${SCAN_DIRS[*]} — the scan is broken, not the tree."
+    exit 1
+fi
+
 FAIL=0
 while IFS= read -r hit; do
     file="${hit%%:urn:magento:*}"
@@ -79,6 +104,6 @@ while IFS= read -r hit; do
         echo "    Confirm the .xsd exists in magento/magento2, then add it to KNOWN_URNS."
         FAIL=1
     fi
-done < <(grep -roE "urn:magento:[A-Za-z0-9_:/.-]+" skills tests/fixtures 2>/dev/null | sort -u)
+done < <(printf '%s\n' "$HITS" | sort -u)
 
 exit "$FAIL"
