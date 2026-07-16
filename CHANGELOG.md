@@ -6,6 +6,69 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **`distribution_version` in the `magento2-context` output schema** — records *what you
+  actually installed*, alongside `magento_version` (the Magento base). On the `magento/*`
+  editions the two are identical, because those product metapackages version in lockstep
+  with Magento. On Mage-OS they diverge: Mage-OS `3.2.0` is based on Magento `2.4.9`.
+  Mirroring on non-forks (rather than emitting `null`) means consumers read one field
+  unconditionally with no edition branching. Resolved from the
+  `mage-os/product-community-edition` entry in `composer.lock`, falling back to the
+  composer.json constraint — disclosed in `resolution_source` as
+  `"(constraint, not a pinned version)"` — when no lock is present. Additive and optional,
+  so `schemaVersion` stays `1.0`. Skill bump: `magento2-context 1.9.0 → 1.10.0` (with the
+  `@version` token refs in 20 dependent skills tracking the hub).
+
+  This is the Mage-OS patch-level signal: `3.0.0`, `3.1.0` and `3.2.0` **all** report base
+  `2.4.9`, and only `3.2.0` carries Adobe's isolated security patch `249-2026-07-001`
+  (2026-07-14) — so `magento_version` alone cannot tell a patched Mage-OS store from an
+  unpatched one.
+
+- **Magento 2.4.9 in the BC-break matrix** (GA 2026-05-12): PHP 8.2 dropped;
+  `laminas/laminas-mvc` and `magento/magento-zf-db` removed (native MVC); Symfony 6.4 → 7.4
+  LTS, which breaks subclasses; Zend_Cache → `symfony/cache`; TinyMCE → HugeRTE; PHPUnit
+  10.5 → 12; new GraphQL input limits (10 aliases, ~1 MB query length). Grep patterns added
+  for the removals. Refutations are recorded alongside them so a future refresh does not
+  "rediscover" them: jQuery and RequireJS were **not** removed, `carlos-mg89/oauth` is absent
+  from both 2.4.8 and 2.4.9 (so it is not a 2.4.9 change), Elasticsearch is still required,
+  and Laminas is not gone — the package count went 17 → 19, so only `Laminas\Mvc\` should be
+  scanned, never a bare `Laminas\`.
+
+### Fixed
+
+- **Mage-OS stores silently reported clean by the security audit.** Two compounding bugs.
+  `resolve-context.sh` set `magento_version` from the composer.json constraint, so a Mage-OS
+  store reported `3.2.0` — a Mage-OS version, not a Magento version at all — which matched no
+  `2.4.x` range anywhere. And `cve-scan.sh` compared the resolved edition against each
+  advisory's, so `edition="mage-os"` matched neither `open-source` nor `commerce` and **every**
+  advisory was skipped. Mage-OS is a downstream fork of Open Source and inherits Adobe's
+  vulnerabilities (it applies Adobe's patches), so `open-source` advisories genuinely apply;
+  it now maps onto them, and deliberately **not** onto `commerce`. Both were masked only
+  because the shipped CVE data file is empty — populating it (`status: live`) is what would
+  have armed the false negative. Findings on Mage-OS also cited
+  `magento/product-mage-os-edition`, a package that exists nowhere, and recommended upgrading
+  to a Magento version the distribution cannot install; they now cite
+  `mage-os/product-community-edition` and point at the Mage-OS release whose base is fixed.
+
+- **Two false rows in the PHP support matrix.** 2.4.8 was documented as requiring a minimum of
+  PHP 8.3 and having "dropped PHP 8.1 and 8.2" — marked `status: live`, the marker that
+  authorizes confirmed findings. The tag declares `~8.2.0||~8.3.0||~8.4.0`: 2.4.8 dropped only
+  8.1, and 8.2 remains installable across the whole line through `2.4.8-p5`. **PHP 8.2 is
+  dropped in 2.4.9, not 2.4.8.** 2.4.5 was listed as 8.1-only but still installs on 7.4. Both
+  rows came from prose in a release note rather than from the constraint at the tag; the table
+  now separates **Installable** (`require.php`, what composer enforces) from
+  **Adobe-supported** (what Adobe runs in production), which for 2.4.9 genuinely differ — it
+  installs on 8.3, but Adobe designates 8.3 upgrade-only and validates against 8.5.
+
+- **Stale PHP constraint hint in `magento2-marketplace-prep`.** The Marketplace readiness check
+  suggested `'>=8.1 <8.4'`, which excludes PHP 8.4 and 8.5 — both currently supported — and
+  floors two majors below what 2.4.9 will install on. A vendor following it would ship a module
+  that refuses to install on every modern store. The hint now attributes its example to a
+  *named* Magento version, so it stays true as new releases ship rather than rotting silently.
+
 ## [1.20.1] — 2026-07-16 — Landing page + schema URN fixes
 
 ### Added
