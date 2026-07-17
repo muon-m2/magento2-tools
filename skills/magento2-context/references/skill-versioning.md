@@ -45,16 +45,22 @@ skills evolve.
 
 ## Changelog (last update: 2026-07-16)
 
-- **`magento2-security-audit` 1.3.1 → 1.3.2 — patch-level detection.** Adobe decoupled "is
-  fixed" from "what version am I": isolated patches (APSB26-73) and hotfixes (APSB25-88 /
-  SessionReaper, CISA KEV, actively exploited) carry fixes with NO version bump — so a
-  fully-patched store was reported vulnerable. An advisory can now declare `fixed_by_patch`,
-  and the matcher emits `needs-triage` naming the patch instead of asserting `confirmed`.
-  Where a `detect` signature PAIR is curated, `vendor/` gives a definite answer: patched-sig
-  only → suppressed; vulnerable-sig only → `confirmed`; neither → `unknown` → `needs-triage`.
-  Two positive signatures, so a store carrying a backport matches neither and is never
-  wrongly told it is vulnerable. Advisories without `fixed_by_patch` are untouched. Guarded
-  by `tests/test-cve-patch-state.sh` and `tests/test-cve-marker-fidelity.sh`.
+- **`magento2-security-audit` 1.3.1 → 1.3.2 — patch-level detection capability.** Adobe
+  decoupled "is fixed" from "what version am I": isolated patches (e.g. APSB26-73) and
+  hotfixes (e.g. APSB25-88 / SessionReaper, CISA KEV, actively exploited) carry fixes with
+  NO version bump, so version matching alone cannot tell a patched store from a vulnerable
+  one — left unguarded, a fully-patched store would be reported vulnerable. An advisory can
+  now declare `fixed_by_patch`, and the matcher emits `needs-triage` naming the patch
+  instead of asserting `confirmed`. Where a `detect` signature PAIR is curated, `vendor/`
+  gives a definite answer: patched-sig only → suppressed; vulnerable-sig only →
+  `confirmed`; neither → `unknown` → `needs-triage`. Two positive signatures, so a store
+  carrying a backport matches neither and is never wrongly told it is vulnerable.
+  Advisories without `fixed_by_patch` are untouched. **Dormant infrastructure, not active
+  coverage**: the shipped `magento-cve-data.yaml` stays `status: illustrative` /
+  `entries: []` — nothing is matched against it until a curator adds real entries (e.g.
+  CVE-2025-54236, using the reference marker pair now documented in
+  `magento-cve-database.md`) and flips `status: live`. Guarded by
+  `tests/test-cve-patch-state.sh` and `tests/test-cve-marker-fidelity.sh`.
 
 - **`magento2-security-audit` 1.3.0 → 1.3.1 — advisory-edition validation.** An advisory
   whose `edition:` is not `open-source` or `commerce` used to match ZERO stores, silently —
