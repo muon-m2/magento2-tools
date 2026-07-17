@@ -1,0 +1,48 @@
+// SNAPSHOT — excerpt of lib/internal/Magento/Framework/Webapi/ServiceInputProcessor.php
+// from magento/magento2 at tag 2.4.8-p3, fetched 2026-07-17.
+//
+// This is a SNAPSHOT and CANNOT detect upstream drift. If Magento refactors this method,
+// these fixtures keep passing while the real markers silently stop matching every store
+// (failing safe, but to NO SIGNAL). Refresh them when curating CVE-2025-54236 or when the
+// marker pair is next touched.
+
+    private function getConstructorData(string $className, array $data): array
+    {
+        $preferenceClass = $this->config->getPreference($className);
+        $class = new ClassReflection($preferenceClass ?: $className);
+
+        try {
+            $constructor = $class->getMethod('__construct');
+        } catch (\ReflectionException $e) {
+            $constructor = null;
+        }
+
+        if ($constructor === null) {
+            return [];
+        }
+
+        $res = [];
+        $parameters = $constructor->getParameters();
+        foreach ($parameters as $parameter) {
+            if (isset($data[$parameter->getName()])) {
+                $parameterType = $this->typeProcessor->getParamType($parameter);
+
+                // Allow only simple types or Api Data Objects
+                if (!($this->typeProcessor->isTypeSimple($parameterType)
+                    || preg_match('~\\\\?\w+\\\\\w+\\\\Api\\\\Data\\\\~', $parameterType) === 1
+                )) {
+                    continue;
+                }
+
+                try {
+                    $res[$parameter->getName()] = $this->convertValue($data[$parameter->getName()], $parameterType);
+                } catch (\ReflectionException $e) {
+                    // Parameter was not correclty declared or the class is uknown.
+                    // By not returing the contructor value, we will automatically fall back to the "setters" way.
+                    continue;
+                }
+            }
+        }
+
+        return $res;
+    }
