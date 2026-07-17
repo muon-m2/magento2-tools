@@ -45,6 +45,6 @@ export FINDINGS_FILE TARGET_MODULE TARGET_PATH SCOPE OUTPUT_DIR OUTPUT_BASENAME
 export SKILL_NAME="magento2-module-upgrade"
 export SKILL_VERSION
 export OUTPUT_KIND="upgrade"
-export SKILL_VERSIONS_JSON="[\"magento2-module-upgrade@${SKILL_VERSION}\",\"magento2-context@1.9.0\"]"
+export SKILL_VERSIONS_JSON="[\"magento2-module-upgrade@${SKILL_VERSION}\",\"magento2-context@1.10.0\"]"
 
 bash "$EMIT_FINDINGS"

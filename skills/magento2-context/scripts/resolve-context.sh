@@ -35,6 +35,35 @@ jget_php() {
     fi
 }
 
+# Read a dot-path field off a named package in composer.lock.
+# Usage: lock_pkg_get <lock-file> <package-name> <dot-path>
+#   lock_pkg_get composer.lock mage-os/product-community-edition extra.magento_version
+#   lock_pkg_get composer.lock mage-os/product-community-edition version
+#
+# jget_php walks a dot path from the document root, but lock packages live in a
+# `packages` ARRAY and must be found by name first — hence a separate helper.
+lock_pkg_get() {
+    local file="$1"; local pkg="$2"; local path="$3"
+    if command -v php >/dev/null 2>&1; then
+        php -r "
+            \$d = json_decode(file_get_contents('$file'), true);
+            if (!is_array(\$d)) { exit(0); }
+            foreach (['packages', 'packages-dev'] as \$sect) {
+                if (!isset(\$d[\$sect]) || !is_array(\$d[\$sect])) { continue; }
+                foreach (\$d[\$sect] as \$p) {
+                    if (!is_array(\$p) || (\$p['name'] ?? '') !== '$pkg') { continue; }
+                    \$v = \$p;
+                    foreach (explode('.', '$path') as \$k) {
+                        if (is_array(\$v) && array_key_exists(\$k, \$v)) { \$v = \$v[\$k]; }
+                        else { exit(0); }
+                    }
+                    if (is_scalar(\$v)) { echo \$v; exit(0); }
+                }
+            }
+        " 2>/dev/null || true
+    fi
+}
+
 # --- Helpers ---
 # Portable JSON string escaping. Tab handling uses a literal tab via printf rather than
 # sed's `\t` (BSD/macOS sed treats `\t` in the pattern as the letter "t", which corrupted
@@ -308,11 +337,61 @@ EDITION="null"
 EDITION_SRC=""
 MAGENTO_VERSION="null"
 MAGENTO_VERSION_SRC=""
+DISTRIBUTION_VERSION="null"
+DISTRIBUTION_VERSION_SRC=""
 PHP_CONSTRAINT="null"
 FRAMEWORK_CONSTRAINT="null"
 
 COMPOSER_JSON="${MAGENTO_ROOT}/composer.json"
 [[ ! -f "$COMPOSER_JSON" && -f "composer.json" ]] && COMPOSER_JSON="composer.json"
+COMPOSER_LOCK="${MAGENTO_ROOT}/composer.lock"
+[[ ! -f "$COMPOSER_LOCK" && -f "composer.lock" ]] && COMPOSER_LOCK="composer.lock"
+
+# IMPORTANT (CTX-Compound): strip operator CHARACTERS only — deliberately NOT the space —
+# because this sed does not PARSE the constraint, it deletes characters. A simple
+# constraint ("~2.4.6") strips cleanly to "2.4.6", but a compound/range constraint
+# (">=2.4.6 <2.4.8") used to strip the space too and glue the two bounds into "2.4.62.4.8"
+# — a PLAUSIBLE-LOOKING but WRONG version that compares cleanly and can silently fall
+# outside an affected CVE range. That is a silent false negative, worse than failing
+# closed. Leaving the space in place means the shape regex below (which has no room for
+# whitespace) rejects any leftover space instead of us trusting a concatenation.
+#
+# This helper originated in the Mage-OS distribution_version fallback (the fix for the
+# same bug class there) and is shared here so every constraint-to-version site applies the
+# identical strip-then-validate discipline rather than inventing a second, divergent one.
+# Callers pass a shape regex because the accepted shape differs: `magento_version` must be
+# a full THREE-component release ("2.4.6" or "2.4.6-p3" — see MAGENTO_VERSION_SHAPE below),
+# because a two-component "2.4" would still fail cve-scan.sh's parse_version(); Mage-OS
+# `distribution_version` legitimately accepts a looser N-component shape (its own release
+# numbering, e.g. "3.2", is not a Magento version and has no such constraint).
+#
+# Echoes the validated version and returns 0 on success; echoes nothing and returns 1 on
+# failure — callers MUST null out and record a reason naming the raw constraint rather
+# than publishing a glued/partial value.
+resolve_pinned_version() {
+    local raw="$1" shape="$2" stripped
+    stripped=$(printf '%s' "$raw" | sed -E 's/[~^>=<*]//g' | head -c 40)
+    if [[ -n "$stripped" && "$stripped" =~ $shape ]]; then
+        printf '%s' "$stripped"
+        return 0
+    fi
+    return 1
+}
+MAGENTO_VERSION_SHAPE='^[0-9]+\.[0-9]+\.[0-9]+(-p[0-9]+)?$'
+
+# The magento/* editions (commerce-cloud, commerce, open-source) mirror distribution_version
+# onto magento_version — for them the distribution IS Magento. When magento_version could
+# not be resolved (MAGENTO_VERSION="null"), the mirror must say so honestly rather than
+# tacking "(mirrors magento_version)" onto an already-unresolved reason, or — worse —
+# silently carrying forward a stale/glued value from before this function ran.
+mirror_distribution_version() {
+    DISTRIBUTION_VERSION="$MAGENTO_VERSION"
+    if [[ "$MAGENTO_VERSION" == "null" ]]; then
+        DISTRIBUTION_VERSION_SRC="unresolved: magento_version could not be resolved (see resolution_source.magento_version) — distribution_version mirrors it and is therefore also unresolved"
+    else
+        DISTRIBUTION_VERSION_SRC="${MAGENTO_VERSION_SRC} (mirrors magento_version)"
+    fi
+}
 
 if [[ -f "$COMPOSER_JSON" ]] && command -v php >/dev/null 2>&1; then
     ent=$(jget_php "$COMPOSER_JSON" "require.magento/product-enterprise-edition")
@@ -322,25 +401,103 @@ if [[ -f "$COMPOSER_JSON" ]] && command -v php >/dev/null 2>&1; then
     if [[ -n "$cloud" ]]; then
         # Commerce Cloud ships the cloud metapackage on top of the enterprise edition.
         EDITION="commerce-cloud"
-        MAGENTO_VERSION=$(printf '%s' "${ent:-$cloud}" | sed -E 's/[~^>=<* ]//g' | head -c 40)
         EDITION_SRC="${COMPOSER_JSON}:magento/magento-cloud-metapackage"
-        MAGENTO_VERSION_SRC="$EDITION_SRC"
+        # ent takes precedence when present (matches pre-fix behaviour); name whichever
+        # field's constraint was actually used in the failure reason below, not always
+        # the cloud metapackage, so a reader can see exactly what could not be parsed.
+        if [[ -n "$ent" ]]; then
+            mv_field="magento/product-enterprise-edition"
+            mv_raw="$ent"
+        else
+            mv_field="magento/magento-cloud-metapackage"
+            mv_raw="$cloud"
+        fi
+        if val=$(resolve_pinned_version "$mv_raw" "$MAGENTO_VERSION_SHAPE"); then
+            MAGENTO_VERSION="$val"
+            MAGENTO_VERSION_SRC="$EDITION_SRC"
+        else
+            MAGENTO_VERSION="null"
+            MAGENTO_VERSION_SRC="unresolved: the ${mv_field} constraint (\"${mv_raw}\") could not be parsed into a single version"
+        fi
+        mirror_distribution_version
     elif [[ -n "$ent" ]]; then
         EDITION="commerce"
-        MAGENTO_VERSION=$(printf '%s' "$ent" | sed -E 's/[~^>=<* ]//g' | head -c 40)
         EDITION_SRC="${COMPOSER_JSON}:magento/product-enterprise-edition"
-        MAGENTO_VERSION_SRC="$EDITION_SRC"
+        if val=$(resolve_pinned_version "$ent" "$MAGENTO_VERSION_SHAPE"); then
+            MAGENTO_VERSION="$val"
+            MAGENTO_VERSION_SRC="$EDITION_SRC"
+        else
+            MAGENTO_VERSION="null"
+            MAGENTO_VERSION_SRC="unresolved: the magento/product-enterprise-edition constraint (\"${ent}\") could not be parsed into a single version"
+        fi
+        mirror_distribution_version
     elif [[ -n "$com" ]]; then
         EDITION="open-source"
-        MAGENTO_VERSION=$(printf '%s' "$com" | sed -E 's/[~^>=<* ]//g' | head -c 40)
         EDITION_SRC="${COMPOSER_JSON}:magento/product-community-edition"
-        MAGENTO_VERSION_SRC="$EDITION_SRC"
+        if val=$(resolve_pinned_version "$com" "$MAGENTO_VERSION_SHAPE"); then
+            MAGENTO_VERSION="$val"
+            MAGENTO_VERSION_SRC="$EDITION_SRC"
+        else
+            MAGENTO_VERSION="null"
+            MAGENTO_VERSION_SRC="unresolved: the magento/product-community-edition constraint (\"${com}\") could not be parsed into a single version"
+        fi
+        mirror_distribution_version
     elif [[ -n "$mageos" ]]; then
         # Mage-OS — the community fork; its product metapackage is mage-os/product-community-edition.
         EDITION="mage-os"
-        MAGENTO_VERSION=$(printf '%s' "$mageos" | sed -E 's/[~^>=<* ]//g' | head -c 40)
         EDITION_SRC="${COMPOSER_JSON}:mage-os/product-community-edition"
-        MAGENTO_VERSION_SRC="$EDITION_SRC"
+        # Mage-OS versions its distribution INDEPENDENTLY of Magento: Mage-OS 3.2.0 is
+        # based on Magento 2.4.9. So — unlike every branch above — the `require`
+        # constraint here is NOT a Magento version, and stripping its operators yields
+        # "3.2.0", which matches no 2.4.x range in cve-scan.sh's version_in_range() or in
+        # the BC-break matrix. That produced silent false negatives on security scans.
+        #
+        # The base is published as extra.magento_version on the metapackage; composer.lock
+        # carries the installed, pinned metadata, so it is the source of truth.
+        base=""
+        [[ -f "$COMPOSER_LOCK" ]] && base=$(lock_pkg_get "$COMPOSER_LOCK" "mage-os/product-community-edition" "extra.magento_version")
+        if [[ -n "$base" ]]; then
+            MAGENTO_VERSION="$base"
+            MAGENTO_VERSION_SRC="${COMPOSER_LOCK}:mage-os/product-community-edition:extra.magento_version"
+        else
+            # Honest gap: with no lock entry we cannot map the distribution version onto a
+            # Magento base. Falling back to the constraint would resurrect the bug above,
+            # so leave it null and say why — downstream can probe the CLI or ask the user.
+            MAGENTO_VERSION="null"
+            MAGENTO_VERSION_SRC="unresolved: no composer.lock entry for mage-os/product-community-edition (Mage-OS distribution version is not a Magento version)"
+        fi
+
+        # Distribution version = the Mage-OS release actually installed (3.2.0), as
+        # opposed to the Magento base it is built on (2.4.9). This is the patch-level
+        # signal: 3.0.0/3.1.0/3.2.0 all report base 2.4.9, so magento_version alone
+        # cannot tell a patched store from an unpatched one.
+        #
+        # Unlike the base, the composer.json constraint IS a distribution constraint —
+        # so stripping it is a legitimate fallback here, exactly as the magento/*
+        # branches do. Note the deliberate asymmetry with MAGENTO_VERSION above, where
+        # that same fallback is the bug this file guards against.
+        dist=""
+        [[ -f "$COMPOSER_LOCK" ]] && dist=$(lock_pkg_get "$COMPOSER_LOCK" "mage-os/product-community-edition" "version")
+        if [[ -n "$dist" ]]; then
+            DISTRIBUTION_VERSION="$dist"
+            DISTRIBUTION_VERSION_SRC="${COMPOSER_LOCK}:mage-os/product-community-edition:version"
+        else
+            # Delegate to resolve_pinned_version (defined above) — the same
+            # strip-operator-characters-not-the-space, then-validate discipline this
+            # branch originated, now shared with the magento/* magento_version branches.
+            # The shape here is deliberately looser than MAGENTO_VERSION_SHAPE: a Mage-OS
+            # release ("3.2.0", or just "3.2") is not a Magento version and has no
+            # three-component requirement — only a leftover space from a compound
+            # constraint, an unstripped wildcard ("3.2.*" -> "3.2."), or stray text must
+            # be rejected.
+            if val=$(resolve_pinned_version "$mageos" '^[0-9]+(\.[0-9]+)*(-p[0-9]+)?$'); then
+                DISTRIBUTION_VERSION="$val"
+                DISTRIBUTION_VERSION_SRC="${COMPOSER_JSON}:mage-os/product-community-edition (constraint, not a pinned version)"
+            else
+                DISTRIBUTION_VERSION="null"
+                DISTRIBUTION_VERSION_SRC="unresolved: the mage-os/product-community-edition constraint (\"${mageos}\") could not be parsed into a single version"
+            fi
+        fi
     fi
     pc=$(jget_php "$COMPOSER_JSON" "require.php")
     [[ -n "$pc" ]] && PHP_CONSTRAINT="$pc"
@@ -547,7 +704,7 @@ cat > "$CACHE_TMP" <<EOF
 {
   "schemaVersion": "1.0",
   "skill": "magento2-context",
-  "skillVersion": "1.9.0",
+  "skillVersion": "1.10.0",
   "resolvedAt": "${TIMESTAMP}",
   "cacheKey": $(json_or_null "$CACHE_KEY"),
 
@@ -560,6 +717,7 @@ cat > "$CACHE_TMP" <<EOF
   "docs_root": ".docs",
   "edition": $(json_or_null "$EDITION"),
   "magento_version": $(json_or_null "$MAGENTO_VERSION"),
+  "distribution_version": $(json_or_null "$DISTRIBUTION_VERSION"),
 
   "php_version": $(json_or_null "$PHP_VERSION"),
   "php_constraint": $(json_or_null "$PHP_CONSTRAINT"),
@@ -609,6 +767,7 @@ cat > "$CACHE_TMP" <<EOF
     "composer": $(json_or_null "$COMPOSER_CMD_SRC"),
     "edition": $(json_or_null "$EDITION_SRC"),
     "magento_version": $(json_or_null "$MAGENTO_VERSION_SRC"),
+    "distribution_version": $(json_or_null "$DISTRIBUTION_VERSION_SRC"),
     "php_version": $(json_or_null "$PHP_VERSION_SRC"),
     "theme.frontend": $(json_or_null "$THEME_FRONTEND_SRC"),
     "theme.adminhtml": $(json_or_null "$THEME_ADMIN_SRC")

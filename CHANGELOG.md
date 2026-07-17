@@ -6,6 +6,109 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **`distribution_version` in the `magento2-context` output schema** — records *what you
+  actually installed*, alongside `magento_version` (the Magento base). On the `magento/*`
+  editions the two are identical, because those product metapackages version in lockstep
+  with Magento. On Mage-OS they diverge: Mage-OS `3.2.0` is based on Magento `2.4.9`.
+  Mirroring on non-forks (rather than emitting `null`) means consumers read one field
+  unconditionally with no edition branching. Resolved from the
+  `mage-os/product-community-edition` entry in `composer.lock`, falling back to the
+  composer.json constraint — disclosed in `resolution_source` as
+  `"(constraint, not a pinned version)"` — when no lock is present. Additive and optional,
+  so `schemaVersion` stays `1.0`. Skill bump: `magento2-context 1.9.0 → 1.10.0` (with the
+  `@version` token refs in 19 files across 13 dependent skills tracking the hub).
+
+  This is the Mage-OS patch-level signal: `3.0.0`, `3.1.0` and `3.2.0` **all** report base
+  `2.4.9`, and only `3.2.0` carries Adobe's isolated security patch `249-2026-07-001`
+  (2026-07-14) — so `magento_version` alone cannot tell a patched Mage-OS store from an
+  unpatched one.
+
+- **Magento 2.4.9 in the BC-break matrix** (GA 2026-05-12): PHP 8.2 dropped;
+  `laminas/laminas-mvc` and `magento/magento-zf-db` removed (native MVC); Symfony 6.4 → 7.4
+  LTS, which breaks subclasses; Zend_Cache → `symfony/cache`; TinyMCE → HugeRTE; PHPUnit
+  10.5 → 12; new GraphQL input limits (10 aliases, ~1 MB query length). Grep patterns added
+  for the removals. Refutations are recorded alongside them so a future refresh does not
+  "rediscover" them: jQuery and RequireJS were **not** removed, `carlos-mg89/oauth` is absent
+  from both 2.4.8 and 2.4.9 (so it is not a 2.4.9 change), Elasticsearch is still required,
+  and Laminas is not gone — the package count went 17 → 19, so only `Laminas\Mvc\` should be
+  scanned, never a bare `Laminas\`.
+
+### Fixed
+
+- **Mage-OS stores silently reported clean by the security audit.** Two compounding bugs.
+  `resolve-context.sh` set `magento_version` from the composer.json constraint, so a Mage-OS
+  store reported `3.2.0` — a Mage-OS version, not a Magento version at all — which matched no
+  `2.4.x` range anywhere. And `cve-scan.sh` compared the resolved edition against each
+  advisory's, so `edition="mage-os"` matched neither `open-source` nor `commerce` and **every**
+  advisory was skipped. Mage-OS is a downstream fork of Open Source and inherits Adobe's
+  vulnerabilities (it applies Adobe's patches), so `open-source` advisories genuinely apply;
+  it now maps onto them, and deliberately **not** onto `commerce`. Both were masked only
+  because the shipped CVE data file is empty — populating it (`status: live`) is what would
+  have armed the false negative. Findings on Mage-OS also cited
+  `magento/product-mage-os-edition`, a package that exists nowhere, and recommended upgrading
+  to a Magento version the distribution cannot install; they now cite
+  `mage-os/product-community-edition` and point at the Mage-OS release whose base is fixed.
+
+- **Commerce Cloud stores silently reported clean by the security audit** — the same bug
+  class and the same function as the Mage-OS fix above, just the other fork. `cve-scan.sh`'s
+  `advisory_edition()` mapped only `mage-os` onto the advisory vocabulary and passed every
+  other edition through unchanged; `commerce-cloud` therefore equalled neither `open-source`
+  nor `commerce`, so **every** advisory was skipped and a vulnerable Commerce Cloud store
+  reported clean. Commerce Cloud ships the cloud metapackage on top of the enterprise
+  edition — it is Adobe Commerce plus a deployment layer, not a separate product line — so a
+  `commerce` advisory genuinely applies; it now maps onto `commerce` (and, unlike Mage-OS,
+  does not additionally inherit `open-source` advisories, since Cloud is not a fork of Open
+  Source). Findings on `commerce-cloud`, `commerce`, and `open-source` stores also cited
+  fictional packages (`magento/product-commerce-cloud-edition`,
+  `magento/product-commerce-edition`, `magento/product-open-source-edition` — none exist);
+  package-name lookup is now an explicit mapping onto the real metapackages
+  (`magento/product-enterprise-edition`, `magento/product-community-edition`) instead of
+  interpolating the edition string into a name.
+
+- **Open Source, Commerce, and Commerce Cloud stores could silently report clean on a
+  compound or wildcard version constraint — the same bug class as the two Mage-OS/Commerce
+  Cloud fixes above, but on `magento_version` itself, the field `cve-scan.sh` actually
+  matches CVEs against (`distribution_version`, where the earlier fixes landed, feeds
+  nothing today).** `resolve-context.sh` stripped operator characters *and the space* from
+  the raw composer.json constraint on all three `magento/*` branches, so a compound range
+  glued its two bounds into one plausible-looking number
+  (`">=2.4.6 <2.4.8"` → `"2.4.62.4.8"`, which compares cleanly and can fall outside every
+  affected range) and a wildcard or two-component constraint produced a string
+  `parse_version()` cannot parse at all (`"2.4.*"` → `"2.4."`, `"^2.4"` → `"2.4"`) — either
+  way, `version_in_range()` returned `False` for every advisory and the store reported
+  clean regardless of its real version. These three branches have no lock-based fallback,
+  so the constraint is the *only* source: there was no honest gap to fall back to. The
+  strip-then-validate discipline already applied to Mage-OS's `distribution_version` (leave
+  the space in place, validate the result, null out with a reason naming the raw constraint
+  instead of publishing a glued fiction) is now factored into one shared helper and applied
+  to all four editions; `magento_version` additionally requires a full three-component
+  release; a two-component `"2.4"` still passes the looser Mage-OS shape but still defeats
+  `parse_version()`, so it is rejected here. `distribution_version`, which mirrors
+  `magento_version` on these three editions, now follows it honestly to `null` instead of
+  carrying forward a stale or glued value. Defence-in-depth: `cve-scan.sh`'s "matcher did
+  not run" warning previously fired only when `magento_version` was empty; it now also
+  fires whenever the version is present but unparseable, independently of the resolver fix.
+
+- **Two false rows in the PHP support matrix.** 2.4.8 was documented as requiring a minimum of
+  PHP 8.3 and having "dropped PHP 8.1 and 8.2" — marked `status: live`, the marker that
+  authorizes confirmed findings. The tag declares `~8.2.0||~8.3.0||~8.4.0`: 2.4.8 dropped only
+  8.1, and 8.2 remains installable across the whole line through `2.4.8-p5`. **PHP 8.2 is
+  dropped in 2.4.9, not 2.4.8.** 2.4.5 was listed as 8.1-only but still installs on 7.4. Both
+  rows came from prose in a release note rather than from the constraint at the tag; the table
+  now separates **Installable** (`require.php`, what composer enforces) from
+  **Adobe-supported** (what Adobe runs in production), which for 2.4.9 genuinely differ — it
+  installs on 8.3, but Adobe designates 8.3 upgrade-only and validates against 8.5.
+
+- **Stale PHP constraint hint in `magento2-marketplace-prep`.** The Marketplace readiness check
+  suggested `'>=8.1 <8.4'`, which excludes PHP 8.4 and 8.5 — both currently supported — and
+  floors two majors below what 2.4.9 will install on. A vendor following it would ship a module
+  that refuses to install on every modern store. The hint now attributes its example to a
+  *named* Magento version, so it stays true as new releases ship rather than rotting silently.
+
 ## [1.20.1] — 2026-07-16 — Landing page + schema URN fixes
 
 ### Added
