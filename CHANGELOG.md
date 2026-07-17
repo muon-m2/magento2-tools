@@ -6,7 +6,7 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.22.0] — 2026-07-17 — Live CVE scanner: 63 curated advisories + refresh tool
 
 ### Added
 
