@@ -6,6 +6,37 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **The security audit's CVE scanner is live: it now reports real findings where it
+  previously reported nothing.** This is the culmination of the safety work shipped
+  dormant in `[1.21.1]` (advisory-edition validation) and `[1.21.2]` (patch-level
+  detection): `magento-cve-data.yaml` now ships `status: live` with 63 advisories curated
+  from 7 Adobe bulletins, so `magento2-security-audit` matches a project's real Magento
+  version/edition against real CVE data instead of the `status: illustrative` placeholder
+  that only ever produced `confidence: candidate` noise.
+
+  The two previously-dormant safety mechanisms are now doing real work, not waiting for
+  it. SessionReaper (CVE-2025-54236 — CISA KEV, actively exploited) carries a verified
+  `detect` marker pair, so a store that already applied the hotfix is told exactly that —
+  `vendor/` evidence, not a version-range guess. The twelve July isolated-patch CVEs
+  (APSB26-73) are fixed by a patch with no version bump; they report `confidence:
+  needs-triage` naming the patch, honestly reflecting that version matching alone can't
+  confirm — never a false positive on a store that already patched. Three B2B-only
+  advisories (CVE-2025-27207, CVE-2025-43586, CVE-2026-47995) and one disputed-scope CVE
+  (CVE-2026-48358, where Adobe and NVD disagree on affected surface) are deliberately
+  excluded rather than encoded on a guess.
+
+  A repeatable refresh tool (`refresh-cve-data.py`) keeps the data current going forward:
+  it regenerates the shipped data file from a hand-authored extract (the new source of
+  record, `references/cve-extract.yaml`) plus Adobe's patch registry, auto-deriving patch
+  ids and applying the transforms that prevent the silent-match traps found in earlier
+  releases (bare-range normalization, pre-release-range drop, B2B exclusion) — validated
+  by a shared lint before anything ships. See `skills/magento2-security-audit/references/
+  magento-cve-database.md` for the curator workflow.
+
 ## [1.21.2] — 2026-07-17 — Patch-level detection (dormant until CVE data is curated)
 
 ### Fixed
