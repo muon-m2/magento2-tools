@@ -29,3 +29,7 @@ docs/superpowers/
 SKILLS-ANALYSIS-REPORT.md
 SKILLS-IMPROVEMENT-PLAN.md
 SKILLS-REMEDIATION-REPORT.md
+
+# Python bytecode cache (scripts import shared modules)
+__pycache__/
+*.pyc
