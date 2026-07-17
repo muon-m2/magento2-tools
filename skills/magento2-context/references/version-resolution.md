@@ -137,7 +137,39 @@ rather than as a broken install.
 |---------------------------------------------------------------------|---------------------------------------------------------------------------|
 | Both community and enterprise editions in composer.json             | Prefer enterprise; record both in `resolution_source`.                    |
 | Mage-OS present but no `composer.lock`                              | `magento_version = null` + source says why. Never fall back to the constraint. |
-| `composer.json` constraint uses an alias (e.g. `dev-main as 2.4.7`) | Use the right-hand version.                                               |
-| `magento_version` looks invalid (no major/minor/patch)              | Warn but accept; downstream skills can validate.                          |
+| `composer.json` constraint uses an alias (e.g. `dev-main as 2.4.7`) | **Not parsed.** `magento_version = null` + a source naming the constraint; `cve-scan.sh` then warns that the matcher did not run. See below. |
+| Constraint is a range/wildcard (`>=2.4.6 <2.4.8`, `2.4.*`, `^2.4`)  | **Not parsed.** `magento_version = null` + a source naming the constraint. See below. |
+| `magento_version` looks invalid (no major/minor/patch)              | **Rejected, not accepted** — `null` + a stated reason. See below.         |
 | Magento CLI version mismatches composer.json                        | Trust composer.json; warn user.                                           |
 | PHP probe fails (extension missing, etc.)                           | `php_version = null`; downstream skills know to skip PHP-specific checks. |
+
+### Why unparseable constraints resolve to `null` rather than a best effort
+
+`magento_version` is only ever set from a constraint that resolves to a **single, exact
+version** (`^[0-9]+\.[0-9]+\.[0-9]+(-p[0-9]+)?$`). Anything else — a range, a wildcard, a
+two-component `^2.4`, a `dev-main as 2.4.7` alias — yields `null` plus a
+`resolution_source` naming the raw constraint, and `cve-scan.sh` then warns that the
+Magento CVE matcher did not run.
+
+This is deliberate, and it is a **security** property rather than a stylistic one.
+
+> **REGRESSION TOMBSTONE (CTX-Compound).** The resolver used to strip operators with
+> `sed -E 's/[~^>=<* ]//g'` and emit whatever fell out. That does not fail closed — it
+> silently invents versions:
+>
+> | constraint | old `magento_version` | `parse_version()` read it as |
+> |---|---|---|
+> | `>=2.4.6 <2.4.8` | `2.4.62.4.8` | `(2, 4, 62, 0)` — a plausible **wrong** version |
+> | `2.4.*` | `2.4.` | `None` |
+> | `^2.4` | `2.4` | `None` |
+>
+> A store on 2.4.6 inside an affected range therefore compared as "2.4.62", fell outside
+> every advisory range, and **reported clean** — with nothing on stderr. A wrong version
+> that compares cleanly is worse than no version at all, because no version is at least
+> visible. Guarded by `tests/test-context-magento-version-compound.sh`, with the
+> matcher-side warning guarded by `tests/test-cve-garbage-version-warning.sh`.
+
+So: do **not** "improve" this by reinstating a best-effort strip, and do not treat the
+`null` as a gap to be filled by guessing. If a project pins with a range or an alias, the
+honest answer is that the exact version is unknown — resolve it from `composer.lock`, the
+Magento CLI, or the user, per the resolution order above.
