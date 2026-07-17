@@ -17,7 +17,7 @@ skills evolve.
 | magento2-deploy            | 1.3.0   | Deploy plan template change, rollback recipe change                 |
 | magento2-test-generate     | 1.2.1   | Generator pattern change, new test type added                       |
 | magento2-module-upgrade    | 1.2.0   | New deprecation map, BC-break detection rules                       |
-| magento2-security-audit    | 1.3.2   | New CVE source, new pattern, severity calibration change            |
+| magento2-security-audit    | 1.4.0   | New CVE source, new pattern, severity calibration change            |
 | magento2-performance-audit | 1.2.0   | New pattern, new runtime check, severity calibration change         |
 | magento2-debug             | 1.3.0   | New mode added, output format change                                |
 | magento2-eav-attribute     | 1.3.2   | New entity type supported, new input type, template change          |
@@ -43,7 +43,38 @@ skills evolve.
 | magento2-breeze-compat-audit | 1.1.0 | New check/pattern, severity calibration change                                |
 | magento2-audit             | 1.0.0   | New dimension added, consolidation/dedup or verdict rule change                |
 
-## Changelog (last update: 2026-07-16)
+## Changelog (last update: 2026-07-17)
+
+- **`magento2-security-audit` 1.3.2 → 1.4.0 — the CVE scanner is armed: 63 curated
+  advisories, `status: live`.** The dormant infrastructure from 1.3.1/1.3.2 (advisory-edition
+  validation, patch-level detection) now has real data behind it: `magento-cve-data.yaml`
+  ships 63 entries curated from 7 Adobe bulletins (APSB25-50, APSB25-71, APSB25-88, APSB25-94,
+  APSB26-05, APSB26-49, APSB26-73), cross-checked against NVD. The scanner emits real
+  `confidence: confirmed` / `needs-triage` findings where it previously emitted nothing (or
+  only `candidate`, per the `status: illustrative` guard). SessionReaper (CVE-2025-54236)
+  carries the verified `detect` marker pair, so a patched store is never told it's vulnerable;
+  the twelve July isolated-patch CVEs (APSB26-73) report `needs-triage` — fixed by patch, no
+  version bump, so version-range matching alone can't confirm — rather than a false positive
+  on a store that already applied the patch. Three advisories are excluded as B2B-only
+  (CVE-2025-27207, CVE-2025-43586, CVE-2026-47995 — 1.x ranges the core scanner cannot
+  resolve) and one as disputed scope (CVE-2026-48358 — Adobe scopes it to the Webhooks
+  module + admin, NVD maps it to core/unauthenticated; encoding either reading blind risks a
+  false negative or a fleet-wide false positive, so it is left out pending reconciliation).
+  A new refresh tool (`scripts/refresh-cve-data.py`, transforms in
+  `scripts/cve_transforms.py`) generates the shipped data file from a hand-authored source of
+  record (`references/cve-extract.yaml`) plus Adobe's patch registry
+  (`--registry auto` fetches `patch-registry.json`, non-fatal on failure), auto-deriving
+  `fixed_by_patch` ids for every registry-covered CVE so a curator never hand-assigns them.
+  The tool applies the transforms that close the silent-match traps documented in
+  `magento-cve-database.md` — bare-range normalization, pre-release-range drop, B2B-only
+  exclusion — and runs the shared lint (`scripts/cve_data_lint.py`, the same module
+  `tests/test-cve-data-schema.sh` uses) plus a round-trip fidelity check before writing, so a
+  bad refresh fails loud instead of shipping silently-broken data. `magento-cve-database.md`'s
+  Refresh workflow now documents the tool-based flow (edit the extract, run the tool, commit
+  both) in place of the old manual-edit prose. Guarded by `tests/test-cve-data-live.sh`
+  (drives the real shipped file through the real scanner), `tests/test-cve-refresh-idempotent.sh`,
+  `tests/test-cve-transforms.sh`, `tests/test-cve-data-schema.sh`, and
+  `tests/test-cve-marker-fidelity.sh`.
 
 - **`magento2-security-audit` 1.3.1 → 1.3.2 — patch-level detection capability.** Adobe
   decoupled "is fixed" from "what version am I": isolated patches (e.g. APSB26-73) and
