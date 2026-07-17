@@ -15,7 +15,7 @@
 #                       Pass an absolute or project-root path so an in-`src/` cwd cannot
 #                       redirect output into the Magento tree. See magento2-context/SKILL.md.
 #   OUTPUT_DIR          default: {DOCS_ROOT}/audits
-#   SKILL_VERSION       default: 1.3.0
+#   SKILL_VERSION       default: 1.3.1
 #
 # Output:
 #   Writes {OUTPUT_DIR}/{TARGET_MODULE}-security-{YYYY-MM-DD}.json (module scope) or
@@ -35,7 +35,7 @@ SCAN_ROOT="${SCAN_ROOT:-$([[ -d app/code ]] && echo app/code || echo src/app/cod
 SECRET_ROOT="${SECRET_ROOT:-${SCAN_ROOT%/code}}"
 DOCS_ROOT="${DOCS_ROOT:-.docs}"
 OUTPUT_DIR="${OUTPUT_DIR:-${DOCS_ROOT}/audits}"
-SKILL_VERSION="${SKILL_VERSION:-1.3.0}"
+SKILL_VERSION="${SKILL_VERSION:-1.3.1}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 EMIT_FINDINGS="${SCRIPT_DIR}/../../magento2-context/scripts/emit-findings.sh"

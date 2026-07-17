@@ -6,6 +6,41 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+
+- **A typo'd `edition:` in the CVE data matched zero stores, silently.** The data file is
+  hand-curated from Adobe security bulletins — whose prose says "Adobe Commerce" and "Adobe
+  Commerce Cloud" — and it ships with the plugin, so a curator error reaches every user.
+  `Commerce`, `enterprise` and `adobe-commerce` each matched **nothing**, with no warning;
+  one on a Critical CVE would have been a fleet-wide silent false negative. An unrecognized
+  edition is now treated as **unknown** rather than "does not apply": it matches regardless
+  of edition, is downgraded to `confidence: candidate` (per-finding — genuine confirmed
+  findings are not demoted), and warns into `scanner_errors`. This mirrors what an **absent**
+  `edition:` already does: match every store, which is how "affects both editions" is
+  expressed — so omitting the field was always safe while misspelling it was silently
+  dangerous. Deliberately **not** normalization: `Commerce` is not quietly accepted as
+  `commerce`, which would hide the very error being surfaced. Recognized editions are
+  unchanged — `commerce` still does not match an `open-source` store, preserving the edition
+  isolation added in 1.21.0.
+- **The shipped CVE data file is now linted in CI** (`tests/test-cve-data-schema.sh`) —
+  and the lint checks what `cve-scan.sh`'s own parser sees, not what a regex guesses. It
+  extracts and executes the real `load_cve_data_yaml` / `parse_record` / `version_in_range`
+  out of `cve-scan.sh` (never a hand-copied reimplementation, which could quietly drift
+  from the parser it's meant to police), then asserts: every entry the file appears to
+  define is actually recognized as a record — not silently dropped (e.g. by an entry
+  whose first key isn't `cve`); `affected` is a non-empty list of mapping objects, not
+  emptied by wrong indentation or opaque flow-style YAML; each `magento_version_range`
+  is one `version_in_range()` can actually match against some version, not a dead range;
+  `edition` is `open-source`/`commerce` or absent; and the explicitly-required fields
+  (`cve`, `bulletin_url`, `affected`, `recorded_at`) are present. An earlier version of
+  this lint regexed the raw text instead and had holes wide enough to bless several of
+  these silent-drop shapes — including the one `yaml.dump` produces by default. The
+  runtime guard above only fires on a user's machine after bad data has shipped; this
+  catches it before release. Both are prerequisites for ever setting
+  `magento-cve-data.yaml` to `status: live`.
+
 ## [1.21.0] — 2026-07-17 — `distribution_version` + four CVE silent-false-negative fixes
 
 ### Added
