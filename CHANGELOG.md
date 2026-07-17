@@ -6,6 +6,43 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+
+- **The scanner can now recognize patch-fixed advisories and report `needs-triage` instead
+  of a false positive.** Adobe deliberately decoupled "is fixed" from "what version am I":
+  isolated patches (e.g. APSB26-73) and hotfixes (e.g. APSB25-88 / SessionReaper,
+  CVE-2025-54236 — CISA KEV, actively exploited) carry security fixes with **no version
+  bump**. `2.4.9-2026-jul` is a ZIP filename, not a version — `composer.lock` still says
+  `2.4.9` — so version matching alone cannot tell a patched store from a vulnerable one;
+  left unguarded, it would report a fully-patched store as vulnerable. That would be a
+  false positive, not a silent miss — the inverse of the previous two releases' failure
+  mode. Less dangerous, but it is exactly how a scanner becomes noise operators learn to
+  ignore.
+
+  An advisory can now declare `fixed_by_patch`; the scanner stops asserting `confirmed` for
+  those and emits `confidence: needs-triage` naming the patch and the command to verify it.
+  Where a `detect` signature pair is curated, `vendor/` is read for a definite answer:
+  **patched → suppressed**, **unpatched → `confirmed`**, **neither → `needs-triage`**
+  ("vendor/ matches neither baseline"). Two *positive* signatures deliberately: a store
+  carrying a backport or hand-edit matches neither, and a single marker would cry wolf at
+  the operators who patched early — Adobe's own tool reports N/A in exactly that case.
+
+  Content markers, not Adobe's reverse-dry-run: that only detects the hotfix path, so a store
+  that took the same fix by **upgrading** looks unpatched to it. A marker is present on both
+  paths — the reference pair for CVE-2025-54236 is verified against real upstream code,
+  where the APPLIED boundary lands exactly on `fixed_in: 2.4.8-p3`. No network, no new
+  dependencies; degrades to `needs-triage` when `vendor/` is absent. Advisories without
+  `fixed_by_patch` are untouched.
+
+  **This is infrastructure, not yet active detection**: the shipped
+  `magento-cve-data.yaml` still declares `status: illustrative` with `entries: []`, so
+  nothing is matched against it today. When a curator adds a real entry — e.g.
+  CVE-2025-54236, using the reference marker pair now documented in
+  `magento-cve-database.md` — and sets `status: live`, a fully-patched store will no
+  longer be reported vulnerable for that advisory.
+
 ## [1.21.1] — 2026-07-17 — Advisory-edition validation; CVE data lint
 
 ### Fixed
