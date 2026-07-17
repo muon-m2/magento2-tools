@@ -6,6 +6,30 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+
+- **A typo'd `edition:` in the CVE data matched zero stores, silently.** The data file is
+  hand-curated from Adobe security bulletins — whose prose says "Adobe Commerce" and "Adobe
+  Commerce Cloud" — and it ships with the plugin, so a curator error reaches every user.
+  `Commerce`, `enterprise` and `adobe-commerce` each matched **nothing**, with no warning;
+  one on a Critical CVE would have been a fleet-wide silent false negative. An unrecognized
+  edition is now treated as **unknown** rather than "does not apply": it matches regardless
+  of edition, is downgraded to `confidence: candidate` (per-finding — genuine confirmed
+  findings are not demoted), and warns into `scanner_errors`. This mirrors what an **absent**
+  `edition:` already does: match every store, which is how "affects both editions" is
+  expressed — so omitting the field was always safe while misspelling it was silently
+  dangerous. Deliberately **not** normalization: `Commerce` is not quietly accepted as
+  `commerce`, which would hide the very error being surfaced. Recognized editions are
+  unchanged — `commerce` still does not match an `open-source` store, preserving the edition
+  isolation added in 1.21.0.
+- **The shipped CVE data file is now linted in CI** (`tests/test-cve-data-schema.sh`): every
+  `edition` is `open-source`/`commerce` or absent, the explicitly-required fields are
+  present, and ranges parse. The runtime guard above only fires on a user's machine after
+  bad data has shipped; this catches it before release. Both are prerequisites for ever
+  setting `magento-cve-data.yaml` to `status: live`.
+
 ## [1.21.0] — 2026-07-17 — `distribution_version` + four CVE silent-false-negative fixes
 
 ### Added

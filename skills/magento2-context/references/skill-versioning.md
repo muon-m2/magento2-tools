@@ -17,7 +17,7 @@ skills evolve.
 | magento2-deploy            | 1.3.0   | Deploy plan template change, rollback recipe change                 |
 | magento2-test-generate     | 1.2.1   | Generator pattern change, new test type added                       |
 | magento2-module-upgrade    | 1.2.0   | New deprecation map, BC-break detection rules                       |
-| magento2-security-audit    | 1.3.0   | New CVE source, new pattern, severity calibration change            |
+| magento2-security-audit    | 1.3.1   | New CVE source, new pattern, severity calibration change            |
 | magento2-performance-audit | 1.2.0   | New pattern, new runtime check, severity calibration change         |
 | magento2-debug             | 1.3.0   | New mode added, output format change                                |
 | magento2-eav-attribute     | 1.3.2   | New entity type supported, new input type, template change          |
@@ -44,6 +44,19 @@ skills evolve.
 | magento2-audit             | 1.0.0   | New dimension added, consolidation/dedup or verdict rule change                |
 
 ## Changelog (last update: 2026-07-16)
+
+- **`magento2-security-audit` 1.3.0 → 1.3.1 — advisory-edition validation.** An advisory
+  whose `edition:` is not `open-source` or `commerce` used to match ZERO stores, silently —
+  the data file is hand-curated from Adobe bulletins whose prose says "Adobe Commerce", so
+  `Commerce`/`enterprise`/`adobe-commerce` were plausible typos, and one on a Critical CVE
+  would have been a fleet-wide silent false negative. An unrecognized edition is now treated
+  as UNKNOWN rather than "does not apply": it matches regardless of edition, is downgraded
+  per-finding to `confidence: candidate`, and warns into `scanner_errors`. This mirrors the
+  pre-existing behaviour of an ABSENT edition, which already matches every store. New
+  `tests/test-cve-data-schema.sh` lints the shipped data file at curation time, because the
+  runtime guard only fires after bad data has already shipped. Not normalization —
+  `Commerce` is not silently accepted as `commerce`, which would hide the error. Guarded by
+  `tests/test-cve-advisory-edition-validation.sh` and `tests/test-cve-data-schema.sh`.
 
 - **`magento2-context` 1.9.0 → 1.10.0 — `distribution_version` added.** The context JSON now
   reports what is actually installed alongside the Magento base. On the `magento/*` editions
