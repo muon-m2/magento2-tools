@@ -1,6 +1,6 @@
 {
   "name": "magento2-tools",
-  "version": "1.21.0",
+  "version": "1.21.1",
   "description": "End-to-end Magento 2 engineering skills: scaffold, review, test, fix, deploy, audit, and more. Hub-and-spoke design around magento2-context.",
   "author": {
     "name": "Serge Autushka",
