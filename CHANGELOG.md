@@ -69,6 +69,30 @@ This project adheres to [Semantic Versioning](https://semver.org/).
   (`magento/product-enterprise-edition`, `magento/product-community-edition`) instead of
   interpolating the edition string into a name.
 
+- **Open Source, Commerce, and Commerce Cloud stores could silently report clean on a
+  compound or wildcard version constraint — the same bug class as the two Mage-OS/Commerce
+  Cloud fixes above, but on `magento_version` itself, the field `cve-scan.sh` actually
+  matches CVEs against (`distribution_version`, where the earlier fixes landed, feeds
+  nothing today).** `resolve-context.sh` stripped operator characters *and the space* from
+  the raw composer.json constraint on all three `magento/*` branches, so a compound range
+  glued its two bounds into one plausible-looking number
+  (`">=2.4.6 <2.4.8"` → `"2.4.62.4.8"`, which compares cleanly and can fall outside every
+  affected range) and a wildcard or two-component constraint produced a string
+  `parse_version()` cannot parse at all (`"2.4.*"` → `"2.4."`, `"^2.4"` → `"2.4"`) — either
+  way, `version_in_range()` returned `False` for every advisory and the store reported
+  clean regardless of its real version. These three branches have no lock-based fallback,
+  so the constraint is the *only* source: there was no honest gap to fall back to. The
+  strip-then-validate discipline already applied to Mage-OS's `distribution_version` (leave
+  the space in place, validate the result, null out with a reason naming the raw constraint
+  instead of publishing a glued fiction) is now factored into one shared helper and applied
+  to all four editions; `magento_version` additionally requires a full three-component
+  release; a two-component `"2.4"` still passes the looser Mage-OS shape but still defeats
+  `parse_version()`, so it is rejected here. `distribution_version`, which mirrors
+  `magento_version` on these three editions, now follows it honestly to `null` instead of
+  carrying forward a stale or glued value. Defence-in-depth: `cve-scan.sh`'s "matcher did
+  not run" warning previously fired only when `magento_version` was empty; it now also
+  fires whenever the version is present but unparseable, independently of the resolver fix.
+
 - **Two false rows in the PHP support matrix.** 2.4.8 was documented as requiring a minimum of
   PHP 8.3 and having "dropped PHP 8.1 and 8.2" — marked `status: live`, the marker that
   authorizes confirmed findings. The tag declares `~8.2.0||~8.3.0||~8.4.0`: 2.4.8 dropped only

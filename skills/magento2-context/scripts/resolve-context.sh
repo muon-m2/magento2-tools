@@ -347,6 +347,52 @@ COMPOSER_JSON="${MAGENTO_ROOT}/composer.json"
 COMPOSER_LOCK="${MAGENTO_ROOT}/composer.lock"
 [[ ! -f "$COMPOSER_LOCK" && -f "composer.lock" ]] && COMPOSER_LOCK="composer.lock"
 
+# IMPORTANT (CTX-Compound): strip operator CHARACTERS only — deliberately NOT the space —
+# because this sed does not PARSE the constraint, it deletes characters. A simple
+# constraint ("~2.4.6") strips cleanly to "2.4.6", but a compound/range constraint
+# (">=2.4.6 <2.4.8") used to strip the space too and glue the two bounds into "2.4.62.4.8"
+# — a PLAUSIBLE-LOOKING but WRONG version that compares cleanly and can silently fall
+# outside an affected CVE range. That is a silent false negative, worse than failing
+# closed. Leaving the space in place means the shape regex below (which has no room for
+# whitespace) rejects any leftover space instead of us trusting a concatenation.
+#
+# This helper originated in the Mage-OS distribution_version fallback (the fix for the
+# same bug class there) and is shared here so every constraint-to-version site applies the
+# identical strip-then-validate discipline rather than inventing a second, divergent one.
+# Callers pass a shape regex because the accepted shape differs: `magento_version` must be
+# a full THREE-component release ("2.4.6" or "2.4.6-p3" — see MAGENTO_VERSION_SHAPE below),
+# because a two-component "2.4" would still fail cve-scan.sh's parse_version(); Mage-OS
+# `distribution_version` legitimately accepts a looser N-component shape (its own release
+# numbering, e.g. "3.2", is not a Magento version and has no such constraint).
+#
+# Echoes the validated version and returns 0 on success; echoes nothing and returns 1 on
+# failure — callers MUST null out and record a reason naming the raw constraint rather
+# than publishing a glued/partial value.
+resolve_pinned_version() {
+    local raw="$1" shape="$2" stripped
+    stripped=$(printf '%s' "$raw" | sed -E 's/[~^>=<*]//g' | head -c 40)
+    if [[ -n "$stripped" && "$stripped" =~ $shape ]]; then
+        printf '%s' "$stripped"
+        return 0
+    fi
+    return 1
+}
+MAGENTO_VERSION_SHAPE='^[0-9]+\.[0-9]+\.[0-9]+(-p[0-9]+)?$'
+
+# The magento/* editions (commerce-cloud, commerce, open-source) mirror distribution_version
+# onto magento_version — for them the distribution IS Magento. When magento_version could
+# not be resolved (MAGENTO_VERSION="null"), the mirror must say so honestly rather than
+# tacking "(mirrors magento_version)" onto an already-unresolved reason, or — worse —
+# silently carrying forward a stale/glued value from before this function ran.
+mirror_distribution_version() {
+    DISTRIBUTION_VERSION="$MAGENTO_VERSION"
+    if [[ "$MAGENTO_VERSION" == "null" ]]; then
+        DISTRIBUTION_VERSION_SRC="unresolved: magento_version could not be resolved (see resolution_source.magento_version) — distribution_version mirrors it and is therefore also unresolved"
+    else
+        DISTRIBUTION_VERSION_SRC="${MAGENTO_VERSION_SRC} (mirrors magento_version)"
+    fi
+}
+
 if [[ -f "$COMPOSER_JSON" ]] && command -v php >/dev/null 2>&1; then
     ent=$(jget_php "$COMPOSER_JSON" "require.magento/product-enterprise-edition")
     com=$(jget_php "$COMPOSER_JSON" "require.magento/product-community-edition")
@@ -355,25 +401,47 @@ if [[ -f "$COMPOSER_JSON" ]] && command -v php >/dev/null 2>&1; then
     if [[ -n "$cloud" ]]; then
         # Commerce Cloud ships the cloud metapackage on top of the enterprise edition.
         EDITION="commerce-cloud"
-        MAGENTO_VERSION=$(printf '%s' "${ent:-$cloud}" | sed -E 's/[~^>=<* ]//g' | head -c 40)
         EDITION_SRC="${COMPOSER_JSON}:magento/magento-cloud-metapackage"
-        MAGENTO_VERSION_SRC="$EDITION_SRC"
-        DISTRIBUTION_VERSION="$MAGENTO_VERSION"
-        DISTRIBUTION_VERSION_SRC="${MAGENTO_VERSION_SRC} (mirrors magento_version)"
+        # ent takes precedence when present (matches pre-fix behaviour); name whichever
+        # field's constraint was actually used in the failure reason below, not always
+        # the cloud metapackage, so a reader can see exactly what could not be parsed.
+        if [[ -n "$ent" ]]; then
+            mv_field="magento/product-enterprise-edition"
+            mv_raw="$ent"
+        else
+            mv_field="magento/magento-cloud-metapackage"
+            mv_raw="$cloud"
+        fi
+        if val=$(resolve_pinned_version "$mv_raw" "$MAGENTO_VERSION_SHAPE"); then
+            MAGENTO_VERSION="$val"
+            MAGENTO_VERSION_SRC="$EDITION_SRC"
+        else
+            MAGENTO_VERSION="null"
+            MAGENTO_VERSION_SRC="unresolved: the ${mv_field} constraint (\"${mv_raw}\") could not be parsed into a single version"
+        fi
+        mirror_distribution_version
     elif [[ -n "$ent" ]]; then
         EDITION="commerce"
-        MAGENTO_VERSION=$(printf '%s' "$ent" | sed -E 's/[~^>=<* ]//g' | head -c 40)
         EDITION_SRC="${COMPOSER_JSON}:magento/product-enterprise-edition"
-        MAGENTO_VERSION_SRC="$EDITION_SRC"
-        DISTRIBUTION_VERSION="$MAGENTO_VERSION"
-        DISTRIBUTION_VERSION_SRC="${MAGENTO_VERSION_SRC} (mirrors magento_version)"
+        if val=$(resolve_pinned_version "$ent" "$MAGENTO_VERSION_SHAPE"); then
+            MAGENTO_VERSION="$val"
+            MAGENTO_VERSION_SRC="$EDITION_SRC"
+        else
+            MAGENTO_VERSION="null"
+            MAGENTO_VERSION_SRC="unresolved: the magento/product-enterprise-edition constraint (\"${ent}\") could not be parsed into a single version"
+        fi
+        mirror_distribution_version
     elif [[ -n "$com" ]]; then
         EDITION="open-source"
-        MAGENTO_VERSION=$(printf '%s' "$com" | sed -E 's/[~^>=<* ]//g' | head -c 40)
         EDITION_SRC="${COMPOSER_JSON}:magento/product-community-edition"
-        MAGENTO_VERSION_SRC="$EDITION_SRC"
-        DISTRIBUTION_VERSION="$MAGENTO_VERSION"
-        DISTRIBUTION_VERSION_SRC="${MAGENTO_VERSION_SRC} (mirrors magento_version)"
+        if val=$(resolve_pinned_version "$com" "$MAGENTO_VERSION_SHAPE"); then
+            MAGENTO_VERSION="$val"
+            MAGENTO_VERSION_SRC="$EDITION_SRC"
+        else
+            MAGENTO_VERSION="null"
+            MAGENTO_VERSION_SRC="unresolved: the magento/product-community-edition constraint (\"${com}\") could not be parsed into a single version"
+        fi
+        mirror_distribution_version
     elif [[ -n "$mageos" ]]; then
         # Mage-OS — the community fork; its product metapackage is mage-os/product-community-edition.
         EDITION="mage-os"
@@ -414,24 +482,16 @@ if [[ -f "$COMPOSER_JSON" ]] && command -v php >/dev/null 2>&1; then
             DISTRIBUTION_VERSION="$dist"
             DISTRIBUTION_VERSION_SRC="${COMPOSER_LOCK}:mage-os/product-community-edition:version"
         else
-            # IMPORTANT (CTX-Compound): strip operator CHARACTERS only — deliberately NOT
-            # the space — because this sed does not PARSE the constraint, it deletes
-            # characters. A simple constraint ("~3.2.0") strips cleanly to "3.2.0", but a
-            # compound/range constraint (">=3.0 <4.0") used to strip the space too and
-            # glue the two bounds into "3.04.0" — a PLAUSIBLE-LOOKING but WRONG version
-            # that compares cleanly and can silently fall outside an affected CVE range.
-            # That is a silent false negative, worse than failing closed. Leaving the
-            # space in place means the validation below (which has no room for whitespace
-            # in its grammar) rejects any leftover space instead of us trusting a
-            # concatenation.
-            dist=$(printf '%s' "$mageos" | sed -E 's/[~^>=<*]//g' | head -c 40)
-            # Validate the sed OUTPUT before trusting it: only a single, well-formed
-            # version (optionally with a -pN patch suffix) is accepted. Anything else —
-            # a leftover space from a compound constraint, wildcards that don't fully
-            # strip ("3.2.*" -> "3.2."), stray text — nulls out with a reason naming the
-            # raw constraint, rather than publishing a fiction.
-            if [[ -n "$dist" && "$dist" =~ ^[0-9]+(\.[0-9]+)*(-p[0-9]+)?$ ]]; then
-                DISTRIBUTION_VERSION="$dist"
+            # Delegate to resolve_pinned_version (defined above) — the same
+            # strip-operator-characters-not-the-space, then-validate discipline this
+            # branch originated, now shared with the magento/* magento_version branches.
+            # The shape here is deliberately looser than MAGENTO_VERSION_SHAPE: a Mage-OS
+            # release ("3.2.0", or just "3.2") is not a Magento version and has no
+            # three-component requirement — only a leftover space from a compound
+            # constraint, an unstripped wildcard ("3.2.*" -> "3.2."), or stray text must
+            # be rejected.
+            if val=$(resolve_pinned_version "$mageos" '^[0-9]+(\.[0-9]+)*(-p[0-9]+)?$'); then
+                DISTRIBUTION_VERSION="$val"
                 DISTRIBUTION_VERSION_SRC="${COMPOSER_JSON}:mage-os/product-community-edition (constraint, not a pinned version)"
             else
                 DISTRIBUTION_VERSION="null"
