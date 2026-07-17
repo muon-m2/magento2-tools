@@ -53,7 +53,12 @@ skill_at_re = re.compile(r'(magento2-[a-z0-9-]+)@([0-9]+\.[0-9]+\.[0-9]+)')
 # JSON literal checks are intentionally omitted: example JSON inside documentation files
 # legitimately shows other skills' versions for illustration. Real JSON emission happens
 # in scripts and is covered by the bash-default check.
-self_ver_bash_re   = re.compile(r'SKILL_VERSION(?:=\$\{SKILL_VERSION:-|=)([0-9]+\.[0-9]+\.[0-9]+)')
+# Accepts the quoted idiom the emitters actually use, plus the unquoted and bare forms:
+#   SKILL_VERSION="${SKILL_VERSION:-X}"   SKILL_VERSION=${SKILL_VERSION:-X}
+#   SKILL_VERSION=X                       SKILL_VERSION="X"
+# The optional ["\x27] after `=` is what the original regex omitted (issue #41); \x27 is a
+# single quote, spelled in hex so the raw string needs no quote escaping.
+self_ver_bash_re   = re.compile(r'SKILL_VERSION=["\x27]?(?:\$\{SKILL_VERSION:-)?([0-9]+\.[0-9]+\.[0-9]+)')
 # Header-comment form: "SKILL_VERSION  default: X.Y.Z" (drifts independently of the
 # real bash default and misleads readers).
 self_ver_doc_re    = re.compile(r'SKILL_VERSION\s+default:\s*([0-9]+\.[0-9]+\.[0-9]+)')
@@ -63,6 +68,44 @@ self_ver_py_re     = re.compile(r"os\.environ\.get\(\s*['\"]SKILL_VERSION['\"]\s
 # Scoped to the owning skill's scripts/ dir so example JSON in docs (which may show
 # other skills' versions for illustration) is not flagged. This is the TEST-3 fix.
 self_ver_json_re   = re.compile(r'"skillVersion"\s*:\s*"([0-9]+\.[0-9]+\.[0-9]+)"')
+
+# --- Self-check: the guard must honour the forms its own comments claim (issue #41) ---
+# self_ver_bash_re once required the UNQUOTED `SKILL_VERSION=${...`, but every emitter
+# script uses the QUOTED idiom `SKILL_VERSION="${SKILL_VERSION:-X}"`. The `"` defeated the
+# regex, so the guard validated only the doc COMMENT (self_ver_doc_re) and was blind to the
+# real default it documents — it could go green while the shipped version drifted. A guard
+# that silently fails to check the thing it exists to check is worse than no guard, so it
+# now verifies its own instrument before trusting it. If this block fails, the bash regex
+# has been re-narrowed; fix the regex, do not weaken this check.
+_bash_must_match = {
+    'SKILL_VERSION="${SKILL_VERSION:-1.3.2}"': "1.3.2",   # quoted — the real, once-blind form
+    'SKILL_VERSION=${SKILL_VERSION:-1.3.2}':   "1.3.2",   # unquoted default
+    'SKILL_VERSION=1.3.2':                     "1.3.2",   # bare
+    'SKILL_VERSION="1.3.2"':                   "1.3.2",   # bare quoted
+}
+_bash_must_not_match = [
+    "export SKILL_VERSION",                                        # no assignment
+    'SKILL_VERSIONS_JSON="[\\"x@${SKILL_VERSION}\\"]"',            # different var; interpolation
+    "#   SKILL_VERSION       default: 1.3.2",                      # doc comment (self_ver_doc_re owns it)
+]
+_selfcheck = []
+for _line, _want in _bash_must_match.items():
+    _m = self_ver_bash_re.search(_line)
+    if not _m or _m.group(1) != _want:
+        _selfcheck.append(
+            f"self_ver_bash_re failed to extract {_want!r} from a documented form: {_line!r} "
+            f"(got {(_m.group(1) if _m else None)!r}) — the guard is blind to this SKILL_VERSION form"
+        )
+for _line in _bash_must_not_match:
+    if self_ver_bash_re.search(_line):
+        _selfcheck.append(
+            f"self_ver_bash_re false-matched a non-default line: {_line!r} — it would flag noise"
+        )
+if _selfcheck:
+    print("FAIL: version-guard self-check — the guard's own regex is broken:")
+    for _p in _selfcheck:
+        print("  " + _p)
+    sys.exit(1)
 
 def owning_skill(path):
     # path like skills/<skill>/...
