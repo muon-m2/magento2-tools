@@ -94,7 +94,7 @@ def read_json(path: str, default):
 def project_context(ctx: dict) -> dict:
     if not isinstance(ctx, dict):
         return {}
-    keys = ('vendor', 'magento_version', 'edition', 'php_version', 'runner')
+    keys = ('vendor', 'magento_version', 'edition', 'b2b_version', 'php_version', 'runner')
     return {k: ctx.get(k) for k in keys}
 
 

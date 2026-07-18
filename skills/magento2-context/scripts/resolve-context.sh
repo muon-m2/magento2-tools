@@ -505,6 +505,23 @@ if [[ -f "$COMPOSER_JSON" ]] && command -v php >/dev/null 2>&1; then
     [[ -n "$fc" ]] && FRAMEWORK_CONSTRAINT="$fc"
 fi
 
+# --- Adobe Commerce B2B module version ---
+# The B2B extension is the composer metapackage magento/extension-b2b, versioned on its own
+# 1.x line (1.3.x/1.4.x/1.5.x) — exactly the scheme the B2B CVE advisories range against. It
+# exists only on Adobe Commerce (enterprise edition); Commerce Cloud installs enterprise too.
+B2B_VERSION="null"
+B2B_VERSION_SRC=""
+if [[ "$EDITION" == "commerce" || "$EDITION" == "commerce-cloud" ]]; then
+    b2b=""
+    [[ -f "$COMPOSER_LOCK" ]] && b2b=$(lock_pkg_get "$COMPOSER_LOCK" "magento/extension-b2b" "version")
+    if [[ -n "$b2b" ]]; then
+        B2B_VERSION="$b2b"
+        B2B_VERSION_SRC="${COMPOSER_LOCK}:magento/extension-b2b:version"
+    else
+        B2B_VERSION_SRC="unresolved: no composer.lock entry for magento/extension-b2b (B2B module not installed, or installed piecemeal without the metapackage)"
+    fi
+fi
+
 # --- PHP version probe ---
 PHP_VERSION="null"
 PHP_VERSION_SRC=""
@@ -718,6 +735,7 @@ cat > "$CACHE_TMP" <<EOF
   "edition": $(json_or_null "$EDITION"),
   "magento_version": $(json_or_null "$MAGENTO_VERSION"),
   "distribution_version": $(json_or_null "$DISTRIBUTION_VERSION"),
+  "b2b_version": $(json_or_null "$B2B_VERSION"),
 
   "php_version": $(json_or_null "$PHP_VERSION"),
   "php_constraint": $(json_or_null "$PHP_CONSTRAINT"),
@@ -768,6 +786,7 @@ cat > "$CACHE_TMP" <<EOF
     "edition": $(json_or_null "$EDITION_SRC"),
     "magento_version": $(json_or_null "$MAGENTO_VERSION_SRC"),
     "distribution_version": $(json_or_null "$DISTRIBUTION_VERSION_SRC"),
+    "b2b_version": $(json_or_null "$B2B_VERSION_SRC"),
     "php_version": $(json_or_null "$PHP_VERSION_SRC"),
     "theme.frontend": $(json_or_null "$THEME_FRONTEND_SRC"),
     "theme.adminhtml": $(json_or_null "$THEME_ADMIN_SRC")
