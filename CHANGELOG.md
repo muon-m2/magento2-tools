@@ -6,6 +6,20 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+
+- **`refresh-cve-data.py` hardening (curator-time only — no change to audit output or the
+  shipped CVE data, which regenerates byte-identical).** Registry parsing now rejects a
+  registry that is valid JSON but not an object with an actionable message instead of a
+  traceback, and matches a patch's `cves` by exact list membership (a stray string value can
+  no longer substring-match a CVE). The tool now also warns — including under `--check` — when
+  an entry would ship with neither `fixed_in` nor `fixed_by_patch`, the tell-tale of an
+  isolated-patch CVE left bare by a lagging Adobe registry (which would silently over-report
+  `confirmed` instead of `needs-triage`). The `magento-cve-database.md` curator docs gain a
+  matching caution and a couple of clarifications.
+
 ## [1.22.0] — 2026-07-17 — Live CVE scanner: 63 curated advisories + refresh tool
 
 ### Added
