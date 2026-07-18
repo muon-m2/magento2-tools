@@ -24,32 +24,15 @@ def is_prerelease(r):
     return bool(_PRERELEASE.search(r))
 
 
-def _major(r):
-    m = re.match(r'\s*(\d+)\.', r)
-    return m.group(1) if m else None
-
-
-def is_b2b_only(affected):
-    """True if no affected range is a core (2.x) range — i.e. every range is B2B (1.x).
-
-    The scanner resolves only a core magento_version, so a B2B-only advisory can never
-    match and would be dead data dressed as coverage.
-    """
-    ranges = [a.get("magento_version_range", "") for a in affected
-              if isinstance(a, dict)]
-    if not ranges:
-        return False
-    return all(_major(r) not in (None, "2") for r in ranges)
-
-
 def transform_entry(entry):
     """Return the entry with affected ranges cleaned, or None to exclude it.
 
-    Excluded when B2B-only, or when nothing survives the pre-release drop.
+    Excluded when nothing survives the pre-release drop. A B2B-only entry (all ranges
+    tagged `component: b2b`) is KEPT — the resolver now resolves a B2B version, so a
+    component:b2b range is matchable and dropping it would be dead data dressed as a
+    curation decision.
     """
     affected = entry.get("affected") or []
-    if is_b2b_only(affected):
-        return None
     cleaned = []
     for a in affected:
         if not isinstance(a, dict):

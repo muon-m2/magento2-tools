@@ -30,6 +30,9 @@ CVE_SCAN_SH = os.path.join(HERE, "cve-scan.sh")
 # The ONLY editions an advisory may declare. An ABSENT edition is legal and means
 # "affects both" — it already matches every store.
 KNOWN_EDITIONS = ('open-source', 'commerce')
+# `component` lives on the affected RANGE, a sibling key to `edition`. ABSENT means
+# core — the vast majority of entries. The only defined non-core value is 'b2b'.
+KNOWN_COMPONENTS = ('b2b',)
 # Only the fields magento-cve-database.md marks EXPLICITLY "Required". `severity`,
 # `description` and `fixed_in` are left unmarked by that doc, so they are NOT enforced
 # here — under-enforcing is recoverable; rejecting a valid curated entry because this
@@ -190,6 +193,26 @@ def validate_text(text):
                         f"match EVERY store as a low-confidence `candidate` and warn at scan "
                         f"time. Use 'open-source' or 'commerce', or omit the field entirely if "
                         f"the advisory affects both.")
+                comp = aff.get('component')
+                if comp is not None and comp not in KNOWN_COMPONENTS:
+                    errors.append(
+                        f"{cve}: component {comp!r} is not recognized; the only defined value "
+                        f"is 'b2b'. Omit it for a core advisory.")
+                # A non-core (major != 2) range MUST be tagged component:b2b, else the matcher
+                # ranges it against the core magento_version and it silently matches nothing.
+                mmaj = re.match(r'\s*(\d+)\.', probe or rng)
+                if mmaj and mmaj.group(1) != '2' and comp != 'b2b':
+                    errors.append(
+                        f"{cve}: magento_version_range {rng!r} is not a 2.x core range but is "
+                        f"not tagged `component: b2b` — the scanner would range it against the "
+                        f"core version and it would never match. Tag it, or it is a curation error.")
+
+            comps = {aff.get('component') for aff in affected if isinstance(aff, dict)}
+            if len(comps) > 1:
+                errors.append(
+                    f"{cve}: affected ranges mix components {sorted(str(c) for c in comps)} — a "
+                    f"record's ranges must all be core or all `component: b2b`, so the matcher "
+                    f"has one version space per record.")
 
             # --- fixed_by_patch (optional): non-empty list of patch objects, each with an id ---
             has_fixed_by_patch = 'fixed_by_patch' in rec
