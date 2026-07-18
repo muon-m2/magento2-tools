@@ -6,7 +6,7 @@ Skill versions:
 
 - magento2-release@1.2.1
 - magento2-deploy@1.3.0
-  - magento2-context@1.10.0
+  - magento2-context@1.11.0
 
 ## Highlights
 
