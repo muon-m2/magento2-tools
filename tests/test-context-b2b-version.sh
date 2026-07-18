@@ -5,6 +5,7 @@
 set -uo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 command -v php >/dev/null 2>&1 || { echo "skip: php"; exit 77; }
+command -v python3 >/dev/null 2>&1 || { echo "skip: python3"; exit 77; }
 RESOLVE="$(pwd)/skills/magento2-context/scripts/resolve-context.sh"
 
 run_case() { # $1=composer.json $2=composer.lock  -> prints resolved b2b_version
