@@ -15,7 +15,7 @@
 #                       Pass an absolute or project-root path so an in-`src/` cwd cannot
 #                       redirect output into the Magento tree. See magento2-context/SKILL.md.
 #   OUTPUT_DIR          default: {DOCS_ROOT}/audits
-#   SKILL_VERSION       default: 1.4.0
+#   SKILL_VERSION       default: 1.5.0
 #
 # Output:
 #   Writes {OUTPUT_DIR}/{TARGET_MODULE}-security-{YYYY-MM-DD}.json (module scope) or
@@ -35,7 +35,7 @@ SCAN_ROOT="${SCAN_ROOT:-$([[ -d app/code ]] && echo app/code || echo src/app/cod
 SECRET_ROOT="${SECRET_ROOT:-${SCAN_ROOT%/code}}"
 DOCS_ROOT="${DOCS_ROOT:-.docs}"
 OUTPUT_DIR="${OUTPUT_DIR:-${DOCS_ROOT}/audits}"
-SKILL_VERSION="${SKILL_VERSION:-1.4.0}"
+SKILL_VERSION="${SKILL_VERSION:-1.5.0}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 EMIT_FINDINGS="${SCRIPT_DIR}/../../magento2-context/scripts/emit-findings.sh"
@@ -124,6 +124,6 @@ export TARGET_MODULE TARGET_PATH SCOPE OUTPUT_DIR
 export SKILL_NAME="magento2-security-audit"
 export SKILL_VERSION
 export OUTPUT_KIND="security"
-export SKILL_VERSIONS_JSON="[\"magento2-security-audit@${SKILL_VERSION}\",\"magento2-context@1.10.0\"]"
+export SKILL_VERSIONS_JSON="[\"magento2-security-audit@${SKILL_VERSION}\",\"magento2-context@1.11.0\"]"
 
 BASENAME_KIND="security" POST_JSON_HOOK="${SCRIPT_DIR}/inject-cve-status.sh" bash "$EMIT_FINDINGS"

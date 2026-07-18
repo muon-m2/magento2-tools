@@ -137,6 +137,6 @@ export TARGET_MODULE TARGET_PATH SCOPE OUTPUT_DIR
 export SKILL_NAME="magento2-performance-audit"
 export SKILL_VERSION
 export OUTPUT_KIND="performance"
-export SKILL_VERSIONS_JSON="[\"magento2-performance-audit@${SKILL_VERSION}\",\"magento2-context@1.10.0\"]"
+export SKILL_VERSIONS_JSON="[\"magento2-performance-audit@${SKILL_VERSION}\",\"magento2-context@1.11.0\"]"
 
 BASENAME_KIND="perf" bash "$EMIT_FINDINGS"

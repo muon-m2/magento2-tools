@@ -9,7 +9,7 @@ skills evolve.
 
 | Skill                      | Version | Bumped when                                                         |
 |----------------------------|---------|---------------------------------------------------------------------|
-| magento2-context           | 1.10.0  | JSON schema changes, new resolution rules, new tool probes          |
+| magento2-context           | 1.11.0  | JSON schema changes, new resolution rules, new tool probes          |
 | magento2-module-create     | 1.10.2  | New template added, surface added, naming rule changed              |
 | magento2-module-review     | 2.4.0   | New checklist category, severity calibration change, new JSON field, fix-routing change |
 | magento2-feature-implement | 2.13.1  | New phase, new approval gate, mode added, new task types (I/C/L/Q), template structure change, delegation/fallback discipline, advisory model-tier field |
@@ -17,7 +17,7 @@ skills evolve.
 | magento2-deploy            | 1.3.0   | Deploy plan template change, rollback recipe change                 |
 | magento2-test-generate     | 1.2.1   | Generator pattern change, new test type added                       |
 | magento2-module-upgrade    | 1.2.0   | New deprecation map, BC-break detection rules                       |
-| magento2-security-audit    | 1.4.0   | New CVE source, new pattern, severity calibration change            |
+| magento2-security-audit    | 1.5.0   | New CVE source, new pattern, severity calibration change            |
 | magento2-performance-audit | 1.2.0   | New pattern, new runtime check, severity calibration change         |
 | magento2-debug             | 1.3.0   | New mode added, output format change                                |
 | magento2-eav-attribute     | 1.3.2   | New entity type supported, new input type, template change          |
@@ -45,6 +45,25 @@ skills evolve.
 
 ## Changelog (last update: 2026-07-17)
 
+- **`magento2-security-audit` 1.4.0 → 1.5.0 — B2B CVE matching.** The scanner is now
+  component-aware: an advisory record can carry `component: b2b`, and the matcher compares
+  those records against the new `b2b_version` resolved field instead of `magento_version`
+  (the `edition: commerce` gate on the range is unchanged). `MAGENTO_B2B_VERSION` env (else
+  the cached `b2b_version`) feeds the comparison; empty/absent means B2B is not installed, so
+  B2B advisories simply do not match — never a false positive on a core-only store. This
+  un-excludes the three B2B-only advisories left out of 1.4.0's curation — CVE-2025-27207,
+  CVE-2025-43586, CVE-2026-47995 — bringing `magento-cve-data.yaml` to 66 entries (only
+  CVE-2026-48358, the disputed-scope CVE, remains excluded). `refresh-cve-data.py` now
+  auto-derives `-B2B` patch ids (rather than `-CE`/`-EE`) for `component: b2b` records, kept
+  distinct from a core record's patch ids for the same bulletin since a core store can't
+  apply a B2B-only patch. Depends on `magento2-context` 1.11.0's new `b2b_version` field.
+- **`magento2-context` 1.10.0 → 1.11.0 — `b2b_version` added.** New resolved field: the
+  installed Adobe Commerce B2B module version, read from the `magento/extension-b2b`
+  metapackage in `composer.lock`. Resolved only for `edition` `commerce`/`commerce-cloud`
+  (B2B is Adobe-Commerce-only); `null` otherwise (open-source, mage-os, no lock, or the
+  metapackage absent — installed piecemeal without it). Feeds
+  `magento2-security-audit`'s new `component: b2b` CVE matching. Additive and optional, so
+  `schemaVersion` stays `1.0`.
 - **`magento2-security-audit` 1.3.2 → 1.4.0 — the CVE scanner is armed: 63 curated
   advisories, `status: live`.** The dormant infrastructure from 1.3.1/1.3.2 (advisory-edition
   validation, patch-level detection) now has real data behind it: `magento-cve-data.yaml`

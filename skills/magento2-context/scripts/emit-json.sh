@@ -94,7 +94,7 @@ def read_json(path: str, default):
 def project_context(ctx: dict) -> dict:
     if not isinstance(ctx, dict):
         return {}
-    keys = ('vendor', 'magento_version', 'edition', 'php_version', 'runner')
+    keys = ('vendor', 'magento_version', 'edition', 'b2b_version', 'php_version', 'runner')
     return {k: ctx.get(k) for k in keys}
 
 
@@ -143,7 +143,7 @@ if raw_versions:
 else:
     skill_versions = [
         f'{skill_name}@{skill_version}',
-        'magento2-context@1.10.0',
+        'magento2-context@1.11.0',
     ]
 
 document = {

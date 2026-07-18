@@ -8,6 +8,23 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- **B2B CVE matching.** `magento2-context` resolves a new `b2b_version` field — the
+  installed Adobe Commerce B2B module version (`magento/extension-b2b` from
+  `composer.lock`), populated only for `commerce`/`commerce-cloud` editions with the B2B
+  metapackage installed; `null` otherwise. The security audit's CVE scanner gains a new
+  `component: b2b` schema value on affected advisory ranges — component-aware matching
+  compares those records against `b2b_version` instead of `magento_version` (the
+  `edition: commerce` gate on the range is unchanged); an absent/empty B2B version simply
+  does not match, rather than false-positiving a core-only store. This un-excludes the
+  three B2B-only advisories left out of `[1.22.0]`'s curation — CVE-2025-27207,
+  CVE-2025-43586, CVE-2026-47995 — bringing `magento-cve-data.yaml` to 66 entries (only the
+  disputed-scope CVE-2026-48358 remains excluded). `refresh-cve-data.py` now auto-derives
+  `-B2B` patch ids (instead of `-CE`/`-EE`) for `component: b2b` records, kept distinct from
+  a core record's patch ids on the same bulletin since a core store can't apply a B2B-only
+  patch.
+
 ### Changed
 
 - **`refresh-cve-data.py` hardening (curator-time only — no change to audit output or the

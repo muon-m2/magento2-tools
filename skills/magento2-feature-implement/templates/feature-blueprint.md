@@ -7,7 +7,7 @@ Requested by: {user or team}
 Skill versions:
 
 - magento2-feature-implement@2.13.1
-  - magento2-context@1.10.0
+  - magento2-context@1.11.0
 
 ---
 
