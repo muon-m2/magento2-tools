@@ -6,7 +6,7 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.23.0] — 2026-07-18 — Adobe Commerce B2B CVE matching
 
 ### Added
 
