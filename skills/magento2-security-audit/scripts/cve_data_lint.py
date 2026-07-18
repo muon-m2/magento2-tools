@@ -206,6 +206,15 @@ def validate_text(text):
                         f"{cve}: magento_version_range {rng!r} is not a 2.x core range but is "
                         f"not tagged `component: b2b` — the scanner would range it against the "
                         f"core version and it would never match. Tag it, or it is a curation error.")
+                # Mirror of the check above: a component:b2b range MUST NOT be a 2.x core
+                # range, else the matcher ranges it against b2b_version (a 1.x value) and
+                # it silently never matches on a core store — a silent false negative.
+                if comp == 'b2b' and mmaj and mmaj.group(1) == '2':
+                    errors.append(
+                        f"{cve}: magento_version_range {rng!r} is tagged `component: b2b` but "
+                        f"looks like a 2.x core range — the scanner would range it against "
+                        f"b2b_version (a 1.x value) and it would never match. Untag it, or it "
+                        f"is a curation error.")
 
             comps = {aff.get('component') for aff in affected if isinstance(aff, dict)}
             if len(comps) > 1:
