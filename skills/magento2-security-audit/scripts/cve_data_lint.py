@@ -82,8 +82,10 @@ def validate_text(text):
     """Validate CVE-data YAML text against the real parser + schema. Returns problems
     ([] = ok).
 
-    Writes `text` to a temp file, loads it via the ast-extracted load_cve_data_yaml /
-    parse_record from cve-scan.sh, and applies every rule the lint enforces today:
+    Writes `text` to a temp file, loads it via `cve_parser`'s load_cve_data_yaml /
+    parse_record — the scanner's real parser, imported rather than reimplemented, so this
+    lint can never drift from what the scanner actually does — and applies every rule the
+    lint enforces today:
       - required fields cve/bulletin_url/recorded_at present; affected non-empty;
       - edition in {open-source, commerce} or absent;
       - every magento_version_range parses AND matches some version via version_in_range
