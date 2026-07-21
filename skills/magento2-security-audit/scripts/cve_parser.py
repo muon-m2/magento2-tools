@@ -200,12 +200,27 @@ def parse_record(rec):
 
         m = _RE_KEY.match(line)
         if m:
-            key, val = m.group(1), _scalar(m.group(2), line_no, line)
-            if val == '':
+            key = m.group(1)
+            if m.group(2) is None:
+                # No value at all after the colon — this is how a key OPENS a list
+                # (`affected:`, `fixed_in:`, `fixed_by_patch:`, `detect:`). Must stay a
+                # list-opener: load-bearing for those four keys across every record.
                 cur_list = []
                 out[key] = cur_list
                 cur_obj = None
             else:
+                val = _scalar(m.group(2), line_no, line)
+                if val == '':
+                    # An EXPLICITLY empty value (`severity: ""`), not a bare `key:`. Without
+                    # this check it fell into the list-opener branch above and silently
+                    # became `[]` — e.g. `severity: ""` turned into `severity: []`, and
+                    # cve-scan.sh's severity_norm([]) falls through to 'medium'. That is the
+                    # second silent route to the exact bug this module exists to eliminate.
+                    raise CveRecordError(line_no, line,
+                                         f"'{key}' has an explicitly empty value — if you "
+                                         "meant to open a list, remove everything after the "
+                                         f"colon (`{key}:`); an empty quoted/blank value "
+                                         "after a colon is never valid here")
                 out[key] = val
                 cur_list = None
                 cur_obj = None
