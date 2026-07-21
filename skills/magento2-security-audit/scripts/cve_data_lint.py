@@ -14,18 +14,17 @@ silently blind scanner (measured: sibling-indented `affected:`, `cve` not an ent
 first key, flow-style `affected: [...]`, and a bare-string `magento_version_range` all
 linted clean while producing ZERO runtime findings). So: don't reimplement the
 parser here — a hand-copied second implementation would just drift from the real one,
-which is the exact bug being fixed. Instead EXTRACT the real functions out of
-cve-scan.sh's embedded Python and EXEC them, so this lint checks exactly what the
-scanner will do with this file, nothing more and nothing less.
+which is the exact bug being fixed. Import `cve_parser`, the ONE parser the scanner
+itself uses, so this lint checks exactly what the scanner will do with this file.
 """
-import ast
 import os
 import re
 import sys
 import tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-CVE_SCAN_SH = os.path.join(HERE, "cve-scan.sh")
+sys.path.insert(0, HERE)
+import cve_parser  # noqa: E402
 
 # The ONLY editions an advisory may declare. An ABSENT edition is legal and means
 # "affects both" — it already matches every store.
@@ -38,39 +37,6 @@ KNOWN_COMPONENTS = ('b2b',)
 # here — under-enforcing is recoverable; rejecting a valid curated entry because this
 # lint guessed would be a self-inflicted wound. Resolve the doc's ambiguity, then tighten.
 REQUIRED_SCALAR = ('cve', 'bulletin_url', 'recorded_at')
-
-
-def _load_real_parser():
-    """Pull `load_cve_data_yaml`, `parse_record`, `version_in_range` (and their
-    helpers) out of cve-scan.sh's embedded `python3 <<'PY' ... PY` block and exec ONLY
-    the function/import statements — never the top-level script body, which reads
-    env vars, calls sys.exit, and would need a live scan environment to run.
-    """
-    try:
-        src = open(CVE_SCAN_SH, encoding='utf-8').read()
-    except OSError as e:
-        print(f"FAIL: could not read {CVE_SCAN_SH} to extract its parser: {e}")
-        sys.exit(1)
-    m = re.search(r"<<'PY'\n(.*?)\n^PY\s*$", src, re.S | re.M)
-    if not m:
-        print(f"FAIL: could not locate the embedded `python3 <<'PY'` block in "
-              f"{CVE_SCAN_SH} — its structure changed; update this lint's extraction "
-              f"logic to match.")
-        sys.exit(1)
-    tree = ast.parse(m.group(1), filename=CVE_SCAN_SH)
-    # Keep only imports and function defs — never the top-level executable statements
-    # (those read os.environ, run composer audit, and sys.exit()).
-    keep = [n for n in tree.body if isinstance(n, (ast.Import, ast.ImportFrom, ast.FunctionDef))]
-    module = ast.Module(body=keep, type_ignores=[])
-    ns = {}
-    exec(compile(module, CVE_SCAN_SH, 'exec'), ns)
-    needed = ('load_cve_data_yaml', 'parse_record', 'version_in_range')
-    missing = [n for n in needed if n not in ns]
-    if missing:
-        print(f"FAIL: cve-scan.sh no longer defines {missing} — this lint's extraction "
-              f"depends on them; update the lint.")
-        sys.exit(1)
-    return ns
 
 
 def _apparent_entry_count(text):
@@ -126,10 +92,9 @@ def validate_text(text):
       - detect: single-object list with file + both signatures; each signature re.compiles,
         does NOT match the empty string, and is not single-quoted.
     """
-    parser = _load_real_parser()
-    load_cve_data_yaml = parser['load_cve_data_yaml']
-    parse_record = parser['parse_record']
-    version_in_range = parser['version_in_range']
+    load_cve_data_yaml = cve_parser.load_cve_data_yaml
+    parse_record = cve_parser.parse_record
+    version_in_range = cve_parser.version_in_range
 
     errors = []
 
