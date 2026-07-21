@@ -120,7 +120,13 @@ def validate_text(text):
 
         # --- Per-record checks, run through the REAL parser -----------------------------
         for raw in records:
-            rec = parse_record(raw)
+            try:
+                rec = parse_record(raw)
+            except cve_parser.CveRecordError as e:
+                hint = re.search(r'^- cve:\s*(\S+)', raw, re.M)
+                where = hint.group(1) if hint else '<unknown-cve>'
+                errors.append(f"{where}: unparseable record — {e}")
+                continue
             cve = rec.get('cve') or '<unknown-cve>'
 
             for field in REQUIRED_SCALAR:
