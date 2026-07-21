@@ -21,6 +21,42 @@ The canonical record layout, after _dedent_record normalises a block to column 0
 import re
 
 
+class CveRecordError(Exception):
+    """A line inside a CVE record does not match the canonical layout.
+
+    Raised instead of silently dropping or mangling the line. Callers decide the blast
+    radius: the lint and the refresh tool let it surface as a hard per-record failure (a
+    human is present), while the scanner catches it, skips that ONE record, and reports the
+    reason through scanner_errors so the rest of the scan still runs.
+    """
+
+    def __init__(self, line_no, line, reason):
+        self.line_no = line_no
+        self.line = line
+        self.reason = reason
+        super().__init__(f"line {line_no}: {reason} — {line!r}")
+
+
+def _scalar(value, line_no, raw):
+    """Normalise a scalar value, rejecting what the old parser silently mangled."""
+    v = (value or '').strip()
+    if not v:
+        return ''
+    if v.startswith("'"):
+        raise CveRecordError(line_no, raw,
+                             "single-quoted scalar (the parser strips double quotes only, "
+                             "so the quotes would be kept and never match) — use double quotes")
+    if v.startswith('"'):
+        if len(v) < 2 or not v.endswith('"'):
+            raise CveRecordError(line_no, raw, "unterminated double-quoted scalar")
+        return v[1:-1]
+    if ' #' in v:
+        raise CveRecordError(line_no, raw,
+                             "unquoted value contains ' #', which YAML reads as a comment "
+                             "— quote the value if the '#' is literal")
+    return v
+
+
 def parse_version(v, default_patch=0):
     """Parse '2.4.6-p3' into a tuple (2, 4, 6, 3).
 
@@ -124,48 +160,83 @@ def _dedent_record(rec):
     return '\n'.join(out)
 
 
+_RE_CVE = re.compile(r'^- cve:(?:[ ](.*))?$')
+_RE_KEY = re.compile(r'^  (\w+):(?:[ ](.*))?$')
+_RE_ITEM = re.compile(r'^    - (.*)$')
+_RE_OBJKEY = re.compile(r'^      (\w+):(?:[ ](.*))?$')
+# Inside a list item: a key only when the colon is followed by a space or ends the line.
+# Without that rule "- https://a/b" split into {'https': '//a/b'} — a string became a dict.
+_RE_INLINE_KEY = re.compile(r'^(\w+):(?:[ ](.*))?$')
+
+
 def parse_record(rec):
-    """Very small YAML subset parser sufficient for this fixed schema."""
+    """Parse ONE dedented CVE record into a dict.
+
+    Small reader for a fixed schema, not a YAML implementation — see the module docstring.
+    Anything outside the canonical layout raises CveRecordError rather than being dropped:
+    a silently missing `severity` reports a critical advisory as medium, and nothing in the
+    lint would catch it.
+    """
     out = {'affected': [], 'fixed_in': []}
     cur_list = None
     cur_obj = None
-    for raw in rec.splitlines():
+    for line_no, raw in enumerate(rec.splitlines(), 1):
         line = raw.rstrip()
         if not line.strip():
             continue
-        # Top-level field, e.g. "- cve: CVE-..." or "  severity: high"
-        m = re.match(r'^- cve:\s*(.+)$', line)
+        if line.lstrip().startswith('#'):
+            continue
+        lead = line[:len(line) - len(line.lstrip())]
+        if '\t' in lead:
+            raise CveRecordError(line_no, line,
+                                 "tab in the indentation — YAML indentation must be spaces")
+
+        m = _RE_CVE.match(line)
         if m:
-            out['cve'] = m.group(1).strip()
+            out['cve'] = _scalar(m.group(1), line_no, line)
             cur_list = None
             cur_obj = None
             continue
-        m = re.match(r'^\s{2}(\w+):\s*(.*)$', line)
-        if m and not line.startswith('    '):
-            key, val = m.group(1), m.group(2).strip()
+
+        m = _RE_KEY.match(line)
+        if m:
+            key, val = m.group(1), _scalar(m.group(2), line_no, line)
             if val == '':
                 cur_list = []
                 out[key] = cur_list
                 cur_obj = None
             else:
-                out[key] = val.strip('"')
+                out[key] = val
                 cur_list = None
                 cur_obj = None
             continue
-        # List item under affected/fixed_in
-        m = re.match(r'^\s{4}-\s*(.*)$', line)
-        if m and cur_list is not None:
-            val = m.group(1).strip()
-            if ':' in val:
-                k, v = val.split(':', 1)
-                cur_obj = {k.strip(): v.strip().strip('"')}
+
+        m = _RE_ITEM.match(line)
+        if m:
+            if cur_list is None:
+                raise CveRecordError(line_no, line,
+                                     "list item with no list open above it — a key must "
+                                     "introduce the list (e.g. `  fixed_in:`)")
+            body = m.group(1).strip()
+            km = _RE_INLINE_KEY.match(body)
+            if km:
+                cur_obj = {km.group(1): _scalar(km.group(2), line_no, line)}
                 cur_list.append(cur_obj)
             else:
-                cur_list.append(val.strip('"'))
+                cur_list.append(_scalar(body, line_no, line))
+                cur_obj = None
             continue
-        # Continuation key under list-of-objects
-        m = re.match(r'^\s{6}(\w+):\s*(.*)$', line)
-        if m and cur_obj is not None:
-            cur_obj[m.group(1)] = m.group(2).strip().strip('"')
+
+        m = _RE_OBJKEY.match(line)
+        if m:
+            if cur_obj is None:
+                raise CveRecordError(line_no, line,
+                                     "object continuation key with no list-item object "
+                                     "above it")
+            cur_obj[m.group(1)] = _scalar(m.group(2), line_no, line)
             continue
+
+        raise CveRecordError(line_no, line,
+                             "unexpected indentation or shape — expected `- cve:` at "
+                             "column 0, keys at 2 spaces, list items at 4, object keys at 6")
     return out
