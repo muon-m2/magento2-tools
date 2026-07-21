@@ -79,6 +79,15 @@ def load_cve_data_yaml(path):
         if re.match(r'^entries:', line):
             in_entries = True
             continue
+        # A block sequence ends where its parent mapping's next key begins. Without this,
+        # in_entries latched forever and a top-level block AFTER entries: (cve-extract.yaml
+        # ends with `exclude:`) had its `- cve:` line collected as a phantom advisory.
+        if in_entries and re.match(r'^[^\s#-]', line):
+            in_entries = False
+            if current:
+                records.append('\n'.join(current))
+                current = []
+            continue
         if not in_entries:
             continue
         # Inside entries — collect blocks separated by `- cve:` at any indent.
