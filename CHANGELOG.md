@@ -6,6 +6,48 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.24.0] — 2026-07-22 — CVE parser: severity-collapse fix + fail-loud hardening
+
+### Fixed
+
+- **Every CVE finding was reported at `severity: medium`, regardless of the advisory's real
+  severity.** `cve-scan.sh`'s data parser stripped quotes from list items and object keys but
+  not from top-level scalars, and every scalar in the shipped data is double-quoted — so
+  `rec['severity']` was the literal `"critical"`, the severity-normalizer's membership test
+  missed, and it fell through to its `medium` default. The result: three critical and 29 high
+  advisories were emitted as medium, including CVE-2025-54236 (SessionReaper — CISA KEV,
+  actively exploited); the four low advisories were reported as medium too. The same missing
+  quote-strip put literal `"` characters into each finding's `title`, `description`, and
+  `bulletin_url` (a quoted URL does not resolve when linked from SARIF). Severity now reflects
+  the data — for the same store, findings go from `63× medium` to `28 medium / 28 high / 4 low
+  / 3 critical`, with zero literal quotes in any field. **The set of advisories matched is
+  unchanged; only their severity and text fidelity change.**
+
+### Changed
+
+- **The CVE-data parser now fails loud instead of silently mangling.** Six previously-silent
+  malformations now raise a `CveRecordError` naming the offending line: tab/off-grid
+  indentation, a single-quoted scalar, an inline `#` comment on an unquoted value, a bare or
+  empty value where one is required (`severity:`, `severity: ""`, `- magento_version_range:`),
+  a blank `- cve:` id, and a `key:` that opens a list for anything but the four real list
+  keys. A list item's colon now separates a key only when followed by a space, so a value like
+  `- https://…` parses as the string it is. At **curation** time (the lint and
+  `refresh-cve-data.py`) this surfaces as a hard, line-numbered failure; at **scan** time the
+  scanner skips only that one record and reports the reason in the audit's `scanner_errors`,
+  so one malformed record in a custom `CVE_DB` costs that single advisory — visibly — instead
+  of aborting the audit or being silently accepted.
+
+### Internal
+
+- **The CVE-data parser was extracted from `cve-scan.sh`'s embedded heredoc into a shared
+  `cve_parser.py` module.** Three separate consumers previously reused it by `ast`-extracting
+  the parser from the bash script's source; all now import the one module. A 132-record parse
+  snapshot regression-gates every change (`test-cve-parser-snapshot.sh`), and a tree-wide guard
+  (`test-cve-parser-extraction.sh`) fails CI if a second parser definition ever reappears. The
+  shipped `magento-cve-data.yaml` regenerates byte-identical; the curator docs
+  (`magento-cve-database.md`) now distinguish the traps the parser rejects from those only the
+  lint checks, rather than claiming all fail loudly.
+
 ## [1.23.0] — 2026-07-18 — Adobe Commerce B2B CVE matching
 
 ### Added

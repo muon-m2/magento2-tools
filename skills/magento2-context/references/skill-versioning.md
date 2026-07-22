@@ -17,7 +17,7 @@ skills evolve.
 | magento2-deploy            | 1.3.0   | Deploy plan template change, rollback recipe change                 |
 | magento2-test-generate     | 1.2.1   | Generator pattern change, new test type added                       |
 | magento2-module-upgrade    | 1.2.0   | New deprecation map, BC-break detection rules                       |
-| magento2-security-audit    | 1.5.0   | New CVE source, new pattern, severity calibration change            |
+| magento2-security-audit    | 1.6.0   | New CVE source, new pattern, severity calibration change, parser hardening |
 | magento2-performance-audit | 1.2.0   | New pattern, new runtime check, severity calibration change         |
 | magento2-debug             | 1.3.0   | New mode added, output format change                                |
 | magento2-eav-attribute     | 1.3.2   | New entity type supported, new input type, template change          |
@@ -43,7 +43,19 @@ skills evolve.
 | magento2-breeze-compat-audit | 1.1.0 | New check/pattern, severity calibration change                                |
 | magento2-audit             | 1.0.0   | New dimension added, consolidation/dedup or verdict rule change                |
 
-## Changelog (last update: 2026-07-17)
+## Changelog (last update: 2026-07-22)
+
+- **`magento2-security-audit` 1.5.0 → 1.6.0 — CVE parser hardening + severity-collapse fix.**
+  The CVE-data parser was stripping quotes from list items and object keys but not from
+  top-level scalars, so every shipped advisory's quoted `"severity"` failed the normalizer's
+  membership test and was reported as `medium` — criticals (SessionReaper included) and lows
+  alike; the same gap leaked literal `"` characters into `title`/`description`/`bulletin_url`.
+  Severity now reflects the data. The parser was also extracted from `cve-scan.sh` into a shared
+  `cve_parser.py` module (all consumers import it) and made fail-loud: malformed records raise
+  `CveRecordError` at curation time and are skipped into `scanner_errors` at scan time, instead
+  of being silently mangled. Data output is unchanged — `magento-cve-data.yaml` regenerates
+  byte-identical and the set of matched advisories is the same; only severity/text fidelity and
+  malformed-input handling change.
 
 - **`magento2-security-audit` 1.4.0 → 1.5.0 — B2B CVE matching.** The scanner is now
   component-aware: an advisory record can carry `component: b2b`, and the matcher compares
