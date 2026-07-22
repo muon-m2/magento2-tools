@@ -1,6 +1,6 @@
 """The CVE-data YAML reader — the ONE parser for magento-cve-data.yaml and cve-extract.yaml.
 
-This is a deliberately small reader for a fixed six-key schema, NOT a YAML implementation.
+This is a deliberately small reader for a fixed eleven-key schema, NOT a YAML implementation.
 PyYAML is not in the stdlib and cannot be assumed on a store's machine, so a real YAML
 parser is not available; vendoring one is out of proportion to a fixed schema, and a
 "PyYAML if importable, else this" fallback would give two parsers that can disagree about
@@ -168,6 +168,15 @@ _RE_OBJKEY = re.compile(r'^      (\w+):(?:[ ](.*))?$')
 # Without that rule "- https://a/b" split into {'https': '//a/b'} — a string became a dict.
 _RE_INLINE_KEY = re.compile(r'^(\w+):(?:[ ](.*))?$')
 
+# The only keys a bare `key:` (no value after the colon) may legally open a list for. The
+# schema is fixed and small — that is this parser's whole premise (see module docstring) —
+# so a whitelist is correct here, not a workaround: any OTHER bare `key:` is a curation
+# mistake (most often a forgotten scalar value), not a new list the schema doesn't know
+# about. Without this whitelist, a bare `severity:` silently becomes `severity: []`, and
+# cve-scan.sh's severity_norm([]) falls through to 'medium' — the exact bug this module
+# exists to eliminate, by a third route.
+_LIST_KEYS = frozenset({'affected', 'fixed_in', 'fixed_by_patch', 'detect'})
+
 
 def parse_record(rec):
     """Parse ONE dedented CVE record into a dict.
@@ -193,7 +202,15 @@ def parse_record(rec):
 
         m = _RE_CVE.match(line)
         if m:
-            out['cve'] = _scalar(m.group(1), line_no, line)
+            cve_id = _scalar(m.group(1), line_no, line)
+            if not cve_id:
+                # `- cve:` with nothing after it. Without this check the record gets
+                # `cve: ''` — findings with a blank CVE id, and parse-error attribution
+                # (which record? which advisory?) becomes guesswork.
+                raise CveRecordError(line_no, line,
+                                     "'- cve:' has no id — every record must open with "
+                                     "a CVE id")
+            out['cve'] = cve_id
             cur_list = None
             cur_obj = None
             continue
@@ -202,9 +219,19 @@ def parse_record(rec):
         if m:
             key = m.group(1)
             if m.group(2) is None:
-                # No value at all after the colon — this is how a key OPENS a list
-                # (`affected:`, `fixed_in:`, `fixed_by_patch:`, `detect:`). Must stay a
-                # list-opener: load-bearing for those four keys across every record.
+                # No value at all after the colon — this is how a key OPENS a list, but
+                # ONLY for the four keys the schema actually gives a list shape to
+                # (`affected`, `fixed_in`, `fixed_by_patch`, `detect` — see _LIST_KEYS).
+                # A bare `key:` for any OTHER key is a curation mistake, not a new list:
+                # without this check `severity:` with a forgotten value silently becomes
+                # `severity: []`, and cve-scan.sh's severity_norm([]) falls through to
+                # 'medium' — a third silent route to the exact bug this module exists to
+                # eliminate.
+                if key not in _LIST_KEYS:
+                    raise CveRecordError(line_no, line,
+                                         f"'{key}:' has no value after the colon — only "
+                                         f"{', '.join(sorted(_LIST_KEYS))} open a list; "
+                                         f"give '{key}' a scalar value")
                 cur_list = []
                 out[key] = cur_list
                 cur_obj = None
@@ -235,7 +262,17 @@ def parse_record(rec):
             body = m.group(1).strip()
             km = _RE_INLINE_KEY.match(body)
             if km:
-                cur_obj = {km.group(1): _scalar(km.group(2), line_no, line)}
+                val = _scalar(km.group(2), line_no, line)
+                if not val:
+                    # `- magento_version_range:` with no value. An absent (bare `key:`)
+                    # or explicitly-empty (`key: ""`) value here is never valid — e.g. an
+                    # empty magento_version_range would match nothing, a silently dead
+                    # advisory that nothing downstream would flag.
+                    raise CveRecordError(line_no, line,
+                                         f"'{km.group(1)}' has no value — an absent or "
+                                         "explicitly-empty value inside a list item is "
+                                         "never valid here")
+                cur_obj = {km.group(1): val}
                 cur_list.append(cur_obj)
             else:
                 cur_list.append(_scalar(body, line_no, line))
@@ -248,7 +285,17 @@ def parse_record(rec):
                 raise CveRecordError(line_no, line,
                                      "object continuation key with no list-item object "
                                      "above it")
-            cur_obj[m.group(1)] = _scalar(m.group(2), line_no, line)
+            val = _scalar(m.group(2), line_no, line)
+            if not val:
+                # `      edition:` with no value. Same rule as the inline list-item key
+                # above: an absent or explicitly-empty value is a curation error to catch
+                # at the source, even where (like `edition`) an ABSENT key is legal and
+                # means "affects both" — the schema's meaning for "not present" is not
+                # the same as "present but empty", and only the parser can tell them apart.
+                raise CveRecordError(line_no, line,
+                                     f"'{m.group(1)}' has no value — an absent or "
+                                     "explicitly-empty value is never valid here")
+            cur_obj[m.group(1)] = val
             continue
 
         raise CveRecordError(line_no, line,
