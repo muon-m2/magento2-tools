@@ -206,7 +206,7 @@ run_phpstan() {
     if [ -n "$phpstan_config" ]; then
         run_cmd+=("-c" "$phpstan_config")
     else
-        echo "run-analysis/phpstan: no phpstan.neon found (looked in ${TARGET_PATH%/}/, ${MAGENTO_ROOT_GUESS}/ and the cwd) — running without a config, so framework classes will not resolve and 'unknown class' errors are likely to be false positives" >&2
+        echo "run-analysis/phpstan: no config found (looked for phpstan.neon in ${TARGET_PATH%/}/, phpstan-devpath.neon and phpstan.neon in $(dirname "${TARGET_PATH%/}")/, and phpstan.neon/phpstan.neon.dist in ${MAGENTO_ROOT_GUESS}/ and the cwd; PHPSTAN_CONFIG overrides) — running without a config, so framework classes will not resolve and 'unknown class' errors are likely to be false positives" >&2
     fi
 
     run_cmd+=("$TARGET_PATH")

@@ -162,10 +162,13 @@ def cap_stderr(entries, limit=16000):
         )
 
         if len(folded) > limit:
-            head, tail = limit * 3 // 4, limit // 4
-            folded = (folded[:head]
-                      + f"\n\n[... {len(folded) - head - tail:,d} chars elided by emit-json ...]\n\n"
-                      + folded[-tail:])
+            # Budget the marker BEFORE splitting, or head+marker+tail overshoots `limit` by the
+            # marker's own length — which is the one thing a cap must not do.
+            elided = len(folded) - limit
+            marker = f"\n\n[... {elided:,d} chars elided by emit-json ...]\n\n"
+            budget = max(0, limit - len(marker))
+            head, tail = budget * 3 // 4, budget - (budget * 3 // 4)
+            folded = folded[:head] + marker + (folded[-tail:] if tail else '')
 
         entry['stderr'] = folded
         entry['stderr_truncated'] = {
