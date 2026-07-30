@@ -16,6 +16,19 @@
 #   PHPSTAN             phpstan binary path (default: auto-resolved)
 #   PHPMD               phpmd binary path (default: auto-resolved)
 #   RECTOR              rector binary path (default: auto-resolved)
+#   PHPSTAN_CONFIG      phpstan config to pass as -c (default: auto-discovered, nearest first —
+#                       {TARGET_PATH}/phpstan.neon, then a phpstan-devpath.neon or phpstan.neon
+#                       beside the target's parent dir, then the Magento root, then the cwd).
+#                       WITHOUT a config phpstan loads no bootstrap and no autoloader, so every
+#                       framework class reads as unknown and the pass emits confident false
+#                       positives. When none is found the run is still made, but a warning lands in
+#                       scanner_errors saying so.
+#   RECTOR_FORCE        "1" runs rector even on a pairing known to be broken. Rector 1.x on PHP
+#                       >= 8.5 floods stderr with setAccessible deprecations and never emits
+#                       parseable JSON, so it is skipped by default with an explanatory
+#                       scanner_errors entry. Rector ^2.5 runs clean on 8.5 and is NOT skipped —
+#                       note it requires phpstan ^2.2, so adopting it implies the PHPStan 2.x
+#                       migration.
 #   PHPSTAN_MEMORY_LIMIT
 #                       Value for phpstan's --memory-limit (default: 2G). php.ini's default
 #                       (commonly 128M) crashes phpstan on a Magento codebase and returns an
@@ -24,7 +37,7 @@
 #                       Pass an absolute or project-root path so an in-`src/` cwd cannot
 #                       redirect output into the Magento tree. See magento2-context/SKILL.md.
 #   OUTPUT_DIR          default: {DOCS_ROOT}/quality
-#   SKILL_VERSION       default: 1.3.0
+#   SKILL_VERSION       default: 1.4.0
 #
 # Output:
 #   Writes {OUTPUT_DIR}/{TARGET_MODULE}-quality-{YYYY-MM-DD}.json (module scope) or
@@ -42,10 +55,12 @@ PHPCS="${PHPCS:-}"
 PHPSTAN="${PHPSTAN:-}"
 PHPMD="${PHPMD:-}"
 RECTOR="${RECTOR:-}"
+PHPSTAN_CONFIG="${PHPSTAN_CONFIG:-}"
+RECTOR_FORCE="${RECTOR_FORCE:-0}"
 PHPSTAN_MEMORY_LIMIT="${PHPSTAN_MEMORY_LIMIT:-2G}"
 DOCS_ROOT="${DOCS_ROOT:-.docs}"
 OUTPUT_DIR="${OUTPUT_DIR:-${DOCS_ROOT}/quality}"
-SKILL_VERSION="${SKILL_VERSION:-1.3.0}"
+SKILL_VERSION="${SKILL_VERSION:-1.4.0}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 EMIT_FINDINGS="${SCRIPT_DIR}/../../magento2-context/scripts/emit-findings.sh"
@@ -71,6 +86,8 @@ PHPCS="$PHPCS" \
 PHPSTAN="$PHPSTAN" \
 PHPMD="$PHPMD" \
 RECTOR="$RECTOR" \
+PHPSTAN_CONFIG="$PHPSTAN_CONFIG" \
+RECTOR_FORCE="$RECTOR_FORCE" \
 PHPSTAN_MEMORY_LIMIT="$PHPSTAN_MEMORY_LIMIT" \
 TARGET_PATH="$TARGET_PATH" \
 SCOPE="$SCOPE" \

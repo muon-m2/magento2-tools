@@ -126,6 +126,60 @@ tools = read_json(os.environ.get('TOOLS_FILE', ''), {})
 # build-findings.sh re-write the way security/perf-audit do.
 scanner_errors = read_json(os.environ.get('SCANNER_ERRORS_FILE', ''), [])
 
+
+def cap_stderr(entries, limit=16000):
+    """Bound each scanner_errors entry, and collapse the repetition that makes them huge.
+
+    A scanner that fails per-rule or per-file can emit the same stack frame thousands of times.
+    Measured: rector on PHP 8.5 produced 495 MB of stderr, which the emitter faithfully wrote into
+    a 526 MB findings JSON — large enough that reading the artifact to find out what went wrong was
+    itself the problem, and large enough to be useless to CI.
+
+    Identical lines (modulo digits, so numbered stack frames collapse) are folded into one with an
+    occurrence count, then the whole blob is capped head-and-tail. The diagnostic value is in the
+    first and last lines; the middle is repetition.
+    """
+    import re as _re
+
+    for entry in entries:
+        if not isinstance(entry, dict):
+            continue
+        text = entry.get('stderr')
+        if not isinstance(text, str) or len(text) <= limit:
+            continue
+
+        original = len(text)
+        counts, order = {}, []
+        for line in text.split('\n'):
+            key = _re.sub(r'\d+', 'N', line.strip())
+            if key not in counts:
+                order.append((key, line))
+                counts[key] = 0
+            counts[key] += 1
+        folded = '\n'.join(
+            sample if counts[key] == 1 else f'{sample}   [x{counts[key]:,d} occurrences]'
+            for key, sample in order
+        )
+
+        if len(folded) > limit:
+            head, tail = limit * 3 // 4, limit // 4
+            folded = (folded[:head]
+                      + f"\n\n[... {len(folded) - head - tail:,d} chars elided by emit-json ...]\n\n"
+                      + folded[-tail:])
+
+        entry['stderr'] = folded
+        entry['stderr_truncated'] = {
+            'original_chars': original,
+            'retained_chars': len(folded),
+            'note': 'Identical lines folded with occurrence counts, then capped. A scanner that '
+                    'fails per-rule can otherwise emit hundreds of megabytes.',
+        }
+
+    return entries
+
+
+scanner_errors = cap_stderr(scanner_errors)
+
 skill_name = os.environ.get('SKILL_NAME', 'magento2-module-review')
 skill_version = os.environ.get('SKILL_VERSION', '2.4.0')
 output_kind = os.environ.get('OUTPUT_KIND', 'review')

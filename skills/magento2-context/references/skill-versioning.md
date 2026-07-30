@@ -33,7 +33,7 @@ skills evolve.
 | magento2-system-config     | 1.1.3   | New field type/template, config-reader pattern change                         |
 | magento2-cli-command       | 1.1.2   | New mode/template, command or cron pattern change                             |
 | magento2-message-queue     | 1.1.3   | New connection type/template, topic or consumer pattern change                |
-| magento2-static-analysis   | 1.3.0   | New tool/rule, autofix-safety or severity calibration change                  |
+| magento2-static-analysis   | 1.4.0   | New tool/rule, autofix-safety or severity calibration change                  |
 | magento2-docs-generate     | 1.3.1   | New docs (developer/user guide, REST+GraphQL reference), example/diagram derivation |
 | magento2-indexer           | 1.1.2   | New indexer/mview pattern, dimension support                                  |
 | magento2-marketplace-prep  | 1.1.0   | New EQP check, readiness-scoring calibration                                  |

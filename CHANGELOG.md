@@ -6,6 +6,59 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.29.0] — 2026-07-30 — `magento2-static-analysis` ran phpstan blind and rector into a wall
+
+Three defects found by auditing a real module, all of which made a scan look like it had run when
+it had not — the same failure class as 1.27.0, in the passes that release did not reach.
+
+### Fixed
+
+- **phpstan ran with no config, so its findings were false positives.** `run-analysis.sh` invoked
+  `phpstan analyse` without `-c`, and phpstan auto-discovers `phpstan.neon` only in the CURRENT
+  directory — while these scanners run from the project root and a Magento config lives under the
+  Magento root. With no config there is no bootstrap and no autoloader, so every framework class
+  reads as unknown. Measured on a real module: three confident `class not found` findings that the
+  project's own config turns into `[OK] No errors`.
+
+  A config is now discovered nearest-first — `{TARGET_PATH}/phpstan.neon`, then a
+  `phpstan-devpath.neon` or `phpstan.neon` beside the target's parent, then the Magento root, then
+  the cwd — and `PHPSTAN_CONFIG` overrides. The parent-directory candidate matters more than it
+  looks: a project that keeps working copies outside the Magento tree needs the config that
+  re-points PSR-4, or phpstan analyses one copy while the autoloader reflects another and reports
+  every method as having no return statement. On the module that exposed this, the type-error count
+  went 3 (wrong config absent) → 35 (wrong config found) → **0** (right config found).
+
+  When no config is found the run still happens, but a warning lands in `scanner_errors` saying the
+  results are unreliable — the one thing the previous behaviour never did.
+
+- **rector 1.x on PHP ≥ 8.5 emitted 495 MB of stderr and no findings.** It logs
+  `ReflectionProperty::setAccessible() is deprecated` plus a full stack trace for essentially every
+  rule it loads — ~2,535 repetitions on one module — and its JSON never arrives, so the pass
+  contributed nothing while appearing to have run.
+
+  It is now skipped with an explanatory `scanner_errors` entry naming both versions. The guard is on
+  the PAIRING, not on the PHP version: **rector ^2.5 runs clean on 8.5** — verified side by side,
+  valid JSON and zero bytes of stderr — so a project already on 2.x still gets its pass. Note that
+  rector 2.x requires `phpstan/phpstan ^2.2`, so adopting it implies the PHPStan 2.x migration
+  rather than being a standalone bump. `RECTOR_FORCE=1` overrides.
+
+- **`scanner_errors` could produce a half-gigabyte findings document.** `emit-json.sh` wrote each
+  scanner's stderr verbatim, so the rector flood above became a **526 MB** JSON artifact — large
+  enough that reading it to find out what went wrong was itself the problem, and useless to CI.
+
+  Every entry is now folded (identical lines collapsed with occurrence counts, digits normalised so
+  numbered stack frames merge) and capped head-and-tail at 16 KB, with a `stderr_truncated` block
+  recording the original size. The same module's artifact went **526 MB → 35 KB**. This is in the
+  shared emitter, so it protects every findings skill, not just this one.
+
+### Notes
+
+- **`magento2-static-analysis` 1.3.0 → 1.4.0.**
+- The dedup key in `magento2-audit`'s consolidation is `(file, line, category, title)` plus the
+  emitting skill — so five `magento2-reviewer` dimensions all collapse to one `dimensions` entry and
+  per-dimension attribution is lost on a merged finding. Not fixed here; recorded because a
+  consolidated report currently understates which dimensions independently found the same defect.
+
 ## [1.28.0] — 2026-07-30 — `magento2-security-audit` now reads Adobe's own patch verdict
 
 ### Added

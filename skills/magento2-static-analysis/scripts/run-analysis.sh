@@ -69,6 +69,10 @@ RECTOR_ERR="${TMP_DIR}/rector.err"
 # Exclude dirs common to all tools.
 EXCLUDE_PATTERN="*/vendor/*,*/generated/*,*/var/*,*/pub/static/*"
 
+# Where a Magento install's own configs live, relative to the cwd these scanners run from.
+# `src/` is this toolchain's convention; a bare install has them at the root.
+MAGENTO_ROOT_GUESS="$([ -d src/vendor ] && echo src || echo .)"
+
 echo "[]" > "$PHPCS_OUT"
 echo "[]" > "$PHPSTAN_OUT"
 echo "[]" > "$PHPMD_OUT"
@@ -164,11 +168,48 @@ run_phpstan() {
         # shellcheck disable=SC2206
         run_cmd=($RUNNER)
     fi
+    # A CONFIG, if the project has one. phpstan auto-discovers phpstan.neon only in the CURRENT
+    # directory, and these scanners run from the project root while a Magento config lives under
+    # the Magento root (src/phpstan.neon) — so without -c it ran with no bootstrap and no autoloader
+    # and reported every framework class as unknown. Measured on a real module: three "class not
+    # found" errors that the project's own config turns into "[OK] No errors". A findings document
+    # full of confident false positives is worse than no phpstan pass at all, because a reader
+    # cannot tell which it is.
+    #
+    # PHPSTAN_CONFIG overrides; otherwise probe the conventional locations, nearest first. Magento
+    # ships its own bootstrap under dev/tests/static/framework, which is what a project config
+    # normally wires up.
+    local phpstan_config="${PHPSTAN_CONFIG:-}"
+    if [ -z "$phpstan_config" ]; then
+        for candidate in \
+            "${TARGET_PATH%/}/phpstan.neon" \
+            "$(dirname "${TARGET_PATH%/}")"/phpstan-devpath.neon \
+            "$(dirname "${TARGET_PATH%/}")"/phpstan.neon \
+            "${MAGENTO_ROOT_GUESS}/phpstan.neon" \
+            "${MAGENTO_ROOT_GUESS}/phpstan.neon.dist" \
+            "phpstan.neon" \
+            "phpstan.neon.dist"
+        do
+            if [ -n "$candidate" ] && [ -f "$candidate" ]; then
+                phpstan_config="$candidate"
+                break
+            fi
+        done
+    fi
+
     # Without an explicit limit phpstan inherits php.ini's default (commonly 128M) and dies with
     # "PHPStan process crashed because it reached configured PHP memory limit" on a Magento
     # codebase, returning {"totals":{"errors":1},"files":[]} — an empty, apparently-clean result.
     run_cmd+=("$PHPSTAN_BIN" analyse --error-format=json --no-progress
-        "--memory-limit=${PHPSTAN_MEMORY_LIMIT:-2G}" "$TARGET_PATH")
+        "--memory-limit=${PHPSTAN_MEMORY_LIMIT:-2G}")
+
+    if [ -n "$phpstan_config" ]; then
+        run_cmd+=("-c" "$phpstan_config")
+    else
+        echo "run-analysis/phpstan: no phpstan.neon found (looked in ${TARGET_PATH%/}/, ${MAGENTO_ROOT_GUESS}/ and the cwd) — running without a config, so framework classes will not resolve and 'unknown class' errors are likely to be false positives" >&2
+    fi
+
+    run_cmd+=("$TARGET_PATH")
 
     # phpstan exits 1 when errors found — expected.
     "${run_cmd[@]}" > "$raw_file" 2> "$PHPSTAN_ERR" || true
@@ -355,6 +396,29 @@ run_rector_dry() {
     if [ -z "$RECTOR_BIN" ]; then
         echo "run-analysis: rector not found — skipping" >&2
         return 0
+    fi
+
+    # Rector 1.x is not PHP 8.5 compatible; Rector 2.x is. On 8.5, 1.x emits
+    # "ReflectionProperty::setAccessible() is deprecated" plus a full stack trace for essentially
+    # every rule it loads — measured at 495 MB of stderr and ~2,535 repetitions on one module — and
+    # its JSON never arrives, so the pass contributes nothing while looking like it ran. Verified
+    # side by side on PHP 8.5.7: rector 1.2.10 produced that flood, rector 2.5.8 produced valid
+    # JSON and ZERO bytes of stderr.
+    #
+    # So this gates on the pairing, not on the PHP version alone — a project already on 2.x must
+    # still get its refactoring pass. RECTOR_FORCE=1 overrides.
+    if [ "${RECTOR_FORCE:-0}" != "1" ]; then
+        local rector_php rector_ver
+        rector_php="$( { [ -n "$RUNNER" ] && $RUNNER php -r 'echo PHP_VERSION;'; } 2>/dev/null || php -r 'echo PHP_VERSION;' 2>/dev/null )"
+        rector_ver="$( { [ -n "$RUNNER" ] && $RUNNER "$RECTOR_BIN" --version; } 2>/dev/null || "$RECTOR_BIN" --version 2>/dev/null )"
+        rector_ver="$(printf '%s' "$rector_ver" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)"
+
+        case "${rector_php}|${rector_ver}" in
+            8.5*\|1.*|8.6*\|1.*|9.*\|1.*)
+                echo "run-analysis/rector: SKIPPED — rector ${rector_ver} is not compatible with PHP ${rector_php}. It floods stderr with ReflectionProperty::setAccessible deprecations and emits no parseable JSON, so refactoring opportunities were NOT checked. Upgrade to rector ^2.5, which runs clean on 8.5. Set RECTOR_FORCE=1 to run it anyway." >&2
+                return 0
+                ;;
+        esac
     fi
 
     local raw_file="${TMP_DIR}/rector_raw.json"

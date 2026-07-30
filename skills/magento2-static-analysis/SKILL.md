@@ -149,6 +149,21 @@ Write three artifacts:
 /magento2-static-analysis [--module=<Vendor>_<Module>] [--diff [<ref>]] [--scope=module|site] [--docs-root=<path>] [<files>...]
 ```
 
+### Tool environment
+
+| Var | Purpose |
+|-----|---------|
+| `PHPSTAN_CONFIG` | Config passed as `-c`. Auto-discovered nearest-first: `{TARGET_PATH}/phpstan.neon`, then `phpstan-devpath.neon`/`phpstan.neon` beside the target's parent, then the Magento root, then the cwd. **Without a config phpstan loads no bootstrap and no autoloader**, so every framework class reads as unknown — the pass then emits confident false positives that are indistinguishable from real ones. When nothing is found the run still happens, with a warning in `scanner_errors`. |
+| `PHPSTAN_MEMORY_LIMIT` | Default `2G`. php.ini's usual 128M makes phpstan crash on a Magento codebase and return an empty, apparently-clean result. |
+| `RECTOR_FORCE` | `1` runs rector even on a pairing known to be broken. |
+
+**Rector 1.x is skipped on PHP ≥ 8.5.** It emits `ReflectionProperty::setAccessible()` deprecations
+plus a stack trace for essentially every rule — measured at 495 MB of stderr on one module — and
+never emits parseable JSON, so the pass contributes nothing while appearing to have run. Rector
+**^2.5 runs clean on 8.5** (verified: valid JSON, zero bytes of stderr) and is *not* skipped, so the
+guard is on the pairing rather than the PHP version. Note that adopting Rector 2.x requires
+`phpstan/phpstan ^2.2`, so it implies the PHPStan 2.x migration — not a standalone bump.
+
 ## Outputs
 
 Module scope (basename uses the underscore module name, e.g. `Acme_OrderExport`):
