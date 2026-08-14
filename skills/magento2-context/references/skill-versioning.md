@@ -12,7 +12,7 @@ skills evolve.
 | magento2-context           | 1.13.0  | JSON schema changes, new resolution rules, new tool probes          |
 | magento2-module-create     | 1.10.2  | New template added, surface added, naming rule changed              |
 | magento2-module-review     | 2.4.0   | New checklist category, severity calibration change, new JSON field, fix-routing change |
-| magento2-feature-implement | 2.15.0  | New phase, new approval gate, mode added, new task types (I/C/L/Q), template structure change, delegation/fallback discipline, advisory model-tier field |
+| magento2-feature-implement | 2.15.1  | New phase, new approval gate, mode added, new task types (I/C/L/Q), template structure change, delegation/fallback discipline, advisory model-tier field |
 | magento2-bug-fix           | 1.2.1   | Workflow phase change, RCA format change                            |
 | magento2-deploy            | 1.4.1   | Deploy plan template change, rollback recipe change                 |
 | magento2-test-generate     | 1.2.1   | Generator pattern change, new test type added                       |
@@ -43,8 +43,15 @@ skills evolve.
 | magento2-breeze-compat-audit | 1.1.0 | New check/pattern, severity calibration change                                |
 | magento2-audit             | 1.0.0   | New dimension added, consolidation/dedup or verdict rule change                |
 
-## Changelog (last update: 2026-08-05)
+## Changelog (last update: 2026-08-14)
 
+- **HTML guides must declare their encoding.** The developer and user guides are written as UTF-8
+  and read over `file://`, where there is no HTTP `Content-Type` header — so without a
+  `<meta charset="utf-8">` a browser sniffs windows-1252 and every multi-byte character breaks
+  (`—` renders as `â€”`). The rule is now stated in the *Guides and user docs are HTML* Core Rule,
+  explained in `references/documentation-guide.md`, and checked at the Phase 7A completeness gate.
+  Patch bump (output-correctness rule, no behaviour or phase change):
+  `magento2-feature-implement 2.15.0 → 2.15.1`.
 - **Runtime test tooling policy.** New shared reference
   `magento2-context/references/runtime-test-tooling.md`: REST/GraphQL always use `curl` (no
   override); admin and storefront smoke use a **headless** browser only; a missing browser is an

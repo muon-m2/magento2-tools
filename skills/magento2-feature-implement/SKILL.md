@@ -91,7 +91,10 @@ the full implementation from analysis through tested, reviewed, reported deliver
   per-mode scope, and the completeness gate live in `references/documentation-guide.md`.
 - **Guides and user docs are HTML.** Development guides and user documentation default to `.html`
   format. Define a CSS color schema once for the feature and apply it inline to every HTML file
-  in the feature folder for visual consistency.
+  in the feature folder for visual consistency. Every HTML file must open with
+  `<meta charset="utf-8">` before anything else: these are read over `file://`, where there is no
+  HTTP `Content-Type` header, so an undeclared UTF-8 file is sniffed as windows-1252 and every em
+  dash renders as `â€”`.
 - **Per-task git commits (opt-in).** When `--per-task-commits` is set, CLAUDE.md contains
   `Feature implement: per-task commits = on`, or `MAGENTO2_FI_PER_TASK_COMMITS=1` is set,
   every completed task in Phase 5 produces a focused git commit. See

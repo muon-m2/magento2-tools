@@ -91,6 +91,17 @@ Both HTML guides must apply the feature's shared CSS color schema inline (primar
 background, text, accent), defined once for the feature and identical across every HTML file —
 per the **Guides and user docs are HTML** Core Rule.
 
+Both must also **begin with `<meta charset="utf-8">`, ahead of the `<title>`**. The guides are UTF-8
+and are opened over `file://`, where no HTTP `Content-Type` header exists to declare the encoding,
+so a browser falls back to sniffing and picks windows-1252. Every multi-byte character then breaks —
+`—` renders as `â€”`, `→` as `â†'`, `…` as `â€¦` — which reads as file corruption but is not: the
+bytes are valid UTF-8 and only the declaration is missing. The fix is always to add the meta, never
+to re-encode the file.
+
+The same applies to any other HTML this skill writes into the feature folder (mockups, previews,
+comparison pages), for the same reason. It does **not** apply to captured server responses under
+`smoke/raw/` or `artifacts/` — those are evidence and must stay byte-identical to what was served.
+
 ---
 
 ## Screenshots
@@ -170,9 +181,10 @@ Phase 7B may not start until, **for the current mode's scope**, all of the follo
       the output exists on disk.
 - [ ] `spec.md` exists and its diagrams are Mermaid (when required for the mode).
 - [ ] `guides/developer-guide.html` and `user-docs/user-guide.html` exist (when required), share the
-      feature's CSS color schema, and every cross-link into a module's `docs/developer-guide.md` /
-      `docs/user-guide.md` resolves to a file that exists on disk — the gate checks that the links
-      resolve, not that the module's guide content is re-authored inline.
+      feature's CSS color schema, each declare `<meta charset="utf-8">`, and every cross-link into
+      a module's `docs/developer-guide.md` / `docs/user-guide.md` resolves to a file that exists on
+      disk — the gate checks that the links resolve, not that the module's guide content is
+      re-authored inline.
 - [ ] Screenshots exist for every admin/storefront screen the user guide references.
 - [ ] If the feature exposes a REST/GraphQL surface, `api-examples/` holds a request+response
       example per endpoint/operation, with secrets/PII redacted.

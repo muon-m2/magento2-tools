@@ -6,6 +6,26 @@ individual skill versions are tracked in
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.32.1] — 2026-08-14 — guides shipped their encoding undeclared
+
+The developer and user guides are written as UTF-8 and are read straight off disk over `file://`,
+where no HTTP `Content-Type` header exists to say so. Nothing in the skill required a
+`<meta charset>`, so whether one appeared was down to whoever authored the file. Where it was
+missing the browser fell back to sniffing, picked windows-1252, and rendered every multi-byte
+character as mojibake — an em dash as `â€”`, an arrow as `â†'`, an ellipsis as `â€¦`. The output
+reads as a corrupt file, which sends you looking at the bytes; they are valid UTF-8 and always were,
+and only the declaration was ever missing.
+
+### Fixed
+
+- **`magento2-feature-implement` (2.15.0 → 2.15.1)** — every HTML file the skill writes into a
+  feature folder must now open with `<meta charset="utf-8">`. Stated in the *Guides and user docs
+  are HTML* Core Rule, explained with the failure mode in `references/documentation-guide.md`, and
+  added to the Phase 7A completeness checklist so it is gated rather than merely documented. The
+  reference is explicit that the fix is to add the meta and never to re-encode the file, and that
+  the rule does **not** extend to captured responses under `smoke/raw/` or `artifacts/`, which are
+  evidence and must stay byte-identical to what was served.
+
 ## [1.32.0] — 2026-08-05 — smoke tests assumed a browser was there
 
 Phase 6B's admin and storefront suites (S3–S7) were driven by a headless browser, and when none
