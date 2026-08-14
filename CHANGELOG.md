@@ -12,7 +12,7 @@ The developer and user guides are written as UTF-8 and are read straight off dis
 where no HTTP `Content-Type` header exists to say so. Nothing in the skill required a
 `<meta charset>`, so whether one appeared was down to whoever authored the file. Where it was
 missing the browser fell back to sniffing, picked windows-1252, and rendered every multi-byte
-character as mojibake — an em dash as `â€”`, an arrow as `â†'`, an ellipsis as `â€¦`. The output
+character as mojibake — an em dash as `â€”`, an arrow as `â†’`, an ellipsis as `â€¦`. The output
 reads as a corrupt file, which sends you looking at the bytes; they are valid UTF-8 and always were,
 and only the declaration was ever missing.
 

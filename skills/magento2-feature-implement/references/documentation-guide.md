@@ -91,10 +91,14 @@ Both HTML guides must apply the feature's shared CSS color schema inline (primar
 background, text, accent), defined once for the feature and identical across every HTML file —
 per the **Guides and user docs are HTML** Core Rule.
 
-Both must also **begin with `<meta charset="utf-8">`, ahead of the `<title>`**. The guides are UTF-8
+Both must also declare **`<meta charset="utf-8">` as the first element inside `<head>`, ahead of
+the `<title>`** — after `<!doctype html>` and `<html>`, never before them.
+Where a guide is written as a bare fragment with no explicit `<html>`/`<head>` (the browser
+supplies an implied head), the meta goes on the first line of the file, still ahead of the
+`<title>`. The guides are UTF-8
 and are opened over `file://`, where no HTTP `Content-Type` header exists to declare the encoding,
 so a browser falls back to sniffing and picks windows-1252. Every multi-byte character then breaks —
-`—` renders as `â€”`, `→` as `â†'`, `…` as `â€¦` — which reads as file corruption but is not: the
+`—` renders as `â€”`, `→` as `â†’`, `…` as `â€¦` — which reads as file corruption but is not: the
 bytes are valid UTF-8 and only the declaration is missing. The fix is always to add the meta, never
 to re-encode the file.
 
