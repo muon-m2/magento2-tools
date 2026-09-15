@@ -28,7 +28,7 @@ trap 'rm -rf "$WORK"' EXIT
 FAIL=0
 fail() { echo "FAIL: $*"; FAIL=1; }
 
-# module <dir> <Module_Name> [<sequence target>…]
+# module <dir> <Vendor_Module> [<sequence target>…]
 module() {
     local dir="$1" name="$2" dep
     shift 2
@@ -57,11 +57,11 @@ cat > "$WORK/src/vendor/acme/module-probe/composer.json" <<'JSON'
 JSON
 # A conventionally named dependency: the package-name guess "acme/probebase" never matches it.
 module "$WORK/src/vendor/acme/module-probe-base" Acme_ProbeBase
-module "$WORK/src/dev-packages/module-probe-dev" Acme_ProbeDev Acme_Probe
+module "$WORK/src/dev-packages/probe-dev" Acme_ProbeDev Acme_Probe
 # The decoy only SEQUENCES Acme_Ghost. A lookup that grepped for `<module name="Acme_Ghost"` anywhere
 # in a module.xml would take this package for Acme_Ghost.
 module "$WORK/src/vendor/acme/module-decoy" Acme_Decoy Acme_Ghost
-module "$WORK/src/dev-packages/module-needs-ghost" Acme_NeedsGhost Acme_Ghost
+module "$WORK/src/dev-packages/needs-ghost" Acme_NeedsGhost Acme_Ghost
 
 cat > "$WORK/src/composer.lock" <<'JSON'
 {"packages": [
@@ -115,7 +115,7 @@ case "$note" in *vendor/acme/module-probe*) ;; *) fail "Acme_Probe note does not
 
 IFS=$'\t' read -r res note < <(check "$WORK/found.json" "module-registration:Acme_ProbeDev")
 [ "$res" = "pass" ] || fail "module-registration:Acme_ProbeDev is '$res' ($note), expected pass"
-case "$note" in *dev-packages/module-probe-dev*) ;; *) fail "Acme_ProbeDev note does not say where it resolved: $note" ;; esac
+case "$note" in *dev-packages/probe-dev*) ;; *) fail "Acme_ProbeDev note does not say where it resolved: $note" ;; esac
 
 # Acme_Probe sequences Acme_ProbeBase, installed in vendor/ under a conventional package name.
 IFS=$'\t' read -r res note < <(check "$WORK/found.json" "dependency-graph")

@@ -121,8 +121,8 @@ insecure_flag_used() {
 }
 
 : > "$WORK/local.log"
-run_smoke "$WORK/k-local.json" PATH="$STUB:$PATH" CURL_LOG="$WORK/local.log" BASE_URL=https://shop.localhost
-insecure_flag_used "$WORK/local.log" || fail "no -k for a *.localhost HTTPS base URL"
+run_smoke "$WORK/k-local.json" PATH="$STUB:$PATH" CURL_LOG="$WORK/local.log" BASE_URL=https://store.test
+insecure_flag_used "$WORK/local.log" || fail "no -k for a *.test HTTPS base URL"
 
 : > "$WORK/public.log"
 run_smoke "$WORK/k-public.json" PATH="$STUB:$PATH" CURL_LOG="$WORK/public.log" BASE_URL=https://shop.example.com
