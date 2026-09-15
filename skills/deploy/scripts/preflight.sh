@@ -7,7 +7,8 @@
 #   STRICT          1 to require PHPCS + PHPStan (default: 0)
 #   RUNNER          PHP runner prefix (default: from .claude/.cache/context.json)
 #   MAGENTO_CLI     Magento CLI invocation (default: from context)
-#   MODULE_DIR      module root (default: src/app/code)
+#   MODULE_DIR      module root (default: app/code, else src/app/code). A supplied module that is
+#                   not there is looked up in vendor/ and dev-packages/ — see MODULE_LOCATIONS
 #   OUTPUT_FILE     where to write JSON summary (default: stdout only)
 #
 # Output:
@@ -123,13 +124,111 @@ run_check() {
 
 FAILED=0
 
+# The Magento root — where app/etc/config.php lives for the enabled-state check, and the base the
+# module resolver searches from. MODULE_DIR is e.g. src/app/code or app/code; the root sits one level
+# above app/code.
+case "$MODULE_DIR" in
+    */app/code) MAGENTO_ROOT_FOR_DEPS="${MODULE_DIR%/app/code}" ;;
+    app/code)   MAGENTO_ROOT_FOR_DEPS="." ;;
+    *)          MAGENTO_ROOT_FOR_DEPS="" ;;
+esac
+
+# Where modules live beyond app/code. Two lookups only knew ${MODULE_DIR}/<Vendor>/<Module>:
+#   * the SUPPLIED modules — so a module installed with Composer (vendor/<vendor>/<package>), or
+#     worked on from a dev-packages/<package> clone, failed module-registration and dependency-graph
+#     as "missing" and could never pass `deploy --validate-only`, which is release's Phase 2;
+#   * their <sequence> targets, which otherwise counted only if composer.lock carried
+#     extra.magento.module-name (almost no package does) or a package named exactly
+#     "vendor/modulename" — so a dependency on Acme_FileAttachment, shipped as
+#     acme/module-file-attachment, failed as "not on disk or in composer.lock" while it sat
+#     installed and enabled in vendor/.
+# The resolver lists every module it can locate, first hit wins per module name:
+#   1. each SUPPLIED module at ${MODULE_DIR}/<Vendor>/<Module>                 → app/code
+#   2. every module a package declares in vendor/*/*/etc/module.xml or
+#      vendor/*/*/src/etc/module.xml                                          → vendor
+#   3. every module a working copy declares in dev-packages/*/etc/module.xml or
+#      dev-packages/*/src/etc/module.xml                                      → dev-packages
+# each under the Magento root, the cwd and src/. A package counts only for the module its module.xml
+# DECLARES as the top-level <module name>; a <sequence> child that merely names a module does not.
+# Magento_* modules are listed only when supplied: the graph treats every Magento_* target as present.
+# One "<Module><TAB><dir><TAB><source>" line per module, written to a FILE rather than a variable —
+# on a large install the list can outgrow the kernel's size limit for one environment string.
+MODULE_LOCATIONS_FILE="$(mktemp "${TMPDIR:-/tmp}/preflight-modules.XXXXXX")"
+trap 'rm -f "$MODULE_LOCATIONS_FILE"' EXIT
+if command -v python3 >/dev/null 2>&1; then
+    MODULES="$MODULES" MODULE_DIR="$MODULE_DIR" MAGENTO_ROOT_FOR_DEPS="${MAGENTO_ROOT_FOR_DEPS:-.}" \
+        python3 - > "$MODULE_LOCATIONS_FILE" <<'PY'
+import glob
+import os
+import re
+import xml.etree.ElementTree as ET
+
+mods = os.environ['MODULES'].split()
+mdir = os.environ['MODULE_DIR']
+roots = list(dict.fromkeys([os.environ.get('MAGENTO_ROOT_FOR_DEPS') or '.', '.', 'src']))
+
+found = {}
+for m in mods:
+    d = os.path.join(mdir, m.replace('_', '/'))
+    if os.path.isfile(os.path.join(d, 'registration.php')) \
+            or os.path.isfile(os.path.join(d, 'etc', 'module.xml')):
+        found[m] = (d, 'app/code')
+
+
+def declared_name(module_xml):
+    """The top-level <module name> a module.xml declares, or None."""
+    try:
+        with open(module_xml, encoding='utf-8', errors='replace') as fh:
+            text = fh.read()
+        text = re.sub(r'\sxmlns(:\w+)?="[^"]+"', '', text)
+        text = re.sub(r'\sxsi:\w+="[^"]+"', '', text)
+        node = ET.fromstring(text).find('module')
+    except (OSError, ET.ParseError):
+        return None
+    return node.get('name') if node is not None else None
+
+
+for source, patterns in (
+        ('vendor', ('vendor/*/*/etc/module.xml', 'vendor/*/*/src/etc/module.xml')),
+        ('dev-packages', ('dev-packages/*/etc/module.xml', 'dev-packages/*/src/etc/module.xml'))):
+    for root in roots:
+        for pattern in patterns:
+            for module_xml in sorted(glob.glob(os.path.join(root, pattern))):
+                name = declared_name(module_xml)
+                if not name or name in found or (name.startswith('Magento_') and name not in mods):
+                    continue
+                module_root = os.path.dirname(os.path.dirname(module_xml))
+                found[name] = (os.path.normpath(module_root), source)
+
+for name, (module_root, source) in found.items():
+    print('%s\t%s\t%s' % (name, module_root, source))
+PY
+fi
+
+# module_path <Module> — the directory the module resolved to; otherwise its conventional
+# ${MODULE_DIR} location, so a failure note still names where it was expected.
+module_path() {
+    local resolved fallback="${MODULE_DIR}/${1//_/\/}"
+    resolved="$(awk -F'\t' -v m="$1" '$1 == m { print $2; exit }' "$MODULE_LOCATIONS_FILE")"
+    printf '%s' "${resolved:-$fallback}"
+}
+
+# module_origin <Module> — app/code | vendor | dev-packages, or empty when it resolved nowhere.
+module_origin() {
+    awk -F'\t' -v m="$1" '$1 == m { print $3; exit }' "$MODULE_LOCATIONS_FILE"
+}
+
 # Required: module registration files exist
 for mod in $MODULES; do
-    path="${MODULE_DIR}/${mod//_/\/}"
+    path="$(module_path "$mod")"
+    origin="$(module_origin "$mod")"
     if [ -f "${path}/registration.php" ]; then
-        record "module-registration:${mod}" "true" "pass" "${path}/registration.php exists"
+        record "module-registration:${mod}" "true" "pass" "${path}/registration.php exists (resolved from ${origin:-app/code})"
+    elif [ -n "$origin" ]; then
+        record "module-registration:${mod}" "true" "fail" "missing ${path}/registration.php (etc/module.xml resolved from ${origin})"
+        FAILED=1
     else
-        record "module-registration:${mod}" "true" "fail" "missing ${path}/registration.php"
+        record "module-registration:${mod}" "true" "fail" "missing ${path}/registration.php; no vendor/ or dev-packages/ package declares ${mod} in its etc/module.xml either"
         FAILED=1
     fi
 done
@@ -137,7 +236,7 @@ done
 # Optional but valuable: composer validate per module
 if command -v composer >/dev/null 2>&1; then
     for mod in $MODULES; do
-        path="${MODULE_DIR}/${mod//_/\/}"
+        path="$(module_path "$mod")"
         if [ -f "${path}/composer.json" ]; then
             run_check "composer-validate:${mod}" "true" composer validate --no-check-publish "${path}/composer.json"
         else
@@ -150,15 +249,9 @@ fi
 
 # Required: dependency graph (cycles, missing sequence targets)
 if command -v python3 >/dev/null 2>&1; then
-    # Resolve the Magento root so we can find app/etc/config.php for enabled-state checks.
-    # MODULE_DIR is e.g. src/app/code or app/code; the Magento root sits one level above
-    # app/code. Pass it explicitly so the python block doesn't have to re-derive it.
-    case "$MODULE_DIR" in
-        */app/code) MAGENTO_ROOT_FOR_DEPS="${MODULE_DIR%/app/code}" ;;
-        app/code)   MAGENTO_ROOT_FOR_DEPS="." ;;
-        *)          MAGENTO_ROOT_FOR_DEPS="" ;;
-    esac
-    dep_out="$(MODULES="$MODULES" MODULE_DIR="$MODULE_DIR" \
+    # MAGENTO_ROOT_FOR_DEPS (resolved above) locates app/etc/config.php for the enabled-state
+    # check; MODULE_LOCATIONS_FILE says where modules outside app/code actually are.
+    dep_out="$(MODULES="$MODULES" MODULE_DIR="$MODULE_DIR" MODULE_LOCATIONS_FILE="$MODULE_LOCATIONS_FILE" \
         COMPOSER_LOCK="${COMPOSER_LOCK:-$([[ -f composer.lock ]] && echo composer.lock || echo src/composer.lock)}" \
         MAGENTO_ROOT_FOR_DEPS="${MAGENTO_ROOT_FOR_DEPS:-.}" \
         MAGENTO_CLI="$MAGENTO_CLI" \
@@ -186,13 +279,34 @@ mods = os.environ['MODULES'].split()
 mdir = os.environ['MODULE_DIR']
 lock_path = os.environ.get('COMPOSER_LOCK', '')
 
+# Where the shell's resolver located modules: each SUPPLIED module (app/code, vendor/ or
+# dev-packages/), and every third-party module a vendor/ or dev-packages/ package declares.
+locations = {}
+try:
+    with open(os.environ.get('MODULE_LOCATIONS_FILE') or os.devnull, encoding='utf-8') as fh:
+        for line in fh:
+            parts = line.rstrip('\n').split('\t')
+            if len(parts) >= 2:
+                locations[parts[0]] = parts[1]
+except OSError:
+    pass
+
+
+def module_xml_path(module_name):
+    # Only a SUPPLIED module is read from where the resolver found it. A transitive dependency keeps
+    # the MODULE_DIR lookup, so a vendor module stays a leaf of the graph, as documented below.
+    base = locations.get(module_name) if module_name in mods else None
+    base = base or os.path.join(mdir, module_name.replace('_', '/'))
+    return os.path.join(base, 'etc', 'module.xml')
+
+
 def load_module_xml(module_name):
     """Parse one module's etc/module.xml and return the list of <sequence> dependencies.
 
     Returns None when the module's module.xml is not on disk (the caller decides if that
     is a hard failure for supplied modules or a leaf for transitive deps).
     """
-    p = os.path.join(mdir, module_name.replace('_', '/'), 'etc', 'module.xml')
+    p = module_xml_path(module_name)
     if not os.path.exists(p):
         return None
     try:
@@ -222,7 +336,7 @@ visited = set()
 for m in mods:
     declared = load_module_xml(m)
     if declared is None:
-        print(f"FAIL: missing {os.path.join(mdir, m.replace('_', '/'), 'etc', 'module.xml')}")
+        print(f"FAIL: missing {module_xml_path(m)}")
         sys.exit(1)
     deps[m] = declared
     visited.add(m)
@@ -248,6 +362,10 @@ while pending:
 #    on-disk module.xml under MODULE_DIR, anything listed in composer.lock as a
 #    magento2-module package.
 known = set(mods)
+# Every module an installed vendor/ package or a dev-packages/ working copy declares. composer.lock
+# alone cannot answer this: it names PACKAGES (acme/module-file-attachment), not modules
+# (Acme_FileAttachment), and almost no package sets extra.magento.module-name.
+known.update(locations)
 
 # Discover on-disk modules (scan MODULE_DIR for */*/etc/module.xml).
 if os.path.isdir(mdir):
@@ -467,7 +585,7 @@ fi
 PHPUNIT_BIN="vendor/bin/phpunit"
 unit_paths=()
 for mod in $MODULES; do
-    unit_dir="${MODULE_DIR}/${mod//_/\/}/Test/Unit"
+    unit_dir="$(module_path "$mod")/Test/Unit"
     if runner_test_dir "$unit_dir"; then unit_paths+=("$unit_dir"); fi
 done
 if [ ${#unit_paths[@]} -eq 0 ]; then
@@ -560,7 +678,7 @@ build_runner_argv() {
 if [ "$STRICT" = "1" ]; then
     if runner_available && runner_test_file vendor/bin/phpcs; then
         paths=()
-        for mod in $MODULES; do paths+=("${MODULE_DIR}/${mod//_/\/}"); done
+        for mod in $MODULES; do paths+=("$(module_path "$mod")"); done
         build_runner_argv
         run_check "phpcs" "true" "${runner_argv[@]}" vendor/bin/phpcs --standard=Magento2 "${paths[@]}"
     else
@@ -573,7 +691,7 @@ fi
 if [ "$STRICT" = "1" ]; then
     if runner_available && runner_test_file vendor/bin/phpstan; then
         paths=()
-        for mod in $MODULES; do paths+=("${MODULE_DIR}/${mod//_/\/}"); done
+        for mod in $MODULES; do paths+=("$(module_path "$mod")"); done
         build_runner_argv
         run_check "phpstan" "true" "${runner_argv[@]}" vendor/bin/phpstan analyse --level=8 "${paths[@]}"
     else

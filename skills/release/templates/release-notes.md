@@ -5,7 +5,7 @@ Bump: {major | minor | patch}
 Skill versions:
 
 - release@1.2.1
-- deploy@1.4.1
+- deploy@1.5.0
   - context@1.14.0
 
 ## Highlights

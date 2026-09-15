@@ -190,7 +190,10 @@ echo "== Category 4: PHP coding standards =="
 if $PHP_CMD -v >/dev/null 2>&1; then
     syntax_errors=0
     while IFS= read -r -d '' file; do
-        result=$($PHP_CMD -l "$file" 2>&1 || true)
+        # </dev/null: PHP_CMD may be `docker compose exec -T …`, which reads stdin — and stdin here is
+        # the find list feeding this loop, so the first check swallowed every remaining file name and
+        # "All PHP files pass syntax check" was printed after checking one.
+        result=$($PHP_CMD -l "$file" 2>&1 </dev/null || true)
         if ! echo "$result" | grep -q "No syntax errors"; then
             fail "PHP syntax error: ${file#"$module_path/"}"
             printf "     %s\n" "$result"

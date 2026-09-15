@@ -42,9 +42,21 @@ Other examples:
 
 ## Detection Rules
 
-A "changed file" is any file with status `A`, `C`, `M`, `R` in
-`git diff --name-only --diff-filter=ACMR <ref>...HEAD -- <module-path>`. Renames are
-followed (the new path is reviewed, the old path is noted in the finding's history).
+A "changed file" is any file inside `<module-path>` that differs between the point the branch
+left `<ref>` and the **working tree** — committed, staged, unstaged, or untracked and not ignored:
+
+```bash
+BASE="$(git merge-base <ref> HEAD)"
+git diff --name-only --diff-filter=ACMR "$BASE" -- <module-path>            # committed + uncommitted
+git ls-files --others --exclude-standard --full-name -- <module-path>   # untracked
+```
+
+Uncommitted work is in scope on purpose. `feature` runs its `R*` reviews immediately after each
+task, with per-task commits off by default, so the previous commits-only rule
+(`git diff <ref>...HEAD`) saw none of the work under review and short-circuited with "nothing to
+review". On a clean tree — CI, a pull request — both rules produce the same list.
+
+Renames are followed (the new path is reviewed, the old path is noted in the finding's history).
 
 Deleted files (`D`) are not reviewed — they cannot have findings — but the deletion is
 listed in the report's "Removed files" section. If a critical file like `registration.php`

@@ -25,8 +25,14 @@ PHPCBF="${PHPCBF:-}"
 PHP_CS_FIXER="${PHP_CS_FIXER:-}"
 DRY_RUN="${DRY_RUN:-0}"
 
-# Never touch these directories.
-EXCLUDE_PATTERN="*/vendor/*,*/generated/*,*/var/*,*/pub/static/*"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=exclude-lib.sh
+source "${SCRIPT_DIR}/exclude-lib.sh"
+
+# Never touch these directories — anchored at the target, as the tools will see it. Free-floating
+# `*/var/*`-style globs matched a container's /var/www install root, so phpcbf fixed nothing and the
+# before/after counts both read 0. See exclude-lib.sh.
+EXCLUDE_PATTERN="$(lint_exclude_pattern "$TARGET_PATH" "$RUNNER")"
 
 # Resolve a tool path: prefer env override, then vendor/bin probe.
 _resolve_tool() {
@@ -73,7 +79,9 @@ count_phpcs_violations() {
             fi
             run_cmd+=("$phpcs_bin" --standard=Magento2
                 "--ignore=${EXCLUDE_PATTERN}" "$target")
-            count=$("${run_cmd[@]}" --report=json 2>/dev/null | php -r '$d=json_decode(stream_get_contents(STDIN),true); echo (int)(($d["totals"]["errors"]??0)+($d["totals"]["warnings"]??0));' 2>/dev/null || echo 0)
+            # sed: phpcs prints DEPRECATED notices on stdout ahead of the JSON (see run-analysis.sh),
+            # which made json_decode fail and both the before and after counts read 0.
+            count=$("${run_cmd[@]}" --report=json 2>/dev/null | sed -n '/^{/,$p' | php -r '$d=json_decode(stream_get_contents(STDIN),true); echo (int)(($d["totals"]["errors"]??0)+($d["totals"]["warnings"]??0));' 2>/dev/null || echo 0)
         fi
     fi
     printf '%d' "$count" > "$out_file"

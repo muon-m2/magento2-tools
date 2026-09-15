@@ -1,6 +1,6 @@
 ---
 name: docs
-version: 1.4.0
+version: 1.4.1
 description:
     Generate or refresh a module's technical documentation from its own code — public
     @api surface, events, plugins, REST/GraphQL routes, DB schema, dependencies — plus
@@ -118,6 +118,8 @@ Run `${CLAUDE_SKILL_DIR}/scripts/extract-surface.sh` with the module path, which
 - Greps/parses each XML and PHP source file listed in
   `${CLAUDE_SKILL_DIR}/references/surface-extraction.md`.
 - Emits a surface JSON: which surfaces exist, their entries, and source file paths.
+- Prints that JSON's path. With `SURFACE_FILE` unset it creates a new temp file that outlives the
+  script; the caller owns it and removes it when the run is done.
 - Is strictly READ-ONLY — it never mutates files and never installs anything.
 
 From the surface JSON, present the **doc plan** to the user:
@@ -242,7 +244,7 @@ Write a run report to
   `docs/api/http-client.private.env.json` to the module `.gitignore` before committing.*
   The JetBrains HTTP Client writes your bearer token there and it sits beside the `.http`
   file, not inside `.idea/`, so a stock `.gitignore` does not cover it.
-- Skill version: `docs@1.4.0`.
+- Skill version: `docs@1.4.1`.
 
 ## Inputs
 

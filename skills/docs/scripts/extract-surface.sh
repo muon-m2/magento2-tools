@@ -13,8 +13,8 @@
 #   # or
 #   bash extract-surface.sh /path/to/app/code/Acme/OrderExport
 #
-# Output: JSON written to SURFACE_FILE (default: a temp file whose path is printed
-# to stdout for callers that chain further processing).
+# Output: JSON written to SURFACE_FILE (default: a new temp file whose path is printed
+# to stdout for callers that chain further processing; the caller owns and removes it).
 
 set -uo pipefail
 
@@ -40,11 +40,16 @@ if ! command -v python3 >/dev/null 2>&1; then
 fi
 
 SURFACE_FILE="${SURFACE_FILE:-}"
-TMP_DIR="$(mktemp -d)"
-trap 'rm -rf "$TMP_DIR"' EXIT
-
+CREATED_SURFACE_FILE=0
 if [ -z "$SURFACE_FILE" ]; then
-    SURFACE_FILE="${TMP_DIR}/surface.json"
+    # Created OUTSIDE any directory this script cleans up, because the path is the output: the caller
+    # reads it after this script has exited, and owns and removes it. It used to sit in a temp dir
+    # whose EXIT trap deleted it first, so the printed path never existed for the caller.
+    if ! SURFACE_FILE="$(mktemp "${TMPDIR:-/tmp}/surface.XXXXXX")"; then
+        echo "extract-surface: could not create a temp output file" >&2
+        exit 1
+    fi
+    CREATED_SURFACE_FILE=1
 fi
 
 if ! python3 - "$MODULE_PATH" "$SURFACE_FILE" <<'PY'
@@ -1069,8 +1074,10 @@ with open(surface_file, 'w', encoding='utf-8') as fh:
 PY
 then
     echo "extract-surface: extraction failed" >&2
+    [ "$CREATED_SURFACE_FILE" = "1" ] && rm -f "$SURFACE_FILE"
     exit 1
 fi
 
-# Print the output path for callers that chain further processing.
+# Print the output path for callers that chain further processing. When this script chose the path,
+# the caller owns the file and removes it.
 echo "$SURFACE_FILE"

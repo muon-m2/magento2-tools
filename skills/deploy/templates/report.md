@@ -7,7 +7,7 @@ Duration: {N} seconds
 Status: {Success | Failure | Partial (rolled back)}
 Skill versions:
 
-- deploy@1.4.1
+- deploy@1.5.0
   - context@1.14.0
 
 ## Modules Deployed

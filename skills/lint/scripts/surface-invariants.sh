@@ -17,7 +17,8 @@
 #   SCAN_ROOT      app/code root, for sibling-module cross-references (default: parent of the
 #                  module's Vendor dir)
 #   MAGENTO_ROOT   holds vendor/ — the ACL reference set (default: auto-detected from cwd)
-#   FINDINGS_FILE  output path for the JSON findings array (default: tmp; path echoed)
+#   FINDINGS_FILE  output path for the JSON findings array (default: a new temp file the caller
+#                  owns; path echoed)
 #   DATE           finding-id date component (default: today UTC)
 #   ID_PREFIX      finding-id prefix (default: quality)
 #   SEQ_START      first sequence number for finding ids (default: 900, so the pack's ids do
@@ -43,10 +44,12 @@ if ! command -v python3 >/dev/null 2>&1; then
     exit 2
 fi
 
-TMP_DIR="$(mktemp -d)"
-trap 'rm -rf "$TMP_DIR"' EXIT
-
-FINDINGS_FILE="${FINDINGS_FILE:-${TMP_DIR}/surface.json}"
+# The default output is created OUTSIDE any directory this script cleans up, because its path is
+# printed for the caller to read after this script exits. It used to live in a temp dir whose EXIT
+# trap deleted it first.
+if [ -z "${FINDINGS_FILE:-}" ]; then
+    FINDINGS_FILE="$(mktemp "${TMPDIR:-/tmp}/surface-invariants.XXXXXX")"
+fi
 mkdir -p "$(dirname "$FINDINGS_FILE")"
 
 TARGET_PATH="$TARGET_PATH" \

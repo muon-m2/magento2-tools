@@ -10,10 +10,20 @@ FIXTURE="tests/fixtures/docs-generate/Acme/Sample"
 SCRIPT="skills/docs/scripts/extract-surface.sh"
 [ -d "$FIXTURE" ] || { echo "FAIL: fixture missing: $FIXTURE"; exit 1; }
 
-# Pre-create a stable output path so the extractor does not place the JSON inside
-# its own temp dir (which it removes on EXIT before we can read it).
+# The contract assertions below read a pinned output path.
 _SF="$(mktemp /tmp/surface-test-XXXXXX.json)"
-trap 'rm -f "$_SF"' EXIT
+_DEFAULT_SF=""
+trap 'rm -f "$_SF" ${_DEFAULT_SF:+"$_DEFAULT_SF"}' EXIT
+
+# The DEFAULT output path first — SURFACE_FILE unset, which is how docs/SKILL.md Phase 2 runs it.
+# The extractor used to create that file inside its own temp dir and print its path, and its EXIT
+# trap deleted the dir before the caller could read it. Every other assertion here pins
+# SURFACE_FILE, which is exactly why that shipped unnoticed.
+_DEFAULT_SF="$(env -u SURFACE_FILE MODULE_PATH="$FIXTURE" bash "$SCRIPT")" \
+    || { echo "FAIL: extractor errored without SURFACE_FILE"; exit 1; }
+[ -f "$_DEFAULT_SF" ] || { echo "FAIL: printed surface path does not exist once the extractor exits: $_DEFAULT_SF"; exit 1; }
+python3 -c 'import json, sys; json.load(open(sys.argv[1]))' "$_DEFAULT_SF" \
+    || { echo "FAIL: default surface file is not valid JSON: $_DEFAULT_SF"; exit 1; }
 
 JSON_PATH="$(MODULE_PATH="$FIXTURE" SURFACE_FILE="$_SF" bash "$SCRIPT")" || { echo "FAIL: extractor errored"; exit 1; }
 

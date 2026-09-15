@@ -1,6 +1,6 @@
 ---
 name: module-create
-version: 1.10.2
+version: 1.10.3
 description:
     Create a new Magento 2 module under the project's vendor namespace. Use when asked to create,
     scaffold, generate, or build a Magento 2 module, extension, component, or package. Produces a

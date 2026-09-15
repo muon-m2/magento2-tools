@@ -6,6 +6,71 @@ individual skill versions are tracked in each SKILL.md frontmatter and the gener
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased] — A gate that checked nothing no longer reports a pass
+
+Seven skill scripts could exit 0 having skipped the work they report on. Six surfaced in one
+`feature` run on a Magento 2.4.9 / PHP 8.5 Docker project; the seventh was found by sweeping for
+the same defect class. Each was re-confirmed with a minimal reproduction and is now pinned by a test
+that fails on 2.1.0.
+
+### Fixed
+
+- **`deploy` 1.4.1 → 1.5.0 — a Docker deploy plan ran only its first step and reported success.**
+  `execute-plan.sh` read the plan on stdin, and every step inherited that stdin.
+  `docker compose exec -T` — the default `{ctx.runner}` for Docker projects — reads stdin, so the
+  first runner step drained the remaining plan lines, the loop hit EOF, and the script printed
+  `completed 1 steps` with exit 0. A plan of `module:status` → `cache:flush` → `indexer:status`
+  ran `module:status` alone; a `setup:upgrade` after it would have been skipped the same way. Each
+  step now runs with stdin from `/dev/null`.
+- **`lint` 1.4.0 → 1.4.1 — PHPCS and PHPMD scanned 0 files in a Docker runner and reported a clean
+  module.** The exclude list was free-floating globs (`*/vendor/*,*/generated/*,*/var/*,*/pub/static/*`).
+  PHP_CodeSniffer runs `--ignore` as an unanchored regex over each file's realpath, and pdepend
+  matches PHPMD's `--exclude` against the realpath too, so `*/var/*` matched every file under the
+  image's `/var/www/magento` install root and `*/vendor/*` every file of a Composer-installed
+  module. Measured in the container: phpcs scanned 0 files, and 23 once the excludes were anchored.
+  They are now anchored at the target's realpath as the runner sees it, by a new
+  `scripts/exclude-lib.sh` that `apply-fixes.sh` shares — `phpcbf` uses the same `--ignore`
+  handling. Three more changes keep a degraded pass from reading as clean:
+  - PHPMD's report is parsed past the `Deprecated: Non-canonical cast (integer) …` notices PHP 8.5
+    prints on stdout under its built-in `display_errors=1`. Before, the whole pass survived only as
+    one `scanner_errors` line.
+  - A phpcs report listing 0 files, for a target that has PHP files, now writes a `scanner_errors`
+    entry and marks phpcs `degraded`.
+  - The quality document's `tools` map is populated — `executed`, `unavailable`, `skipped` or
+    `degraded` per scanner. It was always `{}`.
+- **`review` 2.4.0 → 2.4.1 — diff mode could not see uncommitted work, and stopped with "nothing to
+  review".** `diff-scope.sh` compared `<ref>...HEAD`, commits only, so modified and untracked files
+  were invisible — the exact state `feature` runs its `R*` reviews in, with per-task commits off by
+  default. It now diffs the working tree against the merge base and adds untracked, non-ignored
+  files; on a clean tree the list is unchanged. `references/diff-mode.md` §Detection Rules updated.
+- **`deploy` — a Composer-installed module could not pass preflight, so it could not pass `release`
+  validation either.** `preflight.sh` looked for the supplied modules only under `app/code`, so a
+  module in `vendor/<vendor>/<package>` — or a `dev-packages/<package>` working copy — failed
+  `module-registration` and `dependency-graph` as missing. Fixing that exposed a second gap in the
+  same graph: a `<sequence>` target outside `app/code` counted as present only if `composer.lock`
+  carried `extra.magento.module-name`, or a package was named exactly `vendor/modulename`. So a
+  dependency on `Acme_FileAttachment` — shipped as `acme/module-file-attachment` — failed while it
+  sat installed and enabled. Modules now resolve by the name their `etc/module.xml` declares, from
+  `app/code`, then `vendor/`, then `dev-packages/`, and the check note records the source. A package
+  that merely `<sequence>`s a module is not mistaken for it. On the project that surfaced this,
+  preflight went from `passed: false` to `passed: true`.
+- **`deploy` — smoke HTTP checks failed on healthy local stacks.** On a connection failure curl has
+  already printed `000`, so `|| echo 000` made the status `000000`, which matched no case: an
+  unreachable GraphQL endpoint read `fail` instead of `skipped`. Self-signed local HTTPS failed every
+  check, and the admin was probed only at `/admin/`. `smoke.sh` now records a single status, skips
+  certificate verification for `localhost`, `*.localhost`, `*.test` and loopback (or anywhere with
+  `SMOKE_CURL_INSECURE=1`), and probes `ADMIN_PATH`, then `app/etc/env.php` `backend.frontName`. A
+  404 on a guessed `/admin/` is `skipped`, not `fail`.
+- **`docs` 1.4.0 → 1.4.1 — `extract-surface.sh` printed a surface path its own EXIT trap had
+  already deleted.** With `SURFACE_FILE` unset — the documented default — the file was written
+  inside a trap-cleaned temp dir, so Phase 2 had no surface JSON to present. It is now created
+  outside it, and the caller owns it. `lint`'s `run-analysis.sh` and `surface-invariants.sh` had the
+  same default-path defect — latent, because `build-findings.sh` always passes a path — and are
+  fixed the same way.
+- **`module-create` 1.10.2 → 1.10.3 — `verify-created.sh` syntax-checked one PHP file under Docker
+  and reported every file passing.** Its lint loop is fed by `find` on stdin, and
+  `docker compose exec -T … php -l` drained it: the same defect as `execute-plan.sh`.
+
 ## [2.1.0] — 2026-09-04 — CMS widgets are a scaffold, not a copy-paste from a blog post
 
 ### Added

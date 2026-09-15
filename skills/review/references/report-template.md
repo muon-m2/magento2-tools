@@ -7,7 +7,7 @@ Module path: `<path>`
 Reviewer: Claude Code using `review`
 Skill versions:
 
-- review@2.4.0
+- review@2.4.1
   - context@1.14.0
 
 ## Executive Summary
