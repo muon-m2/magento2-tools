@@ -60,9 +60,21 @@ STUB
 # CamelCaseMethodName at priority 1 is the exact motivating case: PHPMD ships its CamelCase* rules
 # at priority 1, and `_resetState()` is NAMED that way because ResetAfterRequestInterface mandates
 # it. Echoes its argv so the ruleset-selection assertions can read what it was handed.
+#
+# The deprecation lines ahead of the JSON are real PHP 8.5 output. With PHP's built-in defaults
+# (display_errors=1, error_reporting=E_ALL — what a php-cli container without a php.ini runs),
+# pdepend's `(integer)` casts print on STDOUT before the document. Measured in a Magento 2.4.9 /
+# PHP 8.5.8 container; the parser used to fail on it and record the pass only as a scanner_errors
+# line, so every PHPMD violation was lost.
 cat > "$BIN/phpmd" <<'STUB'
 #!/usr/bin/env bash
 printf '%s\n' "$@" > "${PHPMD_ARGV_FILE:-/dev/null}"
+cat <<'PRE'
+
+Deprecated: Non-canonical cast (integer) is deprecated, use the (int) cast instead in /var/www/magento/vendor/phpmd/phpmd/src/main/php/PHPMD/RuleSetFactory.php on line 388
+
+Deprecated: Non-canonical cast (integer) is deprecated, use the (int) cast instead in /var/www/magento/vendor/pdepend/pdepend/src/main/php/PDepend/Util/Configuration.php on line 102
+PRE
 cat <<'JSON'
 {"version":"2.15.0","package":"phpmd","files":[{"file":"/m/A.php","violations":[
 {"beginLine":43,"endLine":43,"rule":"CamelCaseMethodName","ruleset":"Naming Rules","priority":1,

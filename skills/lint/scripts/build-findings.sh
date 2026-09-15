@@ -32,7 +32,7 @@
 #                       apparently-clean result. Forwarded to run-analysis.sh.
 #   DOCS_ROOT           default: .docs — project-root artifact dir ({ctx.docs_root}).
 #   OUTPUT_DIR          default: {DOCS_ROOT}/quality
-#   SKILL_VERSION       default: 1.4.0
+#   SKILL_VERSION       default: 1.4.1
 #
 # Output:
 #   Writes {OUTPUT_DIR}/{TARGET_MODULE}-quality-{YYYY-MM-DD}.json (module scope) or
@@ -52,7 +52,7 @@ RECTOR_FORCE="${RECTOR_FORCE:-0}"
 PHPSTAN_MEMORY_LIMIT="${PHPSTAN_MEMORY_LIMIT:-2G}"
 DOCS_ROOT="${DOCS_ROOT:-.docs}"
 OUTPUT_DIR="${OUTPUT_DIR:-${DOCS_ROOT}/quality}"
-SKILL_VERSION="${SKILL_VERSION:-1.4.0}"
+SKILL_VERSION="${SKILL_VERSION:-1.4.1}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/../../context/scripts/findings-lib.sh"
@@ -63,6 +63,11 @@ findings_init
 # FINDINGS_FILE itself), so run it directly and register its output afterwards.
 ANALYSIS_OUT="${TMP_DIR}/run-analysis.json"
 ANALYSIS_ERR="${TMP_DIR}/run-analysis.err"
+# Per-scanner executed / unavailable / skipped / degraded, which emit-json.sh publishes as the
+# document's `tools` map. Nothing set it before, so every quality document carried `tools: {}` and
+# could not say which scanners had actually looked at the code.
+TOOLS_FILE="${TMP_DIR}/tools.json"
+export TOOLS_FILE
 
 RUNNER="$RUNNER" \
 PHPCS="$PHPCS" \

@@ -11,7 +11,7 @@
 #   MODE            "full" | "quick" | "diff" (default: full)
 #   SCOPE           "module" (default) | "site" | "diff" | "vendor"
 #   SKILL_NAME      default: review
-#   SKILL_VERSION  default: 2.4.0
+#   SKILL_VERSION  default: 2.4.1
 #   SKILL_VERSIONS_JSON  Optional JSON array string (e.g. '["foo@1","bar@2"]')
 #                  When set, used verbatim as skillVersions[]; otherwise auto-built.
 #   OUTPUT_KIND     "review" | "security" | "performance" | "upgrade" | "quality" |
@@ -39,7 +39,7 @@ set -euo pipefail
 MODE="${MODE:-full}"
 SCOPE="${SCOPE:-module}"
 SKILL_NAME="${SKILL_NAME:-review}"
-SKILL_VERSION="${SKILL_VERSION:-2.4.0}"
+SKILL_VERSION="${SKILL_VERSION:-2.4.1}"
 SKILL_VERSIONS_JSON="${SKILL_VERSIONS_JSON:-}"
 OUTPUT_KIND="${OUTPUT_KIND:-review}"
 CONTEXT_FILE="${CONTEXT_FILE:-.claude/.cache/context.json}"
@@ -184,7 +184,7 @@ def cap_stderr(entries, limit=16000):
 scanner_errors = cap_stderr(scanner_errors)
 
 skill_name = os.environ.get('SKILL_NAME', 'review')
-skill_version = os.environ.get('SKILL_VERSION', '2.4.0')
+skill_version = os.environ.get('SKILL_VERSION', '2.4.1')
 output_kind = os.environ.get('OUTPUT_KIND', 'review')
 
 raw_versions = os.environ.get('SKILL_VERSIONS_JSON', '').strip()

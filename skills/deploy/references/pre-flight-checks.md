@@ -7,25 +7,40 @@ deploy. Failure of an Optional check is logged and continues.
 
 ### Module registration
 
+Resolve each supplied module's directory once, then run this and every later per-module check
+against it. First hit wins:
+
+1. `{module_dir}/{Vendor}/{Module}` (`src/app/code` or `app/code`);
+2. the installed package whose `etc/module.xml` declares it — `vendor/*/*/etc/module.xml` or
+   `vendor/*/*/src/etc/module.xml`;
+3. a working copy — `dev-packages/*/etc/module.xml` or `dev-packages/*/src/etc/module.xml`.
+
+Match the **top-level** `<module name>` only: a package whose `<sequence>` merely names the module
+is not that module. Record which location resolved in the check note. Looking under `app/code`
+alone failed every Composer-installed module as "missing registration.php" — and, through
+`deploy --validate-only`, its `release` validation too.
+
 ```bash
-for m in {modules}; do
-    test -f src/app/code/${m/_//}/registration.php \
-        || { echo "missing registration.php for $m"; exit 1; }
-done
+test -f {resolved_module_dir}/registration.php \
+    || { echo "missing registration.php for $m"; exit 1; }
 ```
 
 ### composer.json validity
 
 ```bash
 for m in {modules}; do
-    {runner} composer validate --no-check-publish src/app/code/${m/_//}/composer.json
+    {runner} composer validate --no-check-publish {resolved_module_dir}/composer.json
 done
 ```
 
 ### Module dependency graph well-formed
 
 Parse every `<sequence>` block in `etc/module.xml`. Ensure no cycles and that every
-referenced module exists in the project or as a `composer.lock` entry.
+referenced module exists: under `app/code`, as the declared `<module name>` of a `vendor/` or
+`dev-packages/` package (the same lookup as *Module registration*), or as a `composer.lock` entry.
+`Magento_*` targets always count as present. Do not rely on `composer.lock` alone — it names
+packages (`acme/module-file-attachment`), not modules (`Acme_FileAttachment`), and almost no
+package sets `extra.magento.module-name`.
 
 ### Unit tests
 

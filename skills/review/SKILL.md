@@ -1,6 +1,6 @@
 ---
 name: review
-version: 2.4.0
+version: 2.4.1
 description:
     Review Magento 2 modules for architecture, Magento framework requirements, best practices, security, code quality, maintainability, PHPDoc, SOLID/DRY/KISS/SRP, and test coverage. Use when asked to audit, review, validate, assess, or report on a Magento 2 module, including app/code modules, package-source modules, composer-distributed modules, controller/service/model/template/config/schema reviews, or release-readiness checks. The skill is environment-independent: it must not assume Docker, Make, bin/magento, installed dependencies, a database, network access, or a running Magento instance, and should use available static-analysis tools opportunistically. For security-only depth (CVEs, secrets, Marketplace EQP) use magento2-tools:security; for performance-only depth use magento2-tools:perf-audit.
 ---
@@ -147,7 +147,9 @@ Use when the user invokes with `--diff [<ref>]` or when this skill is called fro
 code change. Read `references/diff-mode.md` for the full algorithm.
 
 - Run `${CLAUDE_SKILL_DIR}/scripts/diff-scope.sh <module-path> <ref>` (default ref `origin/main`) to obtain
-  the changed-file list. If exit 1, report "no findings — nothing to review" and stop.
+  the changed-file list — committed, uncommitted and untracked changes since the branch left `<ref>`,
+  so a review run straight after a task sees that task's uncommitted work. If exit 1, report "no
+  findings — nothing to review" and stop.
 - Restrict architecture mapping, tool passes, and checklist application to the changed
   files. Cross-file findings cite the outside file with `crossFile: true`.
 - JSON output sets `mode: "diff"` and includes `diffRef` in `target`.

@@ -97,5 +97,10 @@ Regardless of classification:
 - `var/` — runtime state
 - `pub/static/` — compiled static assets
 
-All fixer invocations must pass `--ignore=*/vendor/*,*/generated/*,*/var/*,*/pub/static/*`
-(or the tool's equivalent exclude flag).
+All fixer invocations must pass these as an exclude list **anchored at the target** —
+`--ignore=<target>/vendor/*,<target>/generated/*,<target>/var/*,<target>/pub/static/*` (or the
+tool's equivalent flag), where `<target>` is the target's realpath as the tool sees it;
+`scripts/exclude-lib.sh` builds it. Never the free-floating `*/vendor/*,*/var/*` form:
+PHP_CodeSniffer matches `--ignore` as an unanchored regex over each file's realpath, so `*/var/*`
+excludes every file under a container's `/var/www/…` install root and the fixer silently changes
+nothing.

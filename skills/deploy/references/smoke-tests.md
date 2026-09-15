@@ -111,10 +111,19 @@ curl -s -X POST "{base_url}/graphql" \
 ### `admin_ui`
 
 ```bash
-curl -s -o /dev/null -w '%{http_code}\n' "{base_url}/admin/"
+curl -s -o /dev/null -w '%{http_code}\n' "{base_url}/{admin_path}/"
 ```
 
-Pass: 302 (redirect to login). Fail: 500 or 404.
+`{admin_path}` is the install's backend frontName, which is rarely `admin` on a real install: take
+it from `ADMIN_PATH`, else `app/etc/env.php` → `backend.frontName`, else guess `admin`.
+
+Pass: 302 (redirect to login). Fail: 500, or 404 at a known frontName. A 404 at the *guessed*
+`/admin/` is `skipped` — the path is unknown, which says nothing about the admin.
+
+Use curl's status as printed: on a connection or TLS failure `-w '%{http_code}'` already prints
+`000`, so a `|| echo 000` fallback turns it into `000000`. On a local stack with a self-signed
+certificate pass `-k`; `smoke.sh` does so for `localhost`, `*.localhost`, `*.test` and loopback, or
+for any host with `SMOKE_CURL_INSECURE=1`.
 
 If the module adds an admin route, also probe its URL (expect 302 to login, not 404 or
 500).

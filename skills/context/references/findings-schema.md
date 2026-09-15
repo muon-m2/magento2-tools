@@ -17,7 +17,7 @@ requires updating this schema and the JSON emitter.
   "skill": "review",
   "skillVersion": "2.4.0",
   "skillVersions": [
-    "review@2.4.0",
+    "review@2.4.1",
     "context@1.14.0"
   ],
   "outputKind": "review",
@@ -136,7 +136,7 @@ requires updating this schema and the JSON emitter.
 | findings      | Yes      | Array; per-skill semantics.                                                           |
 | skipped       | Yes      | Array of skipped checks with reason.                                                  |
 | scanner_errors | Yes     | Array of `{scanner, stderr}`. One entry per scanner that crashed or degraded. This is how "scanner found nothing" is distinguished from "scanner did not run" — a degraded scanner records here instead of silently emitting an empty findings list. Emit `[]` when every scanner ran cleanly. Asserted by `tests/test-audit-builders.sh`. |
-| tools         | Yes      | Object reporting which CLI tools ran or were unavailable.                             |
+| tools         | Yes      | Object mapping each CLI tool or scanner to its status: `executed`, `unavailable` (not installed), `skipped` (deliberately not run), or `degraded` (ran, but its result cannot be trusted as clean — e.g. phpcs scanned 0 files, or its output could not be parsed). A `skipped` or `degraded` scanner also records its reason in `scanner_errors`; only an `executed` one stands behind a zero finding count. |
 
 ## Per-Skill Category Vocabulary
 

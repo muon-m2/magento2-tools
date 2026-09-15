@@ -13,7 +13,12 @@
 #   PHPSTAN_MEMORY_LIMIT
 #                 Value for phpstan's --memory-limit (default: 2G). php.ini's default (commonly
 #                 128M) crashes phpstan on a Magento codebase and yields an apparently-clean run.
-#   FINDINGS_FILE Output path for the JSON findings array (default: auto tmp file printed to stdout)
+#   FINDINGS_FILE Output path for the JSON findings array (default: a new temp file, outside any
+#                 directory this script removes; the caller owns it)
+#   TOOLS_FILE    Optional output path for a JSON object of per-scanner status — "executed",
+#                 "unavailable" (binary not found), "skipped" (deliberately not run) or "degraded"
+#                 (ran, but its result cannot be trusted as clean). build-findings.sh turns it into
+#                 the document's `tools` map.
 #
 # Output:
 #   Writes a JSON array of finding objects (findings-schema.md shape) to FINDINGS_FILE.
@@ -22,6 +27,8 @@
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=exclude-lib.sh
+source "${SCRIPT_DIR}/exclude-lib.sh"
 
 TARGET_PATH="${TARGET_PATH:-${1:-}}"
 : "${TARGET_PATH:?TARGET_PATH is required (pass as env var or \$1)}"
@@ -66,8 +73,32 @@ PHPSTAN_ERR="${TMP_DIR}/phpstan.err"
 PHPMD_ERR="${TMP_DIR}/phpmd.err"
 RECTOR_ERR="${TMP_DIR}/rector.err"
 
-# Exclude dirs common to all tools.
-EXCLUDE_PATTERN="*/vendor/*,*/generated/*,*/var/*,*/pub/static/*"
+# Exclude dirs common to all tools, anchored at the target as the tools will see it. Free-floating
+# `*/var/*`-style globs excluded every file under a container's /var/www install root and every file
+# of a Composer-installed module — see exclude-lib.sh.
+EXCLUDE_PATTERN="$(lint_exclude_pattern "$TARGET_PATH" "$RUNNER")"
+
+# Positive control for phpcs, whose JSON report lists every file it scanned. A scan that covered 0
+# files is a clean result only when there was nothing to scan. When the target is not visible from
+# here (a path that exists only inside a container) that cannot be ruled out, so 0 is reported.
+if [ -d "$TARGET_PATH" ]; then
+    if [ -n "$(find "$TARGET_PATH" -type f \( -name '*.php' -o -name '*.phtml' \) -print 2>/dev/null | head -n 1)" ]; then
+        TARGET_HAS_PHP="yes"
+    else
+        TARGET_HAS_PHP="no"
+    fi
+else
+    TARGET_HAS_PHP="unknown"
+fi
+
+# Per-scanner status for TOOLS_FILE. A parser exits DEGRADED (after still printing what it could)
+# when its tool's output cannot be read as a trustworthy result.
+DEGRADED=3
+STATUS_PHPCS="unavailable"
+STATUS_PHPSTAN="unavailable"
+STATUS_PHPMD="unavailable"
+STATUS_RECTOR="unavailable"
+STATUS_SURFACE="unavailable"
 
 # Where a Magento install's own configs live, relative to the cwd these scanners run from.
 # `src/` is this toolchain's convention; a bare install has them at the root.
@@ -78,6 +109,20 @@ echo "[]" > "$PHPSTAN_OUT"
 echo "[]" > "$PHPMD_OUT"
 echo "[]" > "$RECTOR_OUT"
 echo "[]" > "$SURFACE_OUT"
+
+# strip_json_preamble <raw-file> <err-file> <tool> — drop anything a tool printed on stdout ahead of
+# its JSON document, and note that it did. Without this the file is not JSON, the parser falls back
+# to [], and every violation is lost.
+strip_json_preamble() {
+    local raw_file="$1" err_file="$2" tool="$3"
+    if [ -s "$raw_file" ] && ! head -c 1 "$raw_file" | grep -q '{'; then
+        sed -n '/^{/,$p' "$raw_file" > "${raw_file}.stripped" 2>/dev/null || true
+        if [ -s "${raw_file}.stripped" ]; then
+            echo "run-analysis/${tool}: stripped non-JSON preamble from ${tool} stdout" >> "$err_file"
+            mv "${raw_file}.stripped" "$raw_file"
+        fi
+    fi
+}
 
 # ---------------------------------------------------------------------------
 # phpcs — detect coding-standard violations (read-only)
@@ -106,30 +151,28 @@ run_phpcs() {
     # (3.13.x, triggered by the Magento2 standard's custom-tokenizer sniffs.) That makes the file
     # invalid JSON, so the parser below used to fail and silently fall back to [] — losing every
     # violation. Drop everything before the first line that starts an object.
-    if [ -s "$raw_file" ] && ! head -c 1 "$raw_file" | grep -q '{'; then
-        sed -n '/^{/,$p' "$raw_file" > "${raw_file}.stripped" 2>/dev/null || true
-        if [ -s "${raw_file}.stripped" ]; then
-            echo "run-analysis/phpcs: stripped non-JSON preamble from phpcs stdout" >> "$PHPCS_ERR"
-            mv "${raw_file}.stripped" "$raw_file"
-        fi
-    fi
+    strip_json_preamble "$raw_file" "$PHPCS_ERR" phpcs
 
-    python3 - "$raw_file" > "$PHPCS_OUT" 2>> "$PHPCS_ERR" <<'PY'
+    if python3 - "$raw_file" "$TARGET_PATH" "$TARGET_HAS_PHP" "$DEGRADED" > "$PHPCS_OUT" 2>> "$PHPCS_ERR" <<'PY'
 import json
 import sys
 
-raw_path = sys.argv[1]
+raw_path, target, has_php, degraded = sys.argv[1], sys.argv[2], sys.argv[3], int(sys.argv[4])
 try:
     with open(raw_path, encoding='utf-8') as fh:
         raw = json.load(fh)
 except Exception as exc:
     print(f"run-analysis/phpcs: could not parse phpcs JSON: {exc}", file=sys.stderr)
     print("[]")
-    sys.exit(0)
+    sys.exit(degraded)
+
+files = raw.get('files', {})
+if not isinstance(files, dict):
+    files = {}
 
 out = []
 seq = 1
-for file_path, file_data in raw.get('files', {}).items():
+for file_path, file_data in files.items():
     for msg in file_data.get('messages', []):
         msg_type = msg.get('type', 'WARNING')
         severity_map = {'ERROR': 'high', 'WARNING': 'medium'}
@@ -150,7 +193,20 @@ for file_path, file_data in raw.get('files', {}).items():
         seq += 1
 
 print(json.dumps(out, indent=2))
+
+# phpcs's JSON report lists EVERY file it scanned, clean ones included, so an empty `files` map means
+# it looked at nothing. That is a clean result only when there was nothing to look at.
+if not files and has_php != 'no':
+    print(f"run-analysis/phpcs: phpcs scanned 0 files under {target} — an --ignore pattern or a "
+          "path mismatch excluded everything, so coding standards were NOT checked; this is not a "
+          "clean result", file=sys.stderr)
+    sys.exit(degraded)
 PY
+    then
+        STATUS_PHPCS="executed"
+    else
+        STATUS_PHPCS="degraded"
+    fi
 }
 
 # ---------------------------------------------------------------------------
@@ -214,25 +270,26 @@ run_phpstan() {
     # phpstan exits 1 when errors found — expected.
     "${run_cmd[@]}" > "$raw_file" 2> "$PHPSTAN_ERR" || true
 
-    python3 - "$raw_file" > "$PHPSTAN_OUT" 2>> "$PHPSTAN_ERR" <<'PY'
+    if python3 - "$raw_file" "$DEGRADED" > "$PHPSTAN_OUT" 2>> "$PHPSTAN_ERR" <<'PY'
 import json
 import sys
 
-raw_path = sys.argv[1]
+raw_path, degraded = sys.argv[1], int(sys.argv[2])
 try:
     with open(raw_path, encoding='utf-8') as fh:
         raw = json.load(fh)
 except Exception as exc:
     print(f"run-analysis/phpstan: could not parse phpstan JSON: {exc}", file=sys.stderr)
     print("[]")
-    sys.exit(0)
+    sys.exit(degraded)
 
 out = []
 seq = 1
 
 # phpstan reports run-level failures (crashes, config errors) in a top-level "errors" list and
 # then returns files: []. Dropping those made a crashed run indistinguishable from a clean one.
-for run_error in raw.get('errors', []) or []:
+run_errors = raw.get('errors', []) or []
+for run_error in run_errors:
     print(f"run-analysis/phpstan: {run_error}", file=sys.stderr)
 
 # "files" is a dict keyed by path on success, but phpstan emits a LIST (usually []) when the run
@@ -266,7 +323,16 @@ for file_path, file_errors in files.items():
         seq += 1
 
 print(json.dumps(out, indent=2))
+
+# A run-level failure means some or all of the code was not analysed.
+if run_errors:
+    sys.exit(degraded)
 PY
+    then
+        STATUS_PHPSTAN="executed"
+    else
+        STATUS_PHPSTAN="degraded"
+    fi
 }
 
 # ---------------------------------------------------------------------------
@@ -317,18 +383,28 @@ run_phpmd() {
 (findings reflect the rules this module selected, not the built-in set)" >> "$PHPMD_ERR"
     fi
 
-    python3 - "$raw_file" > "$PHPMD_OUT" 2>> "$PHPMD_ERR" <<'PY'
+    # PHP 8.5 with its built-in defaults (display_errors=1, error_reporting=E_ALL — a php-cli
+    # container with no php.ini) prints pdepend's "Deprecated: Non-canonical cast (integer) …"
+    # notices on STDOUT ahead of the JSON report. Measured in a Magento 2.4.9 / PHP 8.5.8 container:
+    # the parser failed on it and the whole pass survived only as one scanner_errors line.
+    #
+    # There is no positive control here like phpcs's: PHPMD's report lists only files that HAVE
+    # violations, so "0 files" cannot be told apart from a clean scan. The anchored EXCLUDE_PATTERN
+    # is what keeps it from excluding the target itself.
+    strip_json_preamble "$raw_file" "$PHPMD_ERR" phpmd
+
+    if python3 - "$raw_file" "$DEGRADED" > "$PHPMD_OUT" 2>> "$PHPMD_ERR" <<'PY'
 import json
 import sys
 
-raw_path = sys.argv[1]
+raw_path, degraded = sys.argv[1], int(sys.argv[2])
 try:
     with open(raw_path, encoding='utf-8') as fh:
         raw = json.load(fh)
 except Exception as exc:
     print(f"run-analysis/phpmd: could not parse phpmd JSON: {exc}", file=sys.stderr)
     print("[]")
-    sys.exit(0)
+    sys.exit(degraded)
 
 # PHPMD "priority" ranks how important a RULE is, not how severe a defect is: its CamelCase* rules
 # ship at priority 1, so a 1:1 map made "method is not named in camelCase" a Critical.
@@ -387,6 +463,11 @@ for violation in violations:
 
 print(json.dumps(out, indent=2))
 PY
+    then
+        STATUS_PHPMD="executed"
+    else
+        STATUS_PHPMD="degraded"
+    fi
 }
 
 # ---------------------------------------------------------------------------
@@ -416,6 +497,7 @@ run_rector_dry() {
         case "${rector_php}|${rector_ver}" in
             8.5*\|1.*|8.6*\|1.*|9.*\|1.*)
                 echo "run-analysis/rector: SKIPPED — rector ${rector_ver} is not compatible with PHP ${rector_php}. It floods stderr with ReflectionProperty::setAccessible deprecations and emits no parseable JSON, so refactoring opportunities were NOT checked. Upgrade to rector ^2.5, which runs clean on 8.5. Set RECTOR_FORCE=1 to run it anyway." >&2
+                STATUS_RECTOR="skipped"
                 return 0
                 ;;
         esac
@@ -432,7 +514,7 @@ run_rector_dry() {
     # rector --dry-run exits non-zero when changes are proposed.
     "${run_cmd[@]}" > "$raw_file" 2> "$RECTOR_ERR" || true
 
-    python3 - "$raw_file" > "$RECTOR_OUT" 2>> "$RECTOR_ERR" <<'PY'
+    if python3 - "$raw_file" "$DEGRADED" > "$RECTOR_OUT" 2>> "$RECTOR_ERR" <<'PY'
 import json
 import sys
 
@@ -445,14 +527,14 @@ SAFE_SETS = {
     'Php80\\UnionTypesRector',
 }
 
-raw_path = sys.argv[1]
+raw_path, degraded = sys.argv[1], int(sys.argv[2])
 try:
     with open(raw_path, encoding='utf-8') as fh:
         raw = json.load(fh)
 except Exception as exc:
     print(f"run-analysis/rector: could not parse rector JSON: {exc}", file=sys.stderr)
     print("[]")
-    sys.exit(0)
+    sys.exit(degraded)
 
 out = []
 seq = 1
@@ -482,6 +564,11 @@ for diff in diffs:
 
 print(json.dumps(out, indent=2))
 PY
+    then
+        STATUS_RECTOR="executed"
+    else
+        STATUS_RECTOR="degraded"
+    fi
 }
 
 # ---------------------------------------------------------------------------
@@ -493,6 +580,7 @@ run_surface_invariants() {
     if [ "$SCOPE" != "module" ]; then
         echo "run-analysis/surface-invariants: scope '$SCOPE' is not module — surface \
 completeness was NOT checked; invoke per module to cover it" >&2
+        STATUS_SURFACE="skipped"
         return
     fi
     local magento_root=""
@@ -501,11 +589,12 @@ completeness was NOT checked; invoke per module to cover it" >&2
     elif [ -d vendor ]; then
         magento_root="."
     fi
+    STATUS_SURFACE="executed"
     TARGET_PATH="$TARGET_PATH" \
     SCAN_ROOT="${SCAN_ROOT:-}" \
     MAGENTO_ROOT="$magento_root" \
     FINDINGS_FILE="$SURFACE_OUT" \
-        bash "${SCRIPT_DIR}/surface-invariants.sh" >/dev/null || true
+        bash "${SCRIPT_DIR}/surface-invariants.sh" >/dev/null || STATUS_SURFACE="degraded"
     # stderr is deliberately NOT captured to a temp file: build-findings.sh turns this script's
     # stderr into the document's `scanner_errors`, which is the only channel that distinguishes
     # "checked and clean" from "not checked". The other scanners write to *_ERR temp files instead,
@@ -515,6 +604,7 @@ completeness was NOT checked; invoke per module to cover it" >&2
         echo "run-analysis/surface-invariants: produced invalid JSON — surface completeness \
 findings were dropped" >&2
         echo "[]" > "$SURFACE_OUT"
+        STATUS_SURFACE="degraded"
     fi
 }
 
@@ -556,8 +646,33 @@ forward_tool_errors() {
 }
 forward_tool_errors
 
-# Merge all findings into one array.
-FINDINGS_FILE="${FINDINGS_FILE:-${TMP_DIR}/findings.json}"
+# Which scanners actually looked at the code. Without this the emitted document's `tools` map was
+# `{}`, so a report could not say whether 0 findings meant "clean" or "never ran".
+if [ -n "${TOOLS_FILE:-}" ]; then
+    STATUS_PHPCS="$STATUS_PHPCS" STATUS_PHPSTAN="$STATUS_PHPSTAN" STATUS_PHPMD="$STATUS_PHPMD" \
+    STATUS_RECTOR="$STATUS_RECTOR" STATUS_SURFACE="$STATUS_SURFACE" \
+        python3 - "$TOOLS_FILE" <<'PY'
+import json
+import os
+import sys
+
+tools = {
+    'phpcs': os.environ['STATUS_PHPCS'],
+    'phpstan': os.environ['STATUS_PHPSTAN'],
+    'phpmd': os.environ['STATUS_PHPMD'],
+    'rector': os.environ['STATUS_RECTOR'],
+    'surface-invariants': os.environ['STATUS_SURFACE'],
+}
+with open(sys.argv[1], 'w', encoding='utf-8') as fh:
+    json.dump(tools, fh, indent=2)
+PY
+fi
+
+# Merge all findings into one array. The default output lives OUTSIDE $TMP_DIR: its path is printed
+# for the caller to read after this script exits, and the EXIT trap used to delete it with $TMP_DIR.
+if [ -z "${FINDINGS_FILE:-}" ]; then
+    FINDINGS_FILE="$(mktemp "${TMPDIR:-/tmp}/run-analysis-findings.XXXXXX")"
+fi
 
 python3 - "$PHPCS_OUT" "$PHPSTAN_OUT" "$PHPMD_OUT" "$RECTOR_OUT" "$SURFACE_OUT" > "$FINDINGS_FILE" <<'PY'
 import json

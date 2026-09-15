@@ -6,7 +6,8 @@
 #   OUTPUT_FILE   Where to append per-step JSON results.
 #
 # Behaviour:
-#   - Runs each command in order.
+#   - Runs each command in order, with stdin from /dev/null — a step that reads stdin (e.g.
+#     `docker compose exec -T`) must not be able to consume the rest of the plan.
 #   - Captures exit code, stdout (head 1000 chars), stderr (head 1000 chars), duration.
 #   - On non-zero exit: stops and exits non-zero — caller should invoke rollback.
 #
@@ -43,7 +44,11 @@ while IFS= read -r line; do
     n=$((n + 1))
     start_ms="$(now_ms)"
     out_file="$(mktemp)"; err_file="$(mktemp)"
-    bash -c "$line" >"$out_file" 2>"$err_file"
+    # Each step gets an empty stdin. Inheriting the loop's stdin meant inheriting the PLAN FILE:
+    # `docker compose exec -T` (the default Docker {ctx.runner}) reads stdin, so the first runner step
+    # drained every remaining plan line, the next `read` hit EOF, and the plan ended "completed 1
+    # steps" with exit 0 — setup:upgrade, cache:flush and everything after them silently skipped.
+    bash -c "$line" >"$out_file" 2>"$err_file" </dev/null
     exit_code=$?
     end_ms="$(now_ms)"
     duration=$((end_ms - start_ms))

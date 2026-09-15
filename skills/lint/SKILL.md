@@ -1,6 +1,6 @@
 ---
 name: lint
-version: 1.4.0
+version: 1.4.1
 description:
     Run the project's full static-analysis gate (phpcs Magento2, phpstan, phpmd,
     php-cs-fixer, rector dry-run) over a module or diff and apply safe auto-fixes to
@@ -54,7 +54,12 @@ Determine which files to analyse. Three modes:
 | Explicit files | One or more file paths passed directly |
 
 For module scope, resolve the absolute path via `{ctx.magento_root}/app/code/{Vendor}/{Module}`.
-Exclude `vendor/`, `generated/`, `var/`, `pub/static/` unconditionally.
+Exclude `vendor/`, `generated/`, `var/`, `pub/static/` unconditionally — **anchored at the scan
+target** (`<target>/vendor/*`, …), never as free-floating `*/var/*` globs. PHP_CodeSniffer and PHPMD
+match exclude patterns against each file's full real path, so `*/var/*` excludes everything under a
+container's `/var/www/…` install root and `*/vendor/*` everything in a Composer-installed module:
+the scanners check 0 files and the pass reads as clean. `scripts/exclude-lib.sh` builds the list
+for both `run-analysis.sh` and `apply-fixes.sh`.
 
 ### Phase 2 — Analysis Pass + Fix Plan (GATE)
 
@@ -80,6 +85,9 @@ Present the fix plan to the user showing:
 - Estimated residual count after auto-fix
 - Any `scanner_errors` entry — a scanner that degraded checked **nothing**, which is not the
   same as finding nothing. Surface rules that could not be decided report there by name.
+- The `tools` status of each scanner — `executed`, `unavailable`, `skipped` or `degraded`. Only an
+  `executed` scanner stands behind a zero count; phpcs is `degraded` when its report lists 0 files
+  for a target that has PHP files.
 
 **WAIT for the user to type "proceed" before changing any file.** This gate is
 mandatory. A write skill that touches files without explicit approval is a defect.
@@ -140,6 +148,9 @@ Write three artifacts:
   must invoke it per changed module). Run by `run-analysis.sh`; standalone-callable.
 - `${CLAUDE_SKILL_DIR}/scripts/apply-fixes.sh` — runs safe fixers (phpcbf, php-cs-fixer
   only); never touches `vendor/`. Rector is never auto-applied.
+- `${CLAUDE_SKILL_DIR}/scripts/exclude-lib.sh` — sourced by `run-analysis.sh` and
+  `apply-fixes.sh`; builds the `vendor/`, `generated/`, `var/`, `pub/static/` exclude list
+  anchored at the target's realpath as the runner sees it.
 - `${CLAUDE_SKILL_DIR}/scripts/build-findings.sh` — assembles residual findings into the
   shared JSON+SARIF format using the `emit-findings.sh` pipeline (emit-json.sh /
   emit-sarif.sh) owned by the `context` hub.

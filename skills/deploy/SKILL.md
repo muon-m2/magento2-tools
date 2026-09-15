@@ -1,6 +1,6 @@
 ---
 name: deploy
-version: 1.4.1
+version: 1.5.0
 description:
   Deploy one or more Magento 2 modules with pre-flight validation, ordered execution,
   smoke testing, and rollback on failure. Use when the user wants to deploy changes,
@@ -49,7 +49,7 @@ catalogue. Required by default:
 
 | Check                      | Command                                                         | When required               |
 |----------------------------|-----------------------------------------------------------------|-----------------------------|
-| Module files exist         | `find {module-path} -name registration.php`                     | All deploys                 |
+| Module files exist         | `registration.php` in the module's dir — `app/code`, else the `vendor/` or `dev-packages/` package that declares it | All deploys |
 | Composer validate          | `composer validate --no-check-publish` per module composer.json | All deploys                 |
 | PHPCS Magento2             | `{runner} vendor/bin/phpcs --standard=Magento2 {modules}`       | If `--strict`               |
 | PHPStan level 8            | `{runner} vendor/bin/phpstan analyse --level=8 {modules}`       | If `--strict`               |
@@ -148,7 +148,7 @@ Run smoke tests appropriate to the modules deployed. See `references/smoke-tests
 | Any                              | `{magento_cli} setup:db:status` shows "Magento Database is up to date"                    |
 | `service_contracts` + `rest_api` | `curl -s {host}/rest/V1/{vendor}/{route}/` returns 200/401 (not 500)                      |
 | `graphql`                        | `curl -s -X POST {host}/graphql -d '{"query":"{__schema{queryType{name}}}"}'` returns 200 |
-| `admin_ui`                       | `curl -s {host}/admin/` returns 302 (login redirect)                                      |
+| `admin_ui`                       | `curl -s {host}/<frontName>/` returns 302 (login redirect) — frontName from `ADMIN_PATH`, else `app/etc/env.php`; a 404 on a guessed `/admin/` is skipped, not failed |
 | `frontend_ui`                    | `curl -s {host}/{vendor_lower}_{module_lower}/{route}/` returns expected status           |
 | `cron`                           | crontab installed (`crontab -l \| grep cron:run`) + `cron_schedule` has recent rows (no `cron:status` command exists) |
 | `queue`                          | `{magento_cli} queue:consumers:list` shows new consumers registered                       |
@@ -157,7 +157,10 @@ Run smoke tests appropriate to the modules deployed. See `references/smoke-tests
 A smoke failure does NOT trigger rollback (the deploy completed) but is reported as a
 "needs investigation" finding. Run via `${CLAUDE_SKILL_DIR}/scripts/smoke.sh`, passing
 `SINCE_TS` (the Phase 3 start timestamp), `MAGENTO_ROOT`, `MODULES` and `BASE_URL` — without
-`SINCE_TS` the error-signal scan silently widens to a 15-minute window.
+`SINCE_TS` the error-signal scan silently widens to a 15-minute window. `MAGENTO_ROOT` is also
+where the admin frontName is read from; pass `ADMIN_PATH` when it is not there. HTTPS certificates
+are verified except on `localhost`, `*.localhost`, `*.test` and loopback hosts, or when
+`SMOKE_CURL_INSECURE=1`.
 
 ### Phase 6 — Report
 

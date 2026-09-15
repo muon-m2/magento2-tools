@@ -27,8 +27,8 @@ the rules for bumping.
 | context         | 1.14.0  |
 | data-migration  | 1.3.2   |
 | debug           | 1.3.1   |
-| deploy          | 1.4.1   |
-| docs            | 1.4.0   |
+| deploy          | 1.5.0   |
+| docs            | 1.4.1   |
 | eav-attribute   | 1.3.2   |
 | extension-point | 1.1.2   |
 | feature         | 2.15.2  |
@@ -37,13 +37,13 @@ the rules for bumping.
 | graphql         | 1.0.6   |
 | i18n            | 1.3.0   |
 | indexer         | 1.1.2   |
-| lint            | 1.4.0   |
+| lint            | 1.4.1   |
 | marketplace     | 1.1.0   |
 | message-queue   | 1.1.3   |
-| module-create   | 1.10.2  |
+| module-create   | 1.10.3  |
 | perf-audit      | 1.2.0   |
 | release         | 1.2.1   |
-| review          | 2.4.0   |
+| review          | 2.4.1   |
 | security        | 2.0.0   |
 | system-config   | 1.1.3   |
 | test-generate   | 1.2.1   |

@@ -5,6 +5,13 @@
 #   MODULES       space-separated module list
 #   BASE_URL      http://... (default: from env or http://localhost)
 #   MAGENTO_CLI   (default: from .claude/.cache/context.json)
+#   MAGENTO_ROOT  install root holding app/etc/env.php and var/ (default: src/, then ./)
+#   ADMIN_PATH    admin frontName to probe (default: app/etc/env.php backend.frontName, else a
+#                 guessed "admin" — a 404 on the guess is recorded as skipped, not fail)
+#   SMOKE_CURL_INSECURE
+#                 1 to skip TLS certificate verification for any host (default: skipped only
+#                 for https on localhost, *.localhost, *.test and loopback addresses)
+#   SINCE_TS      deploy start, ISO 8601 or epoch seconds (default: a 15-minute window)
 #   OUTPUT_FILE   where to write JSON summary
 #
 # Output:
@@ -59,21 +66,97 @@ else
     record "db-status" "skipped" "magento_cli not available"
 fi
 
-# Admin reachable (302)
+# --- HTTP checks --------------------------------------------------------------------------------
+
+# TLS verification. A local stack serves HTTPS with a self-signed certificate, so without -k every
+# check failed the handshake and a healthy deploy read as broken. Verification is relaxed ONLY for
+# hosts that cannot be a public site — localhost, the RFC 6761 reserved *.localhost and *.test names,
+# loopback — or when the caller sets SMOKE_CURL_INSECURE=1.
+url_host() {
+    local host="${1#*://}"
+    host="${host%%/*}"
+    host="${host##*@}"
+    case "$host" in
+        \[*) host="${host%%]*}]" ;;
+        *) host="${host%%:*}" ;;
+    esac
+    printf '%s' "$host" | tr '[:upper:]' '[:lower:]'
+}
+CURL_INSECURE=0
+if [ "${SMOKE_CURL_INSECURE:-0}" = "1" ]; then
+    CURL_INSECURE=1
+else
+    case "$BASE_URL" in
+        [Hh][Tt][Tt][Pp][Ss]://*)
+            case "$(url_host "$BASE_URL")" in
+                localhost|*.localhost|*.test|127.*|\[::1\]) CURL_INSECURE=1 ;;
+            esac
+            ;;
+    esac
+fi
+TLS_NOTE=""
+[ "$CURL_INSECURE" = "1" ] && TLS_NOTE=" (TLS certificate not verified)"
+
+# http_status <curl args…> — the response's status code, or 000 when there was no response.
+# curl's -w '%{http_code}' ALREADY prints 000 on a connection or TLS failure; the old `|| echo 000`
+# fallback appended a second 000, producing "000000" — which matched no case, so an unreachable
+# GraphQL endpoint was recorded as `fail` instead of `skipped`.
+http_status() {
+    local code
+    if [ "$CURL_INSECURE" = "1" ]; then
+        code="$(curl -k -s -o /dev/null -w '%{http_code}' "$@" 2>/dev/null)"
+    else
+        code="$(curl -s -o /dev/null -w '%{http_code}' "$@" 2>/dev/null)"
+    fi
+    printf '%s' "${code:-000}"
+}
+
+# Admin path. The admin lives at the install's backend frontName, which is rarely `admin` on a real
+# install — /admin/ was hard-coded, so a healthy admin at a custom frontName returned 404 and was
+# recorded as `fail`. Resolved from ADMIN_PATH, then app/etc/env.php `backend.frontName` (same root
+# lookup as the error-signal scan: MAGENTO_ROOT, then src/, then ./), then guessed as `admin`. A 404
+# on the GUESS means the path is unknown, not that the admin is down.
+ADMIN_PATH="${ADMIN_PATH:-}"
+ADMIN_PATH_SOURCE="ADMIN_PATH"
+if [ -z "$ADMIN_PATH" ]; then
+    for root in "${MAGENTO_ROOT:-}" src .; do
+        [ -n "$root" ] && [ -f "${root}/app/etc/env.php" ] || continue
+        ADMIN_PATH="$(sed -n "s/.*['\"]frontName['\"][[:space:]]*=>[[:space:]]*['\"]\([^'\"]*\)['\"].*/\1/p" \
+            "${root}/app/etc/env.php" | head -n 1)"
+        ADMIN_PATH_SOURCE="${root}/app/etc/env.php backend.frontName"
+        break
+    done
+fi
+if [ -z "$ADMIN_PATH" ]; then
+    ADMIN_PATH="admin"
+    ADMIN_PATH_SOURCE="guessed"
+fi
+ADMIN_PATH="${ADMIN_PATH#/}"
+ADMIN_PATH="${ADMIN_PATH%/}"
+
 if command -v curl >/dev/null 2>&1; then
-    code="$(curl -s -o /dev/null -w '%{http_code}' "${BASE_URL}/admin/" 2>/dev/null || echo 000)"
+    admin_url="${BASE_URL%/}/${ADMIN_PATH}/"
+    code="$(http_status "$admin_url")"
     case "$code" in
-        200|302|301) record "admin-ui" "pass" "HTTP $code" ;;
-        *) record "admin-ui" "fail" "HTTP $code" ;;
+        200|302|301) record "admin-ui" "pass" "HTTP $code at /${ADMIN_PATH}/${TLS_NOTE}" ;;
+        404)
+            if [ "$ADMIN_PATH_SOURCE" = "guessed" ]; then
+                record "admin-ui" "skipped" "HTTP 404 at the guessed /${ADMIN_PATH}/ — admin frontName unknown; pass ADMIN_PATH, or MAGENTO_ROOT so app/etc/env.php can be read"
+            else
+                record "admin-ui" "fail" "HTTP 404 at /${ADMIN_PATH}/ (from ${ADMIN_PATH_SOURCE})${TLS_NOTE}"
+            fi
+            ;;
+        000) record "admin-ui" "fail" "no response from ${admin_url} (connection or TLS failure)${TLS_NOTE}" ;;
+        *) record "admin-ui" "fail" "HTTP $code at /${ADMIN_PATH}/${TLS_NOTE}" ;;
     esac
 
-    code="$(curl -s -o /dev/null -w '%{http_code}' -X POST "${BASE_URL}/graphql" \
+    code="$(http_status -X POST "${BASE_URL%/}/graphql" \
         -H 'Content-Type: application/json' \
-        -d '{"query":"query{__schema{queryType{name}}}"}' 2>/dev/null || echo 000)"
+        -d '{"query":"query{__schema{queryType{name}}}"}')"
     case "$code" in
-        200) record "graphql" "pass" "HTTP 200" ;;
-        000) record "graphql" "skipped" "graphql endpoint unreachable" ;;
-        *) record "graphql" "fail" "HTTP $code" ;;
+        200) record "graphql" "pass" "HTTP 200${TLS_NOTE}" ;;
+        000) record "graphql" "skipped" "graphql endpoint unreachable (no response)${TLS_NOTE}" ;;
+        *) record "graphql" "fail" "HTTP $code${TLS_NOTE}" ;;
     esac
 else
     record "http-checks" "skipped" "curl not available"

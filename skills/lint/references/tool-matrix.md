@@ -47,6 +47,14 @@ That makes the payload invalid JSON. A parser that falls back to `[]` on a decod
 every violation and reports the module clean. Drop everything before the first line beginning with
 `{`, and report the decode failure to `scanner_errors` if the payload is still unparseable.
 
+**Check that phpcs scanned something.** The JSON report lists *every* file phpcs scanned, clean
+ones included, so an empty `files` object means it looked at nothing. Unless the target genuinely
+has no `.php`/`.phtml` files, record that in `scanner_errors` and mark phpcs `degraded` in `tools` —
+never report it as a clean pass. The usual cause is an exclude pattern: `--ignore` is an unanchored
+regex over each file's realpath, so `*/var/*` matches a container's whole `/var/www/…` install root
+and `*/vendor/*` a whole Composer-installed module. Anchor every exclude at the target instead
+(`<target>/vendor/*`, …) — `scripts/exclude-lib.sh` does, using the realpath the runner sees.
+
 ### phpstan — Detect
 
 ```bash
@@ -87,6 +95,12 @@ the project chose to suppress — most sharply `_resetState()`, whose name is *m
 `ResetAfterRequestInterface`, tripping `CamelCaseMethodName`. The module ruleset is also what
 `validate-module.sh` and the seeded module CI enforce. When a module ruleset is used, say so in the
 report: the findings then reflect the rules that module selected for itself, not the built-in set.
+
+**Strip the non-JSON preamble here too.** PHP 8.5 under its built-in defaults (`display_errors=1`,
+`error_reporting=E_ALL` — a php-cli container with no php.ini) prints pdepend's
+`Deprecated: Non-canonical cast (integer) …` notices on stdout, ahead of the JSON report. PHPMD's
+report lists only files that *have* violations, so there is no phpcs-style zero-file check to fall
+back on: the anchored `--exclude` list is the only guard against excluding the target itself.
 
 phpmd is report-only. Map `priority` (1-5) to severity: **1→medium, 2→medium, 3→medium, 4→low,
 5→info**.
