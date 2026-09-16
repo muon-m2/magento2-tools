@@ -220,6 +220,7 @@ lint	surface	SI-09	-	fix	batch
 lint	surface	SI-10	-	admin-listing	batch
 lint	surface	SI-11	-	fix	batch
 lint	surface	SI-12	-	fix	batch
+lint	surface	*	-	lint	batch
 marketplace	metadata	*	-	inline	batch
 marketplace	packaging	*	-	inline	batch
 marketplace	documentation	*	-	docs	batch
