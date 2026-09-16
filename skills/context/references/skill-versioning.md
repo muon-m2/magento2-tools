@@ -24,7 +24,7 @@ the rules for bumping.
 | breeze-compat   | 1.1.0   |
 | breeze-theme    | 1.0.2   |
 | cli-command     | 1.1.2   |
-| context         | 1.14.0  |
+| context         | 1.15.0  |
 | data-migration  | 1.3.2   |
 | debug           | 1.3.1   |
 | deploy          | 1.5.0   |

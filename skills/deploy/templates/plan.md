@@ -7,7 +7,7 @@ Magento CLI: `{ctx.magento_cli}`
 Skill versions:
 
 - deploy@1.5.0
-  - context@1.14.0
+  - context@1.15.0
 
 ## Pre-Flight Result
 

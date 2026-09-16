@@ -203,7 +203,7 @@ if raw_versions:
 else:
     skill_versions = [
         f'{skill_name}@{skill_version}',
-        'context@1.14.0',
+        'context@1.15.0',
     ]
 
 

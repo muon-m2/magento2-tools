@@ -180,7 +180,7 @@ export TARGET_MODULE TARGET_PATH SCOPE OUTPUT_DIR
 export SKILL_NAME="audit"
 export SKILL_VERSION
 export OUTPUT_KIND="audit"
-export SKILL_VERSIONS_JSON="[\"audit@${SKILL_VERSION}\",\"context@1.14.0\"]"
+export SKILL_VERSIONS_JSON="[\"audit@${SKILL_VERSION}\",\"context@1.15.0\"]"
 export META_FILE
 
 DATE="$DATE" BASENAME_KIND="audit" \

@@ -9,7 +9,7 @@ Skill versions:
 - feature@2.15.2
   - module-create@1.10.3
   - review@2.4.1
-  - context@1.14.0
+  - context@1.15.0
 
 ---
 

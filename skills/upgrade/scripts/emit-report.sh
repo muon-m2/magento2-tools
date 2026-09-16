@@ -45,6 +45,6 @@ export FINDINGS_FILE TARGET_MODULE TARGET_PATH SCOPE OUTPUT_DIR OUTPUT_BASENAME
 export SKILL_NAME="upgrade"
 export SKILL_VERSION
 export OUTPUT_KIND="upgrade"
-export SKILL_VERSIONS_JSON="[\"upgrade@${SKILL_VERSION}\",\"context@1.14.0\"]"
+export SKILL_VERSIONS_JSON="[\"upgrade@${SKILL_VERSION}\",\"context@1.15.0\"]"
 
 bash "$EMIT_FINDINGS"

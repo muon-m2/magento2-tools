@@ -1,6 +1,6 @@
 ---
 name: context
-version: 1.14.0
+version: 1.15.0
 description:
     Resolve Magento 2 project context — vendor prefix, edition, Magento version, PHP version,
     shell runner (Docker vs bare PHP), Magento CLI, active theme, and available quality tools.

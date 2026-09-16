@@ -6,7 +6,7 @@ Skill versions:
 
 - release@1.2.1
 - deploy@1.5.0
-  - context@1.14.0
+  - context@1.15.0
 
 ## Highlights
 
