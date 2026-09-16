@@ -13,7 +13,7 @@ requires updating this schema and the JSON emitter.
 
 ```json
 {
-  "schemaVersion": "1.0",
+  "schemaVersion": "1.1",
   "skill": "review",
   "skillVersion": "2.4.0",
   "skillVersions": [
@@ -80,6 +80,7 @@ requires updating this schema and the JSON emitter.
 ```json
 {
   "id": "review-2026-05-23-001",
+  "fingerprint": "a3f9c1e0b47d2a5f8c1e0b47d2a5f8c1e0b47d2a5f8c1e0b47d2a5f8c1e0b47d",
   "severity": "high",
   "category": "security",
   "subcategory": "csrf",
@@ -105,6 +106,7 @@ requires updating this schema and the JSON emitter.
 | Field          | Required | Notes                                                                                                                                              |
 |----------------|----------|----------------------------------------------------------------------------------------------------------------------------------------------------|
 | id             | Yes      | Slug `{skill-short}-{date}-{seq}` — must be unique per run                                                                                         |
+| fingerprint    | Yes      | 64-char sha256 over `producer` \| `category` \| `subcategory` \| `title` \| `file` \| `normalized-snippet`. Line number and run date are deliberately excluded so the value survives a patch or a reformat. Stamped by the emitter; see `findings-lib.sh::finding_fingerprint`. |
 | severity       | Yes      | `critical`, `high`, `medium`, `low`, `info`                                                                                                        |
 | category       | Yes      | Skill-specific top-level grouping; see per-skill table below                                                                                       |
 | confidence     | No       | `confirmed`, `candidate`, `needs-triage`. Default: `confirmed` for AST/composer-audit findings, `candidate` for regex hits or non-`live` CVE data. |
@@ -127,7 +129,7 @@ requires updating this schema and the JSON emitter.
 | skill         | Yes      | `SKILL_NAME` env var; the producing skill identifier.                                 |
 | skillVersion  | Yes      | `SKILL_VERSION` env var.                                                              |
 | skillVersions | Yes      | Array of `name@version` strings — every contributor.                                  |
-| outputKind    | Yes      | `review` \| `security` \| `performance` \| `upgrade` \| `quality` \| `marketplace` \| `accessibility` \| `compatibility` \| `audit`. Drives output filename + label. |
+| outputKind    | Yes      | `review` \| `security` \| `performance` \| `upgrade` \| `quality` \| `marketplace` \| `accessibility` \| `compatibility` \| `audit` \| `remediation` \| `closure`. Drives output filename + label. |
 | target        | Yes      | `{module, path, scope}`. `scope` ∈ `module                                            |site|vendor|diff`. |
 | runAt         | Yes      | ISO-8601 UTC timestamp.                                                               |
 | mode          | Yes      | `full` \| `quick` \| `diff`.                                                          |
@@ -198,6 +200,60 @@ text on links/buttons — WCAG 2.4.4, 4.1.2) |
 `magento-init` (data-mage-init / x-magento-init — Breeze supports these; informational) |
 `assets` (ships frontend assets but no breeze_* layout / web/css/breeze adapter)
 
+## Remediation-Cycle Output Kinds
+
+Two `outputKind` values carry the triage → remediate → closure cycle. Both reuse the
+top-level envelope above; only the additions are documented here.
+
+### `outputKind=remediation`
+
+Emitted by `triage` (the plan) and by `remediate` (the execution report). Each
+`findings[]` entry carries the routing decision alongside the finding it came from:
+
+```json
+{
+  "fingerprint": "a3f9c1…",
+  "owner": "extension-point",
+  "gate": "batch",
+  "batch": 3,
+  "routing_rationale": "security/preference-collision → extension-point",
+  "status": "routable",
+  "source_finding": { "id": "sec-2026-09-16-004", "producer": "security" }
+}
+```
+
+| Field             | Required | Notes                                                                                     |
+|-------------------|----------|-------------------------------------------------------------------------------------------|
+| owner             | Yes      | Skill that owns the fix, resolved by `context/scripts/route-finding.sh`.                   |
+| gate              | Yes      | `auto` \| `batch` \| `manual`; see `context/references/fix-routing.md`.                    |
+| batch             | No       | 1-based sequence number of the batch this item belongs to. Absent for non-routable items.  |
+| routing_rationale | Yes      | The matrix row that decided the owner — routing is never an ad-hoc judgement.              |
+| status            | Yes      | `routable` \| `waived` \| `verify-first` \| `unrouted`.                                   |
+| source_finding    | Yes      | `{id, producer}` of the finding in the source document.                                    |
+
+Top-level additions:
+
+| Field        | Required | Notes                                                                                        |
+|--------------|----------|-----------------------------------------------------------------------------------------------|
+| batches      | Yes      | Ordered array of `{seq, owner, gate, fingerprints[]}` — the execution order `remediate` follows. |
+| waived       | Yes      | Findings suppressed by an unexpired waiver, with reason and author. Never counted as closed.   |
+| verify_first | Yes      | Findings whose evidence must be re-verified before any fix is attempted.                       |
+| unrouted     | Yes      | Findings the matrix has no row for. Reported as data, never silently defaulted to `fix`.       |
+
+### `outputKind=closure`
+
+Emitted by `audit --compare=<baseline.json>`. Adds one top-level `closure` object keyed by
+fingerprint, plus the two deltas:
+
+| Field        | Required | Notes                                                                                       |
+|--------------|----------|-----------------------------------------------------------------------------------------------|
+| closure      | Yes      | `{closed[], still_open[], waived[], regressed[], skipped[]}`, each an array of fingerprints.   |
+| verdict_delta | Yes     | `{from, to}` — the release-readiness verdict before and after.                                 |
+| score_delta  | Yes      | `{from, to}` — the numeric score before and after.                                             |
+
+Both kinds depend on `fingerprint` being stable across runs; that is what lets a decision
+taken in one run (a waiver, a closure verdict) still apply in the next.
+
 ## SARIF 2.1.0 Mapping
 
 | Schema field                        | SARIF field                             |
@@ -237,6 +293,9 @@ The finding-producing skills and their `{category}`/`{kind}` are:
 | breeze-compat | `breeze-compat` | `breeze-compat` |
 | upgrade | `upgrades` | `upgrade` |
 | audit | `audits` | `audit` |
+| triage | `remediation` | `plan` |
+| remediate | `remediation` | `report` |
+| audit (`--compare`) | `audits` | `closure` |
 
 SARIF output: same path, `.sarif` extension. JSON: `.json`. All anchored under
 `{output_root}`, never under `{ctx.magento_root}`/`app/code`/a module dir.
@@ -252,3 +311,10 @@ Bump `schemaVersion` when:
 
 Skills consuming the JSON must read `schemaVersion` and degrade gracefully on minor-version
 mismatch (skip unknown fields). Major-version mismatch is a hard error.
+
+### 1.1
+
+Adds the required per-finding `fingerprint` field and the `remediation` / `closure`
+`outputKind` values. A consumer reading a 1.0 document must tolerate a missing
+`fingerprint` by computing it itself — `findings-lib.sh::finding_fingerprint` over the
+same inputs reproduces exactly what the emitter would have stamped.

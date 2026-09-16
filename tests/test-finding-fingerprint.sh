@@ -53,5 +53,39 @@ if ! printf '%s' "$A" | grep -Eq '^[0-9a-f]{64}$'; then
     FAIL=1
 fi
 
-if [ "$FAIL" -eq 0 ]; then echo "PASS: finding fingerprint is stable and discriminating"; fi
+# A bash-side failure is conclusive on its own — report it rather than downgrading to a
+# skip below just because python3 happens to be missing.
+[ "$FAIL" -eq 0 ] || exit "$FAIL"
+
+# The bash library and the python emitter must produce identical fingerprints —
+# two implementations of one identity is a silent-divergence hazard. The cross-check is
+# the whole point of the rest of this file, so a missing python3 is a SKIP, not a PASS.
+if ! command -v python3 >/dev/null 2>&1; then
+    echo "skip: python3 not on PATH — cannot cross-check the emitter's implementation"
+    exit 77
+fi
+
+# Cross-check BOTH the plain snippet and the reformatted one. Checking only the plain
+# snippet would let the two normalizers diverge on exactly the trailing-separator case
+# the fingerprint exists to survive.
+for RAW in 'public function execute()' '  public   function execute()  ;'; do
+    PY_FP="$(RAW="$RAW" python3 - <<'PY'
+import hashlib, os, re
+raw = os.environ["RAW"]
+snippet = re.sub(r"[,;]*$", "", re.sub(r"\s+", " ", raw).strip()).strip()
+parts = ["review", "security", "csrf",
+         "POST controller missing form key validation",
+         "Controller/Adminhtml/Order/Save.php", snippet]
+print(hashlib.sha256("|".join(parts).encode("utf-8")).hexdigest())
+PY
+)"
+    if [ "$A" != "$PY_FP" ]; then
+        echo "FAIL: bash ($A) and python ($PY_FP) fingerprints diverge for snippet '$RAW'"
+        FAIL=1
+    fi
+done
+
+if [ "$FAIL" -eq 0 ]; then
+    echo "PASS: finding fingerprint is stable, discriminating, and bash==python"
+fi
 exit "$FAIL"
