@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # audit-verdict.sh — POST_JSON_HOOK for consolidate.sh's emit-findings.sh invocation.
 #
-# Injects the consolidated audit's `audit_verdict`, `audit_score`, and `dimension_coverage`
-# (computed by consolidate.sh into META_FILE) into the emitted JSON, between JSON emission and
-# SARIF so the fields land in JSON only. No-op when META_FILE is unset/missing.
+# Injects whichever of the audit's non-findings top-level fields META_FILE carries, between
+# JSON emission and SARIF so they land in JSON only. consolidate.sh supplies `audit_verdict`,
+# `audit_score` and `dimension_coverage`; compare-findings.sh supplies `closure`,
+# `verdict_delta`, `score_delta` and `baseline_report`. No-op when META_FILE is unset/missing.
 #
 # Usage (invoked by emit-findings.sh):
 #   META_FILE=<meta.json> bash audit-verdict.sh <output-json-file>
@@ -22,7 +23,10 @@ with open(doc_path) as fh:
     doc = json.load(fh)
 with open(os.environ['META_FILE']) as fh:
     meta = json.load(fh)
-for k in ('audit_verdict', 'audit_score', 'dimension_coverage'):
+# consolidate.sh contributes the first three; compare-findings.sh the closure keys.
+# One hook, driven entirely by what META_FILE actually contains.
+for k in ('audit_verdict', 'audit_score', 'dimension_coverage',
+          'closure', 'verdict_delta', 'score_delta', 'baseline_report'):
     if k in meta:
         doc[k] = meta[k]
 with open(doc_path, 'w') as fh:

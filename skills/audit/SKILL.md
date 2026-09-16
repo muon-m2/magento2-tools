@@ -1,6 +1,6 @@
 ---
 name: audit
-version: 1.0.0
+version: 1.1.0
 description: >-
   Use when the user wants a full pre-release, release-readiness, or "audit everything" pass over a
   Magento 2 module or codebase — one command that runs every read-only findings dimension and
@@ -25,7 +25,8 @@ counterpart to `feature` (which *builds*).
 ## Core Rules
 
 - **Read-only.** This skill and every dimension it dispatches only read and emit reports. It never
-  edits code. Remediation is a separate, explicit step — route findings to the owning skill
+  edits code. This includes `--compare`, which diffs two runs — it measures remediation, it does
+  not perform any. Remediation is a separate, explicit step — route findings to the owning skill
   afterwards (see **Fix Routing** below), exactly as `review` does.
 - **Delegate by probing, never by assumption.** The dimension skills ship in the **same plugin**;
   decide a dimension's availability by *attempting* its invocation and falling back only on an
@@ -111,6 +112,29 @@ Author the consolidated Markdown report at
 - **Fix Routing** — the owning skill for each finding class (see below), so remediation is a
   deterministic next step.
 
+### Phase 5 — Closure diff (`--compare` only)
+
+Given `--compare=<baseline.json>`, re-run the same dimension set, then run
+`${CLAUDE_SKILL_DIR}/scripts/compare-findings.sh` with `BASELINE_JSON`, `CURRENT_JSON`,
+`TARGET_MODULE`, `TARGET_PATH` and `DOCS_ROOT`. It diffs the two documents **by fingerprint**
+(not by `id`, which is regenerated each run, nor by line, which moves on the first patch) into
+five buckets:
+
+| Bucket | Meaning |
+|--------|---------|
+| `closed` | In the baseline, absent now. |
+| `still_open` | In the baseline, present now. |
+| `waived` | Suppressed by `{output_root}/findings/waivers.yml` — reported with its reason, never counted closed. |
+| `regressed` | **Absent from the baseline, present now** — introduced by the remediation itself. |
+| `skipped` | Raised by a scanner that crashed or is `degraded`/`skipped` on the re-run. **Never** closed: absence of a result is not a result. |
+
+A `gate: manual` item the human has not yet actioned re-appears in `still_open`, which is
+accurate — but tag it `pending-manual` in the report so "remediation failed" stays
+distinguishable from "awaiting a human action the plan named".
+
+Author the Markdown closure report alongside the JSON: the bucket counts, the
+`verdict_delta` and `score_delta`, every regression in full, and the residual risk.
+
 ## Fix Routing
 
 This skill never fixes; it routes. The mapping is a **contract, not a judgement call** — it
@@ -136,6 +160,10 @@ low-confidence findings held back, batches in dependency order — use `triage`;
 - `--scope=site` — audit the whole `app/code` tree instead of one module.
 - `--include=` / `--exclude=` — force a dimension on/off, overriding surface detection.
 - `--release-readiness` — always include `marketplace`.
+- `--compare=<baseline.json>` — after re-running the dimensions, diff against that earlier
+  findings document and emit a closure report (Phase 5). Note this re-runs **every** selected
+  dimension, including ones the remediation did not touch; narrow it with `--include=` when
+  the remediation was targeted.
 - `--docs-root=<path>` — output-root override; see `context/references/artifact-layout.md`.
 
 ## Outputs
@@ -144,6 +172,9 @@ low-confidence findings held back, batches in dependency order — use `triage`;
 {output_root}/audits/{Vendor}_{Module}-audit-{date}.md      # consolidated report (LLM)
 {output_root}/audits/{Vendor}_{Module}-audit-{date}.json     # consolidated findings (outputKind=audit)
 {output_root}/audits/{Vendor}_{Module}-audit-{date}.sarif    # merged SARIF for CI / Code Scanning
+{output_root}/audits/{Vendor}_{Module}-closure-{date}.md     # --compare: closure report (LLM)
+{output_root}/audits/{Vendor}_{Module}-closure-{date}.json    # --compare: outputKind=closure
+{output_root}/audits/{Vendor}_{Module}-closure-{date}.sarif   # --compare: still-open + regressed
 ```
 
 Per-dimension artifacts remain under their own category dirs (`reviews/`, `audits/`, `quality/`,
@@ -156,6 +187,8 @@ Per-dimension artifacts remain under their own category dirs (`reviews/`, `audit
 - `references/parallel-dispatch.md` — how to fan out subagents (authorization, model tiers,
   sequential fallback).
 - `references/consolidation.md` — the dedup key, severity-normalization, and verdict/score rules.
+- `${CLAUDE_SKILL_DIR}/scripts/compare-findings.sh` — `--compare`: diffs a re-run against its
+  baseline by fingerprint and emits the `closure` document (JSON + SARIF).
 - `${CLAUDE_SKILL_DIR}/scripts/consolidate.sh` — merges the per-dimension JSON documents into one
   `audit` document (JSON + SARIF) via `context/scripts/emit-findings.sh`.
 - `context/references/severity.md` — the shared five-point severity scale.

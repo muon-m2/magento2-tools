@@ -19,7 +19,7 @@ the rules for bumping.
 | a11y-audit      | 1.1.1   |
 | admin-form      | 1.1.2   |
 | admin-listing   | 1.1.3   |
-| audit           | 1.0.0   |
+| audit           | 1.1.0   |
 | breeze-adapt    | 1.0.2   |
 | breeze-compat   | 1.1.0   |
 | breeze-theme    | 1.0.2   |
@@ -32,7 +32,7 @@ the rules for bumping.
 | eav-attribute   | 1.3.2   |
 | extension-point | 1.1.2   |
 | feature         | 2.15.2  |
-| fix             | 1.2.1   |
+| fix             | 1.3.0   |
 | frontend        | 1.0.6   |
 | graphql         | 1.0.6   |
 | i18n            | 1.3.0   |

@@ -19,7 +19,7 @@
 #   SCOPE           "module" (default) | "site".
 #   DOCS_ROOT       default: .docs — project-root artifact dir ({ctx.docs_root}).
 #   OUTPUT_DIR      default: {DOCS_ROOT}/audits.
-#   SKILL_VERSION   default: 1.0.0.
+#   SKILL_VERSION   default: 1.1.0.
 #
 # Output:
 #   Writes {OUTPUT_DIR}/{TARGET_MODULE}-audit-{date}.json (+ .sarif; site scope: audit-site-...).
@@ -33,7 +33,7 @@ set -uo pipefail
 SCOPE="${SCOPE:-module}"
 DOCS_ROOT="${DOCS_ROOT:-.docs}"
 OUTPUT_DIR="${OUTPUT_DIR:-${DOCS_ROOT}/audits}"
-SKILL_VERSION="${SKILL_VERSION:-1.0.0}"
+SKILL_VERSION="${SKILL_VERSION:-1.1.0}"
 INPUT_DIR="${INPUT_DIR:-}"
 INPUT_JSONS="${INPUT_JSONS:-}"
 
