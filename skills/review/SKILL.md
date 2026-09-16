@@ -113,32 +113,31 @@ pass this to collect a run's artifacts under one folder.
 
 ## Fix Routing
 
-When the user asks to act on findings or report recommendations, route each item to the skill that
-owns that work before touching code. The mapping is deterministic — do not pick the executing skill
-ad-hoc.
+When the user asks to act on findings or report recommendations, route each item to the skill
+that owns that work before touching code. The mapping is a **contract, not a judgement call** —
+it lives in `context/references/fix-routing.md` and is resolved by
+`context/scripts/route-finding.sh`. Do not restate it here and do not pick an
+executing skill ad hoc.
 
-| Finding / recommendation                                                              | Executed by                                        |
-|----------------------------------------------------------------------------------------|----------------------------------------------------|
-| Behavioural defect: wrong output, crash, exception, broken controller/API/cron/queue    | `fix`                                 |
-| Security defect with localised evidence: SQLi, XSS/escaping, CSRF, ACL gap, secret      | `fix`                                 |
-| Security exposure needing site-wide or cross-module scoping first                       | `security`, then `fix` |
-| New or changed functionality, or any `db_schema.xml` change                             | `feature` (`--mode=extend`)     |
-| Missing or insufficient test coverage                                                   | `test-generate`                           |
-| Performance defect, localised, code-only change (N+1 at file:line, missing cache)       | `fix`                                 |
-| Unlocalised slowness symptom (no confirmed file:line)                                   | `perf-audit`, then `fix` |
-| Data repair: corrupted rows, backfill, reseed                                           | `data-migration`                          |
-| Deprecated API usage, BC break, framework/PHP version-constraint findings               | `upgrade`                          |
-| Missing translations or hardcoded user-facing strings                                   | `i18n`                                    |
-| New theme, RequireJS/Knockout, LESS, or email-template scaffolding                      | `frontend`                         |
-| Style, PHPDoc, naming, comments, dead code (typically Low)                              | Inline — step 6 of this skill                      |
+```
+route-finding.sh --skill=review --category=<finding.category> \
+                 [--subcategory=<sub>] [--severity=<sev>] [--file=<evidence path>]
+  → owner<TAB>gate<TAB>rationale
+```
 
-- Default rows: any other confirmed defect routes to `fix`; any other recommendation
-  that adds behaviour routes to `feature`.
-- Invoke the routed skill with the finding's evidence (`file:line`) and the report path so it does
-  not re-derive the diagnosis.
+- Invoke the routed skill with the finding's `file:line` evidence, its `fingerprint`, and the
+  report path, so it does not re-derive the diagnosis.
+- `gate: auto` may be applied within an approved batch; `gate: manual` items are **never**
+  executed automatically — report them as human actions (e.g. rotating a leaked credential,
+  which deleting the code does not do).
+- `owner: unrouted` means no row matched. Report it as unrouted — never fall back to
+  `fix` by guesswork.
+- `owner: inline` means this skill fixes it directly, in severity order, per step 6 above.
 - Exception — invoked from another skill: when this review ran in diff mode on behalf of
-  `feature`, `fix`, or `upgrade`, return findings
-  to the calling skill instead of routing; the caller owns remediation.
+  `feature`, `fix`, or `upgrade`, return findings to the calling skill
+  instead of routing; the caller owns remediation.
+- To route a whole report rather than one finding, use `triage`, which applies
+  waivers, gates by confidence, and emits an ordered remediation plan.
 
 ## Diff Mode
 
