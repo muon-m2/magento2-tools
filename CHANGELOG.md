@@ -6,7 +6,7 @@ individual skill versions are tracked in each SKILL.md frontmatter and the gener
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased] — A gate that checked nothing no longer reports a pass
+## [2.2.0] — 2026-09-16 — A gate that checked nothing no longer reports a pass
 
 Seven skill scripts could exit 0 having skipped the work they report on. Six surfaced in one
 `feature` run on a Magento 2.4.9 / PHP 8.5 Docker project; the seventh was found by sweeping for
