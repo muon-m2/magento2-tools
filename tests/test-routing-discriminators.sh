@@ -55,6 +55,7 @@ check breeze-adapt magento2-tools:extension-point magento2-tools:breeze-compat
 check breeze-compat magento2-tools:review magento2-tools:breeze-adapt
 check audit magento2-tools:review magento2-tools:security magento2-tools:perf-audit magento2-tools:feature
 check triage magento2-tools:audit magento2-tools:remediate magento2-tools:review magento2-tools:fix
+check remediate magento2-tools:triage magento2-tools:audit magento2-tools:fix magento2-tools:feature
 
 [ "$FAIL" -eq 0 ] || { echo "RESULT: FAIL"; exit 1; }
 echo "routing discriminators: all cross-references present"

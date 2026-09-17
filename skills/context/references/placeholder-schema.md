@@ -150,7 +150,9 @@ fallback `gh api user`), `{author_email}` (composer `authors[].email`; derive fr
 `{ModuleB}` / `{ModuleC}` (multi-module examples), `{ExistingModule}` / `{Existing}`,
 `{existing_table}` / `{source_table}` / `{target_table}`, `{ids}`, `{Item}`, `{Group}`,
 `{Section}`, `{Area}` / `{ControllerArea}`, `{permission}`, `{surface}`, `{package}`,
-`{user}`, `{field}`, `{fixture}`, `{Behaviour}`, `{Class}`, `{Service}`, `{SourceName}`,
+`{user}`, `{field}`, `{fingerprint}` (a finding's 64-char sha256 identity from
+`context/references/findings-schema.md`; display forms shorten it, templates carry the
+full value), `{fixture}`, `{Behaviour}`, `{Class}`, `{Service}`, `{SourceName}`,
 `{BackendName}`, `{depMethod}` / `{depReturn}` / `{paramName}` / `{paramValue}` /
 `{invalidArgs}` / `{reproducedArgs}` / `{reproducedReturn}` / `{methodUnderTest}` /
 `{target_short_lower}` / `{method_lower}` / `{Dep1Type}` / `{Dep2FQCN}` / `{Dep2Type}`,
@@ -419,6 +421,7 @@ file
 file1
 file2
 file_name
+fingerprint
 fixture
 framework_constraint
 from

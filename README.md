@@ -68,7 +68,7 @@ Developer documentation lives in [`docs/`](docs/README.md):
 
 ## Skills
 
-35 skills under `skills/`, each self-contained (`SKILL.md` + `references/` +
+36 skills under `skills/`, each self-contained (`SKILL.md` + `references/` +
 `scripts/` + `templates/`). Per-skill flags, phases, and outputs are documented in
 [docs/skills-reference.md](docs/skills-reference.md).
 
@@ -109,6 +109,7 @@ Developer documentation lives in [`docs/`](docs/README.md):
 | `breeze-compat` | Read-only static audit of a module's Breeze compatibility (RequireJS/Knockout/jQuery-widget/mixins). Emits ranked findings (JSON + SARIF, `outputKind=compatibility`) + a verdict. |
 | `audit` | Read-only release-readiness orchestrator: fans out every findings dimension (`review` + `security` + `perf-audit` + `lint` + `a11y-audit` + `marketplace` + `breeze-compat`) in parallel and consolidates them into ONE deduplicated, severity-ranked report + one merged SARIF (`outputKind=audit`). The *inspect* counterpart to `feature`. |
 | `triage` | Read-only: turns a findings document into an ordered, approvable remediation plan — every finding fingerprinted, waiver-checked, confidence-gated, routed to its owning skill through the shared routing matrix, and grouped into dependency-ordered batches (`outputKind=remediation`). *audit finds; triage decides who fixes.* |
+| `remediate` | Write half of the remediation cycle: executes an approved `triage` plan batch by batch through the skill that owns each finding — one approval per batch, one commit per finding (`Closes-Finding` trailer), `gate: manual` items reported as human actions rather than executed, then `audit --compare` to prove what closed. Never edits `vendor/`. |
 
 ### Dependency graph
 
@@ -140,6 +141,15 @@ audit             ──► review, security, perf-audit, lint, a11y-audit,
 triage            ──► context                      (+ reuses route-finding.sh,
                                                     waivers-lib.sh, emit-findings.sh;
                                                     reads audit's document, writes a plan)
+
+remediate         ──► context, triage, audit         (loads/creates the plan, then
+                      fix, upgrade, extension-point,   proves closure with --compare)
+                      indexer, message-queue, webapi,
+                      graphql, admin-form, admin-listing,
+                      system-config, data-migration,
+                      frontend, breeze-adapt, i18n,
+                      test-generate, lint, docs        (one batch per owner, in the
+                                                        plan's dependency order)
 
 fix               ──► context, review, deploy, data-migration, debug
 module-create     ──► context, docs, review
@@ -182,9 +192,11 @@ judgement call — it lives in `skills/context/references/fix-routing.md` and is
 by `skills/context/scripts/route-finding.sh`, which also names the specialist owners
 (`extension-point`, `indexer`, `message-queue`, `webapi`, `graphql`, `admin-form`,
 `admin-listing`, `breeze-adapt`, `docs`) that a prose table used to funnel into `fix`.
-`triage` applies it to a whole report at once and emits the ordered plan. When `review`
-runs in diff mode *on behalf of* `feature`, `fix`, or `upgrade`, it returns findings to
-that caller instead of routing.
+`triage` applies it to a whole report at once and emits the ordered plan, and `remediate`
+executes that plan — the owning skills above are *invoked* there, which is why `remediate`
+is the one skill whose dependency line is the routing table. When `review` runs in diff mode
+*on behalf of* `feature`, `fix`, or `upgrade`, it returns findings to that caller instead of
+routing.
 
 ## Commands
 
@@ -205,6 +217,7 @@ gate. They are always namespaced:
 | `/magento2-tools:lint` | `lint` | Run the static-analysis gate (phpcs, phpstan, phpmd, php-cs-fixer, rector) and apply safe auto-fixes for a Magento 2 module (gated) |
 | `/magento2-tools:perf` | `perf-audit` | Performance audit — N+1, caching, indexer/queue review |
 | `/magento2-tools:release` | `release` | Release a Magento 2 module — version bump, changelog, tag, publish (gated) |
+| `/magento2-tools:remediate` | `remediate` | Execute an approved remediation plan batch by batch through the owning skills — one approval per batch, one commit per finding (gated) |
 | `/magento2-tools:review` | `review` | Review a Magento 2 module or diff against standards |
 | `/magento2-tools:scaffold` | `module-create` | Entry point for Magento 2 code generation — routes the request to the matching generator skill (defaults to module-create for a whole new module) |
 | `/magento2-tools:security` | `security` | Security audit — CVEs, secrets, EQP static rules, cross-module patterns |
@@ -214,8 +227,9 @@ gate. They are always namespaced:
 | `/magento2-tools:upgrade` | `upgrade` | Detect BC breaks, deprecations, and required changes when upgrading a Magento 2 module to a new Magento/PHP version (gated) |
 <!-- END GENERATED: commands -->
 
-The six write commands (`deploy`, `bugfix`, `feature`, `release`, `upgrade`, `lint`) are user-invoked only; the
-read-only nine (`context`, `snapshot`, `review`, `security`, `perf`, `test`, `i18n`, `audit`, `docs`) may also be auto-suggested.
+The seven write commands (`deploy`, `bugfix`, `feature`, `release`, `upgrade`, `lint`, `remediate`) are user-invoked
+only; the read-only ten (`context`, `snapshot`, `review`, `security`, `perf`, `test`, `i18n`, `audit`, `docs`,
+`triage`) may also be auto-suggested.
 The `scaffold` dispatcher routes to `module-create` and guides generation to specialist skills.
 All arguments/flags are passed straight through to the skill, which is the source of truth for behaviour and gates.
 
@@ -257,8 +271,8 @@ detection. Changing any override busts the resolver cache automatically.
 .claude-plugin/
   plugin.json        # plugin manifest
   marketplace.json   # this repo doubles as its own marketplace ("muon-m2")
-skills/              # 35 skills (auto-discovered by Claude Code)
-commands/            # 17 /magento2-tools:<verb> shortcut commands (auto-discovered)
+skills/              # 36 skills (auto-discovered by Claude Code)
+commands/            # 18 /magento2-tools:<verb> shortcut commands (auto-discovered)
 agents/              # first-party read-only subagents: reviewer (per-dimension review) + explorer (code comprehension/tracing)
 hooks/               # PreToolUse guard: keeps .docs/ artifacts at the project root
 tests/               # contract test harness

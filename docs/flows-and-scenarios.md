@@ -79,7 +79,7 @@ There are two orchestrators, and they are counterparts: `feature` **builds**, `a
 
 ### Shared infrastructure
 
-Five pieces keep the 35 skills consistent:
+Five pieces keep the 36 skills consistent:
 
 1. **The context document.** One JSON object (cached at
    `.claude/.cache/context.json`) holding vendor, layout, edition, versions,
@@ -348,11 +348,17 @@ silently dropped.
 
 ---
 
-## Remediation cycle (triage)
+## Remediation cycle (triage → remediate → closure)
 
 The audit pipeline answers *what is wrong*. `triage` answers **who fixes it, in what
 order** — read-only, and as a document you approve rather than a conversation you re-hold
-every run.
+every run. `remediate` then executes that document, and `audit --compare` says what
+actually closed.
+
+```
+audit / review / security / perf-audit  ──►  triage  ──►  remediate  ──►  audit --compare
+        (what is wrong)                     (the plan)    (the work)      (what closed)
+```
 
 ```mermaid
 flowchart LR
@@ -385,6 +391,41 @@ Four rules hold the cycle together:
    batches would otherwise patch twice), `lint` last (it formats what the run produced —
    running it first guarantees re-churn). A Critical `lint` finding still runs last.
 
+### Executing the plan (`remediate`)
+
+```mermaid
+flowchart LR
+    P[".docs/remediation/*-plan-*.json"] --> BR["branch remediation/{slug}<br/>refuse on a dirty tree"]
+    BR --> B["next batch (plan order)"]
+    B --> G{"one approval<br/>per batch"}
+    G -- "gate: manual" --> HA["human action items<br/>never executed"]
+    G -- approved --> EX["invoke the owning skill per finding<br/>fingerprint + evidence + --docs-root"]
+    EX --> V{verification}
+    V -- passes --> C["commit: [remediate] … Closes-Finding: fp"]
+    V -- fails --> SO["still-open, attempt recorded"]
+    C & SO --> B
+    B -- "batches done" --> CL["audit --compare"]
+    CL --> R[".docs/remediation/{Module}-report-{date}.md<br/>+ .docs/audits/{Module}-closure-{date}.*"]
+```
+
+Three rules carry over into execution:
+
+1. **One approval per batch, never per finding.** The owning skills delegate their own gate
+   upward — `fix --from-finding=` drafts its RCA into the batch presentation instead of
+   stopping for its own approval — so a 40-finding report is a handful of decisions, not 40.
+2. **A `gate: manual` finding is never executed.** Deleting the line that printed a secret
+   does not un-leak it, so it becomes a human action item and the closure diff tags it
+   `pending-manual` rather than "remediation failed".
+3. **No silent passes.** A failed `verification` is `still-open` with the attempt recorded; a
+   batch whose owning skill is unavailable is `skipped` with its reason. Neither is ever
+   counted clean — an absent result is not a result. The closure diff, not the executor's own
+   bookkeeping, is what proves closure, and its `regressed` bucket is what the run
+   *introduced*.
+
+`remediate` never edits `vendor/`, never pushes or merges, and commits one finding at a time
+with a `Closes-Finding: <fingerprint>` trailer — so a reviewer can revert exactly one
+remediation without unpicking the rest.
+
 ---
 
 ## Approval-gate map
@@ -402,8 +443,9 @@ Where each skill stops and waits for you:
 | `upgrade` | Scan report before applying (skipped by `--auto-fix`) | "proceed" |
 | `deploy` | Plan before execution (skipped by `--auto`, never on production); production interactive confirm; prod snapshot prompt | "proceed"; `--i-know-what-im-doing` for auto+prod |
 | `release` | Push/tag | literally typing `release` |
+| `remediate` | One approval per **batch** of findings (never per finding); `gate: manual` items are never executable | "proceed" / "approved"; `--yes-auto` pre-approves `auto` batches only; `--dry-run` executes nothing |
 | `audit` | none for the analysis itself; fanning the dimensions out to subagents is opt-in authorization, exactly as `review`'s parallel mode is | `--agents`, or `execution_mode` in `.claude/m2.json` |
-| `review`, `debug`, the specialist audits, `i18n` | none — read-only or additive-report skills | — |
+| `review`, `triage`, `debug`, the specialist audits, `i18n` | none — read-only or additive-report skills | — |
 
 Approval gates **always run in the main conversation**. Neither execution mode delegates
 a gate to a subagent — see
@@ -433,6 +475,8 @@ Everything durable lands under `.docs/` in your project:
 ├── marketplace/{Vendor}_{Module}-readiness-{date}.*   # marketplace readiness
 ├── breeze-compat/{Vendor}_{Module}-breeze-compat-{date}.*
 ├── remediation/{Vendor}_{Module}-plan-{date}.*      # triage remediation plan
+├── remediation/{Vendor}_{Module}-report-{date}.md   # remediate run report
+├── audits/{Vendor}_{Module}-closure-{date}.*        # audit --compare closure diff
 ├── findings/waivers.yml                            # INPUT: per-fingerprint suppressions
 ├── upgrades/{Vendor}_{Module}-upgrade-{date}.md|.json
 ├── tests/{Vendor}_{Module}-coverage-{date}.md     # test-generate coverage report
@@ -506,9 +550,14 @@ tests under each module's `Test/` tree, translations under each module's `i18n/`
    endpoints, cross-module collisions. SARIF goes to Code Scanning.
 2. `/magento2-tools:perf-audit --runtime --scope=site` — static N+1 and
    caching findings plus live indexer/queue/cache/slow-log checks.
-3. Remediation routes out per finding: dependency CVEs → `upgrade`,
-   code defects → `fix`, each ending in a `--diff` review.
-4. Re-run both audits; diff the JSON artifacts to show the trend.
+3. `/magento2-tools:triage` turns both documents into one ordered plan: every finding
+   fingerprinted, waiver-checked, routed (dependency CVEs → `upgrade`, code defects →
+   `fix`, a leaked key → a human action), batched in dependency order. **You approve it.**
+4. `/magento2-tools:remediate --dry-run` to inspect the batches, then without it to execute:
+   one approval per batch, one commit per finding, each ending in a `--diff` review.
+5. `audit --compare` against the original document closes the loop — what closed, what is
+   still open, and anything the remediation itself *introduced*. Rotate the leaked key by
+   hand; until you do it stays `pending-manual`, not closed.
 
 ### Scenario 4 — Platform upgrade to Magento 2.4.7
 

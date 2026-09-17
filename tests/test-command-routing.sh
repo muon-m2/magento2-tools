@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # test-command-routing.sh — every commands/*.md must be a well-formed thin pass-through to a
-# real skill, and the set must be exactly the 17 expected shortcuts. Write commands
+# real skill, and the set must be exactly the 18 expected shortcuts. Write commands
 # must be user-only (disable-model-invocation: true).
 set -uo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
@@ -25,7 +25,8 @@ lint:lint
 scaffold:module-create
 audit:audit
 docs:docs
-triage:triage"
+triage:triage
+remediate:remediate"
 
 if [ ! -d "$CMD_DIR" ]; then echo "FAIL: $CMD_DIR/ directory not found"; exit 1; fi
 
@@ -45,7 +46,7 @@ $EXPECTED
 EOF
 
 # 2. write commands must be user-only
-for cmd in deploy bugfix feature release upgrade lint; do
+for cmd in deploy bugfix feature release upgrade lint remediate; do
     f="$CMD_DIR/$cmd.md"
     [ -f "$f" ] || continue
     grep -qE '^disable-model-invocation: +true' "$f" \
@@ -80,5 +81,5 @@ for f in "$CMD_DIR"/*.md; do
 done
 
 [ "$FAIL" -eq 0 ] || { echo "RESULT: FAIL"; exit 1; }
-echo "command routing: 17 commands valid, well-formed, routed to real skills"
+echo "command routing: 18 commands valid, well-formed, routed to real skills"
 exit 0

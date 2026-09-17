@@ -6,7 +6,7 @@ outputs, and related skills. For narrative flow descriptions see
 [Daily workflows](daily-workflows.md).
 
 All skills are invoked namespaced (`magento2-tools:<skill>`) or by plain
-language matching the skill's purpose. Sixteen of them also have a shorter slash-command
+language matching the skill's purpose. Eighteen of them also have a shorter slash-command
 alias — see the command table in the [repository README](../README.md#commands) (the
 names differ for a few: `/magento2-tools:bugfix` → `fix`, `/magento2-tools:snapshot` →
 `debug`, `/magento2-tools:perf` → `perf-audit`, `/magento2-tools:test` →
@@ -208,6 +208,44 @@ re-scans and never edits code. *audit finds; triage decides who fixes.*
   (`outputKind=remediation`).
 - **Related:** `audit` (produces the input); `remediate` (executes the plan);
   the owning skills each batch routes to.
+
+---
+
+### remediate
+
+**Write half of the findings cycle** — executes the plan `triage` produced, batch by batch,
+through the skill that owns each finding. The only write skill in this group: `audit` and
+`triage` decide, `remediate` does. It never routes a finding itself and never re-orders a
+batch; if the routing is wrong, fix the matrix and re-run `triage`.
+
+- **Invocation:** `[--from=<plan.json|audit.json>] [--batch=<owner,…>] [--dry-run]
+  [--yes-auto] [--no-closure] [--docs-root=<path>] [<Vendor>_<Module>]`. An audit document
+  passed to `--from` is triaged inline first. `--from` defaults to the newest
+  `.docs/remediation/*-plan-*.json`.
+- **Phases:** context + branch (`remediation/{slug}`; refuses to start on a dirty tree) →
+  load and validate the plan → present a batch and take **one approval** → execute each
+  finding through its owner, commit, run its `verification` → next batch →
+  `audit --compare` closure diff → run report.
+- **One approval per batch, never per finding.** `fix --from-finding=` and the other owning
+  skills delegate their own gate upward for exactly this reason, so an approved batch runs to
+  completion without re-prompting.
+- **`gate: manual` is never executed.** It becomes a human action item in the report, and the
+  closure diff tags it `pending-manual` so "remediation failed" stays distinguishable from
+  "awaiting a human action the plan named".
+- **One commit per finding,** `[remediate]` prefix with a `Closes-Finding: <fingerprint>`
+  trailer, so the closure diff can attribute a commit to the finding it closed. `vendor/` is
+  never edited: a third-party finding is remediated by a plugin/observer/preference in a
+  project module.
+- **No silent passes.** A failed `verification` is `still-open` with the attempt recorded; an
+  unavailable owning skill is a `skipped` batch with its reason. Neither is ever counted
+  clean. `--dry-run` executes nothing and prints the batches, owners and intended invocations.
+- **Outputs:** `.docs/remediation/{Vendor}_{Module}-report-{date}.md` plus one commit per
+  closed finding on `remediation/{slug}`. The closure document
+  (`.docs/audits/{Vendor}_{Module}-closure-{date}.*`) is **`audit`'s** artifact, not this
+  skill's — one skill owns verdicts and scores.
+- **Related:** `triage` (produces the plan); `audit --compare` (proves closure);
+  `fix` (one user-reported bug, with its own RCA gate); `feature` (new behaviour rather than a
+  known defect); every owning skill a batch invokes.
 
 ---
 
@@ -788,3 +826,4 @@ key ones.
 | Adapt an existing module to Breeze (companion module) | `breeze-adapt` | `extension-point` / `breeze-compat` |
 | Check if a module is Breeze-compatible (static) | `breeze-compat` | `review` / `breeze-adapt` |
 | Decide who fixes an existing findings report, and in what order | `triage` | `audit` (*audit finds; triage decides who fixes*) |
+| Work through a whole findings report and close the items | `remediate` | `fix` (*fix is one user-reported bug; remediate is a whole report, batch by batch*) |

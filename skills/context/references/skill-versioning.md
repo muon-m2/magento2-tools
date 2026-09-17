@@ -43,6 +43,7 @@ the rules for bumping.
 | module-create   | 1.10.3  |
 | perf-audit      | 1.2.0   |
 | release         | 1.2.1   |
+| remediate       | 1.0.0   |
 | review          | 2.4.1   |
 | security        | 2.0.0   |
 | system-config   | 1.1.3   |
