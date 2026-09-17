@@ -64,12 +64,24 @@ Resolve the input document:
 |---|---|
 | *omitted* | Newest `{output_root}/audits/*-audit-*.json`. |
 | a findings `.json` | That document. |
-| a directory | Every `*.json` in it, merged (per-dimension reports from one run). |
+| a directory | Every `*.json` in it, merged (per-dimension reports from one run). A `*.sarif` is read only when it has no `.json` sibling — the JSON is strictly richer. |
+| a `.sarif` log | Its results, including SARIF produced by CI or a third-party scanner. |
 
 Validate `schemaVersion`: a **major** mismatch is a hard error (exit 4) — the field semantics
 are not ours to guess; a **minor** one warns, is recorded in `scanner_errors[]`, and the run
-continues. Markdown and SARIF are not inputs: SARIF carries no `confidence`,
-`recommendation` or `verification`, so it could never drive a plan.
+continues.
+
+**Markdown is never an input** — it is the human view; JSON is the contract.
+
+**SARIF is a deliberately degraded input.** It carries no `confidence`, `recommendation` or
+`verification`, so every finding read from one is forced to `confidence: needs-triage` and
+held in `verify_first[]` by Phase 4 — a SARIF finding can be *routed and reported* but can
+**never** enter a batch or drive an automated patch. A CI scanner's output is evidence, not
+a diagnosis. Our own SARIF stays identifiable across the round trip because the emitter
+writes the fingerprint to `partialFingerprints["m2FindingFingerprint/v1"]` and keeps the
+finding category in the rule's `name`; a foreign SARIF has neither, so its findings are
+fingerprinted from what they do carry and will not match a waiver written against a JSON
+report.
 
 ### Phase 2 — Fingerprint
 

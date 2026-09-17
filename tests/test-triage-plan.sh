@@ -131,5 +131,104 @@ PY
     fi
 fi
 
-[ "$RC" -eq 0 ] && echo "PASS: triage plan routes, gates, waives and orders correctly"
+# --- phase 3: SARIF input ---------------------------------------------------------------
+# SARIF is a lossy carrier — no confidence, recommendation or verification — so every
+# finding read from one must be held in verify_first and may NEVER reach a batch.
+#
+# The fixture below deliberately carries an evidence SNIPPET. The snippet is an input to the
+# fingerprint but is NOT representable in SARIF, so recomputing identity on the SARIF side
+# yields a DIFFERENT value. That makes this a real test of `partialFingerprints`: if the
+# emitter stops writing it, or the reader stops reading it, the waiver below stops matching
+# and this phase fails. (Without a snippet the recompute fallback coincidentally agrees, and
+# the assertion would pass against a broken reader.)
+swork="$(mktemp -d "${TMPDIR:-/tmp}/m2-triage-sarif.XXXXXX")"
+cat > "$swork/findings.json" <<'JSON'
+[
+  {
+    "id": "SNIP-001",
+    "severity": "high",
+    "category": "csrf",
+    "title": "POST controller missing form key validation",
+    "evidence": [
+      { "file": "Controller/Adminhtml/Order/Save.php", "line": 47,
+        "snippet": "public function execute()  ;" }
+    ],
+    "recommendation": "Implement HttpPostActionInterface.",
+    "verification": "re-run review"
+  }
+]
+JSON
+
+FINDINGS_FILE="$swork/findings.json" TARGET_MODULE=Acme_Test \
+TARGET_PATH=app/code/Acme/Test SCOPE=module OUTPUT_DIR="$swork/out" \
+SKILL_NAME=security SKILL_VERSION=9.9.9 OUTPUT_KIND=security \
+BASENAME_KIND=security DATE=2026-09-16 \
+    bash skills/context/scripts/emit-findings.sh >/dev/null 2>&1
+
+PAIR_JSON="$swork/out/Acme_Test-security-2026-09-16.json"
+PAIR_SARIF="$swork/out/Acme_Test-security-2026-09-16.sarif"
+
+if [ ! -f "$PAIR_SARIF" ] || [ ! -f "$PAIR_JSON" ]; then
+    echo "FAIL: could not emit a JSON+SARIF pair to test SARIF ingestion"
+    RC=1
+else
+    # Waive by the fingerprint the JSON carries...
+    WFP="$(python3 -c "
+import json, sys
+print(json.load(open(sys.argv[1]))['findings'][0]['fingerprint'])
+" "$PAIR_JSON")"
+
+    # ...and assert it is NOT reachable by recomputation from SARIF alone, so the phase
+    # cannot pass by coincidence.
+    RECOMP="$(bash -c '
+source skills/context/scripts/findings-lib.sh
+finding_fingerprint security csrf "" "POST controller missing form key validation" \
+    "Controller/Adminhtml/Order/Save.php" ""')"
+    if [ "$WFP" = "$RECOMP" ]; then
+        echo "FAIL: fixture is degenerate — the snippet-less recompute matches the real"
+        echo "      fingerprint, so this phase would pass even with partialFingerprints broken"
+        RC=1
+    fi
+
+    mkdir -p "$swork/.docs/findings"
+    cat > "$swork/.docs/findings/waivers.yml" <<YAML
+version: 1
+waivers:
+  - fingerprint: "$WFP"
+    finding: "waived via the JSON report"
+    file: Controller/Adminhtml/Order/Save.php
+    verdict: accepted-risk
+    reason: "Round-trip check"
+    author: tester
+YAML
+
+    TARGET_MODULE=Acme_Test TARGET_PATH=app/code/Acme/Test DOCS_ROOT="$swork/.docs" \
+    INPUT_JSON="$PAIR_SARIF" RUN_DATE=2026-09-16 \
+        bash "$SCRIPT" >/dev/null 2>&1
+
+    SOUT="$swork/.docs/remediation/Acme_Test-plan-2026-09-16.json"
+    if [ ! -f "$SOUT" ]; then
+        echo "FAIL: triage did not produce a plan from a SARIF input"
+        RC=1
+    else
+        WFP="$WFP" python3 - "$SOUT" <<'PY' || RC=1
+import json, os, sys
+doc = json.load(open(sys.argv[1]))
+fail = 0
+if doc.get("batches"):
+    print(f"FAIL: SARIF findings reached a batch ({doc['batches']}); they carry no "
+          "confidence and must stay in verify_first")
+    fail = 1
+waived = {f.get("fingerprint") for f in doc.get("waived", [])}
+if os.environ["WFP"] not in waived:
+    print("FAIL: a waiver written against the JSON report did not match the same finding "
+          "read back from SARIF — partialFingerprints is not round-tripping")
+    fail = 1
+sys.exit(fail)
+PY
+    fi
+fi
+rm -rf "$swork"
+
+[ "$RC" -eq 0 ] && echo "PASS: triage routes, gates, waives, orders, and ingests SARIF"
 exit "$RC"

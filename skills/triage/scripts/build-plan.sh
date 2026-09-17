@@ -22,6 +22,10 @@
 #   INPUT_JSON       findings document, or a directory of them. Default: the newest
 #                    {DOCS_ROOT}/audits/*-audit-*.json.
 #   WAIVERS_FILE     default: {DOCS_ROOT}/findings/waivers.yml
+#                    INPUT_JSON may be a findings JSON, a directory of them, or a .sarif
+#                    log (external CI output included). SARIF carries no confidence/
+#                    recommendation/verification, so its findings are always held in
+#                    verify_first and can never drive an automated patch.
 #   RUN_DATE         default: today (UTC). Drives the basename and waiver expiry.
 #   SKILL_VERSION    default: 1.0.0
 #   MIN_SEVERITY     optional: drop findings below this severity into skipped[].
@@ -222,6 +226,12 @@ else:
 target = env["INPUT_JSON"]
 if os.path.isdir(target):
     paths = sorted(glob.glob(os.path.join(target, "*.json")))
+    # A .sarif is only read when it has no .json sibling. The JSON is strictly richer
+    # (confidence, recommendation, verification), and ingesting both would make which
+    # one wins depend on dict ordering.
+    seen = {os.path.splitext(p)[0] for p in paths}
+    paths += sorted(p for p in glob.glob(os.path.join(target, "*.sarif"))
+                    if os.path.splitext(p)[0] not in seen)
 else:
     paths = [target]
 if not paths:
@@ -248,6 +258,70 @@ def fingerprint_of(producer, f):
     return proc.stdout.strip()
 
 
+SARIF_LEVEL_TO_SEVERITY = {"error": "high", "warning": "medium", "note": "low",
+                            "none": "info"}
+
+
+def sarif_to_findings_doc(doc, path):
+    """Normalise a SARIF 2.1.0 log into the findings-schema shape this builder speaks.
+
+    SARIF is a lossy carrier by design: it has no `confidence`, `recommendation` or
+    `verification`. Every finding read from one is therefore forced to
+    `confidence: needs-triage`, which the gate below holds in `verify_first` — a SARIF
+    finding can never drive an automated patch, only a reviewed one. That is the point:
+    a CI scanner's output is evidence, not a diagnosis.
+
+    Our own SARIF round-trips losslessly enough to stay identifiable: the emitter writes
+    `partialFingerprints` and stores the finding category in the rule's `name`.
+    """
+    runs = doc.get("runs")
+    if not isinstance(runs, list) or not runs:
+        return None
+    findings = []
+    driver_names = []
+    for run in runs:
+        if not isinstance(run, dict):
+            continue
+        driver = ((run.get("tool") or {}).get("driver") or {})
+        driver_name = driver.get("name", "") or ""
+        driver_names.append(driver_name)
+        # ruleId -> category, via the rule `name` our emitter writes.
+        rule_category = {}
+        for rule in driver.get("rules") or []:
+            if isinstance(rule, dict) and rule.get("id"):
+                rule_category[rule["id"]] = rule.get("name", "") or ""
+        for res in run.get("results") or []:
+            if not isinstance(res, dict):
+                continue
+            loc = {}
+            for location in res.get("locations") or []:
+                phys = (location or {}).get("physicalLocation") or {}
+                art = phys.get("artifactLocation") or {}
+                region = phys.get("region") or {}
+                loc = {"file": art.get("uri", ""), "line": region.get("startLine", 1)}
+                break
+            rule_id = res.get("ruleId", "") or ""
+            text = ((res.get("message") or {}).get("text") or "").strip()
+            title = text.splitlines()[0] if text else ""
+            findings.append({
+                "id": rule_id or f"sarif-{len(findings) + 1}",
+                "fingerprint": (res.get("partialFingerprints") or {}).get(
+                    "m2FindingFingerprint/v1", ""),
+                "severity": SARIF_LEVEL_TO_SEVERITY.get(res.get("level", "note"), "low"),
+                "category": rule_category.get(rule_id, ""),
+                "title": title,
+                "evidence": [loc] if loc else [],
+                "confidence": "needs-triage",
+                "tags": ["producer:" + driver_name] if driver_name else [],
+            })
+    return {
+        "schemaVersion": "1.1",
+        "skill": driver_names[0] if driver_names else "",
+        "outputKind": "sarif",
+        "findings": findings,
+    }
+
+
 def producer_of(f, doc_skill):
     for tag in f.get("tags") or []:
         if isinstance(tag, str) and tag.startswith("producer:"):
@@ -263,6 +337,12 @@ for path in paths:
     doc = read_json(path, None)
     if not isinstance(doc, dict):
         continue
+    if path.endswith(".sarif"):
+        doc = sarif_to_findings_doc(doc, path)
+        if doc is None:
+            scanner_errors.append({"scanner": "triage-ingest",
+                                   "stderr": f"{path}: not a readable SARIF log; skipped"})
+            continue
     raw_ver = str(doc.get("schemaVersion", "1.0"))
     try:
         major, minor = (int(p) for p in raw_ver.split(".")[:2])
@@ -292,6 +372,10 @@ for path in paths:
         if not isinstance(f, dict):
             continue
         producer = producer_of(f, doc_skill)
+        # An external SARIF carries no partialFingerprints, so identity is recomputed from
+        # what it does carry. The snippet is absent there, so such a fingerprint will NOT
+        # match one derived from the richer JSON — waivers written against a JSON report do
+        # not transfer to a foreign SARIF, and that is honest rather than silently wrong.
         fp = f.get("fingerprint") or fingerprint_of(producer, f)
         if not fp:
             scanner_errors.append({"scanner": "triage-ingest",
