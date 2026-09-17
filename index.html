@@ -86,7 +86,7 @@ img{max-width:100%}
       Magento 2 engineering,<br>as Claude Code skills.
     </h1>
     <p style="font-size:19px;color:var(--hero-muted);margin:0 auto;max-width:60ch">
-      Scaffold, review, test, fix, deploy, and audit — 34 skills built around a shared
+      Scaffold, review, test, fix, deploy, and audit — 36 skills built around a shared
       context resolver that adapts to any project and environment.
     </p>
     <div style="margin:34px 0 30px;display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
@@ -129,8 +129,8 @@ function copyInstall(btn){
       </div>
       <div class="card">
         <div class="ico"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></div>
-        <h3>Review &amp; Audit</h3>
-        <p>Severity-ranked findings with <span class="mono">file:line</span> evidence, plus one consolidated release-readiness audit with merged SARIF.</p>
+        <h3>Audit &amp; Triage</h3>
+        <p>Severity-ranked findings with <span class="mono">file:line</span> evidence and a merged SARIF — then triage routes each one to the skill that owns the fix.</p>
       </div>
       <div class="card">
         <div class="ico"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3.5"/><path d="M7.5 12.5l3 3 6-7"/></svg></div>
@@ -139,8 +139,8 @@ function copyInstall(btn){
       </div>
       <div class="card">
         <div class="ico"><svg viewBox="0 0 24 24"><rect x="7" y="9" width="10" height="10" rx="5"/><path d="M12 9v10M9.2 8.8a3 3 0 0 1 5.6 0M10 4.5l1.4 2M14 4.5l-1.4 2M7 12H3.5M17 12h3.5M7 16H3.5M17 16h3.5"/></svg></div>
-        <h3>Fix &amp; Debug</h3>
-        <p>Reproduce → root-cause analysis → minimal TDD fix → regression test, with a DI/log investigator when repro is hard.</p>
+        <h3>Fix &amp; Remediate</h3>
+        <p>Reproduce → root-cause → minimal TDD fix → regression test for one bug; or work a whole audit report batch by batch, one approval each.</p>
       </div>
       <div class="card">
         <div class="ico"><svg viewBox="0 0 24 24"><path d="M12 15V4M8 8l4-4 4 4"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg></div>
@@ -153,6 +153,64 @@ function copyInstall(btn){
         <p>Hub-and-spoke around <span class="mono">context</span> — adapts to Docker or bare PHP, Luma, Hyvä, or Breeze, any vendor.</p>
       </div>
     </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <p class="eyebrow">The remediation loop</p>
+    <h2>From findings to fixes, deterministically</h2>
+    <p class="lead">An audit tells you what is wrong. The loop decides who fixes each finding,
+      executes it through the right skill, and proves it closed.</p>
+
+    <ol style="list-style:none;margin:34px 0 0;padding:0;display:grid;gap:14px">
+      <li style="display:grid;grid-template-columns:52px 1fr;gap:18px;align-items:start;
+                 background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px 24px">
+        <span style="font:600 12px/32px var(--mono);color:var(--brand);text-align:center;
+                     border:1px solid rgba(244,111,37,.35);border-radius:9px;height:32px">01</span>
+        <div>
+          <h3 style="margin:0 0 6px"><span class="mono">audit</span> — find</h3>
+          <p style="margin:0">Every read-only dimension in parallel, consolidated into one
+            severity-ranked report with <span class="mono">file:line</span> evidence and a merged
+            SARIF for CI.</p>
+        </div>
+      </li>
+      <li style="display:grid;grid-template-columns:52px 1fr;gap:18px;align-items:start;
+                 background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px 24px">
+        <span style="font:600 12px/32px var(--mono);color:var(--brand);text-align:center;
+                     border:1px solid rgba(244,111,37,.35);border-radius:9px;height:32px">02</span>
+        <div>
+          <h3 style="margin:0 0 6px"><span class="mono">triage</span> — decide</h3>
+          <p style="margin:0">Routes every finding to the skill that owns it — a queue finding to
+            <span class="mono">message-queue</span>, an indexer finding to
+            <span class="mono">indexer</span>, a Breeze finding to
+            <span class="mono">breeze-adapt</span> — then batches them in dependency order.
+            Waived findings stay waived; low-confidence ones never drive an automated patch.</p>
+        </div>
+      </li>
+      <li style="display:grid;grid-template-columns:52px 1fr;gap:18px;align-items:start;
+                 background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px 24px">
+        <span style="font:600 12px/32px var(--mono);color:var(--brand);text-align:center;
+                     border:1px solid rgba(244,111,37,.35);border-radius:9px;height:32px">03</span>
+        <div>
+          <h3 style="margin:0 0 6px"><span class="mono">remediate</span> — fix</h3>
+          <p style="margin:0">One approval per batch, not per finding. Each fix lands as its own
+            commit, still test-first. Anything needing a human — rotating a leaked credential, a
+            compliance sign-off — is listed, never executed.</p>
+        </div>
+      </li>
+      <li style="display:grid;grid-template-columns:52px 1fr;gap:18px;align-items:start;
+                 background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px 24px">
+        <span style="font:600 12px/32px var(--mono);color:var(--brand);text-align:center;
+                     border:1px solid rgba(244,111,37,.35);border-radius:9px;height:32px">04</span>
+        <div>
+          <h3 style="margin:0 0 6px"><span class="mono">audit --compare</span> — prove</h3>
+          <p style="margin:0">Re-runs and diffs against the baseline: what closed, what is still
+            open, and what the remediation itself introduced. A check that could not run is
+            reported as skipped — never as clean.</p>
+        </div>
+      </li>
+    </ol>
   </div>
 </section>
 
