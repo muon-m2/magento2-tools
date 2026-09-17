@@ -15,11 +15,15 @@ same matrix. The block between the `ROUTING TABLE` markers is what `route-findin
 
 ```
 route-finding.sh --skill=<producer> --category=<cat> [--subcategory=<sub>]
-                 [--severity=<sev>] [--confidence=<conf>] [--file=<path>]
+                 [--severity=<sev>] [--file=<path>] [--breeze]
   → {owner, rationale, gate}    gate ∈ auto | batch | manual
 ```
 
-Output is one TSV line — `owner<TAB>gate<TAB>rationale` — and the exit status is always `0`.
+Output is one TSV line — `owner<TAB>gate<TAB>rationale` — and the exit status is always `0`
+for a routing decision. An unknown flag is a caller error and exits `2`, so this list is
+exhaustive: there is no `--confidence`. Confidence is **not** a routing input — `triage`
+gates on it in its own phase *before* routing, so a finding that reaches this resolver has
+already been judged trustworthy enough to have an owner.
 
 `gate` governs how an item is handled **inside** an already-approved batch — it never replaces the
 batch approval:

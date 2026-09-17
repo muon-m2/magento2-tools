@@ -81,5 +81,35 @@ if [ "$(printf '%s' "$OUT" | cut -f1)" != "unrouted" ]; then
     FAIL=1
 fi
 
+# The documented signature must not advertise a flag the resolver rejects: a caller
+# following the doc would exit 2 at runtime. Every long flag named in the signature block
+# must be one the resolver actually accepts.
+# Scope to the FENCED block inside the section, not the whole section: the surrounding
+# prose legitimately names flags it is telling you NOT to use, and markdown table rules
+# (`------`) also look like long flags. A `sed '/start/,/```/' ` range would instead stop at
+# the OPENING fence and capture nothing, which passes vacuously.
+SIGFLAGS="$(awk '
+    /^## Resolution signature/ {sec=1; next}
+    sec && /^## / {exit}
+    sec && /^```/ {fence=!fence; next}
+    sec && fence' skills/context/references/fix-routing.md \
+    | grep -oE '[-][-][a-z][a-z-]*' | sort -u)"
+if [ -z "$SIGFLAGS" ]; then
+    echo "FAIL: parsed zero flags from fix-routing.md's Resolution signature section"
+    FAIL=1
+fi
+for flag in $SIGFLAGS; do
+    case "$flag" in
+        --breeze) probe="$flag" ;;
+        *)        probe="${flag}=x" ;;
+    esac
+    if bash "$SCRIPT" --skill=review --category=security "$probe" >/dev/null 2>&1; then
+        :
+    else
+        echo "FAIL: fix-routing.md's signature documents '$flag', but route-finding.sh rejects it"
+        FAIL=1
+    fi
+done
+
 if [ "$FAIL" -eq 0 ]; then echo "PASS: routing resolver matches fix-routing.md"; fi
 exit "$FAIL"

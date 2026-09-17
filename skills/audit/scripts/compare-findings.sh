@@ -82,9 +82,11 @@ SCANNER_ERRORS_FILE="${TMP_DIR}/scanner_errors.json"
 
 BASELINE_JSON="$BASELINE_JSON" CURRENT_JSON="$CURRENT_JSON" \
 WAIVED_FPS="$WAIVED_FPS" FINDINGS_FILE="$FINDINGS_FILE" META_FILE="$META_FILE" \
+FINDINGS_LIB="${CONTEXT_SCRIPTS}/findings-lib.sh" \
 SCANNER_ERRORS_FILE="$SCANNER_ERRORS_FILE" python3 <<'PY'
 import json
 import os
+import subprocess
 import sys
 
 
@@ -105,6 +107,9 @@ for name, doc in (("baseline", base), ("current", cur)):
         sys.exit(3)
 
 
+scanner_errors = []
+
+
 def producer(finding, doc):
     for tag in finding.get("tags") or []:
         if isinstance(tag, str) and tag.startswith("producer:"):
@@ -112,17 +117,58 @@ def producer(finding, doc):
     return doc.get("skill", "")
 
 
+def fingerprint_of(producer, f):
+    """Recompute identity for a finding that carries none (a pre-1.1 document).
+
+    Shelling out to findings-lib.sh's finding_fingerprint is deliberate: a second
+    normalizer written here would diverge from the emitter's on exactly the whitespace
+    and trailing-separator cases the fingerprint exists to survive.
+    """
+    lib = os.environ.get("FINDINGS_LIB", "")
+    if not lib or not os.path.exists(lib):
+        return ""
+    ev = (f.get("evidence") or [{}])[0]
+    proc = subprocess.run(
+        ["bash", "-c",
+         'source "$1"; finding_fingerprint "$2" "$3" "$4" "$5" "$6" "$7"',
+         "compare-findings", lib, producer,
+         f.get("category", ""), f.get("subcategory", "") or "",
+         f.get("title", ""), ev.get("file", ""), ev.get("snippet", "") or ""],
+        capture_output=True, text=True, stdin=subprocess.DEVNULL,
+    )
+    return proc.stdout.strip()
+
+
 def by_fp(doc):
+    """Index findings by fingerprint, recomputing it when absent.
+
+    Indexing ONLY on a present fingerprint would make a pre-1.1 baseline look like zero
+    findings, so every one of them would silently read as `closed`. Absence of identity
+    is not evidence of a fix.
+    """
     out = {}
     for f in doc.get("findings") or []:
-        fp = f.get("fingerprint")
+        fp = f.get("fingerprint") or fingerprint_of(producer(f, doc), f)
         if fp:
             out[fp] = f
+        else:
+            # Still not identifiable: report it rather than dropping it, so the count
+            # never silently shrinks.
+            unidentifiable.append(f.get("id", "<no id>"))
     return out
 
 
+unidentifiable = []
+
 base_f = by_fp(base)
 cur_f = by_fp(cur)
+
+if unidentifiable:
+    scanner_errors.append({
+        "scanner": "closure-diff",
+        "stderr": "findings with no computable fingerprint were excluded from the diff: "
+                  + ", ".join(unidentifiable),
+    })
 
 # A scanner is untrustworthy on this run if it crashed, or if `tools` marks it degraded or
 # skipped. Its findings can never be reported closed: absence of a result is not a result.
@@ -161,7 +207,7 @@ with open(os.environ["FINDINGS_FILE"], "w", encoding="utf-8") as fh:
     json.dump(actionable, fh, indent=2)
 
 with open(os.environ["SCANNER_ERRORS_FILE"], "w", encoding="utf-8") as fh:
-    json.dump(cur.get("scanner_errors") or [], fh, indent=2)
+    json.dump((cur.get("scanner_errors") or []) + scanner_errors, fh, indent=2)
 
 with open(os.environ["META_FILE"], "w", encoding="utf-8") as fh:
     json.dump({

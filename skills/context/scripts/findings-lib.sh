@@ -47,8 +47,14 @@ _FINDINGS_ERRS=()
 _sha256() {
     if command -v sha256sum >/dev/null 2>&1; then
         sha256sum | cut -d' ' -f1
-    else
+    elif command -v shasum >/dev/null 2>&1; then
         shasum -a 256 | cut -d' ' -f1
+    else
+        # Fail loudly. Returning empty here would hand callers an unfingerprintable
+        # finding, which downstream reads as "no identity" — waivers stop matching and
+        # a closure diff cannot tell a fixed finding from an unidentifiable one.
+        echo "findings-lib: no SHA-256 tool found (need sha256sum or shasum)" >&2
+        return 3
     fi
 }
 

@@ -142,8 +142,58 @@ sys.exit(0)
 PY
 RC2=$?
 
-if [ "$RC" -eq 0 ] && [ "$RC2" -eq 0 ] && [ "$RC3" -eq 0 ]; then
-    echo "PASS: closure diff classifies closed/still-open/waived/regressed/skipped"
+# A pre-1.1 document carries NO fingerprints. Indexing only on a present fingerprint would
+# make such a baseline look like zero findings, so every one of them would read as `closed` —
+# the exact false pass this whole surface exists to prevent. Identity must be recomputed.
+python3 - "$work/base10.json" <<'PY'
+import json, sys
+doc = {
+    "schemaVersion": "1.0", "skill": "security", "skillVersion": "1.0.0",
+    "skillVersions": ["security@1.0.0"], "outputKind": "security",
+    "target": {"module": "Acme_Test", "path": "app/code/Acme/Test", "scope": "module"},
+    "runAt": "2026-09-16T10:00:00Z", "mode": "full", "context": {},
+    "audit_verdict": "FAIL", "audit_score": 10,
+    "summary": {"total": 2, "bySeverity": {}, "byCategory": {}},
+    # No `fingerprint` anywhere — this is what a 1.0 producer emitted.
+    "findings": [
+        {"id": "old-1", "severity": "high", "category": "csrf", "title": "no form key",
+         "evidence": [{"file": "A.php", "line": 3, "snippet": "public function execute()"}],
+         "recommendation": "r", "verification": "v"},
+        {"id": "old-2", "severity": "high", "category": "acl", "title": "missing acl",
+         "evidence": [{"file": "B.php", "line": 9, "snippet": "protected $_aclResource"}],
+         "recommendation": "r", "verification": "v"},
+    ],
+    "skipped": [], "scanner_errors": [], "tools": {"security": "executed"},
+}
+json.dump(doc, open(sys.argv[1], "w"))
+PY
+
+# Re-run against ITSELF: nothing was fixed, so nothing may be reported closed.
+BASELINE_JSON="$work/base10.json" CURRENT_JSON="$work/base10.json" \
+DOCS_ROOT="$work/.docs3" TARGET_MODULE=Acme_Test TARGET_PATH=app/code/Acme/Test \
+RUN_DATE=2026-09-16 bash "$SCRIPT" >/dev/null 2>&1
+
+python3 - "$work/.docs3/audits/Acme_Test-closure-2026-09-16.json" <<'PY'
+import json, os, sys
+p = sys.argv[1]
+if not os.path.exists(p):
+    print("FAIL: no closure document produced from a pre-1.1 baseline")
+    sys.exit(1)
+c = json.load(open(p)).get("closure", {})
+if c.get("closed"):
+    print(f"FAIL: a pre-1.1 document compared against ITSELF reported {len(c['closed'])} "
+          "finding(s) closed — nothing changed, so nothing closed. Fingerprints were not "
+          "recomputed for findings that lack them.")
+    sys.exit(1)
+if len(c.get("still_open", [])) != 2:
+    print(f"FAIL: expected both pre-1.1 findings still_open, got {c.get('still_open')}")
+    sys.exit(1)
+sys.exit(0)
+PY
+RC4=$?
+
+if [ "$RC" -eq 0 ] && [ "$RC2" -eq 0 ] && [ "$RC3" -eq 0 ] && [ "$RC4" -eq 0 ]; then
+    echo "PASS: closure diff classifies buckets, and recomputes pre-1.1 identity"
     exit 0
 fi
 exit 1
