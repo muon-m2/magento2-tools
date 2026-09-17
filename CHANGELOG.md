@@ -6,6 +6,81 @@ individual skill versions are tracked in each SKILL.md frontmatter and the gener
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.3.0] — 2026-09-17 — An audit that tells you who fixes each finding
+
+The findings family could produce reports but nothing could consume them. `audit` emitted a
+schema-versioned document with `file:line` evidence, a `recommendation` and a `verification`
+string for every finding — and routing that work to the skill that owns it was prose in two
+SKILL.md files that had already drifted apart. Between them they named 8 of 34 skills, so
+anything they did not mention was funnelled to `fix` or `feature`. This release adds the
+consume half: triage decides, remediate executes, and `audit --compare` proves it closed.
+
+### Added
+
+- **`triage` 1.0.0 — read-only: a findings document becomes an approvable remediation plan.**
+  Fingerprints each finding, applies the project's waivers, gates on `confidence`, routes each
+  one through the shared matrix, and groups the work into dependency-ordered batches. Emits
+  `outputKind=remediation` (Markdown + JSON + SARIF) with four separately-readable buckets:
+  `batches` (the work), `verify_first` (low-confidence — never auto-patched), `waived` (shown
+  with reason and author, never silently dropped) and `unrouted` (reported, never guessed).
+  Accepts a findings JSON, a directory of them, or a SARIF log including foreign CI output.
+- **`remediate` 1.0.0 — executes a triaged plan through the owning skills.** One approval per
+  **batch**, never per finding; a commit per finding carrying a `Closes-Finding` trailer; a
+  closure diff at the end. `gate: manual` items are listed and never executed — deleting a
+  leaked credential from the code does not un-leak it, so rotation stays a human action.
+- **`context/references/fix-routing.md` — fix routing is now a contract, not prose.** One
+  machine-readable matrix (96 rows) keyed on the category vocabulary `findings-schema.md`
+  already defines, resolved by `context/scripts/route-finding.sh`. It reaches the specialists
+  the prose tables never did: `security/preference-collision` → `extension-point`,
+  `security/graphql-auth` → `graphql`, `security/cve` → `upgrade`, `perf-audit/plugin-hotpath`
+  → `extension-point`, `perf-audit/indexer` → `indexer`, `perf-audit/cron-batch` →
+  `cli-command`, all of `a11y-audit` → `frontend`, all of `breeze-compat` → `breeze-adapt`,
+  `marketplace/documentation` → `docs`. `lint/surface` routes by SI rule id.
+  `tests/test-fix-routing-matrix.sh` derives its expectations from the schema, so a category
+  added there without an owner now fails the build instead of becoming unroutable at runtime.
+- **`fix` 1.2.1 → 1.3.0 — `--from-finding=<report.json>#<id>`.** Takes an already-diagnosed
+  finding instead of interviewing the user and demanding a live reproduction a static finding
+  cannot have. It skips the interrogation, not the discipline: TDD, minimal change and the
+  mandatory regression test all still apply.
+- **`audit` 1.0.0 → 1.1.0 — `--compare=<baseline.json>`.** Re-runs and diffs by fingerprint into
+  `closed` / `still_open` / `waived` / `regressed` / `skipped`, with `verdict_delta` and
+  `score_delta`. `regressed` is the class nothing caught before: a finding the remediation
+  itself introduced.
+- **Waivers — `{output_root}/findings/waivers.yml`.** The one file the user writes and the
+  toolkit reads. Suppressions expire loudly, a waiver matching nothing is reported stale, and
+  `triage` warns when the file is gitignored, because suppressions that are not committed
+  silently reset.
+
+### Changed
+
+- **`context` 1.14.0 → 1.15.0; findings schema 1.0 → 1.1.** Every finding now carries a
+  `fingerprint` — sha256 over producer/category/subcategory/title/file/normalized-snippet,
+  deliberately excluding the line number and run date. `finding.id` is regenerated per run and
+  evidence lines move on the first patch, so neither could carry a waiver or a closure verdict
+  forward. Adds the `remediation` and `closure` output kinds. Consumers of 1.0 documents
+  tolerate a missing fingerprint by computing it.
+- **`emit-sarif.sh` writes `partialFingerprints`.** SARIF's own mechanism for cross-run
+  identity. Without it a waiver written against a JSON report silently failed to match the same
+  finding seen in SARIF, because the evidence snippet — a fingerprint input — is not
+  representable in SARIF.
+- **`review` and `audit` delegate their Fix Routing sections** to the shared matrix instead of
+  restating it, per the repo's never-copy-a-shared-reference convention.
+
+### Fixed
+
+- **`audit --compare` could report "everything closed" on a pre-1.1 baseline.** The closure diff
+  indexed only findings that already carried a fingerprint, so a schema-1.0 document looked like
+  zero findings and every one of them read as resolved — the exact false-pass class 2.2.0 was
+  about, in the script whose job is proving closure. Identity is now recomputed for findings
+  that lack it, and anything still unidentifiable is recorded in `scanner_errors` rather than
+  dropped. Found by the Copilot review on #70.
+- **`findings-lib.sh::_sha256` returned an empty digest** on a host with neither `sha256sum` nor
+  `shasum`, which downstream reads as "no identity". It now fails loudly.
+- **The fingerprint normalizer stripped trailing whitespace before trailing separators**, so
+  removing a trailing `;` orphaned the space before it and `'execute()  ;'` and `'execute()'`
+  hashed differently — defeating the one property the fingerprint exists to have. The Python
+  twin in the emitter had the identical defect.
+
 ## [2.2.0] — 2026-09-16 — A gate that checked nothing no longer reports a pass
 
 Seven skill scripts could exit 0 having skipped the work they report on. Six surfaced in one
