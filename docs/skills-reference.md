@@ -6,7 +6,7 @@ outputs, and related skills. For narrative flow descriptions see
 [Daily workflows](daily-workflows.md).
 
 All skills are invoked namespaced (`magento2-tools:<skill>`) or by plain
-language matching the skill's purpose. Sixteen of them also have a shorter slash-command
+language matching the skill's purpose. Eighteen of them also have a shorter slash-command
 alias — see the command table in the [repository README](../README.md#commands) (the
 names differ for a few: `/magento2-tools:bugfix` → `fix`, `/magento2-tools:snapshot` →
 `debug`, `/magento2-tools:perf` → `perf-audit`, `/magento2-tools:test` →
@@ -176,8 +176,76 @@ deduplicated, severity-ranked report + one merged SARIF. The *inspect* counterpa
   verdict + score.
 - **Outputs:** `.docs/audits/{Vendor}_{Module}-audit-{date}.md|.json|.sarif` (`outputKind=audit`);
   per-dimension artifacts remain under their own category dirs.
-- **Related:** dispatches `review` + every specialist audit; route findings to
-  `fix` / `feature` / `upgrade` for remediation.
+- **Related:** dispatches `review` + every specialist audit; `triage` turns its
+  document into an ordered remediation plan.
+
+---
+
+### triage
+
+Read-only **consume half** of the findings cycle — it takes the document `audit` (or any
+findings skill) produced and turns it into an ordered, approvable remediation plan. It never
+re-scans and never edits code. *audit finds; triage decides who fixes.*
+
+- **Invocation:** `[--from=<report.json|dir>] [--waivers=<path>] [--severity=<min>]
+  [--include=<owner,…>] [--exclude=<owner,…>] [--docs-root=<path>] [<Vendor>_<Module>]`.
+  `--from` defaults to the newest `.docs/audits/*-audit-*.json`.
+- **Phases:** context → ingest (JSON only; major `schemaVersion` mismatch is a hard error)
+  → fingerprint + dedupe across dimensions → waivers → confidence gate → route
+  (`scripts/build-plan.sh` calls `context/scripts/route-finding.sh` per finding)
+  → batch → emit + present for approval.
+- **Buckets:** `batches[]` (the execution order), `waived[]` (unexpired waivers, with reason
+  and author — reported, never counted closed), `verify_first[]` (`confidence != confirmed`,
+  or an **expired** waiver, which resurfaces the finding), `unrouted[]` (no matrix row — never
+  silently defaulted to `fix`), plus `stale_waivers[]` and `inputs[]`.
+- **Batch order** is a dependency order, not a priority order: `upgrade` → `fix` →
+  structural owners → `frontend` → `i18n` → `test-generate` → `lint` → `docs`. `lint` runs
+  last so it formats what the run produced; a Critical `lint` finding still runs last.
+- **Waivers:** `.docs/findings/waivers.yml`, keyed on each finding's `fingerprint` (a hash of
+  producer/category/title/file/snippet — *not* the line number, so it survives the patch).
+  A gitignored or untracked waivers file warns that the suppressions will reset.
+- **Outputs:** `.docs/remediation/{Vendor}_{Module}-plan-{date}.md|.json|.sarif`
+  (`outputKind=remediation`).
+- **Related:** `audit` (produces the input); `remediate` (executes the plan);
+  the owning skills each batch routes to.
+
+---
+
+### remediate
+
+**Write half of the findings cycle** — executes the plan `triage` produced, batch by batch,
+through the skill that owns each finding. The only write skill in this group: `audit` and
+`triage` decide, `remediate` does. It never routes a finding itself and never re-orders a
+batch; if the routing is wrong, fix the matrix and re-run `triage`.
+
+- **Invocation:** `[--from=<plan.json|audit.json>] [--batch=<owner,…>] [--dry-run]
+  [--yes-auto] [--no-closure] [--docs-root=<path>] [<Vendor>_<Module>]`. An audit document
+  passed to `--from` is triaged inline first. `--from` defaults to the newest
+  `.docs/remediation/*-plan-*.json`.
+- **Phases:** context + branch (`remediation/{slug}`; refuses to start on a dirty tree) →
+  load and validate the plan → present a batch and take **one approval** → execute each
+  finding through its owner, commit, run its `verification` → next batch →
+  `audit --compare` closure diff → run report.
+- **One approval per batch, never per finding.** `fix --from-finding=` and the other owning
+  skills delegate their own gate upward for exactly this reason, so an approved batch runs to
+  completion without re-prompting.
+- **`gate: manual` is never executed.** It becomes a human action item in the report, and the
+  closure diff tags it `pending-manual` so "remediation failed" stays distinguishable from
+  "awaiting a human action the plan named".
+- **One commit per finding,** `[remediate]` prefix with a `Closes-Finding: <fingerprint>`
+  trailer, so the closure diff can attribute a commit to the finding it closed. `vendor/` is
+  never edited: a third-party finding is remediated by a plugin/observer/preference in a
+  project module.
+- **No silent passes.** A failed `verification` is `still-open` with the attempt recorded; an
+  unavailable owning skill is a `skipped` batch with its reason. Neither is ever counted
+  clean. `--dry-run` executes nothing and prints the batches, owners and intended invocations.
+- **Outputs:** `.docs/remediation/{Vendor}_{Module}-report-{date}.md` plus one commit per
+  closed finding on `remediation/{slug}`. The closure document
+  (`.docs/audits/{Vendor}_{Module}-closure-{date}.*`) is **`audit`'s** artifact, not this
+  skill's — one skill owns verdicts and scores.
+- **Related:** `triage` (produces the plan); `audit --compare` (proves closure);
+  `fix` (one user-reported bug, with its own RCA gate); `feature` (new behaviour rather than a
+  known defect); every owning skill a batch invokes.
 
 ---
 
@@ -757,3 +825,5 @@ key ones.
 | Scaffold a Breeze (Swissup) child theme | `breeze-theme` | `frontend` |
 | Adapt an existing module to Breeze (companion module) | `breeze-adapt` | `extension-point` / `breeze-compat` |
 | Check if a module is Breeze-compatible (static) | `breeze-compat` | `review` / `breeze-adapt` |
+| Decide who fixes an existing findings report, and in what order | `triage` | `audit` (*audit finds; triage decides who fixes*) |
+| Work through a whole findings report and close the items | `remediate` | `fix` (*fix is one user-reported bug; remediate is a whole report, batch by batch*) |

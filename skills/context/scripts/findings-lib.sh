@@ -43,6 +43,40 @@ _FINDINGS_NAMES=()
 _FINDINGS_OUTS=()
 _FINDINGS_ERRS=()
 
+# _sha256 — portable digest over stdin. Linux has sha256sum; macOS ships shasum.
+_sha256() {
+    if command -v sha256sum >/dev/null 2>&1; then
+        sha256sum | cut -d' ' -f1
+    elif command -v shasum >/dev/null 2>&1; then
+        shasum -a 256 | cut -d' ' -f1
+    else
+        # Fail loudly. Returning empty here would hand callers an unfingerprintable
+        # finding, which downstream reads as "no identity" — waivers stop matching and
+        # a closure diff cannot tell a fixed finding from an unidentifiable one.
+        echo "findings-lib: no SHA-256 tool found (need sha256sum or shasum)" >&2
+        return 3
+    fi
+}
+
+# finding_fingerprint <producer> <category> <subcategory> <title> <file> <snippet>
+#
+# Stable identity for one finding ACROSS runs. `finding.id` is regenerated every run
+# ({skill}-{date}-{seq}) and evidence[].line moves the moment the file is patched, so
+# neither can carry a decision (a waiver, a closure verdict) forward. Line number and
+# run date are therefore deliberately NOT inputs.
+finding_fingerprint() {
+    local producer="$1" category="$2" subcategory="$3" title="$4" file="$5" snippet="$6"
+    local norm
+    # Collapse whitespace runs and strip trailing separators so reformatting the
+    # source does not change a finding's identity.
+    norm="$(printf '%s' "$snippet" \
+        | tr '\n\t' '  ' \
+        | tr -s ' ' \
+        | sed 's/^ *//; s/ *$//; s/[,;]*$//; s/ *$//')"
+    printf '%s|%s|%s|%s|%s|%s' \
+        "$producer" "$category" "$subcategory" "$title" "$file" "$norm" | _sha256
+}
+
 findings_init() {
     : "${TARGET_MODULE:?TARGET_MODULE is required}"
     : "${TARGET_PATH:?TARGET_PATH is required}"

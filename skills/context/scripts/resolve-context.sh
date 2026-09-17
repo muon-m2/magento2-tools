@@ -895,7 +895,7 @@ cat > "$CACHE_TMP" <<EOF
 {
   "schemaVersion": "1.0",
   "skill": "context",
-  "skillVersion": "1.14.0",
+  "skillVersion": "1.15.0",
   "resolvedAt": "${TIMESTAMP}",
   "cacheKey": $(json_or_null "$CACHE_KEY"),
 

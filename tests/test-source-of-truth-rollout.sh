@@ -16,6 +16,7 @@ OUT_OF_SCOPE=(
   review security perf-audit
   a11y-audit breeze-compat lint
   audit marketplace debug
+  triage
 )
 FAIL=0
 

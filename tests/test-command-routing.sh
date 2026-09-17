@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # test-command-routing.sh — every commands/*.md must be a well-formed thin pass-through to a
-# real skill, and the set must be exactly the 16 expected shortcuts. Write commands
+# real skill, and the set must be exactly the 18 expected shortcuts. Write commands
 # must be user-only (disable-model-invocation: true).
 set -uo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
@@ -24,7 +24,9 @@ i18n:i18n
 lint:lint
 scaffold:module-create
 audit:audit
-docs:docs"
+docs:docs
+triage:triage
+remediate:remediate"
 
 if [ ! -d "$CMD_DIR" ]; then echo "FAIL: $CMD_DIR/ directory not found"; exit 1; fi
 
@@ -44,7 +46,7 @@ $EXPECTED
 EOF
 
 # 2. write commands must be user-only
-for cmd in deploy bugfix feature release upgrade lint; do
+for cmd in deploy bugfix feature release upgrade lint remediate; do
     f="$CMD_DIR/$cmd.md"
     [ -f "$f" ] || continue
     grep -qE '^disable-model-invocation: +true' "$f" \
@@ -52,7 +54,7 @@ for cmd in deploy bugfix feature release upgrade lint; do
 done
 
 # 2b. read-only commands must NOT be user-only (auto-invokable)
-for cmd in context snapshot review security perf test i18n audit docs; do
+for cmd in context snapshot review security perf test i18n audit docs triage; do
     f="$CMD_DIR/$cmd.md"
     [ -f "$f" ] || continue
     grep -qE '^disable-model-invocation: +true' "$f" \
@@ -79,5 +81,5 @@ for f in "$CMD_DIR"/*.md; do
 done
 
 [ "$FAIL" -eq 0 ] || { echo "RESULT: FAIL"; exit 1; }
-echo "command routing: 16 commands valid, well-formed, routed to real skills"
+echo "command routing: 18 commands valid, well-formed, routed to real skills"
 exit 0

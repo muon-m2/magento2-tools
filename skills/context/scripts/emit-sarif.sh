@@ -85,6 +85,13 @@ def result_from_finding(f: dict) -> dict:
             physical_location({'file': 'unknown', 'line': 1})
         ],
     }
+    # partialFingerprints is SARIF's own mechanism for stable cross-run result identity.
+    # Without it a SARIF document cannot round-trip: `triage` reading findings back from
+    # SARIF could not recompute the fingerprint (the evidence snippet is not carried), so a
+    # waiver written against the JSON would silently fail to match the same finding in SARIF.
+    fp = f.get('fingerprint')
+    if isinstance(fp, str) and fp:
+        result['partialFingerprints'] = {'m2FindingFingerprint/v1': fp}
     cwe = f.get('cwe')
     if isinstance(cwe, str) and cwe:
         result['taxa'] = [

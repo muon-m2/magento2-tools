@@ -7,7 +7,7 @@ The `snapshot` mode produces a single Markdown document for paste-into-ticket.
 ```markdown
 # Magento Snapshot — {YYYY-MM-DD HH:MM UTC}
 
-Skill versions: debug@1.3.1, context@1.14.0
+Skill versions: debug@1.3.1, context@1.15.0
 Magento mode: {production|developer|default}
 Maintenance flag: {enabled|disabled}
 

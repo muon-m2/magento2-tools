@@ -15,7 +15,8 @@
 #   SKILL_VERSIONS_JSON  Optional JSON array string (e.g. '["foo@1","bar@2"]')
 #                  When set, used verbatim as skillVersions[]; otherwise auto-built.
 #   OUTPUT_KIND     "review" | "security" | "performance" | "upgrade" | "quality" |
-#                   "marketplace" | "accessibility" | "compatibility" (default: review)
+#                   "marketplace" | "accessibility" | "compatibility" | "remediation" |
+#                   "closure" (default: review)
 #                   Not exhaustive — see findings-schema.md `outputKind` for the full set.
 #   OUTPUT_BASENAME default: "{TARGET_MODULE}-{OUTPUT_KIND}-{YYYY-MM-DD}"
 #   CONTEXT_FILE    default: .claude/.cache/context.json
@@ -74,8 +75,10 @@ SKIPPED_FILE="$SKIPPED_FILE" \
 TOOLS_FILE="$TOOLS_FILE" \
 OUTPUT_FILE="$OUTPUT_FILE" \
 python3 <<'PY' | tee "$OUTPUT_FILE"
+import hashlib
 import json
 import os
+import re
 import sys
 from datetime import datetime, timezone
 
@@ -200,11 +203,35 @@ if raw_versions:
 else:
     skill_versions = [
         f'{skill_name}@{skill_version}',
-        'context@1.14.0',
+        'context@1.15.0',
     ]
 
+
+def _fingerprint(producer, finding):
+    ev = (finding.get("evidence") or [{}])[0]
+    # Strip trailing whitespace AGAIN after removing trailing separators: dropping a
+    # trailing ';' otherwise orphans the space that preceded it, so 'execute()  ;' and
+    # 'execute()' would hash differently - defeating the whole point. Must stay
+    # byte-identical to finding_fingerprint's sed chain in findings-lib.sh.
+    snippet = re.sub(r"[,;]*$", "", re.sub(r"\s+", " ", ev.get("snippet", "")).strip()).strip()
+    parts = [
+        producer,
+        finding.get("category", ""),
+        finding.get("subcategory", ""),
+        finding.get("title", ""),
+        ev.get("file", ""),
+        snippet,
+    ]
+    return hashlib.sha256("|".join(parts).encode("utf-8")).hexdigest()
+
+
+for f in findings:
+    # A producer that already computed one wins, so a merged document (audit) keeps
+    # the fingerprint the originating dimension assigned.
+    f.setdefault("fingerprint", _fingerprint(skill_name, f))
+
 document = {
-    'schemaVersion': '1.0',
+    'schemaVersion': '1.1',
     'skill': skill_name,
     'skillVersion': skill_version,
     'skillVersions': skill_versions,

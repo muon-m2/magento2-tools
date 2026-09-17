@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "1.0",
+  "schemaVersion": "1.1",
   "skill": "review",
   "skillVersion": "2.3.0",
   "skillVersions": [
@@ -52,13 +52,15 @@
           "line": 42,
           "endLine": 45
         }
-      ]
+      ],
+      "fingerprint": "63226505d1de19fbcdbc13ceb4bed60c039c766f32e7a346dfc4faa65669def4"
     },
     {
       "id": "SEC-002",
       "severity": "high",
       "category": "security",
-      "title": "Admin controller missing ACL check"
+      "title": "Admin controller missing ACL check",
+      "fingerprint": "d227c23497139021ba6427c91c3a51e19154ec8ad9dd66c89bd8191c2ac4e13b"
     },
     {
       "id": "PERF-001",
@@ -71,7 +73,8 @@
           "file": "Block/Adminhtml/Listing.php",
           "line": 88
         }
-      ]
+      ],
+      "fingerprint": "8eb77f0d0c0e187ca1c1501e94b3596158b9c38d37d44fb1ed7595e56f1b6bd5"
     },
     {
       "id": "MNT-001",
@@ -79,13 +82,15 @@
       "category": "maintainability",
       "title": "Method exceeds length guideline",
       "description": "export() is 73 lines; extract helpers.",
-      "helpUri": "https://example.test/rules/mnt-001"
+      "helpUri": "https://example.test/rules/mnt-001",
+      "fingerprint": "f8b1349cc95f1a2ebf71e4716268e8309466862103836cbca83a2ff31df885e0"
     },
     {
       "id": "MNT-002",
       "severity": "info",
       "category": "maintainability",
-      "title": "Replace magic number with a named constant"
+      "title": "Replace magic number with a named constant",
+      "fingerprint": "703b9e7fe060288aa1f4bbd2abd573437d41e5e4f3b3eb3623ed2d7ef569414f"
     }
   ],
   "skipped": [],

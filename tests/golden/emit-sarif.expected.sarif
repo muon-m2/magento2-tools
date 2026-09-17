@@ -118,6 +118,9 @@
               }
             }
           ],
+          "partialFingerprints": {
+            "m2FindingFingerprint/v1": "63226505d1de19fbcdbc13ceb4bed60c039c766f32e7a346dfc4faa65669def4"
+          },
           "taxa": [
             {
               "id": "CWE-89",
@@ -144,7 +147,10 @@
                 }
               }
             }
-          ]
+          ],
+          "partialFingerprints": {
+            "m2FindingFingerprint/v1": "d227c23497139021ba6427c91c3a51e19154ec8ad9dd66c89bd8191c2ac4e13b"
+          }
         },
         {
           "ruleId": "PERF-001",
@@ -163,7 +169,10 @@
                 }
               }
             }
-          ]
+          ],
+          "partialFingerprints": {
+            "m2FindingFingerprint/v1": "8eb77f0d0c0e187ca1c1501e94b3596158b9c38d37d44fb1ed7595e56f1b6bd5"
+          }
         },
         {
           "ruleId": "MNT-001",
@@ -182,7 +191,10 @@
                 }
               }
             }
-          ]
+          ],
+          "partialFingerprints": {
+            "m2FindingFingerprint/v1": "f8b1349cc95f1a2ebf71e4716268e8309466862103836cbca83a2ff31df885e0"
+          }
         },
         {
           "ruleId": "MNT-002",
@@ -201,7 +213,10 @@
                 }
               }
             }
-          ]
+          ],
+          "partialFingerprints": {
+            "m2FindingFingerprint/v1": "703b9e7fe060288aa1f4bbd2abd573437d41e5e4f3b3eb3623ed2d7ef569414f"
+          }
         }
       ],
       "taxonomies": [

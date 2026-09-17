@@ -50,6 +50,10 @@ Markdown, JSON, and SARIF of one run share the basename apart from the extension
 | marketplace | `marketplace` | `readiness` | script (build-findings) |
 | a11y-audit | `accessibility` | `a11y` | script (build-findings) |
 | breeze-compat | `breeze-compat` | `breeze-compat` | script (build-findings) |
+| audit | `audits` | `audit` | script (consolidate → emit-json) |
+| audit (`--compare`) | `audits` | `closure` | script (compare-findings → emit-json) |
+| triage | `remediation` | `plan` | script (emit-json) |
+| remediate | `remediation` | `report` | LLM report |
 | upgrade | `upgrades` | `upgrade` | inline (MD + JSON) |
 | test-generate | `tests` | `coverage` | LLM report |
 | docs | `docs-generated` | (run report) | LLM report |
@@ -68,6 +72,29 @@ Markdown, JSON, and SARIF of one run share the basename apart from the extension
 | message-queue | `message-queues` | (run report) | LLM report |
 | system-config | `system-config` | (run report) | LLM report |
 | data-migration | `migrations` | (run report) | LLM report |
+
+Two categories are deliberately shared, and the reason is the same in both cases — one cycle,
+one folder:
+
+- **`remediation/`** holds `triage`'s plan *and* `remediate`'s run report. They are the two
+  halves of one remediation run, and the precedent already exists (`security` and `perf-audit`
+  both write into `audits/`).
+- **`audits/`** holds `audit`'s consolidated document *and* its `--compare` closure. The
+  closure document is **`audit`'s** artifact, not `remediate`'s: exactly one skill owns
+  verdicts and scores, so the skill that executes the remediation never grades its own work.
+  `remediate`'s report links to it.
+
+## Input paths under the output root
+
+One path under the output root is an **input**, not an artifact:
+
+| Path | Owner | Purpose |
+|------|-------|---------|
+| `{output_root}/findings/waivers.yml` | `triage` | Per-fingerprint suppression decisions (false-positive / accepted-risk / wont-fix, with an optional `expires`). Read by `context/scripts/waivers-lib.sh`. |
+
+It is hand-maintained and belongs in version control. When the output root is gitignored the
+suppressions are local only and reset on the next clone — `triage` warns and suggests
+relocating it with `--waivers=<path>`.
 
 ## Orchestrated runs
 

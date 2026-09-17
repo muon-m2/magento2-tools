@@ -16,13 +16,31 @@ fi
 # `<cat>/...` for the `bug-fixes/{slug}` row) or a `/<cat>/` path. A bare substring match
 # (the old check) could be satisfied by unrelated prose even if the real entry were removed.
 for cat in reviews audits quality marketplace accessibility breeze-compat upgrades \
-           tests docs-generated deployments releases i18n bug-fixes debug \
+           remediation tests docs-generated deployments releases i18n bug-fixes debug \
            adminhtml-forms adminhtml-listings cli-commands eav-attributes \
            extension-points indexers message-queues system-config migrations widgets; do
     if ! grep -qE "\`${cat}\`|\`${cat}/|/${cat}/" "$LAYOUT"; then
         echo "FAIL: category '$cat' not registered in artifact-layout.md"; FAIL=1
     fi
 done
+
+# A category directory shared by two skills must still name BOTH owners by row. The
+# category loop above is satisfied by either owner alone, so `remediation` would still pass
+# with remediate's row deleted — and a skill whose output path is undocumented writes
+# wherever the run guesses. Same for the two kinds `audit` emits into `audits`.
+while IFS='|' read -r skill kind; do
+    if ! grep -qE "^\| *${skill} *\| *\`[a-z-]+\` *\| *\`${kind}\`" "$LAYOUT"; then
+        echo "FAIL: artifact-layout.md has no '$skill' row with kind token '$kind'"; FAIL=1
+    fi
+done <<'ROWS'
+triage|plan
+remediate|report
+audit|audit
+ROWS
+
+# audit --compare's row carries the closure kind (the row label is not a bare skill name).
+grep -qE '^\| *audit \(`--compare`\) *\| *`audits` *\| *`closure`' "$LAYOUT" \
+    || { echo "FAIL: artifact-layout.md does not register audit --compare's 'closure' kind"; FAIL=1; }
 
 # The unified scheme + the DOCS_ROOT recipe must be documented.
 grep -q 'DOCS_ROOT' "$LAYOUT" || { echo "FAIL: artifact-layout.md does not document DOCS_ROOT"; FAIL=1; }

@@ -1,13 +1,16 @@
 ---
 name: fix
-version: 1.2.1
+version: 1.3.0
 description:
     End-to-end Magento 2 bug-fix workflow. Use when the user reports a defect, error, crash,
     exception, unexpected behaviour, or regression in an existing Magento 2 module. Drives:
     reproduce → root-cause analysis → minimal patch → regression test → review → optional
     deploy → report. Requires explicit user approval at the RCA gate before any code change.
     Calls magento2-tools:review (diff mode) after the fix and magento2-tools:deploy when
-    authorized.
+    authorized. Also accepts an already-diagnosed finding from a report via
+    --from-finding=<report.json>#<id>, which pre-fills the diagnosis and lets
+    magento2-tools:remediate own the approval gate; magento2-tools:triage produces those
+    plans from a magento2-tools:audit report.
 ---
 
 # Magento 2 Bug Fix
@@ -27,6 +30,12 @@ root-cause analysis, the minimal fix, a regression test, and review across eight
   `context/references/tdd-discipline.md` — this skill applies it to defect remediation.
 - **One approval gate.** Do not change any production code until the user approves the
   root cause + proposed fix in Phase 3.
+- **Report-driven entry.** `--from-finding=<report.json>#<finding-id>` pre-fills Phases 1–2
+  from a finding that is already diagnosed, and delegates the Phase 3 approval to the calling
+  orchestrator when one is present. It skips the *interrogation*, never the *discipline* —
+  TDD, minimal change, and the mandatory regression test all still apply. A finding whose
+  `confidence` is not `confirmed` must be confirmed by reading its evidence before any test
+  is written. See `references/from-finding.md`.
 - **Minimal change.** The diff must affect only what the bug demands. No surrounding
   cleanup. No refactor. No "while we're here" edits.
 - **Regression test required, with two narrow waivers.** Every bug fix produces a test
@@ -73,14 +82,20 @@ commits land on that branch; the skill never pushes (see `references/commit-form
 Goal: have enough information to attempt reproduction.
 
 1. Parse the user's bug description.
-2. Ask for any of the following that's missing (one batch — do not interrupt later):
+2. **With `--from-finding`:** skip this question batch entirely — the finding supplies
+   symptom, scope, severity and `file:line` evidence. Record the source report path and
+   finding id in the collection notes, then go to step 3. Otherwise, ask for any of the
+   following that's missing (one batch — do not interrupt later):
     - **Symptom**: visible failure?
     - **Trigger**: action that causes it?
     - **Scope**: customer-facing / admin / REST / GraphQL / cron / queue / CLI?
     - **Environment**: production / staging / local; Magento version; module list.
     - **Error**: exact error message or stack trace.
     - **First seen**: date / commit / deploy.
-3. Pull relevant log files. Defaults (resolved against `{ctx.magento_root}`):
+3. Pull relevant log files. **With `--from-finding`,** do this only when the finding's
+   category is runtime-class (`controllers`, `cron`, `queue`, `api`, `graphql-auth`,
+   `n_plus_one`, `slow_query`); a purely static finding has nothing in `var/log` to find.
+   Defaults (resolved against `{ctx.magento_root}`):
     - `var/log/system.log`
     - `var/log/exception.log`
     - `var/log/debug.log`
@@ -100,6 +115,13 @@ Save the initial collection notes to `{output_root}/bug-fixes/{slug}/collect.md`
 ### Phase 2 — Reproduce
 
 Goal: make the failure happen deterministically.
+
+**With `--from-finding`:** the finding's `verification` string plus its `file:line` evidence
+*is* the reproduction, and the 2-attempt live-reproduction rule below does **not** apply —
+a statically derived finding has no runtime recipe to attempt, and demanding one yields a
+spurious "cannot reproduce" for a defect whose evidence is sitting in the file. Go straight
+to encoding it as the failing test in Phase 4 (step 5 below already sanctions this route).
+See `references/from-finding.md`.
 
 1. Identify the entry point (URL / CLI / cron job / queue topic).
 2. Build the minimal reproduction recipe — see `references/reproduction-patterns.md`.
@@ -138,6 +160,11 @@ Goal: locate the exact code line(s) responsible.
     - **Regression test plan**: which test class, what assertion
 6. Save RCA to `{output_root}/bug-fixes/{slug}/rca.md`.
 7. Present RCA. **Wait for explicit approval** ("proceed", "yes", "approved").
+   **Exception — invoked by `remediate`:** the RCA is still written, but the
+   approval is delegated upward: it is included in the batch presentation and the caller
+   takes ONE approval for the whole batch, then this skill proceeds without re-prompting
+   per finding. This mirrors the carve-out `review` already documents for
+   skill-to-skill invocation. Invoked standalone, `--from-finding` keeps this gate.
 
 ### Phase 4 — Patch + Regression Test (TDD)
 
@@ -238,6 +265,9 @@ already in):
 
 Optional flags:
 
+- `--from-finding=<report.json>#<finding-id>` — take the defect from an existing findings
+  document (`schemaVersion` ≥ 1.1) instead of a user description. See
+  `references/from-finding.md`.
 - `--module=<Vendor>_<Module>` — constrain RCA to a single module.
 - `--log=<path>` — additional log file beyond the defaults.
 - `--no-deploy` — skip Phase 6.
@@ -247,7 +277,7 @@ Optional flags:
 ## Outputs
 
 ```
-{output_root}/bug-fixes/{slug}/
+{output_root}/bug-fixes/{slug}/          # {fingerprint-short} under --from-finding
 ├── collect.md      # Phase 1 evidence
 ├── reproduction.md # Phase 2 recipe
 ├── rca.md          # Phase 3 RCA
@@ -275,6 +305,8 @@ Plus per-task git commits per `references/commit-format.md`.
   `debug/references/log-locations.md` for the canonical log-path catalogue.
 - `references/reproduction-patterns.md` — HTTP / CLI / cron / queue / GraphQL recipes.
 - `references/stack-trace-reading.md` — how to follow a Magento stack trace through plugins.
+- `references/from-finding.md` — report-driven entry: the phase deltas, what is NOT relaxed,
+  the delegated approval gate, and the fingerprint-keyed dossier.
 - `references/rca-format.md` — RCA document structure and required sections.
 - `references/regression-test-patterns.md` — patterns by bug class (DI, plugin, observer, query, controller).
 - `references/deferred-bugs.md` — when to file a new bug vs expand current scope.

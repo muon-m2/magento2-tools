@@ -22,6 +22,8 @@ done
 
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
+OUT_JSON="$WORK/out.json"
+FAIL=0
 
 # Run the canonical emitter with the same fixed inputs the golden test uses.
 FINDINGS_FILE="$FIX_DIR/findings.json" \
@@ -36,10 +38,10 @@ SKILL_VERSION="2.3.0" \
 SKILL_VERSIONS_JSON='["review@2.3.0","context@1.6.0"]' \
 OUTPUT_DIR="$WORK" \
 OUTPUT_BASENAME="conf" \
-bash "$EMIT_JSON" > "$WORK/out.json" 2>"$WORK/err" || {
+bash "$EMIT_JSON" > "$OUT_JSON" 2>"$WORK/err" || {
     echo "FAIL: emit-json.sh exited non-zero:"; sed 's/^/    /' "$WORK/err" >&2; exit 1; }
 
-python3 - "$SCHEMA" "$WORK/out.json" <<'PY'
+python3 - "$SCHEMA" "$OUT_JSON" <<'PY'
 import json
 import re
 import sys
@@ -80,3 +82,28 @@ print(f"emitter document carries all {len(required)} required top-level fields "
       f"({', '.join(required)})")
 sys.exit(0)
 PY
+PYRC=$?
+[ "$PYRC" -eq 0 ] || FAIL=1
+
+# schemaVersion 1.1 — every finding carries a stable fingerprint, and the two
+# remediation-cycle output kinds are accepted.
+VER="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["schemaVersion"])' "$OUT_JSON")"
+if [ "$VER" != "1.1" ]; then
+    echo "FAIL: schemaVersion is '$VER', expected '1.1'"
+    FAIL=1
+fi
+
+MISSING="$(python3 - "$OUT_JSON" <<'PY'
+import json, sys
+doc = json.load(open(sys.argv[1]))
+bad = [f.get("id", "<no id>") for f in doc.get("findings", [])
+       if not isinstance(f.get("fingerprint"), str) or len(f["fingerprint"]) != 64]
+print(",".join(bad))
+PY
+)"
+if [ -n "$MISSING" ]; then
+    echo "FAIL: findings without a 64-char fingerprint: $MISSING"
+    FAIL=1
+fi
+
+exit "$FAIL"
