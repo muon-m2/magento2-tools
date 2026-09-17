@@ -19,12 +19,17 @@ cd "$WORK"
 
 run_builder() {
     local skill="$1" expected_skill="$2" expected_kind="$3" expected_basename="$4"
-    local script="$OLDPWD/skills/${skill}/scripts/build-findings.sh"
+    # $5 overrides the script name for a builder that is not a scanner wrapper (triage
+    # consumes findings instead of producing them); $6… are extra NAME=VALUE env pairs.
+    local script_name="${5:-build-findings.sh}"
+    local extra_env=("${@:6}")
+    local script="$OLDPWD/skills/${skill}/scripts/${script_name}"
     local outdir="${WORK}/${skill}-out"
     rm -rf "$outdir"
 
-    TARGET_MODULE="Acme_Test" TARGET_PATH="src/app/code/Acme/Test" SCOPE="module" \
+    env TARGET_MODULE="Acme_Test" TARGET_PATH="src/app/code/Acme/Test" SCOPE="module" \
         SCAN_ROOT="src/app/code" COMPOSER_LOCK="/dev/null" OUTPUT_DIR="$outdir" \
+        ${extra_env[@]+"${extra_env[@]}"} \
         bash "$script" > /dev/null 2> "$outdir.err"
 
     local json="$outdir/${expected_basename}.json"
@@ -94,6 +99,11 @@ run_builder lint "lint" "quality" "Acme_Test-quality-${DATE}" || FAIL=1
 run_builder marketplace "marketplace" "marketplace" "Acme_Test-readiness-${DATE}" || FAIL=1
 run_builder a11y-audit "a11y-audit" "accessibility" "Acme_Test-a11y-${DATE}" || FAIL=1
 run_builder breeze-compat "breeze-compat" "compatibility" "Acme_Test-breeze-compat-${DATE}" || FAIL=1
+
+# triage is the consume half: it reads a findings document instead of scanning a tree, but
+# it emits through the same shared emitter and must satisfy the same JSON + SARIF contract.
+run_builder triage "triage" "remediation" "Acme_Test-plan-${DATE}" build-plan.sh \
+    "INPUT_JSON=${OLDPWD}/tests/fixtures/triage/audit-sample.json" || FAIL=1
 
 # DOCS_ROOT redirect: with DOCS_ROOT set and no OUTPUT_DIR, output must land under
 # {DOCS_ROOT}/{category}, not .docs/{category}.

@@ -68,7 +68,7 @@ Developer documentation lives in [`docs/`](docs/README.md):
 
 ## Skills
 
-34 skills under `skills/`, each self-contained (`SKILL.md` + `references/` +
+35 skills under `skills/`, each self-contained (`SKILL.md` + `references/` +
 `scripts/` + `templates/`). Per-skill flags, phases, and outputs are documented in
 [docs/skills-reference.md](docs/skills-reference.md).
 
@@ -108,6 +108,7 @@ Developer documentation lives in [`docs/`](docs/README.md):
 | `breeze-adapt` | Adapt an existing module to Breeze by generating a separate companion `{Vendor}_{Module}Breeze` module (breeze.js JS registration + `web/css/breeze` LESS + Cash `$.widget` stubs). Never edits the target. |
 | `breeze-compat` | Read-only static audit of a module's Breeze compatibility (RequireJS/Knockout/jQuery-widget/mixins). Emits ranked findings (JSON + SARIF, `outputKind=compatibility`) + a verdict. |
 | `audit` | Read-only release-readiness orchestrator: fans out every findings dimension (`review` + `security` + `perf-audit` + `lint` + `a11y-audit` + `marketplace` + `breeze-compat`) in parallel and consolidates them into ONE deduplicated, severity-ranked report + one merged SARIF (`outputKind=audit`). The *inspect* counterpart to `feature`. |
+| `triage` | Read-only: turns a findings document into an ordered, approvable remediation plan — every finding fingerprinted, waiver-checked, confidence-gated, routed to its owning skill through the shared routing matrix, and grouped into dependency-ordered batches (`outputKind=remediation`). *audit finds; triage decides who fixes.* |
 
 ### Dependency graph
 
@@ -135,6 +136,10 @@ feature           ──► module-create, review, deploy, test-generate, docs,
 audit             ──► review, security, perf-audit, lint, a11y-audit,
                       marketplace, breeze-compat   (fans out, then consolidates;
                                                     reuses emit-findings.sh)
+
+triage            ──► context                      (+ reuses route-finding.sh,
+                                                    waivers-lib.sh, emit-findings.sh;
+                                                    reads audit's document, writes a plan)
 
 fix               ──► context, review, deploy, data-migration, debug
 module-create     ──► context, docs, review
@@ -171,13 +176,15 @@ breeze-theme      ──► context
 breeze-adapt      ──► context, breeze-compat
 ```
 
-**Fix routing** (findings hand-off, not invocation): `review` and `audit` route each
-finding to its owning skill — `fix` (behavioural/localised security defects), `feature`
-(`--mode=extend`, new behaviour or schema), `test-generate` (coverage gaps), `upgrade`
-(deprecations/BC breaks), `i18n`, `frontend`, `lint`, `data-migration`, `perf-audit`,
-`security`. `debug` routes to `fix` / `perf-audit` / `security`; `security` routes to
-`upgrade` on a CVE fix. When `review` runs in diff mode *on behalf of* `feature`, `fix`,
-or `upgrade`, it returns findings to that caller instead of routing.
+**Fix routing** (findings hand-off, not invocation): every findings skill routes each
+finding to the skill that owns its remediation. The mapping is a contract, not a
+judgement call — it lives in `skills/context/references/fix-routing.md` and is resolved
+by `skills/context/scripts/route-finding.sh`, which also names the specialist owners
+(`extension-point`, `indexer`, `message-queue`, `webapi`, `graphql`, `admin-form`,
+`admin-listing`, `breeze-adapt`, `docs`) that a prose table used to funnel into `fix`.
+`triage` applies it to a whole report at once and emits the ordered plan. When `review`
+runs in diff mode *on behalf of* `feature`, `fix`, or `upgrade`, it returns findings to
+that caller instead of routing.
 
 ## Commands
 
@@ -203,6 +210,7 @@ gate. They are always namespaced:
 | `/magento2-tools:security` | `security` | Security audit — CVEs, secrets, EQP static rules, cross-module patterns |
 | `/magento2-tools:snapshot` | `debug` | One-page Magento 2 health snapshot — indexers, caches, queues, cron, versions |
 | `/magento2-tools:test` | `test-generate` | Generate unit, integration, API, JS, or MFTF tests for a Magento 2 module |
+| `/magento2-tools:triage` | `triage` | Turn a findings report into an ordered, approvable remediation plan — who fixes what, in what order |
 | `/magento2-tools:upgrade` | `upgrade` | Detect BC breaks, deprecations, and required changes when upgrading a Magento 2 module to a new Magento/PHP version (gated) |
 <!-- END GENERATED: commands -->
 
@@ -249,8 +257,8 @@ detection. Changing any override busts the resolver cache automatically.
 .claude-plugin/
   plugin.json        # plugin manifest
   marketplace.json   # this repo doubles as its own marketplace ("muon-m2")
-skills/              # 34 skills (auto-discovered by Claude Code)
-commands/            # 16 /magento2-tools:<verb> shortcut commands (auto-discovered)
+skills/              # 35 skills (auto-discovered by Claude Code)
+commands/            # 17 /magento2-tools:<verb> shortcut commands (auto-discovered)
 agents/              # first-party read-only subagents: reviewer (per-dimension review) + explorer (code comprehension/tracing)
 hooks/               # PreToolUse guard: keeps .docs/ artifacts at the project root
 tests/               # contract test harness

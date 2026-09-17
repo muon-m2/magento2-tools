@@ -47,6 +47,7 @@ the rules for bumping.
 | security        | 2.0.0   |
 | system-config   | 1.1.3   |
 | test-generate   | 1.2.1   |
+| triage          | 1.0.0   |
 | upgrade         | 1.2.0   |
 | webapi          | 1.0.3   |
 | widget          | 1.0.0   |

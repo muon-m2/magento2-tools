@@ -176,8 +176,38 @@ deduplicated, severity-ranked report + one merged SARIF. The *inspect* counterpa
   verdict + score.
 - **Outputs:** `.docs/audits/{Vendor}_{Module}-audit-{date}.md|.json|.sarif` (`outputKind=audit`);
   per-dimension artifacts remain under their own category dirs.
-- **Related:** dispatches `review` + every specialist audit; route findings to
-  `fix` / `feature` / `upgrade` for remediation.
+- **Related:** dispatches `review` + every specialist audit; `triage` turns its
+  document into an ordered remediation plan.
+
+---
+
+### triage
+
+Read-only **consume half** of the findings cycle — it takes the document `audit` (or any
+findings skill) produced and turns it into an ordered, approvable remediation plan. It never
+re-scans and never edits code. *audit finds; triage decides who fixes.*
+
+- **Invocation:** `[--from=<report.json|dir>] [--waivers=<path>] [--severity=<min>]
+  [--include=<owner,…>] [--exclude=<owner,…>] [--docs-root=<path>] [<Vendor>_<Module>]`.
+  `--from` defaults to the newest `.docs/audits/*-audit-*.json`.
+- **Phases:** context → ingest (JSON only; major `schemaVersion` mismatch is a hard error)
+  → fingerprint + dedupe across dimensions → waivers → confidence gate → route
+  (`scripts/build-plan.sh` calls `context/scripts/route-finding.sh` per finding)
+  → batch → emit + present for approval.
+- **Buckets:** `batches[]` (the execution order), `waived[]` (unexpired waivers, with reason
+  and author — reported, never counted closed), `verify_first[]` (`confidence != confirmed`,
+  or an **expired** waiver, which resurfaces the finding), `unrouted[]` (no matrix row — never
+  silently defaulted to `fix`), plus `stale_waivers[]` and `inputs[]`.
+- **Batch order** is a dependency order, not a priority order: `upgrade` → `fix` →
+  structural owners → `frontend` → `i18n` → `test-generate` → `lint` → `docs`. `lint` runs
+  last so it formats what the run produced; a Critical `lint` finding still runs last.
+- **Waivers:** `.docs/findings/waivers.yml`, keyed on each finding's `fingerprint` (a hash of
+  producer/category/title/file/snippet — *not* the line number, so it survives the patch).
+  A gitignored or untracked waivers file warns that the suppressions will reset.
+- **Outputs:** `.docs/remediation/{Vendor}_{Module}-plan-{date}.md|.json|.sarif`
+  (`outputKind=remediation`).
+- **Related:** `audit` (produces the input); `remediate` (executes the plan);
+  the owning skills each batch routes to.
 
 ---
 
@@ -757,3 +787,4 @@ key ones.
 | Scaffold a Breeze (Swissup) child theme | `breeze-theme` | `frontend` |
 | Adapt an existing module to Breeze (companion module) | `breeze-adapt` | `extension-point` / `breeze-compat` |
 | Check if a module is Breeze-compatible (static) | `breeze-compat` | `review` / `breeze-adapt` |
+| Decide who fixes an existing findings report, and in what order | `triage` | `audit` (*audit finds; triage decides who fixes*) |

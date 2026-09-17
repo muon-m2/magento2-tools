@@ -50,6 +50,7 @@ Markdown, JSON, and SARIF of one run share the basename apart from the extension
 | marketplace | `marketplace` | `readiness` | script (build-findings) |
 | a11y-audit | `accessibility` | `a11y` | script (build-findings) |
 | breeze-compat | `breeze-compat` | `breeze-compat` | script (build-findings) |
+| triage | `remediation` | `plan` | script (emit-json) |
 | upgrade | `upgrades` | `upgrade` | inline (MD + JSON) |
 | test-generate | `tests` | `coverage` | LLM report |
 | docs | `docs-generated` | (run report) | LLM report |
@@ -68,6 +69,18 @@ Markdown, JSON, and SARIF of one run share the basename apart from the extension
 | message-queue | `message-queues` | (run report) | LLM report |
 | system-config | `system-config` | (run report) | LLM report |
 | data-migration | `migrations` | (run report) | LLM report |
+
+## Input paths under the output root
+
+One path under the output root is an **input**, not an artifact:
+
+| Path | Owner | Purpose |
+|------|-------|---------|
+| `{output_root}/findings/waivers.yml` | `triage` | Per-fingerprint suppression decisions (false-positive / accepted-risk / wont-fix, with an optional `expires`). Read by `context/scripts/waivers-lib.sh`. |
+
+It is hand-maintained and belongs in version control. When the output root is gitignored the
+suppressions are local only and reset on the next clone — `triage` warns and suggests
+relocating it with `--waivers=<path>`.
 
 ## Orchestrated runs
 

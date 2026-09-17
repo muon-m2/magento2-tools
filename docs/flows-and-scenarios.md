@@ -79,7 +79,7 @@ There are two orchestrators, and they are counterparts: `feature` **builds**, `a
 
 ### Shared infrastructure
 
-Five pieces keep the 34 skills consistent:
+Five pieces keep the 35 skills consistent:
 
 1. **The context document.** One JSON object (cached at
    `.claude/.cache/context.json`) holding vendor, layout, edition, versions,
@@ -348,6 +348,45 @@ silently dropped.
 
 ---
 
+## Remediation cycle (triage)
+
+The audit pipeline answers *what is wrong*. `triage` answers **who fixes it, in what
+order** — read-only, and as a document you approve rather than a conversation you re-hold
+every run.
+
+```mermaid
+flowchart LR
+    IN[".docs/audits/*-audit-*.json<br/>(or any findings document)"] --> FP[Fingerprint<br/>dedupe across dimensions]
+    FP --> W{waivers.yml}
+    W -- active --> WB["waived[]"]
+    W -- expired --> VF["verify_first[]"]
+    FP --> C{confidence}
+    C -- "not confirmed" --> VF
+    C -- confirmed --> R[route-finding.sh<br/>over fix-routing.md]
+    R -- "no row" --> UR["unrouted[]"]
+    R -- owner --> B["batches[]<br/>dependency order, lint last"]
+    WB & VF & UR & B --> OUT[".docs/remediation/<br/>{Module}-plan-{date}.json + .sarif + .md"]
+```
+
+Four rules hold the cycle together:
+
+1. **Identity survives the fix.** A finding's `fingerprint` is a hash of
+   producer/category/subcategory/title/file/normalized-snippet — *not* its line number or
+   run date, both of which move the moment the file is patched. That is what lets a waiver
+   or a closure verdict taken in one run still apply in the next.
+2. **Routing is a contract.** `skills/context/references/fix-routing.md` maps every
+   `(producer, category)` pair the findings schema declares to an owning skill and a gate;
+   `tests/test-fix-routing-matrix.sh` fails the build if the schema grows a category the
+   matrix has no owner for. No row means `unrouted[]`, never a silent default to `fix`.
+3. **Nothing is dropped.** Waived, held-for-verification, unroutable and severity-filtered
+   findings each land in a named bucket with a reason. A waived finding is reported, never
+   counted as closed; an expired waiver *resurfaces* the finding.
+4. **Batch order is a dependency order.** `upgrade` first (it rewrites call sites the later
+   batches would otherwise patch twice), `lint` last (it formats what the run produced —
+   running it first guarantees re-churn). A Critical `lint` finding still runs last.
+
+---
+
 ## Approval-gate map
 
 Where each skill stops and waits for you:
@@ -393,6 +432,8 @@ Everything durable lands under `.docs/` in your project:
 ├── accessibility/{Vendor}_{Module}-a11y-{date}.*  # a11y-audit .md/.json/.sarif
 ├── marketplace/{Vendor}_{Module}-readiness-{date}.*   # marketplace readiness
 ├── breeze-compat/{Vendor}_{Module}-breeze-compat-{date}.*
+├── remediation/{Vendor}_{Module}-plan-{date}.*      # triage remediation plan
+├── findings/waivers.yml                            # INPUT: per-fingerprint suppressions
 ├── upgrades/{Vendor}_{Module}-upgrade-{date}.md|.json
 ├── tests/{Vendor}_{Module}-coverage-{date}.md     # test-generate coverage report
 ├── docs-generated/{Vendor}_{Module}-{date}.md     # docs run report

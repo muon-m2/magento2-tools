@@ -16,7 +16,7 @@ fi
 # `<cat>/...` for the `bug-fixes/{slug}` row) or a `/<cat>/` path. A bare substring match
 # (the old check) could be satisfied by unrelated prose even if the real entry were removed.
 for cat in reviews audits quality marketplace accessibility breeze-compat upgrades \
-           tests docs-generated deployments releases i18n bug-fixes debug \
+           remediation tests docs-generated deployments releases i18n bug-fixes debug \
            adminhtml-forms adminhtml-listings cli-commands eav-attributes \
            extension-points indexers message-queues system-config migrations widgets; do
     if ! grep -qE "\`${cat}\`|\`${cat}/|/${cat}/" "$LAYOUT"; then
