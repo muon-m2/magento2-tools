@@ -29,6 +29,8 @@ changes"*, *"deploy these modules to staging"*.
 | Performance audit | `perf-audit` | `--scope=site` |
 | Cut a release | `release` | `/magento2-tools:release Acme_Checkout` |
 | Audit everything before a release | `audit` | `/magento2-tools:audit --release-readiness Acme_Checkout` |
+| Decide who fixes each finding | `triage` | `/magento2-tools:triage` |
+| Work through a triaged plan | `remediate` | `/magento2-tools:remediate --dry-run` |
 
 ---
 
@@ -146,6 +148,62 @@ severity order, re-checking after each fix.
 **Artifacts:** Markdown report in conversation; JSON
 (`.docs/reviews/{Vendor}_{Module}-review-{date}.json`) and SARIF siblings on request or
 when invoked from another skill — the SARIF uploads straight into GitHub Code Scanning.
+
+---
+
+## Acting on an audit
+
+An audit tells you *what* is wrong. Two more steps decide *who fixes each finding* and
+prove it actually closed.
+
+```
+/magento2-tools:audit Acme_Checkout          # 1. find      → .docs/audits/…-audit-{date}.json
+/magento2-tools:triage                       # 2. decide    → .docs/remediation/…-plan-{date}.md
+/magento2-tools:remediate --dry-run          # 3. inspect   (nothing is executed)
+/magento2-tools:remediate                    # 4. fix       (one approval per batch)
+```
+
+**Triage is read-only.** It fingerprints each finding, applies your waivers, gates on
+confidence, routes each one to the skill that owns that kind of fix, and groups the work
+into dependency-ordered batches. The routing is a contract, not a judgement call — a queue
+finding goes to `message-queue`, an indexer finding to `indexer`, a Breeze finding to
+`breeze-adapt`, a missing-coverage finding to `test-generate`.
+
+Read the plan before you run anything. It separates four things you should look at
+differently:
+
+| Section | What it means |
+|---------|---------------|
+| `batches` | Confirmed findings, routed and ordered. This is the work. |
+| `verify_first` | Low-confidence findings (regex hits, CI SARIF). **Never** auto-patched — confirm by reading the evidence first. |
+| `waived` | Suppressed by your `waivers.yml`, shown with reason and author. Never silently dropped, never counted as fixed. |
+| `unrouted` | No routing rule matched. Reported honestly rather than guessed at. |
+
+**Batch order is a dependency order, not a priority order.** `upgrade` runs first because it
+rewrites call sites the later batches would otherwise patch twice; `i18n` runs once every
+user-facing string exists; `test-generate` writes tests against final code; `lint` runs
+**last** so it formats everything the run produced. Running `lint` first guarantees re-churn.
+
+**Remediate asks once per batch, not once per finding.** Each fix still lands as its own
+commit, still test-first — `fix --from-finding` skips the interview, never the discipline.
+Anything tagged `gate: manual` is listed for you and never executed: deleting a leaked
+credential from the code does not un-leak it, so rotation stays a human action.
+
+Finally, closure is measured rather than assumed:
+
+```
+/magento2-tools:audit --compare=.docs/audits/Acme_Checkout-audit-2026-09-16.json Acme_Checkout
+```
+
+This re-runs and diffs against the baseline by fingerprint, reporting what **closed**, what
+is **still open**, what was **waived** — and what **regressed**, i.e. a new finding the
+remediation itself introduced. A check that could not run is reported as **skipped**, never
+as clean.
+
+**Artifacts:** `.docs/remediation/{Vendor}_{Module}-plan-{date}.{md,json,sarif}` (triage),
+a run report alongside it (remediate), and
+`.docs/audits/{Vendor}_{Module}-closure-{date}.{md,json,sarif}` (the closure diff, owned by
+`audit` — it stays the single source of truth for verdicts and scores).
 
 ---
 

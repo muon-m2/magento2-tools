@@ -159,6 +159,49 @@ Decide once per project whether to commit `.docs/`:
 - **Ignore it** — keep reports local; CI artifacts can still be uploaded from the
   generated JSON/SARIF files.
 
+## Waivers — `.docs/findings/waivers.yml`
+
+The one file in `.docs/` that you write and the toolkit reads. It records decisions you
+have already taken about findings, so re-running an audit converges instead of re-reporting
+the same accepted risks at full severity forever.
+
+```yaml
+version: 1
+waivers:
+  - fingerprint: "a3f9c1…"            # 64-char sha256; see below
+    finding: "security/csrf: POST controller missing form key validation"
+    file: Controller/Adminhtml/Order/Save.php
+    verdict: false-positive           # false-positive | accepted-risk | wont-fix
+    reason: "Validated by the parent Action; see ADR-14"
+    author: s.autushka
+    expires: 2027-01-01               # optional
+```
+
+**Why a fingerprint and not a file:line.** A finding's `id` is regenerated on every run
+(`{skill}-{date}-{seq}`), and its line number moves the first time you patch the file.
+Neither can carry a decision forward. The fingerprint is a sha256 over
+`producer`, `category`, `subcategory`, `title`, `file` and the normalized evidence snippet —
+deliberately excluding the line number and the run date, so it survives a patch or a
+reformat. Copy it from the finding in any `.json` report.
+
+Behaviour you can rely on:
+
+- A waived finding is **reported** in the `waived` bucket with its reason and author. It is
+  never silently dropped, and never counted as closed.
+- An `expires` date in the past **resurfaces** the finding as needs-triage. Suppression that
+  outlives its own deadline is how a deferred risk becomes a forgotten one.
+- A waiver matching nothing in the current report is reported as **stale**, so dead entries
+  get pruned rather than accumulating.
+- Waivers written against a JSON report also match the same finding read back from that
+  run's SARIF. They do **not** match a foreign CI SARIF, which lacks the evidence snippet
+  the fingerprint is built from.
+
+**Commit this file.** `.docs/` is gitignored in most projects, so `triage` runs
+`git check-ignore` on it and warns when suppressions would silently reset. Either commit it
+or move it somewhere tracked with `--waivers=<path>`.
+
+---
+
 ## CI integration
 
 ### Deploy gate
