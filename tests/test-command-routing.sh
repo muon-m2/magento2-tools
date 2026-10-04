@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # test-command-routing.sh — every commands/*.md must be a well-formed thin pass-through to a
-# real skill, and the set must be exactly the 18 expected shortcuts. Write commands
-# must be user-only (disable-model-invocation: true).
+# real skill, and the set must be exactly the 18 expected shortcuts. Every command except
+# the scaffold dispatcher must be user-only (disable-model-invocation: true) so the Skill
+# tool reaches the skill, not the command stub.
 set -uo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
@@ -45,30 +46,24 @@ done <<EOF
 $EXPECTED
 EOF
 
-# 2. write commands must be user-only
-for cmd in deploy bugfix feature release upgrade lint remediate; do
-    f="$CMD_DIR/$cmd.md"
-    [ -f "$f" ] || continue
+# 2. every command except the scaffold dispatcher is user-only. With a model-invocable command
+#    sharing a skill's name, the Skill tool resolves to the thin command stub and the skill body
+#    becomes unreachable; user-only commands let the model reach the skills directly.
+for f in "$CMD_DIR"/*.md; do
+    [ -e "$f" ] || continue
+    cmd="$(basename "$f" .md)"
+    [ "$cmd" = "scaffold" ] && continue
     grep -qE '^disable-model-invocation: +true' "$f" \
-        || { echo "FAIL: write command $f must set 'disable-model-invocation: true'"; FAIL=1; }
+        || { echo "FAIL: command $f must set 'disable-model-invocation: true'"; FAIL=1; }
 done
 
-# 2b. read-only commands must NOT be user-only (auto-invokable)
-for cmd in context snapshot review security perf test i18n audit docs triage; do
-    f="$CMD_DIR/$cmd.md"
-    [ -f "$f" ] || continue
-    grep -qE '^disable-model-invocation: +true' "$f" \
-        && { echo "FAIL: read-only command $f must not set 'disable-model-invocation: true'"; FAIL=1; }
-done
-
-# 2c. the scaffold dispatcher routes to (gated) generator skills; it is itself an auto-invokable
+# 2b. the scaffold dispatcher routes to (gated) generator skills; it is itself a model-invocable
 #     entry point — the write gate lives in the target skill — so it must NOT be user-only.
-for cmd in scaffold; do
-    f="$CMD_DIR/$cmd.md"
-    [ -f "$f" ] || continue
-    grep -qE '^disable-model-invocation: +true' "$f" \
-        && { echo "FAIL: dispatcher command $f must not set 'disable-model-invocation: true' (gates live in target skills)"; FAIL=1; }
-done
+f="$CMD_DIR/scaffold.md"
+if [ ! -f "$f" ]; then echo "FAIL: missing $f"; FAIL=1
+elif grep -qE '^disable-model-invocation: +true' "$f"; then
+    echo "FAIL: dispatcher command $f must not set 'disable-model-invocation: true' (gates live in target skills)"; FAIL=1
+fi
 
 # 3. no unexpected command files, and filenames are lowercase-kebab
 for f in "$CMD_DIR"/*.md; do

@@ -207,29 +207,28 @@ gate. They are always namespaced:
 <!-- BEGIN GENERATED: commands (gen-routing.sh) -->
 | Command | Routes to | Use |
 |---------|-----------|-----|
-| `/magento2-tools:audit` | `audit` | Full release-readiness audit — every findings dimension consolidated into one ranked report + merged SARIF |
+| `/magento2-tools:audit` | `audit` | Full release-readiness audit — every findings dimension consolidated into one ranked report + merged SARIF (gated) |
 | `/magento2-tools:bugfix` | `fix` | Reproduce → root-cause → minimal TDD fix → regression test → review (gated) |
-| `/magento2-tools:context` | `context` | Resolve the Magento 2 project context — vendor, runner, versions, theme, tools |
+| `/magento2-tools:context` | `context` | Resolve the Magento 2 project context — vendor, runner, versions, theme, tools (gated) |
 | `/magento2-tools:deploy` | `deploy` | Deploy Magento 2 module.— pre-flight, ordered deploy, rollback (gated) |
-| `/magento2-tools:docs` | `docs` | Generate or refresh a module's technical documentation from its own code — README, guides, API references, CHANGELOG scaffold |
+| `/magento2-tools:docs` | `docs` | Generate or refresh a module's technical documentation from its own code — README, guides, API references, CHANGELOG scaffold (gated) |
 | `/magento2-tools:feature` | `feature` | End-to-end Magento 2 feature implementation orchestrator (gated) |
-| `/magento2-tools:i18n` | `i18n` | Extract translatable strings and manage locale CSV files for a Magento 2 module |
+| `/magento2-tools:i18n` | `i18n` | Extract translatable strings and manage locale CSV files for a Magento 2 module (gated) |
 | `/magento2-tools:lint` | `lint` | Run the static-analysis gate (phpcs, phpstan, phpmd, php-cs-fixer, rector) and apply safe auto-fixes for a Magento 2 module (gated) |
-| `/magento2-tools:perf` | `perf-audit` | Performance audit — N+1, caching, indexer/queue review |
+| `/magento2-tools:perf` | `perf-audit` | Performance audit — N+1, caching, indexer/queue review (gated) |
 | `/magento2-tools:release` | `release` | Release a Magento 2 module — version bump, changelog, tag, publish (gated) |
 | `/magento2-tools:remediate` | `remediate` | Execute an approved remediation plan batch by batch through the owning skills — one approval per batch, one commit per finding (gated) |
-| `/magento2-tools:review` | `review` | Review a Magento 2 module or diff against standards |
+| `/magento2-tools:review` | `review` | Review a Magento 2 module or diff against standards (gated) |
 | `/magento2-tools:scaffold` | `module-create` | Entry point for Magento 2 code generation — routes the request to the matching generator skill (defaults to module-create for a whole new module) |
-| `/magento2-tools:security` | `security` | Security audit — CVEs, secrets, EQP static rules, cross-module patterns |
-| `/magento2-tools:snapshot` | `debug` | One-page Magento 2 health snapshot — indexers, caches, queues, cron, versions |
-| `/magento2-tools:test` | `test-generate` | Generate unit, integration, API, JS, or MFTF tests for a Magento 2 module |
-| `/magento2-tools:triage` | `triage` | Turn a findings report into an ordered, approvable remediation plan — who fixes what, in what order |
+| `/magento2-tools:security` | `security` | Security audit — CVEs, secrets, EQP static rules, cross-module patterns (gated) |
+| `/magento2-tools:snapshot` | `debug` | One-page Magento 2 health snapshot — indexers, caches, queues, cron, versions (gated) |
+| `/magento2-tools:test` | `test-generate` | Generate unit, integration, API, JS, or MFTF tests for a Magento 2 module (gated) |
+| `/magento2-tools:triage` | `triage` | Turn a findings report into an ordered, approvable remediation plan — who fixes what, in what order (gated) |
 | `/magento2-tools:upgrade` | `upgrade` | Detect BC breaks, deprecations, and required changes when upgrading a Magento 2 module to a new Magento/PHP version (gated) |
 <!-- END GENERATED: commands -->
 
-The seven write commands (`deploy`, `bugfix`, `feature`, `release`, `upgrade`, `lint`, `remediate`) are user-invoked
-only; the read-only ten (`context`, `snapshot`, `review`, `security`, `perf`, `test`, `i18n`, `audit`, `docs`,
-`triage`) may also be auto-suggested.
+Every command except `scaffold` is user-invoked only (marked "gated" above): you type `/magento2-tools:<name>`,
+and the model reaches the underlying skills directly through the Skill tool rather than through a command stub.
 The `scaffold` dispatcher routes to `module-create` and guides generation to specialist skills.
 All arguments/flags are passed straight through to the skill, which is the source of truth for behaviour and gates.
 
