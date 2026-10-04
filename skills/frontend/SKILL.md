@@ -1,16 +1,13 @@
 ---
 name: frontend
 version: 1.0.6
-description:
-    Frontend-specific scaffolding for Magento 2 — themes, RequireJS modules, Knockout
-    components, LESS/CSS, transactional email templates, static asset wiring. Use when
-    the user wants to add frontend behaviour or a theme. Detects whether the project
-    uses Luma, Hyva, or a custom theme and generates appropriate scaffolds. For Swissup
-    Breeze (Breezefront) stores — detected via magento2-tools:context (theme.breeze) — defer
-    theme creation to magento2-tools:breeze-theme and Breeze widget/JS work to
-    magento2-tools:breeze-adapt, since Breeze replaces RequireJS/Knockout/jQuery with
-    a Cash-based stack. For a CMS widget (etc/widget.xml, insertable from Content →
-    Widgets) use magento2-tools:widget.
+description: >-
+  Frontend scaffolding for Magento 2: themes, RequireJS modules, Knockout components, LESS/CSS,
+  transactional email templates, static asset wiring. Use to add frontend behaviour or a theme.
+  Detects Luma, Hyva, or a custom theme and generates matching scaffolds. For Swissup Breeze stores
+  (magento2-tools:context theme.breeze) defer theme creation to magento2-tools:breeze-theme and
+  widget/JS work to magento2-tools:breeze-adapt. For a CMS widget (etc/widget.xml) use
+  magento2-tools:widget.
 ---
 
 # Magento 2 Frontend Create

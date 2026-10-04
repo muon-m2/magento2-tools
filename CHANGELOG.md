@@ -66,6 +66,26 @@ place of the plugin's `haiku` explorer.
   rest, and after Phase 7B asks whether to continue in place or `/clear` and start the next
   one fresh (recommended, with the next `/magento2-tools:feature ...` command printed), since
   each feature adds roughly 150-300k tokens of context.
+- **Skill descriptions trimmed to 500 characters or fewer.** 17 skills had descriptions over 500
+  characters (16 over 600, plus `admin-form` at 585), and every description is listed to the
+  model on every turn. Total description text across the 36 skills: ~21.3k to ~16.2k characters.
+  The sibling discriminators are kept, and `review` now points to `audit` for release audits;
+  `fix` deploys only when authorized. `tests/test-frontmatter-yaml.sh` (see Fixed) also fails a
+  description over 600 characters and warns above 500.
+
+### Fixed
+
+- **Seven skills were missing from the model's skill listing.** `debug`, `feature`, `fix`,
+  `module-create`, `remediate`, `upgrade` and `widget` had invalid YAML frontmatter, so requests
+  were never routed to them by description; `review`'s description parsed as a mapping instead
+  of text. New `tests/test-frontmatter-yaml.sh` fails any `SKILL.md` whose frontmatter does not
+  parse or whose `description` is not a string.
+- **Commands no longer shadow the skill of the same name.** Model-invocable commands named
+  `audit`, `context`, `docs`, `i18n`, `review`, `security` and `triage` made the Skill tool load
+  the one-line command stub instead of the skill, so orchestrators delegating to `review` or
+  `docs` never received the skill. Every command except `scaffold` is now user-only
+  (`disable-model-invocation: true`); you still type `/magento2-tools:<name>`. The alias
+  commands `perf`, `snapshot` and `test` no longer duplicate their skills in the listing.
 
 ## [2.3.0] — 2026-09-17 — An audit that tells you who fixes each finding
 

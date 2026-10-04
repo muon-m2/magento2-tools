@@ -32,7 +32,7 @@ jobs:
       - name: Install php-cli and xmllint
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends php-cli libxml2-utils
+          sudo apt-get install -y --no-install-recommends php-cli libxml2-utils python3-yaml
 
       - name: Tool versions
         run: |

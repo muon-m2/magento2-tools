@@ -38,7 +38,7 @@ check feature magento2-tools:admin-form magento2-tools:graphql magento2-tools:ea
 check system-config magento2-tools:module-create magento2-tools:admin-form
 check module-create magento2-tools:admin-form magento2-tools:graphql magento2-tools:eav-attribute
 check extension-point magento2-tools:module-create magento2-tools:feature
-check review magento2-tools:security magento2-tools:perf-audit
+check review magento2-tools:security magento2-tools:perf-audit magento2-tools:audit
 check security magento2-tools:review
 check debug magento2-tools:perf-audit
 check perf-audit magento2-tools:debug

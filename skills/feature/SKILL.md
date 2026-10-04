@@ -1,19 +1,13 @@
 ---
 name: feature
 version: 2.15.2
-description:
-  End-to-end Magento 2 feature implementation orchestrator. Use when the user asks to add,
-  change, build, or implement any Magento 2 functionality — from a simple model change to a
-  multi-module integration. Drives the full lifecycle: requirement analysis, blueprint, module
-  schema, task breakdown, code generation, review, unit tests, smoke testing, and final report.
-  Requires user approval at two gates before writing code.
-  Calls magento2-tools:module-create, magento2-tools:review, and routes findings to
-  fix / debug / perf-audit / frontend / security.
-  Also use to resume, continue, pick up, or finish a feature when the request names a specific
-  feature folder under `.docs/` (e.g. "resume ./.docs/CaseManagement"): the skill loads that
-  folder's plan.md and resumes from the first unchecked task. Without an explicit
-  `.docs/{FeatureName}` path, treat the request as a new feature and start from Phase 1.
-  Single-surface: use magento2-tools:admin-form, magento2-tools:graphql, or magento2-tools:eav-attribute.
+description: >-
+  End-to-end Magento 2 feature orchestrator: add, change, build, or implement Magento 2
+  functionality, from one change to a multi-module integration (blueprint, code, review, tests,
+  report). Two user-approval gates before any code. Also resumes/continues a `.docs/{FeatureName}`
+  feature folder. One surface on an existing module: magento2-tools:cli-command (CLI/cron),
+  magento2-tools:system-config, magento2-tools:eav-attribute, magento2-tools:admin-form,
+  magento2-tools:graphql.
 ---
 
 # Magento 2 Feature Implement

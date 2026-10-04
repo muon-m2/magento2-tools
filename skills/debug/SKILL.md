@@ -1,10 +1,10 @@
 ---
 name: debug
 version: 1.3.1
-description:
-    Interactive Magento 2 debugging assistant. Use when the user wants to inspect logs,
+description: >-
+    Magento 2 debugging assistant. Use when the user wants to inspect logs,
     trace plugins or observers for a given event, inspect the DI graph, find slow
-    queries, or get a snapshot of indexer/queue/cron state. Read-only by default —
+    queries, or get a health snapshot of indexer/queue/cron state. Read-only by default —
     produces a diagnostic report without modifying code. Mode-driven: logs / trace / di /
     slow-queries / snapshot / xdebug. Read-only single-session inspection; for severity-ranked,
     actionable performance findings (N+1, caching) use magento2-tools:perf-audit.

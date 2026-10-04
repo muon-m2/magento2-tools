@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # gen-routing.sh — regenerate the README command-routing table from commands/*.md
-# (the single source of truth: each command's frontmatter description, gating flag,
+# (the single source of truth: each command's frontmatter description
 # and the skill its body routes to). Also validates, in --check mode, that the
 # hand-written skill tables (README "Skill | Purpose", docs/skills-reference.md
 # intent tables) reference only skills that exist and omit none, so those editorial
@@ -39,14 +39,13 @@ for fname in sorted(os.listdir('commands')):
     # Drop the trailing "(<skill>)" attribution and any follow-on sentences.
     desc = re.sub(r'\s*\((?:magento2-tools:)?[a-z][a-z0-9-]*\)\s*\.?', '.', desc)
     desc = desc.split('. ')[0].rstrip('.')
-    gated = bool(re.search(r'^disable-model-invocation:\s*true', front, re.M))
     sm = re.search(r'magento2-tools:([a-z][a-z0-9-]+)', body)
     if not sm:
         sys.exit(f"FAIL: commands/{fname} body names no magento2-tools:* skill")
     skill = sm.group(1)
     if not os.path.isdir(os.path.join('skills', skill)):
         sys.exit(f"FAIL: commands/{fname} routes to non-existent skill {skill}")
-    rows.append((name, skill, desc + (' (gated)' if gated else '')))
+    rows.append((name, skill, desc))
 
 lines = ['| Command | Routes to | Use |', '|---------|-----------|-----|']
 for name, skill, use in rows:

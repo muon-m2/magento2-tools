@@ -1,15 +1,13 @@
 ---
 name: module-create
 version: 1.10.3
-description:
-    Create a new Magento 2 module under the project's vendor namespace. Use when asked to create,
-    scaffold, generate, or build a Magento 2 module, extension, component, or package. Produces a
-    module where every generated file immediately passes all 12 magento2-tools:review categories.
-    The skill is surface-driven: it only creates files required for declared surfaces and never
-    leaves empty placeholder files. Works without a running Magento instance, Docker, or installed
-    Composer dependencies. For a standalone admin form use magento2-tools:admin-form, a GraphQL
-    surface use magento2-tools:graphql, or a single EAV attribute use magento2-tools:eav-attribute —
-    this skill scaffolds a new module/extension, not a single sub-surface.
+description: >-
+  Create a new Magento 2 module under the project's vendor namespace. Use when asked to create,
+  scaffold, generate, or build a Magento 2 module, extension, component, or package. Generated files
+  pass all 12 magento2-tools:review categories. Surface-driven: creates only files for declared
+  surfaces. Works without a running Magento instance or Docker. For a standalone admin form use
+  magento2-tools:admin-form, a GraphQL surface magento2-tools:graphql, or one EAV attribute
+  magento2-tools:eav-attribute.
 ---
 
 # Magento 2 Module Create

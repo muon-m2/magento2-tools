@@ -1,14 +1,12 @@
 ---
 name: admin-form
 version: 1.1.2
-description:
-    Generate a Magento 2 adminhtml UI-component edit form — the modern declarative
-    ui_component/{entity}_form.xml plus its DataProvider, button blocks, and the
-    New/Edit/Save/Delete controllers wired to a listing. Use when the user wants to add or
-    scaffold a new admin form, an entity edit page, a "New/Edit" backend screen, fieldsets,
-    a WYSIWYG field, a toggle, dynamic-rows, or file/image uploaders in the Magento admin.
-    Detects edition (Open Source vs Adobe Commerce) and flags Commerce-only form features.
-    Produces files that pass magento2-tools:review with zero Critical/High findings.
+description: >-
+  Generate a Magento 2 adminhtml UI-component edit form: `ui_component/{entity}_form.xml` plus
+  DataProvider, buttons, and New/Edit/Save/Delete controllers wired to a listing. Use to add or
+  scaffold an admin form, entity edit page, backend screen, fieldsets, WYSIWYG field, toggle,
+  dynamic-rows, or file/image uploaders in the Magento admin. Detects edition and flags
+  Commerce-only features. For the grid use magento2-tools:admin-listing.
 ---
 
 # Magento 2 Adminhtml Form

@@ -1,16 +1,13 @@
 ---
 name: security
 version: 2.0.0
-description:
-    Site-wide and per-module security audit for Magento 2. Use when the user requests a
-    security review, a pre-release security check, an audit covering dependency CVEs or
-    secret leakage, or a Marketplace EQP scan. Produces findings ranked by the shared
-    severity scale in Markdown, JSON, and SARIF. Combines a live composer audit, Adobe
-    patch-state verdicts (vendor/bin/patch-status), secret scanning, Marketplace EQP
-    static rules, and cross-module pattern detection — no advisory data ships with the
-    skill; everything is resolved live at scan time. This is cross-module,
-    dependency-level, and repo-wide depth; for per-module
-    security findings within a general architecture/quality review use magento2-tools:review.
+description: >-
+  Site-wide and per-module security audit for Magento 2. Use for a security review, pre-release
+  security check, dependency CVE or secret-leakage audit, or Marketplace EQP scan. Produces
+  severity-ranked findings (Markdown, JSON, SARIF) from a live composer audit, Adobe patch-state
+  verdicts, secret scanning, EQP static rules, and cross-module patterns. Cross-module,
+  dependency-level, repo-wide depth; for per-module security findings within a general quality
+  review use magento2-tools:review.
 ---
 
 # Magento 2 Security Audit
