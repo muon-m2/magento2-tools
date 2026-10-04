@@ -94,7 +94,8 @@ checklist with zero post-creation fixes required.
       confirmation before generating.
 
 3. **Create directory structure.**
-    - Run `${CLAUDE_SKILL_DIR}/scripts/create-dirs.sh {Vendor} {ModuleName} {surface...}` from the workspace root.
+    - Run `${CLAUDE_SKILL_DIR}/scripts/create-dirs.sh {Vendor} {ModuleName} {surface...}` from the workspace root (prints a one-line summary;
+      `VERBOSE=1` adds the per-surface lines and directory tree).
       Resolve `{Vendor}` from `context.vendor` and export `MODULE_DIR` from
       `context.module_dir` so the script writes to the correct path (it auto-detects
       `src/app/code` vs `app/code` if `MODULE_DIR` is not set).
@@ -188,6 +189,7 @@ checklist with zero post-creation fixes required.
     - **Run the creation gate:** `${CLAUDE_SKILL_DIR}/scripts/verify-created.sh {module_path}`. It checks
       the required files (incl. `LICENSE.txt`), composer metadata (no wildcard constraints, `authors`),
       and the copyright header on every PHP file. Treat any ✗ as blocking — fix and re-run before Step 6.
+      Output is quiet by default (every ⚠/✗ + a tally); `VERBOSE=1` adds the per-check ✓ lines.
     - Run available quality tools opportunistically (phpcs, phpstan) using the same probing approach as
       `review`. Unavailable tools are reported, not treated as failures.
     - Do NOT run `bin/magento setup:di:compile`, `setup:upgrade`, or

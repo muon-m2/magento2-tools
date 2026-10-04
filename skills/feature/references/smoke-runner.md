@@ -169,7 +169,8 @@ and two of them never touch `exception.log`. Full mechanics, level policy, attri
 exit codes: `error-signal-baseline.md`. Do not re-derive them here.
 
 ```bash
-# S1 — capture. Second arg is {ctx.magento_root}; omit to auto-resolve.
+# S1 — capture. Second arg is {ctx.magento_root}; omit to auto-resolve. Prints 2 lines;
+#      VERBOSE=1 adds the root/size/timestamp echo (it is all in the baseline file anyway).
 scripts/smoke-baseline.sh .docs/{FeatureName}/smoke/baseline.txt {ctx.magento_root}
 
 # S8 — diff. --namespace takes every module the feature owns (comma-separated); it is what
