@@ -113,7 +113,11 @@ ctx = context_tokens(payload.get("transcript_path"))
 if ctx is None or ctx <= limit:
     sys.exit(0)
 
-k = f"~{round(ctx / 1000)}k"
+def tokens(n):
+    return f"{round(n / 1000)}k tokens" if n >= 1000 else f"{n} tokens"
+
+
+k = "~" + tokens(ctx)
 model_note = (
     f"magento2-tools context-budget: ctx_tokens={ctx} threshold={limit} status=above "
     f"(entry magento2-tools:{entry}). Per context/references/execution-modes.md, execution mode "
@@ -122,9 +126,9 @@ model_note = (
 if event == "UserPromptSubmit":
     out = {
         "systemMessage": (
-            f"magento2-tools: this conversation already holds {k} tokens of context, and every turn "
+            f"magento2-tools: this conversation already holds {k} of context, and every turn "
             f"of /magento2-tools:{entry} re-reads all of it. For a much cheaper run: /clear, then "
-            f"re-run the same command. (Warning threshold {round(limit / 1000)}k; set "
+            f"re-run the same command. (Warning threshold {tokens(limit)}; set "
             f"MAGENTO2_TOOLS_CTX_WARN to change it, 0 to disable.)"
         ),
         "hookSpecificOutput": {
@@ -138,7 +142,7 @@ else:
             "hookEventName": "PreToolUse",
             "additionalContext": model_note + (
                 f" At the next natural stopping point (a phase boundary or an approval gate), tell "
-                f"the user once that the conversation holds {k} tokens and recommend /clear, then "
+                f"the user once that the conversation holds {k} and recommend /clear, then "
                 f"resuming from the run's on-disk artifacts."
             ),
         },

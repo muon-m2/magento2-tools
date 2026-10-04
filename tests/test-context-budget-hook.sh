@@ -120,6 +120,14 @@ for token in '~727k' '/magento2-tools:fix' '/clear' 'MAGENTO2_TOOLS_CTX_WARN'; d
     esac
 done
 
+# A sub-1000 threshold must print as itself, never as "0k".
+msg="$(MAGENTO2_TOOLS_CTX_WARN=500 bash "$HOOK" <<<"$(prompt_payload "$tmp/small.jsonl" '/magento2-tools:fix x')" 2>/dev/null \
+    | python3 -c 'import json,sys; print(json.load(sys.stdin)["systemMessage"])')"
+case "$msg" in
+    *"threshold 500 tokens"*) printf '  ok   small threshold printed verbatim\n' ;;
+    *) printf '  FAIL small threshold misprinted: %s\n' "$msg"; FAIL=1 ;;
+esac
+
 # Registration: both events wired in the plugin's hooks.json, through the plugin root.
 python3 - <<'PY' || FAIL=1
 import json, sys
