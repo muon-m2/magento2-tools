@@ -1,6 +1,6 @@
 # Core Rules — Full Text
 
-Part of the `feature` skill — read at session start, and whenever a condensed Core Rule in SKILL.md needs its full text.
+Part of the `feature` skill — read at any phase, when a rule's one-liner in SKILL.md is not enough (before acting on a rule's edge case).
 
 - **Mode-driven.** Pick a mode in Phase 1 (`feature`, `hotfix`, `extend`, `spike`).
   See `references/modes.md`. Default: `feature`. `hotfix` skips Phases 3-4 entirely;

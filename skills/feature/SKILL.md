@@ -23,7 +23,7 @@ the full implementation from analysis through tested, reviewed, reported deliver
 
 ## Core Rules
 
-Full text of condensed rules: `references/core-rules-detail.md`.
+Read `references/core-rules-detail.md` when a rule's one-liner is not enough.
 
 - **Mode-driven.** Pick `feature` (default), `hotfix`, `extend` or `spike` in Phase 1 (`references/modes.md`); `hotfix` skips Phases 3-4, `extend` only 3.
 - **Two approval gates.** Do not write any code until the user approves both the feature blueprint
@@ -41,7 +41,7 @@ Full text of condensed rules: `references/core-rules-detail.md`.
   implementation complete with failing tests.
 - **Test-first for behaviour (opt-in).** TDD on (`--tdd`, CLAUDE.md, `MAGENTO2_FI_TDD=1`): behaviour-bearing `M*`/`X*` tasks run red → green → refactor; `spike` exempt (`references/tdd-mode.md`).
 - **Smoke before report.** Phase 6 runs **6A** (unit tests + coverage) then **6B** (smoke battery); Phase 7 waits until no Critical/High smoke finding is open.
-- **Smoke tooling is policy, not preference.** `curl` for REST/GraphQL; **headless** browser for admin/storefront, else curl tier + Medium finding (`context/references/runtime-test-tooling.md`).
+- **Smoke tooling is policy, not preference.** `curl` for REST/GraphQL; **headless** browser for admin/storefront, never headed or a browser-automation MCP server; no browser ⇒ curl tier + Medium finding. A user directive outranks every probe (`context/references/runtime-test-tooling.md`).
 - **Smoke loop is bounded.** Critical/High smoke findings are auto-routed to the right
   sub-skill of this pack for remediation, then Phase 6 re-runs from 6A. The loop halts at **5
   iterations** and asks the user how to proceed (`retry` / `accept-known-issues <IDs>` / `abort`).
@@ -52,7 +52,7 @@ Full text of condensed rules: `references/core-rules-detail.md`.
 - **Document before report (required).** 7B may not start until the 7A documentation set is on disk and current (`references/documentation-guide.md`).
 - **Guides and user docs are HTML.** One shared inline CSS color schema; each HTML file declares `<meta charset="utf-8">` first in `<head>`.
 - **Per-task git commits (opt-in).** `--per-task-commits`, CLAUDE.md or `MAGENTO2_FI_PER_TASK_COMMITS=1` ⇒ one commit per Phase 5 task (`references/per-task-commits.md`).
-- **Model tiering.** Advisory `Model tier` per task; every `Agent` call sets `model`, and comprehension/findings go to `explorer`/`reviewer`, never `Explore`/`general-purpose`.
+- **Model tiering.** Advisory `Model tier` per task; every `Agent` call sets `model`, and comprehension/findings go to `explorer`/`reviewer`, never `Explore`/`general-purpose` (`context/references/execution-modes.md` §"Subagent dispatch").
 - **Delegate by probing, never by assumption.** Attempt the sub-skill's `Skill` call; fall back inline only on a real failure, and record it. Never pre-declare one unreachable.
 - **Deploy delegation.** D* tasks delegate to `deploy` (module list + environment); `feature` never runs `bin/magento` itself.
 - **One artifact home.** Every sub-skill is invoked with `--docs-root=.docs/{FeatureName}`
@@ -119,7 +119,7 @@ skill treats the request as a new feature.
 
 **Goal:** understand the feature well enough to write a complete blueprint.
 
-Pick the mode, resolve `{Vendor}` (never hardcoded), ask clarifying questions in one batch, state your understanding.
+Pick the mode, resolve `{Vendor}` (prefer `{ctx.vendor}`; never hardcoded), ask clarifying questions in one batch, state your understanding.
 **Read `references/phase1-4-design.md` before starting this phase.**
 
 ---
@@ -244,6 +244,7 @@ Each delegates with `--docs-root=.docs/{FeatureName}` and ends with **"→ run t
 ## Phase 6 — Test
 
 **6A** unit tests + coverage, then **6B** smoke battery; each iteration re-enters from 6A, halting at 5 per **Smoke loop is bounded**.
+Refuse to run against production unless `CLAUDE.md` contains `Allow smoke on production: true`.
 **Read `references/phase6-test.md` before starting this phase.**
 
 ---
@@ -259,7 +260,7 @@ Each delegates with `--docs-root=.docs/{FeatureName}` and ends with **"→ run t
 
 | Reference | Read when |
 |---|---|
-| `references/core-rules-detail.md` | a rule needs full text |
+| `references/core-rules-detail.md` | a rule's one-liner is not enough |
 | `references/feature-folder-structure.md` | Phase 2 |
 | `references/modes.md` | Phase 1 |
 | `references/phase1-4-design.md` | Phases 1–4 |
