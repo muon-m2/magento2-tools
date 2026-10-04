@@ -1,17 +1,13 @@
 ---
 name: docs
 version: 1.4.1
-description:
-    Generate or refresh a module's technical documentation from its own code — public
-    @api surface, events, plugins, REST/GraphQL routes, DB schema, dependencies — plus
-    a README, developer guide, user guide (when a user surface exists), REST API reference
-    (when REST routes exist), GraphQL reference (when GraphQL ops exist), technical
-    reference, and CHANGELOG scaffold with illustrative examples derived from the schema.
-    For a module with `etc/webapi.xml` it also emits machine-readable API description
-    artifacts under `{module}/docs/api/` — OpenAPI 3.1, a JetBrains `.http` file with a
-    secret-free env, and a Postman v2.1 collection + environment — with no live-instance
-    dependency. Use for 'document this module' / 'generate module docs'. Never modifies
-    source. For an architecture/quality review use `magento2-tools:review`.
+description: >-
+  Generate or refresh a module's technical documentation from its own code: README, guides,
+  REST/GraphQL references, and CHANGELOG scaffold covering the @api surface, events, plugins,
+  routes, and DB schema. For modules with `etc/webapi.xml` it also emits OpenAPI 3.1, a `.http`
+  file, and a Postman collection, with no live instance needed. Use for 'document this module' /
+  'generate module docs'. Never modifies source. For an architecture/quality review use
+  `magento2-tools:review`.
 ---
 
 # Magento 2 Docs Generate

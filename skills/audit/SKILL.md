@@ -2,17 +2,12 @@
 name: audit
 version: 1.1.0
 description: >-
-  Use when the user wants a full pre-release, release-readiness, or "audit everything" pass over a
-  Magento 2 module or codebase — one command that runs every read-only findings dimension and
-  returns a SINGLE consolidated, de-duplicated, severity-ranked report plus one merged SARIF for CI
-  / GitHub Code Scanning. Fans the dimensions out in parallel: architecture/quality/security review
-  via the `reviewer` agent per dimension, plus the specialist audits
-  `magento2-tools:security`, `magento2-tools:perf-audit`, `magento2-tools:lint`,
-  `magento2-tools:a11y-audit`, `magento2-tools:marketplace`, and `magento2-tools:breeze-compat`
-  where the module's surface warrants — then consolidates. Read-only; never modifies code. For a
-  SINGLE dimension, invoke that skill directly (`magento2-tools:review`, `magento2-tools:security`,
-  `magento2-tools:perf-audit`); to BUILD or change functionality rather than inspect it, use
-  `magento2-tools:feature`.
+  Use for a full pre-release or "audit everything" pass over a Magento 2 module or codebase: runs
+  every read-only findings dimension in parallel, returns ONE ranked report plus a merged SARIF.
+  Covers magento2-tools:review, magento2-tools:security, magento2-tools:perf-audit,
+  magento2-tools:lint, magento2-tools:a11y-audit, magento2-tools:marketplace,
+  magento2-tools:breeze-compat. Read-only. For ONE dimension invoke that skill; to BUILD or change
+  functionality use magento2-tools:feature.
 ---
 
 # Magento 2 Audit

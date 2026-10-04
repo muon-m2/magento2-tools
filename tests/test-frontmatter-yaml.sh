@@ -4,7 +4,9 @@
 # containing `: `) silently disappears from the model's skill listing. Every
 # skills/*/SKILL.md and commands/*.md must have a `---`-delimited frontmatter that
 # yaml.safe_load()s to a dict with a non-empty string `description`; skills' `name` must
-# equal the directory name. Needs python3 + PyYAML (SKIP when absent; FAIL under $CI).
+# equal the directory name. Skill descriptions are the model's only routing text and sit in the
+# listing every turn: FAIL when one exceeds 600 chars (whitespace-normalised), WARN above 500.
+# Needs python3 + PyYAML (SKIP when absent; FAIL under $CI).
 set -uo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
@@ -27,6 +29,8 @@ import yaml
 
 fail = 0
 checked = 0
+DESC_FAIL = 600
+DESC_WARN = 500
 
 def check(path, is_skill):
     global fail, checked
@@ -51,6 +55,13 @@ def check(path, is_skill):
     if not isinstance(desc, str) or not desc.strip():
         print(f"FAIL: {path} description must be a non-empty string (got {type(desc).__name__})")
         fail = 1
+    elif is_skill:
+        n = len(' '.join(desc.split()))
+        if n > DESC_FAIL:
+            print(f"FAIL: {path} description is {n} chars (max {DESC_FAIL}; trim to <= {DESC_WARN})")
+            fail = 1
+        elif n > DESC_WARN:
+            print(f"WARN: {path} description is {n} chars (target <= {DESC_WARN})")
     if is_skill:
         dirname = os.path.basename(os.path.dirname(path))
         if data.get('name') != dirname:

@@ -1,14 +1,12 @@
 ---
 name: webapi
 version: 1.0.3
-description:
-    Contract-first generator for Magento 2 REST / Web-API surfaces. Use when the user wants to
-    expose an existing entity over REST — add an endpoint, service contract, repository, or
-    custom action. Generates webapi.xml routes, Api/ service-contract + Api/Data DTO interfaces,
-    a full repository implementation, di.xml preferences, acl.xml, and Web-API functional tests.
-    Goes beyond magento2-tools:module-create's webapi stubs by handling SearchCriteria, per-route auth
-    scopes, exception-to-HTTP mapping, extension attributes, and optional custom-action endpoints.
-    Assumes the entity model already exists (created by magento2-tools:module-create).
+description: >-
+  Contract-first generator for Magento 2 REST / Web-API surfaces. Use to expose an existing entity
+  over REST: add an endpoint, service contract, repository, or custom action. Generates webapi.xml,
+  Api/ + Api/Data interfaces, a repository, di.xml, acl.xml, and API tests. Goes beyond
+  magento2-tools:module-create's webapi stubs with SearchCriteria, per-route auth scopes, and
+  extension attributes. Assumes the entity model already exists (from magento2-tools:module-create).
 ---
 
 # Magento 2 Web API Create

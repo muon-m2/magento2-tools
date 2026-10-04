@@ -1,14 +1,12 @@
 ---
 name: admin-listing
 version: 1.1.3
-description:
-    Generate a Magento 2 adminhtml UI-component listing/grid — the declarative
-    `ui_component/{entity}_listing.xml` plus its DataProvider, columns, actions column, and mass
-    actions, wired to an existing edit form. Use when the user wants to add or scaffold an admin
-    grid, data grid, listing page, grid columns, filters, mass actions, or an actions column in
-    the Magento admin. Pairs with magento2-tools:admin-form (the edit form); for the form itself use
-    magento2-tools:admin-form. Detects edition and flags Commerce-only grid features. Produces files
-    that pass magento2-tools:review with zero Critical/High findings.
+description: >-
+  Generate a Magento 2 adminhtml UI-component listing/grid: `ui_component/{entity}_listing.xml` plus
+  DataProvider, columns, actions column, and mass actions, wired to an existing edit form. Use to
+  add or scaffold an admin grid, data grid, listing page, filters, or mass actions. Pairs with
+  magento2-tools:admin-form (the edit form); for the form itself use magento2-tools:admin-form.
+  Detects edition and flags Commerce-only grid features.
 ---
 
 # Magento 2 Adminhtml Listing

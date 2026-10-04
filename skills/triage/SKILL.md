@@ -1,18 +1,12 @@
 ---
 name: triage
 version: 1.0.0
-description:
-    Read-only triage of Magento 2 findings documents — turns an audit/review/security/performance
-    JSON report into an ordered, approvable remediation plan. Each finding is fingerprinted,
-    checked against the project's waivers, gated on confidence, routed to the skill that owns its
-    fix through the shared routing matrix, and grouped into dependency-ordered batches (upgrade →
-    fix → structural → frontend → i18n → test-generate → lint → docs). Use when the user asks who
-    should fix these findings, wants a remediation order or fix plan, or asks to triage a report.
-    Consumes the documents magento2-tools:audit and the other findings skills emit — it never
-    re-scans and never edits code. Hand the emitted plan to magento2-tools:remediate to execute it,
-    or invoke the owning skill (e.g. magento2-tools:fix) batch by batch. To produce findings for a
-    single dimension first, run magento2-tools:review, magento2-tools:security or
-    magento2-tools:perf-audit directly.
+description: >-
+  Read-only triage of Magento 2 findings reports: turns an audit/review/security/performance JSON
+  report into an ordered, approvable remediation plan, each finding routed to the skill owning its
+  fix. Use to ask who should fix findings, for a fix order, or to triage a report. Never re-scans or
+  edits code. Consumes magento2-tools:audit output; hand the plan to magento2-tools:remediate or the
+  owning skill (e.g. magento2-tools:fix). Fresh findings: magento2-tools:review.
 ---
 
 # Magento 2 Findings Triage
