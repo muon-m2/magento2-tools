@@ -18,7 +18,7 @@ from the phase lists below.
 **Execution mode.** The findings/RCA family — `audit`, `review`, `security`,
 `perf-audit`, `a11y-audit`, `marketplace`, and `fix` — accepts `--agents` or `--inline`
 on any invocation, with a per-project default from `"execution_mode"` in
-`.claude/m2.json`. See [Configuration](configuration.md#execution-modes-agents-vs-inline).
+`.claude/m2.json`; with neither, `audit` fans out and the rest run `auto`. See [Configuration](configuration.md#execution-modes-agents-inline-auto).
 
 **Output root.** Every artifact-producing skill accepts `--docs-root={path}` to relocate
 its output from `.docs/` (see [Configuration](configuration.md#output-conventions)).

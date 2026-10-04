@@ -10,6 +10,8 @@ description: >-
   Never modifies code. Examples — "review the security dimension of app/code/Acme/OrderExport";
   "audit the performance surfaces of Acme_Catalog and return ranked findings".
 tools: Glob, Grep, Read, Bash
+model: sonnet
+maxTurns: 80
 ---
 
 You are a Magento 2 module reviewer. You perform a thorough, **read-only** review of a module (or

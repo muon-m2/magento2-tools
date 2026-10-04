@@ -31,6 +31,13 @@ for f in agents/*.md; do
     printf '%s\n' "$fm" | grep -qE '^description:' || { echo "FAIL: $f missing description"; FAIL=1; }
     printf '%s\n' "$fm" | grep -qE '^tools:'        || { echo "FAIL: $f missing tools"; FAIL=1; }
 
+    # Cost guardrails: an agent with no model inherits the session model (Opus in practice), and
+    # one with no turn cap can run away on a large module — pin both explicitly.
+    printf '%s\n' "$fm" | grep -qE '^model: +(haiku|sonnet|opus|fable|inherit)$' \
+        || { echo "FAIL: $f must pin model: haiku|sonnet|opus|fable|inherit"; FAIL=1; }
+    printf '%s\n' "$fm" | grep -qE '^maxTurns: +[1-9][0-9]*$' \
+        || { echo "FAIL: $f must cap maxTurns with a positive integer"; FAIL=1; }
+
     # read-only enforcement: a review/audit agent must not declare a write tool. Scope to the
     # `tools:` declaration (its line + any indented list items), so the YAML-list form is covered.
     if grep -qiE 'review|audit' "$f"; then

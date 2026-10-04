@@ -62,20 +62,28 @@ For the **inventory / comprehension step** (understanding the module's execution
 points, and cross-module dependencies before judging them), prefer
 `subagent_type: 'explorer'` (defined in `agents/explorer.md`) — it produces a
 structured comprehension map and Mermaid call-chain diagram. Fall back to `subagent_type: 'Explore'`
-if `explorer` is unavailable, then to `subagent_type: 'claude'`. Run the explorer step
+if `explorer` is unavailable, then to `subagent_type: 'claude'` — still passing `model: "haiku"`,
+because a built-in agent dispatched without a `model` inherits the session model. Run the explorer step
 first; pass its comprehension map to the per-dimension `reviewer` subagents so they start
 with a shared understanding of the module's structure. The per-dimension judging still uses
 `reviewer`. When dispatching `explorer`, pass `model` from the `CLAUDE.md`
 directive `Explorer model: {tier}` if the project sets one; otherwise the agent's own default tier
-(`haiku`) applies. This keeps the read-only comprehension pass cheap without affecting the
-per-dimension `reviewer` judging, which is never downgraded.
+(`haiku`) applies. This keeps the read-only comprehension pass cheap; the per-dimension `reviewer` judging is
+tiered separately (Model Guidance below).
 
 ## Model Guidance
 
-In Claude Code, pass the `model` parameter on the `Agent` tool call to control per-subagent model selection:
+In Claude Code, pass the `model` parameter on **every** `Agent` tool call — it overrides the agent's
+frontmatter default. `reviewer` defaults to `sonnet` (capped at 80 turns); `explorer` defaults to
+`haiku` (capped at 50).
 
-- Pass `model: "opus"` for security and architecture subtasks (final synthesis, auth/ACL review, DI analysis).
+- Pass `model: "opus"` for the **Security** and **Architecture/API** dimensions (auth/ACL review,
+  DI analysis) — these are never downgraded.
+- Pass `model: "sonnet"` for the other review dimensions (Frontend/admin, Testing/tooling,
+  Performance/operations).
 - Pass `model: "haiku"` for bounded evidence collection, file inventories, and mechanical checklist passes.
+- Final synthesis (dedup, severity normalization, tie-breaking) stays with this skill in the main
+  conversation — it is never delegated.
 - The read-only `explorer` inventory pass defaults to `haiku` (set in its agent
   frontmatter); override per project with the `CLAUDE.md` directive `Explorer model: {tier}`.
 - Do not ask subagents to edit files unless the user requested fixes and each subagent has a disjoint write scope.

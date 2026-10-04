@@ -226,7 +226,8 @@ pass this to collect a run's artifacts under one folder.
 
 ## Execution Mode
 
-Default: **inline**. In `agents` mode (`--agents` flag, or `execution_mode` in
+Default: **auto** — `agents` when the plugin's context-budget hook reports this conversation
+above its threshold, `inline` otherwise. In `agents` mode (`--agents` flag, or `execution_mode` in
 `.claude/m2.json` surfaced as `{ctx.execution_mode}` — selection contract in
 `context/references/execution-modes.md`) the judgement
 passes of this skill are dispatched to the read-only `reviewer` agent with a security

@@ -100,15 +100,18 @@ the full implementation from analysis through tested, reviewed, reported deliver
   `Feature implement: per-task commits = on`, or `MAGENTO2_FI_PER_TASK_COMMITS=1` is set,
   every completed task in Phase 5 produces a focused git commit. See
   `references/per-task-commits.md` for format, scoping rules, and failure handling. Off by default.
-- **Model tiering (advisory).** Each Phase 4 task record carries a `Model tier (advisory)` field
+- **Model tiering.** Each Phase 4 task record carries a `Model tier (advisory)` field
   (`opus`/`sonnet`/`haiku`) recommending the tier that task would ideally run on — see
-  `references/task-breakdown-guide.md` §"Model tier (advisory)". It is **advisory only**: the
-  harness cannot pin a Skill-tool sub-skill invocation to a specific model, so every sequential
-  task runs on the session model regardless of its tier. The field guides manual `/model`
-  switching and future per-skill model pinning if the harness gains it. The **one** place a
-  tier takes live effect is the read-only `explorer` subagent, whose default tier is
-  `haiku` — overridable per project via the `CLAUDE.md` directive `Explorer model: {tier}`
-  (`haiku`/`sonnet`/`opus`). `reviewer` is never downgraded.
+  `references/task-breakdown-guide.md` §"Model tier (advisory)". Sequential sub-skill tasks run
+  through the `Skill` tool on the session model (no sub-skill of this plugin pins a `model:`), so
+  for them the field guides manual `/model` switching. Tiers take live effect wherever this skill
+  **dispatches a subagent**, because the `Agent` tool's `model` parameter pins it — follow
+  `context/references/execution-modes.md` §"Subagent dispatch" on every dispatch: the plugin's
+  `explorer` (default `haiku`, or the `CLAUDE.md` directive `Explorer model: {tier}`) for
+  comprehension and blueprint/seam verification, `reviewer` for findings (`opus` for the Security
+  and Architecture/API dimensions, `sonnet` otherwise), never the built-in `Explore` or
+  `general-purpose` agents for that work, and an explicit `model` on every `Agent` call —
+  including docs and smoke helpers (`sonnet`).
 - **Delegate by probing, never by assumption.** The sub-skills of this pack ship in the **same
   plugin** as this skill — if this skill is running, the plugin is installed and they are
   Skill-invocable. Decide a sub-skill's availability by *attempting* its `Skill` invocation and
@@ -490,8 +493,8 @@ db_schema) is exempt. Follow `references/tdd-mode.md` and the loop in
 1. Identify the exact files to add or modify.
    Before editing unfamiliar code you may dispatch `explorer` to map its execution
    paths and extension points first (per `references/task-breakdown-guide.md` type table). When
-   you do, honor the `CLAUDE.md` directive `Explorer model: {tier}` if set; otherwise the
-   explorer's `haiku` frontmatter default applies.
+   you do, pass `model` from the `CLAUDE.md` directive `Explorer model: {tier}` if set, otherwise
+   `haiku` (the explorer's frontmatter default).
 2. Apply changes following all rules in `CLAUDE.md` and `module-create/references/`.
    **TDD mode (on):** if the change adds behaviour (not pure config/scaffold), write the failing
    test first and watch it fail for the right reason before applying the production change, per

@@ -6,6 +6,42 @@ individual skill versions are tracked in each SKILL.md frontmatter and the gener
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased] — Runs that don't pay for the conversation they start in
+
+Measured on two real `feature` days, the cost of a run was set less by the skill than by the
+conversation it started in. Every turn re-reads the whole context, and both sessions averaged
+~555k tokens per turn, peaking at 964k: on the 1M-context model, auto-compaction waits until
+~960k. A `/magento2-tools:fix` started at 727k context re-read that on each of its 95 turns —
+77.6M tokens for a fix whose skill text is ~4.6k. The main conversation was 84–91% of the
+weighted cost, and every subagent ran on Opus, including the built-in `Explore` agents used in
+place of the plugin's `haiku` explorer.
+
+### Added
+
+- **Context-budget hook (warn-only).** Starting a `/magento2-tools:…` command in a conversation
+  above `MAGENTO2_TOOLS_CTX_WARN` tokens (default 200000; `0` disables) shows a one-line
+  recommendation to `/clear` and re-run, and tells the skill the size. When one skill chains
+  into another, only the skill is told. It never blocks, and it stays silent when it cannot
+  measure the conversation.
+- **`auto` execution mode**, the new default for `review`, `security`, `perf-audit`,
+  `a11y-audit`, `marketplace` and `fix`. It behaves exactly like the old `inline` default until
+  the hook reports the conversation over budget, then moves the analysis into fresh-context
+  subagents. `"execution_mode": "auto"` is accepted in `.claude/m2.json`. `audit` still fans out.
+- **`scripts/token-report.py`**, a developer tool that shows where a session's tokens went:
+  main thread vs subagents, context percentiles, per-skill buckets, and Bash output by class.
+
+### Changed
+
+- **`reviewer` defaults to `sonnet` and stops at 80 turns.** Dispatchers pass `opus` for the
+  Security and Architecture/API dimensions. `audit`'s Performance/operations dimension moves
+  from the session model to `sonnet`. `explorer` stays on `haiku` and stops at 50 turns.
+- **Every subagent dispatch passes an explicit `model`.** For Magento analysis, skills use the
+  plugin's `explorer` and `reviewer`, not the built-in `Explore`/`general-purpose` agents, which
+  inherit the session model.
+- **Corrected guidance.** `feature` no longer claims the harness cannot pin a model; tiers take
+  effect wherever a skill dispatches a subagent. `execution-modes.md` no longer calls inline
+  runs token-frugal unconditionally: they are cheap only while the conversation is small.
+
 ## [2.3.0] — 2026-09-17 — An audit that tells you who fixes each finding
 
 The findings family could produce reports but nothing could consume them. `audit` emitted a

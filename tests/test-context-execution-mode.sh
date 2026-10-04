@@ -5,7 +5,7 @@
 #
 # Contract:
 #   - absent / no m2.json            -> null            (no preference; skill default wins)
-#   - "agents" | "inline"            -> that value, resolution_source names the file
+#   - "agents" | "inline" | "auto"   -> that value, resolution_source names the file
 #   - any other value                -> null            (honest gap, never an invented mode)
 #   - changing it busts the context cache (m2.json is already in the cache key)
 set -uo pipefail
@@ -59,6 +59,8 @@ check "agents is honoured" \
 
 check "inline is honoured" \
       "inline" "$(resolve_field '{"execution_mode":"inline"}' 'execution_mode')"
+check "auto is honoured" \
+      "auto" "$(resolve_field '{"execution_mode":"auto"}' 'execution_mode')"
 
 check "an unknown mode degrades to null, never invented" \
       "null" "$(resolve_field '{"execution_mode":"parallel"}' 'execution_mode')"

@@ -178,13 +178,13 @@ except Exception:
 print(v if isinstance(v, str) else '')
 " 2>/dev/null || echo "")
     case "$raw_mode" in
-        agents|inline)
+        agents|inline|auto)
             EXECUTION_MODE="$raw_mode"
             EXECUTION_MODE_SRC=".claude/m2.json:execution_mode"
             ;;
         "") ;;
         *)
-            EXECUTION_MODE_SRC="unresolved: .claude/m2.json \"execution_mode\" is \"${raw_mode}\"; expected \"agents\" or \"inline\""
+            EXECUTION_MODE_SRC="unresolved: .claude/m2.json \"execution_mode\" is \"${raw_mode}\"; expected \"agents\", \"inline\" or \"auto\""
             ;;
     esac
 fi

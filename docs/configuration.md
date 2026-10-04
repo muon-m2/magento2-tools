@@ -55,6 +55,7 @@ Env vars win over `.claude/m2.json`:
 | `MAGENTO2_DEPLOY_NON_INTERACTIVE` | unset | `1` puts `deploy` in CI mode: approval prompts are skipped (pair it with `--auto`), production is still refused without `--i-know-what-im-doing`, JSON reports are emitted, and the run exits non-zero on any failure. |
 | `M2_SMOKE_ADMIN_USER` | unset | Admin username for the `feature` smoke battery's authenticated admin suite. Consulted after the `CLAUDE.md` `Smoke admin user:` line and before prompting. |
 | `M2_SMOKE_ADMIN_PASS` | unset | Admin password for the same suite. **Env or interactive prompt only** — the skills deliberately refuse to read a password from `CLAUDE.md`, which is a committed file. |
+| `MAGENTO2_TOOLS_CTX_WARN` | `200000` | Context budget, in tokens, for the [context-budget hook](#context-budget-hook). Above it, starting a `/magento2-tools:…` command shows a `/clear` recommendation, and `auto` execution mode resolves to `agents`. `0` disables the hook. Set it in your shell or in `settings.json` `env` — the hook reads the environment Claude Code runs it in. |
 | `DOCS_ROOT` | `.docs` | Output root for artifact-writing **scripts**. Skills take the same value as `--docs-root={path}`. Because env vars do not persist between a skill's Bash calls, it is passed explicitly per invocation rather than exported once. |
 
 ## `.claude/m2.json`
@@ -73,7 +74,7 @@ The plugin's own override file. Commit it so the whole team shares the same sett
 |-----|--------|
 | `php_container` | Name of the PHP container, when detection picks the wrong one or finds none |
 | `magento_root` | Magento root inside the repo (`.` or `src`) when the layout probe is wrong |
-| `execution_mode` | `"agents"` or `"inline"` — the project default for the findings/RCA family (see [Execution modes](#execution-modes-agents-vs-inline)) |
+| `execution_mode` | `"agents"`, `"inline"` or `"auto"` — the project default for the findings/RCA family (see [Execution modes](#execution-modes-agents-inline-auto)) |
 
 All three are resolved by `context` and folded into its cache key, so editing this file
 takes effect on the next skill run without manual cache busting. An unrecognised
@@ -102,12 +103,14 @@ Skills read your project's `CLAUDE.md` for these lines:
 `CLAUDE.md` participates in the context cache key, so editing it takes effect on the
 next skill run without manual cache busting.
 
-> The per-task `Model tier (advisory)` fields in `feature` plans are
-> recommendations only — the harness does not route Skill-tool tasks by tier, so they run on the
-> session model. The one directive that takes live effect is `Explorer model:` above (the read-only
-> explorer subagent). See the `feature` task-breakdown guide for the tier-by-type mapping.
+> The per-task `Model tier (advisory)` fields in `feature` plans are recommendations for
+> tasks run through the `Skill` tool — no sub-skill of this plugin pins a model, so those run on
+> the session model. Tiers take live effect wherever a skill dispatches a subagent: `explorer`
+> follows `Explorer model:` above (default `haiku`); `reviewer` defaults to `sonnet` and is
+> dispatched on `opus` for the Security and Architecture/API dimensions. See the `feature`
+> task-breakdown guide for the tier-by-type mapping.
 
-## Execution modes: agents vs inline
+## Execution modes: agents, inline, auto
 
 The findings/RCA family — `audit`, `review`, `security`, `perf-audit`, `a11y-audit`,
 `marketplace`, and `fix` — can run its analysis two ways. The mode changes only *where*
@@ -116,18 +119,19 @@ the work runs: the same references, checklists, and findings schema apply either
 | Mode | What happens | When it wins |
 |------|--------------|--------------|
 | `agents` | Read-only subagents run in parallel — `reviewer` (one per findings dimension), `explorer` (comprehension / RCA path-tracing) — and the skill owns synthesis: dedup, severity normalization, conflict tie-breaking | Large modules, multi-dimension audits, security-sensitive targets. Faster wall-clock; your main context stays small |
-| `inline` | The skill runs the same analysis itself, sequentially, in the conversation | Small targets, step-by-step steering, token-frugal runs, environments where subagents are unavailable |
+| `inline` | The skill runs the same analysis itself, sequentially, in the conversation | Small targets, step-by-step steering, environments where subagents are unavailable. Cheap only while the conversation is small — every inline turn re-reads the whole conversation |
+| `auto` | `agents` when the [context-budget hook](#context-budget-hook) reports the conversation above `MAGENTO2_TOOLS_CTX_WARN`, `inline` otherwise | The default for everything except `audit` |
 
 Selected in precedence order:
 
 1. **Per run** — `--agents` / `--inline` on the invocation, or plain language
    ("in one flow", "without subagents", "use parallel agents", "delegate").
-2. **Per project** — `"execution_mode"` (`"agents"` | `"inline"`) in
+2. **Per project** — `"execution_mode"` (`"agents"` | `"inline"` | `"auto"`) in
    [`.claude/m2.json`](#claudem2json). Absence means no preference; so does an
    unrecognised value, which is reported rather than guessed at.
 3. **Per-skill default** — `audit` defaults to `agents` (fanning out is its whole
-   point); every other consumer defaults to `inline`. These defaults preserve
-   pre-2.0 behaviour.
+   point); every other consumer defaults to `auto`, which behaves exactly like the old
+   `inline` default until the conversation grows past the context budget.
 
 The chosen mode, and what chose it, is stated in the run header of every report.
 
@@ -141,6 +145,22 @@ conservatively and listed under **Open questions** in the report instead. Pick `
 when the target is ambiguous enough that mid-run steering matters.
 
 Contract: `skills/context/references/execution-modes.md`.
+
+## Context-budget hook
+
+Every turn of a workflow re-reads the whole conversation, so a run's cost depends on the context
+it **starts** in: the same `/magento2-tools:fix` costs several times more at 700k tokens than in a
+fresh session. The plugin ships a warn-only hook (`hooks/context-budget.sh`) that measures the
+conversation when a magento2-tools entry point starts:
+
+- **You type `/magento2-tools:…`** in a conversation above `MAGENTO2_TOOLS_CTX_WARN` (default
+  200k tokens): you see a one-line recommendation to `/clear` and re-run, and the skill is told the
+  size so `auto` execution mode moves its analysis into fresh-context subagents.
+- **A skill chains into another** (e.g. `feature` invoking `review`): only the skill is told; it
+  mentions the `/clear` recommendation once at its next natural stopping point.
+
+It never blocks a prompt, and it stays silent when it cannot measure (no transcript, an
+unrecognised format, a compaction it cannot size). Set `MAGENTO2_TOOLS_CTX_WARN=0` to turn it off.
 
 ## Output conventions
 

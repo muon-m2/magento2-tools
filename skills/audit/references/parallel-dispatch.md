@@ -18,18 +18,21 @@ consolidation is byte-for-byte identical either way, only slower.
 - **Scripted scanners** — the specialist `build-findings.sh` scripts run directly via Bash and can
   be backgrounded; they do not consume an agent slot.
 
-## Model tiers (advisory)
+## Model tiers
 
-Tiers matter here because — unlike a sequential Skill-tool flow, which always runs on the session
-model — **subagent dispatch can pin a tier**. Apply the tiers from `dimensions.md`:
+Pin each subagent's tier with the `Agent` tool's `model` parameter, on **every** dispatch — it
+overrides the agent's frontmatter default (`reviewer` defaults to `sonnet`), and a dispatch with
+no `model` silently runs on whatever the agent or session default happens to be. Apply the tiers
+from `dimensions.md`:
 
+- **opus** — the Security and Architecture/API review dimensions: they weigh cross-cutting
+  evidence (auth/ACL, DI wiring) and are never downgraded.
+- **sonnet** — the Performance/operations review dimension.
 - **haiku** — the scripted scanners' wrapper turns and the mechanical review dimensions
   (Frontend/admin, Testing/tooling): cheap, high-recall, low-judgement.
-- **session / opus** — Security and Performance/operations review, and the Phase 3 consolidation
-  judgement: these weigh cross-cutting evidence and must not be downgraded.
 
-`reviewer` is never downgraded below the session model for the Security dimension. Tiers are
-advisory: if the harness cannot pin a subagent's model, dispatch on the session model and note it.
+The Phase 3 consolidation judgement runs in the main conversation on the session model. If the
+harness cannot pin a subagent's model, dispatch on the session model and note it.
 
 ## Failure isolation
 
