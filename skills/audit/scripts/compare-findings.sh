@@ -56,7 +56,7 @@ EMIT_FINDINGS="${CONTEXT_SCRIPTS}/emit-findings.sh"
 
 SKILL_VERSION="$(awk '/^---$/{c++; next} c==1 && /^version:/{print $2; exit}' \
     "${SCRIPT_DIR}/../SKILL.md")"
-SKILL_VERSION="${SKILL_VERSION:-1.1.0}"
+SKILL_VERSION="${SKILL_VERSION:-1.1.1}"
 
 # Resolve active waivers into a plain fingerprint list the python step can read. Sourced
 # rather than reimplemented so suppression semantics (expiry, verdicts) live in one place.
@@ -230,7 +230,7 @@ export TARGET_MODULE TARGET_PATH SCOPE OUTPUT_DIR
 export SKILL_NAME="audit"
 export SKILL_VERSION
 export OUTPUT_KIND="closure"
-export SKILL_VERSIONS_JSON="[\"audit@${SKILL_VERSION}\",\"context@1.15.0\"]"
+export SKILL_VERSIONS_JSON="[\"audit@${SKILL_VERSION}\",\"context@1.16.0\"]"
 
 DATE="$DATE" BASENAME_KIND="closure" \
 POST_JSON_HOOK="${SCRIPT_DIR}/audit-verdict.sh" \

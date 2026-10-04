@@ -10,7 +10,7 @@
 #   THEME               Active frontend theme (default: "")
 #   DOCS_ROOT           default: .docs — project-root artifact dir ({ctx.docs_root}).
 #   OUTPUT_DIR          default: {DOCS_ROOT}/accessibility
-#   SKILL_VERSION       default: 1.1.1
+#   SKILL_VERSION       default: 1.2.0
 #
 # Output:
 #   Writes {OUTPUT_DIR}/{TARGET_MODULE}-a11y-{YYYY-MM-DD}.json (module scope) or
@@ -22,7 +22,7 @@ SCOPE="${SCOPE:-module}"
 THEME="${THEME:-}"
 DOCS_ROOT="${DOCS_ROOT:-.docs}"
 OUTPUT_DIR="${OUTPUT_DIR:-${DOCS_ROOT}/accessibility}"
-SKILL_VERSION="${SKILL_VERSION:-1.1.1}"
+SKILL_VERSION="${SKILL_VERSION:-1.2.0}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/../../context/scripts/findings-lib.sh"

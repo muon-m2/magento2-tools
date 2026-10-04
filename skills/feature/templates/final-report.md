@@ -6,10 +6,10 @@ Implemented by: Claude Code using `feature`
 Blueprint: `.docs/{FeatureName}/blueprint.md`
 Skill versions:
 
-- feature@2.15.2
-  - module-create@1.10.3
-  - review@2.4.1
-  - context@1.15.0
+- feature@2.16.0
+  - module-create@1.11.0
+  - review@2.5.0
+  - context@1.16.0
 
 ---
 

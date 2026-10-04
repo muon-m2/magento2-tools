@@ -1,6 +1,6 @@
 ---
 name: feature
-version: 2.15.2
+version: 2.16.0
 description: >-
   End-to-end Magento 2 feature orchestrator: add, change, build, or implement Magento 2
   functionality, from one change to a multi-module integration (blueprint, code, review, tests,

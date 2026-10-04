@@ -4,9 +4,9 @@ Date: {YYYY-MM-DD}
 Status: {Complete | Partial | Failed}
 Skill versions:
   - upgrade@1.2.0
-  - review@2.4.1
+  - review@2.5.0
   - test-generate@1.2.1
-  - context@1.15.0
+  - context@1.16.0
 
 ## Scope
 

@@ -15,7 +15,7 @@
 #                       Pass an absolute or project-root path so an in-`src/` cwd cannot
 #                       redirect output into the Magento tree. See context/SKILL.md.
 #   OUTPUT_DIR          default: {DOCS_ROOT}/audits
-#   SKILL_VERSION       default: 2.0.0
+#   SKILL_VERSION       default: 2.1.0
 #   RUNNER              Runner prefix for {MAGENTO_ROOT}/vendor/bin/patch-status, e.g.
 #                       "docker compose exec -T -u magento php" (default: "" — run on the
 #                       host). Forwarded to advisory-scan.sh via the environment.
@@ -36,7 +36,7 @@ SCAN_ROOT="${SCAN_ROOT:-$([[ -d app/code ]] && echo app/code || echo src/app/cod
 SECRET_ROOT="${SECRET_ROOT:-${SCAN_ROOT%/code}}"
 DOCS_ROOT="${DOCS_ROOT:-.docs}"
 OUTPUT_DIR="${OUTPUT_DIR:-${DOCS_ROOT}/audits}"
-SKILL_VERSION="${SKILL_VERSION:-2.0.0}"
+SKILL_VERSION="${SKILL_VERSION:-2.1.0}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/../../context/scripts/findings-lib.sh"

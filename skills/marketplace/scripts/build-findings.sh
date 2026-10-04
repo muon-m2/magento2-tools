@@ -9,7 +9,7 @@
 #   SCOPE               "module" | "site"  (default: module)
 #   DOCS_ROOT           default: .docs — project-root artifact dir ({ctx.docs_root}).
 #   OUTPUT_DIR          default: {DOCS_ROOT}/marketplace
-#   SKILL_VERSION       default: 1.1.0
+#   SKILL_VERSION       default: 1.2.0
 #   EQP_FINDINGS_FILE   optional: path to a JSON array of EQP static findings produced by
 #                       security's EQP pass (SKILL.md Phase 2.2). When set and
 #                       readable, those findings are merged into the combined findings list.
@@ -23,7 +23,7 @@ set -uo pipefail
 SCOPE="${SCOPE:-module}"
 DOCS_ROOT="${DOCS_ROOT:-.docs}"
 OUTPUT_DIR="${OUTPUT_DIR:-${DOCS_ROOT}/marketplace}"
-SKILL_VERSION="${SKILL_VERSION:-1.1.0}"
+SKILL_VERSION="${SKILL_VERSION:-1.2.0}"
 EQP_FINDINGS_FILE="${EQP_FINDINGS_FILE:-}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

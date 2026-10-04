@@ -1,6 +1,6 @@
 ---
 name: widget
-version: 1.0.0
+version: 1.0.1
 description: >-
   Scaffold a Magento 2 CMS widget on an existing module: `etc/widget.xml`, a block with typed
   parameters and a cache key, a `.phtml` template, and tests. Use for 'add a widget', 'create a

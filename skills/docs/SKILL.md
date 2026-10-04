@@ -1,6 +1,6 @@
 ---
 name: docs
-version: 1.4.1
+version: 1.4.2
 description: >-
   Generate or refresh a module's technical documentation from its own code: README, developer/user
   guides, REST/GraphQL references, and CHANGELOG scaffold covering the @api surface, events,

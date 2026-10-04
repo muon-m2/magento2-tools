@@ -1,6 +1,6 @@
 ---
 name: review
-version: 2.4.1
+version: 2.5.0
 description: >-
   Review a Magento 2 module or diff for architecture, framework requirements, security, code quality,
   maintainability, PHPDoc, and test coverage. Use when asked to review, validate, or assess a

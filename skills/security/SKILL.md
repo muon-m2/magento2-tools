@@ -1,6 +1,6 @@
 ---
 name: security
-version: 2.0.0
+version: 2.1.0
 description: >-
   Site-wide and per-module security audit for Magento 2. Use for a security review, pre-release
   security check, dependency CVE or secret-leakage audit, or Marketplace EQP scan. Produces

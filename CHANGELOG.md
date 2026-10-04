@@ -6,7 +6,7 @@ individual skill versions are tracked in each SKILL.md frontmatter and the gener
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased] — Runs that don't pay for the conversation they start in
+## [2.4.0] — 2026-10-04 — Runs that don't pay for the conversation they start in
 
 Measured on two real `feature` days, the cost of a run was set less by the skill than by the
 conversation it started in. Every turn re-reads the whole context, and both sessions averaged
@@ -15,6 +15,14 @@ conversation it started in. Every turn re-reads the whole context, and both sess
 77.6M tokens for a fix whose skill text is ~4.6k. The main conversation was 84–91% of the
 weighted cost, and every subagent ran on Opus, including the built-in `Explore` agents used in
 place of the plugin's `haiku` explorer.
+
+This release attacks that cost from three sides. Runs warn before they start in an oversized
+conversation and push heavy analysis to right-sized subagents. Once running, they keep tool output
+out of the conversation, and every skill body now fits what Claude Code re-attaches after a
+compaction. And measuring routing live turned up two bugs that made the model miss skills
+entirely: seven skills — `feature`, `fix` and `module-create` among them — were absent from the
+model's skill listing because their frontmatter was invalid YAML, and seven commands that share a
+skill's name handed every orchestrator a one-line stub instead of the skill.
 
 ### Added
 

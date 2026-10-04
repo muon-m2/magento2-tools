@@ -1,6 +1,6 @@
 ---
 name: fix
-version: 1.3.0
+version: 1.4.0
 description: >-
   End-to-end Magento 2 bug-fix workflow. Use when the user reports a defect, error, crash,
   exception, unexpected behaviour, or regression in an existing module. Requires user approval at

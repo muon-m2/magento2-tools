@@ -1,6 +1,6 @@
 ---
 name: a11y-audit
-version: 1.1.1
+version: 1.2.0
 description:
     Audit a Magento 2 module's/theme's storefront templates for WCAG accessibility issues
     — missing alt text, unlabelled form controls, ARIA misuse, heading-order breaks,

@@ -11,7 +11,7 @@
 #   INCLUDE_RUNTIME     "1" to include runtime-checks.sh output (default: off)
 #   DOCS_ROOT           default: .docs — project-root artifact dir ({ctx.docs_root}).
 #   OUTPUT_DIR          default: {DOCS_ROOT}/audits
-#   SKILL_VERSION       default: 1.2.0
+#   SKILL_VERSION       default: 1.3.0
 #
 # Output:
 #   Writes {OUTPUT_DIR}/{TARGET_MODULE}-perf-{YYYY-MM-DD}.json (module scope) or
@@ -24,7 +24,7 @@ SCAN_ROOT="${SCAN_ROOT:-$([[ -d app/code ]] && echo app/code || echo src/app/cod
 INCLUDE_RUNTIME="${INCLUDE_RUNTIME:-0}"
 DOCS_ROOT="${DOCS_ROOT:-.docs}"
 OUTPUT_DIR="${OUTPUT_DIR:-${DOCS_ROOT}/audits}"
-SKILL_VERSION="${SKILL_VERSION:-1.2.0}"
+SKILL_VERSION="${SKILL_VERSION:-1.3.0}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/../../context/scripts/findings-lib.sh"

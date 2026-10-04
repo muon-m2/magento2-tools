@@ -17,8 +17,8 @@ requires updating this schema and the JSON emitter.
   "skill": "review",
   "skillVersion": "2.4.0",
   "skillVersions": [
-    "review@2.4.1",
-    "context@1.15.0"
+    "review@2.5.0",
+    "context@1.16.0"
   ],
   "outputKind": "review",
   "target": {

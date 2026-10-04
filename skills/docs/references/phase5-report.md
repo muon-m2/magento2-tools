@@ -20,4 +20,4 @@ Write a run report to
   `docs/api/http-client.private.env.json` to the module `.gitignore` before committing.*
   The JetBrains HTTP Client writes your bearer token there and it sits beside the `.http`
   file, not inside `.idea/`, so a stock `.gitignore` does not cover it.
-- Skill version: `docs@1.4.1`.
+- Skill version: `docs@1.4.2`.

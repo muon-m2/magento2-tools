@@ -1,6 +1,6 @@
 ---
 name: audit
-version: 1.1.0
+version: 1.1.1
 description: >-
   Use for a full pre-release / release-readiness or "audit everything" pass over a module: fans out
   read-only findings dimensions as the module's surface warrants into ONE ranked report plus merged

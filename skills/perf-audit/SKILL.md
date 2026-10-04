@@ -1,6 +1,6 @@
 ---
 name: perf-audit
-version: 1.2.0
+version: 1.3.0
 description:
     Performance audit of Magento 2 modules or the overall site. Use when the user reports
     slowness, wants a pre-launch performance check, suspects N+1 queries, or wants to
