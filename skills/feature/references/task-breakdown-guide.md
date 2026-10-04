@@ -84,11 +84,11 @@ Estimate is informational only. Do not block execution on estimates.
 ## Model tier (advisory)
 
 Each task record carries a `Model tier (advisory)` field — the model tier the task would ideally
-run on. It is **advisory only**: the harness cannot pin a Skill-tool sub-skill invocation to a
-specific model today, so these tasks run on the session model regardless (see SKILL.md
-§"Model tiering (advisory)"). The field guides manual `/model` switching and future per-skill
-pinning. The one place a tier takes live effect is the read-only `explorer` subagent
-(its `haiku` frontmatter default + the `Explorer model` directive).
+run on. For a task run through the `Skill` tool it is **advisory**: no sub-skill of this plugin
+pins a `model:`, so the task runs on the session model and the field guides manual `/model`
+switching (see SKILL.md §"Model tiering"). It takes live effect whenever the work is dispatched to
+a subagent — the `Agent` tool's `model` parameter pins the tier (rules:
+`context/references/execution-modes.md` §"Subagent dispatch").
 
 Default tier by task type:
 

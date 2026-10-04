@@ -11,7 +11,9 @@ CANON=skills/context/references/execution-modes.md
 
 [ -f "$CANON" ] || { echo "FAIL: $CANON missing"; exit 1; }
 for token in '--agents' '--inline' 'execution_mode' '.claude/m2.json' 'in precedence order' \
-             'Approval gates always run in the main conversation'; do
+             'Approval gates always run in the main conversation' \
+             '`auto` resolution' 'context-budget' 'MAGENTO2_TOOLS_CTX_WARN' \
+             'Pass `model` on every `Agent` call'; do
     grep -qF -- "$token" "$CANON" || { echo "FAIL: canon lacks '$token'"; FAIL=1; }
 done
 # The per-project setting lives in the plugin's own override file, which the resolver
@@ -33,8 +35,8 @@ done
 
 # Every consumer cites the canon and names its default.
 declare -A DEFAULT=(
-    [audit]=agents [review]=inline [security]=inline [perf-audit]=inline
-    [a11y-audit]=inline [marketplace]=inline [fix]=inline
+    [audit]=agents [review]=auto [security]=auto [perf-audit]=auto
+    [a11y-audit]=auto [marketplace]=auto [fix]=auto
 )
 for skill in "${!DEFAULT[@]}"; do
     md="skills/$skill/SKILL.md"
@@ -43,8 +45,8 @@ for skill in "${!DEFAULT[@]}"; do
     case "${DEFAULT[$skill]}" in
         agents) grep -qE 'Default: \*\*agents\*\*' "$md" \
             || { echo "FAIL: $md must state default agents"; FAIL=1; } ;;
-        inline) grep -qiE 'default is \*\*inline\*\*|Default: \*\*inline\*\*' "$md" \
-            || { echo "FAIL: $md must state default inline"; FAIL=1; } ;;
+        auto) grep -qiE 'default is \*\*auto\*\*|Default: \*\*auto\*\*' "$md" \
+            || { echo "FAIL: $md must state default auto"; FAIL=1; } ;;
     esac
 done
 

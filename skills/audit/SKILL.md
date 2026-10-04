@@ -80,7 +80,7 @@ Dispatch the selected dimensions concurrently. Two mechanisms (see
 
 - **Judgement dimensions** → dispatch `reviewer` subagents, one per review dimension
   (Architecture/API · Security · Frontend/admin · Testing/tooling · Performance/operations), per
-  `review`'s `references/parallel-review.md`. Read-only agents; tier per
+  `review`'s `references/parallel-review.md`. Read-only agents; pass each one's `model` tier per
   `references/parallel-dispatch.md`.
 - **Scripted dimensions** → run each specialist skill's `scripts/build-findings.sh`
   (security / perf-audit / lint / a11y-audit / marketplace / breeze-compat) with
@@ -183,7 +183,7 @@ Per-dimension artifacts remain under their own category dirs (`reviews/`, `audit
 ## Reference Files
 
 - `references/dimensions.md` — dimension catalogue: which skill/agent runs each, when it is included,
-  its output kind, and its advisory model tier.
+  its output kind, and its model tier.
 - `references/parallel-dispatch.md` — how to fan out subagents (authorization, model tiers,
   sequential fallback).
 - `references/consolidation.md` — the dedup key, severity-normalization, and verdict/score rules.

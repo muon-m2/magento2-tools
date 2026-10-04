@@ -147,7 +147,8 @@ Goal: locate the exact code line(s) responsible.
    surfaced as `{ctx.execution_mode}` — selection contract in
    `context/references/execution-modes.md`), delegate this
    path-tracing to the read-only `explorer` agent and work from its comprehension map;
-   default is **inline**. The RCA approval gate below always runs in the main
+   default is **auto** (`agents` when the plugin's context-budget hook reports this conversation
+   above its threshold, `inline` otherwise). The RCA approval gate below always runs in the main
    conversation, in either mode.
 2. For each frame: is the call legitimate? Does it return the expected value?
 3. Identify the first frame where behaviour diverges from intent.
