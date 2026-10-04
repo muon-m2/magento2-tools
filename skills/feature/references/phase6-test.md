@@ -104,6 +104,6 @@ halt and prompt the user. Record each iteration via `templates/smoke-run-report.
 - `templates/smoke-findings.md`: consolidated, cross-iteration findings template.
 - `${CLAUDE_SKILL_DIR}/scripts/smoke-baseline.sh`: S1 — capture the error-signal baseline (all `var/log/*.log` + `var/report/**`).
 - `${CLAUDE_SKILL_DIR}/scripts/smoke-tail-since.sh`: S8 — diff every error signal since baseline; emits `signals.json`.
-- `${CLAUDE_SKILL_DIR}/scripts/smoke-browser.mjs`: S3–S7 — headless browser driver (Playwright → Puppeteer → CDP).
+- `${CLAUDE_SKILL_DIR}/scripts/smoke-browser.mjs`: S3–S7 — headless browser driver (Playwright → Puppeteer; neither available → exit 78).
 - `frontend`: invoked (in augment mode) by Phase 6B S9 for frontend
   regressions (JS console errors, missing assets, KO bind errors).

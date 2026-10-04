@@ -26,7 +26,7 @@ for arg in "$@"; do
 done
 
 if [[ -z "$module_path" || ! -d "$module_path" ]]; then
-    echo "Usage: $0 <module-path>" >&2
+    echo "Usage: $0 <module-path> [--verbose]" >&2
     exit 2
 fi
 

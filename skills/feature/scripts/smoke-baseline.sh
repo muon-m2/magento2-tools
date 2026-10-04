@@ -36,7 +36,7 @@
 #
 # Output: quiet by default — the `logs=N reports=N` tally (python3 path) and the `baseline written:`
 # line. The magento_root/file/size_bytes/captured_at echo prints only with VERBOSE=1 in the
-# environment or --verbose as a trailing argument (all of it is already in the baseline file).
+# environment or --verbose in any argument position (all of it is already in the baseline file).
 #
 # Exit codes:
 #   0 — baseline captured (files may not exist yet — that is recorded, not an error)

@@ -2,7 +2,7 @@
 
 Part of the `module-create` skill — read at Step 4 (Generate implementation files).
 
-- Work surface by surface in the order from Core Rule 6.
+- Work surface by surface in the order from the "Generate surfaces in order" Core Rule.
 - Use the matching template from `templates/` as the structural base for each file type.
 - Apply `references/naming-conventions.md` to all identifiers: classes, interfaces, tables,
   config paths, ACL IDs, route handles, event names.

@@ -106,7 +106,7 @@ checklist with zero post-creation fixes required.
 
 4. **Generate implementation files.**
 
-    - Work surface by surface in the order from Core Rule 6, using `templates/` as the base for every file. Apply
+    - Work surface by surface in the order from the "Generate surfaces in order" Core Rule, using `templates/` as the base for every file. Apply
       `references/naming-conventions.md` and `references/composer-metadata.md`; PHPDoc on every public method.
     - No `ObjectManager::getInstance()`, no `echo`/`print`/`die()`/`exit()`/`var_dump()`/`eval()`/`@`; do not hand-write the copyright header (Step 5 stamps it).
     - **Read `references/workflow-surfaces.md` before starting this step.**

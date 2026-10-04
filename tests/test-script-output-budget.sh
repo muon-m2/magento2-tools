@@ -43,10 +43,10 @@ grep -q "skipped (no '<?php'" "$WORK/lic.err" || fail "add-license-headers skip 
 # --- create-dirs.sh --------------------------------------------------------------------------------
 CD="$WORK/cd/app/code"; mkdir -p "$CD"
 export MODULE_DIR="$CD"
-run cd MODULE_DIR="$CD" bash "$ROOT/skills/module-create/scripts/create-dirs.sh" Acme Probe persistence admin_ui rest_api cron
+run cdm MODULE_DIR="$CD" bash "$ROOT/skills/module-create/scripts/create-dirs.sh" Acme Probe persistence admin_ui rest_api cron
 [[ $RC -eq 0 ]] || fail "create-dirs exit $RC, expected 0"
-[[ "$(lines "$WORK/cd.out")" -le 5 ]] || fail "create-dirs default stdout $(lines "$WORK/cd.out") lines (> 5)"
-grep -q 'Run scripts/verify-created.sh' "$WORK/cd.out" || fail "create-dirs default output lost the verify hint"
+[[ "$(lines "$WORK/cdm.out")" -le 5 ]] || fail "create-dirs default stdout $(lines "$WORK/cdm.out") lines (> 5)"
+grep -q 'Run scripts/verify-created.sh' "$WORK/cdm.out" || fail "create-dirs default output lost the verify hint"
 [[ -d "$CD/Acme/Probe/Ui/DataProvider" ]] || fail "create-dirs did not create the admin_ui directories"
 # failure stays visible: existing module without --augment
 run cdf MODULE_DIR="$CD" bash "$ROOT/skills/module-create/scripts/create-dirs.sh" Acme Probe core
@@ -69,12 +69,12 @@ run vc - bash "$ROOT/skills/module-create/scripts/verify-created.sh" "$VM"
 grep -q '✗' "$WORK/vc.out" || fail "verify-created hid its FAIL lines in default mode"
 grep -q 'RESULT: FAIL' "$WORK/vc.out" || fail "verify-created default output lost the RESULT verdict"
 grep -q 'PASS:' "$WORK/vc.out" || fail "verify-created default output lost the tally"
-# a clean-ish module: default stdout is short, verbose has the per-check lines
+# a mostly-empty module (still FAILs on missing files): default stdout is short, verbose has the per-check lines
 GOOD="$WORK/good/Acme/Ok"; mkdir -p "$GOOD/etc"
 printf '<?php\n/**\n * Copyright © Acme. All rights reserved.\n * See LICENSE.txt for license details.\n */\ndeclare(strict_types=1);\n' > "$GOOD/registration.php"
 run vg - bash "$ROOT/skills/module-create/scripts/verify-created.sh" "$GOOD"
-run vgv VERBOSE=1 bash "$ROOT/skills/module-create/scripts/verify-created.sh" "$GOOD"
 vg_rc_default=$RC
+run vgv VERBOSE=1 bash "$ROOT/skills/module-create/scripts/verify-created.sh" "$GOOD"
 [[ "$(lines "$WORK/vgv.out")" -gt "$(lines "$WORK/vg.out")" ]] || fail "verify-created VERBOSE=1 not longer than default"
 grep -q '✓' "$WORK/vgv.out" || fail "verify-created VERBOSE=1 lost the per-check PASS lines"
 grep -q '✓' "$WORK/vg.out" && fail "verify-created default mode printed per-check PASS lines"

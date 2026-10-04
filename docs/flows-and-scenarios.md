@@ -435,6 +435,7 @@ Where each skill stops and waits for you:
 | Skill | Gate(s) | What unlocks it |
 |-------|---------|-----------------|
 | `feature` | Blueprint (Phase 2); task plan (Phase 4); smoke-loop halt at 5 iterations | "proceed" / "approved"; halt: `retry` / `accept-known-issues <IDs>` / `abort` |
+| `feature` (multi-spec) | After Phase 7B, when the request named more than one spec: continue here or `/clear` first (recommends `/clear`) | pick an option |
 | `fix` | RCA before any production-code change | "proceed" / "approved" |
 | `module-create` | Module profile confirm (multi-surface); full plan confirm at ≥3 surfaces or ≥20 files; parallel creation always opt-in | confirmation |
 | `test-generate` | Test plan before generation | "proceed" |
