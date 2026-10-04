@@ -145,7 +145,6 @@ Wait for "proceed."
 **RED first (3A):** write the unit + declaration-integration tests, scaffold only the block's signature with every accessor and `getCacheKeyInfo()` throwing `not implemented`, and confirm the behaviour tests fail on that exception. **GREEN (3B):** fill in the real bodies and write `widget.xml`, `module.xml`, the template; keep every `<parameter name>` in lockstep across `widget.xml`, the block accessor, and the unit test. Never report an integration test as passed when it could not run.
 **Read `references/phase3-generate.md` before starting this phase.**
 
-
 ### Phase 4 — Verify
 
 - `php -l` on every generated `.php` and `.phtml` file.
@@ -239,7 +238,7 @@ reports collect under its folder.
 | `${CLAUDE_SKILL_DIR}/references/phase3-generate.md` | Phase 3 (tests, then generate) |
 | `${CLAUDE_SKILL_DIR}/references/widget-anatomy.md` | `widget.xml` structure, parameter delivery, container/template contract, cache-clean + schema validation |
 | `${CLAUDE_SKILL_DIR}/references/parameter-types.md` | choosing parameter `xsi:type`, options vs `source_model`, defaults, `depends` |
-| `${CLAUDE_SKILL_DIR}/references/pitfalls.md` | before declaring Phase 4 done |
+| `${CLAUDE_SKILL_DIR}/references/pitfalls.md` | Phases 3–4 (generation pitfalls; before declaring Phase 4 done) |
 | `context/references/naming.md` | naming conventions |
 | `context/references/tdd-discipline.md` | Phase 3 RED/GREEN loop and integration-test fallback |
 | `context/references/php-coding-style.md` | PER-CS + Magento coding style |

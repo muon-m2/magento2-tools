@@ -251,7 +251,7 @@ already in):
 ## Edge Cases
 
 Never edit `vendor/` or `vendor/magento/` — fix via a plugin/observer in a project module. A **schema** change (`db_schema.xml`) stops the fix and redirects to `feature --mode=extend`; a **data** repair stays in-skill via `data-migration`.
-**Read `references/edge-cases.md` before starting Phase 2** (cases: vendor/core bug, multi-module, cannot reproduce, schema, data repair, config-only).
+**Read `references/edge-cases.md` from Phase 1 onward** (cases: vendor/core bug, multi-module, cannot reproduce, schema, data repair, config-only).
 
 ## Inputs
 

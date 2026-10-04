@@ -66,6 +66,7 @@ generates documentation artifacts. It **never** modifies PHP, XML, or any other 
   uncertain). Do NOT read or "study" *other* modules under `app/code`/`vendor/*`/Magento core to
   infer conventions. See `context/references/source-of-truth.md`.
 - **Output budget.** Follow `context/references/output-budget.md` — targeted reads, summary-first test/lint output, long logs to files.
+- **After a context compaction,** re-read the reference for the phase in progress before continuing.
 
 ## Workflow
 
@@ -83,7 +84,6 @@ the JSON as `{ctx}`. Hard-stop with a clear message if:
 
 Resolve the module (`--module=Vendor_Module` or from the request) and which docs to produce. Default: every applicable doc; omit `user-guide` with no user surface, `api-reference`/`openapi`/`http-client`/`postman` with no REST routes, `graphql-reference` with no GraphQL operations. `http-client.env.json` is emitted iff `{slug}.http` is; GraphQL has no derivative artifact.
 **Read `references/phase1-scope.md` before starting this phase.**
-
 
 ### Phase 2 — Extract Surface (GATE)
 
@@ -123,6 +123,10 @@ From the surface JSON, present the **doc plan** to the user:
 Fill the chosen templates with extracted facts (section order and example rules in `references/doc-structure.md`); every technical-reference table row carries its source file path. API description artifacts (OpenAPI / HTTP client / Postman) are **never composed by hand** — run `${CLAUDE_SKILL_DIR}/scripts/emit-api-artifacts.sh` (exit `0` clean, `2` an artifact was blocked, `1` hard error). It runs the secret/privacy gate below itself.
 **Read `references/phase3-render.md` before starting this phase.**
 
+### Phase 4 — Verify
+
+Before saving any file: no unsubstituted `{tokens}`, links resolve, no empty/placeholder sections, JSON/YAML/Mermaid blocks valid, no `![]` embeds. The skill must not have written or modified any `.php`/`.xml`/`.phtml`/`.less`/`.js`/`.graphqls` file, nor anything outside `{module}/docs/`, `{module}/README.md`, `{module}/CHANGELOG.md`, `{output_root}/docs-generated/`. The secret and privacy gate below must also pass.
+**Read `references/phase4-verify.md` before starting this phase.**
 
 #### Secret and privacy gate (blocking)
 
@@ -147,17 +151,10 @@ Example-Derivation Table, which yields `"string"` and `0` — synthetic by const
 real order increment id, customer email, bucket name or object key can only appear if
 someone widened the input, so widening the input is what is forbidden.
 
-### Phase 4 — Verify
-
-Before saving any file: no unsubstituted `{tokens}`, links resolve, no empty/placeholder sections, JSON/YAML/Mermaid blocks valid, no `![]` embeds. The skill must not have written or modified any `.php`/`.xml`/`.phtml`/`.less`/`.js`/`.graphqls` file, nor anything outside `{module}/docs/`, `{module}/README.md`, `{module}/CHANGELOG.md`, `{output_root}/docs-generated/`. The secret and privacy gate above must also pass.
-**Read `references/phase4-verify.md` before starting this phase.**
-
-
 ### Phase 5 — Report
 
 Write the run report to `{output_root}/docs-generated/{Vendor}_{Module}-{date}.md` (paths, omissions with reasons, surface inventory, skipped examples, API artifacts, blocked artifacts, `rest_warnings`, skill version). **Required follow-up** when a `.http` file was written: add `docs/api/http-client.private.env.json` to the module `.gitignore` before committing.
 **Read `references/phase5-report.md` before starting this phase.**
-
 
 ## Inputs
 
