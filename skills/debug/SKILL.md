@@ -1,7 +1,7 @@
 ---
 name: debug
 version: 1.3.1
-description:
+description: >-
     Interactive Magento 2 debugging assistant. Use when the user wants to inspect logs,
     trace plugins or observers for a given event, inspect the DI graph, find slow
     queries, or get a snapshot of indexer/queue/cron state. Read-only by default —

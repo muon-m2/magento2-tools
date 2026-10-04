@@ -1,7 +1,7 @@
 ---
 name: remediate
 version: 1.0.0
-description:
+description: >-
     Execute an approved remediation plan — the write half of the findings cycle. Consumes the plan
     magento2-tools:triage emits (or an audit document, which it triages inline first), works batch
     by batch in dependency order, and invokes the skill that owns each finding with that finding's

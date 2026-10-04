@@ -1,7 +1,7 @@
 ---
 name: fix
 version: 1.3.0
-description:
+description: >-
     End-to-end Magento 2 bug-fix workflow. Use when the user reports a defect, error, crash,
     exception, unexpected behaviour, or regression in an existing Magento 2 module. Drives:
     reproduce → root-cause analysis → minimal patch → regression test → review → optional

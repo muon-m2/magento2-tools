@@ -1,7 +1,7 @@
 ---
 name: upgrade
 version: 1.2.0
-description:
+description: >-
     Upgrade an existing Magento 2 module to a newer Magento version, newer PHP version,
     or newer framework dependency. Use when the user wants to bump Magento support,
     update PHP constraints, replace deprecated API usage, or scan for and remediate BC
