@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # gen-routing.sh — regenerate the README command-routing table from commands/*.md
-# (the single source of truth: each command's frontmatter description, gating flag,
+# (the single source of truth: each command's frontmatter description
 # and the skill its body routes to). Also validates, in --check mode, that the
 # hand-written skill tables (README "Skill | Purpose", docs/skills-reference.md
 # intent tables) reference only skills that exist and omit none, so those editorial

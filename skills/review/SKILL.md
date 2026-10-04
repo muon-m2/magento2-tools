@@ -2,9 +2,9 @@
 name: review
 version: 2.4.1
 description: >-
-  Review a Magento 2 module for architecture, framework requirements, security, code quality,
-  maintainability, PHPDoc, and test coverage. Use when asked to audit, review, validate, or assess a
-  module. Environment-independent: needs no Docker, bin/magento, or database. For a full
+  Review a Magento 2 module or diff for architecture, framework requirements, security, code quality,
+  maintainability, PHPDoc, and test coverage. Use when asked to review, validate, or assess a
+  module or diff. Environment-independent: needs no Docker, bin/magento, or database. For a full
   multi-dimension release audit use magento2-tools:audit; for security-only depth (CVEs, secrets,
   EQP) magento2-tools:security; for performance-only depth magento2-tools:perf-audit.
 ---

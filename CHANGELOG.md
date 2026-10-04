@@ -68,10 +68,10 @@ place of the plugin's `haiku` explorer.
   each feature adds roughly 150-300k tokens of context.
 - **Skill descriptions trimmed to 500 characters or fewer.** 17 skills had descriptions over 500
   characters (16 over 600, plus `admin-form` at 585), and every description is listed to the
-  model on every turn. Total description text across the 36 skills: 21,316 to 16,165 characters.
-  The sibling discriminators stay (`review` points to `audit` for release audits; `fix` deploys
-  only when authorized). `tests/test-frontmatter-yaml.sh` now fails a description over 600
-  characters and warns above 500.
+  model on every turn. Total description text across the 36 skills: ~21.3k to ~16.2k characters.
+  The sibling discriminators are kept, and `review` now points to `audit` for release audits;
+  `fix` deploys only when authorized. `tests/test-frontmatter-yaml.sh` (see Fixed) also fails a
+  description over 600 characters and warns above 500.
 
 ### Fixed
 
