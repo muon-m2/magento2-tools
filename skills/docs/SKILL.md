@@ -81,36 +81,9 @@ the JSON as `{ctx}`. Hard-stop with a clear message if:
 
 ### Phase 1 — Scope
 
-Determine:
+Resolve the module (`--module=Vendor_Module` or from the request) and which docs to produce. Default: every applicable doc; omit `user-guide` with no user surface, `api-reference`/`openapi`/`http-client`/`postman` with no REST routes, `graphql-reference` with no GraphQL operations. `http-client.env.json` is emitted iff `{slug}.http` is; GraphQL has no derivative artifact.
+**Read `references/phase1-scope.md` before starting this phase.**
 
-1. **Which module** — from the user's request or via `--module=Vendor_Module`.
-   Resolve the absolute module path.
-2. **Which docs to produce** — any combination of:
-   - `readme`               → `{module}/README.md`
-   - `technical-reference`  → `{module}/docs/technical-reference.md`
-   - `developer-guide`      → `{module}/docs/developer-guide.md`
-   - `user-guide`           → `{module}/docs/user-guide.md`            (only if a user surface exists)
-   - `api-reference`        → `{module}/docs/api-reference.md`         (only if REST routes exist)
-   - `graphql-reference`    → `{module}/docs/graphql-reference.md`     (only if GraphQL operations exist)
-   - `changelog`            → `{module}/CHANGELOG.md` (scaffold only; no history invented)
-   - `openapi`              → `{module}/docs/api/openapi.yaml`               (only if REST routes exist)
-   - `http-client`          → `{module}/docs/api/{slug}.http`
-                            + `{module}/docs/api/http-client.env.json`       (only if REST routes exist)
-   - `postman`              → `{module}/docs/api/postman/{slug}.postman_collection.json`
-                            + `{module}/docs/api/postman/{slug}.postman_environment.json`
-                                                                             (only if REST routes exist)
-   Default: produce every applicable doc. Omit `user-guide` when no user surface is
-   present; omit `api-reference`, `openapi`, `http-client` and `postman` when no REST
-   routes exist; omit `graphql-reference` when no GraphQL operations are found.
-
-   `http-client.env.json` is emitted if and only if `{slug}.http` is.
-   `{slug}` is derived in `references/doc-structure.md` → *REST API Description
-   Artifacts*; it is what a consumer already sees in the URL, so the spec file, the
-   collection and the endpoint stay greppable by one string.
-
-   **GraphQL has no derivative artifact.** `etc/schema.graphqls` is already
-   machine-readable and already checked in; generating a second copy of it would only
-   create something to drift.
 
 ### Phase 2 — Extract Surface (GATE)
 
@@ -147,62 +120,9 @@ From the surface JSON, present the **doc plan** to the user:
 
 ### Phase 3 — Render
 
-Fill the chosen templates with extracted facts:
+Fill the chosen templates with extracted facts (section order and example rules in `references/doc-structure.md`); every technical-reference table row carries its source file path. API description artifacts (OpenAPI / HTTP client / Postman) are **never composed by hand** — run `${CLAUDE_SKILL_DIR}/scripts/emit-api-artifacts.sh` (exit `0` clean, `2` an artifact was blocked, `1` hard error). It runs the secret/privacy gate below itself.
+**Read `references/phase3-render.md` before starting this phase.**
 
-- `${CLAUDE_SKILL_DIR}/templates/readme.md` → `{module}/README.md`
-- `${CLAUDE_SKILL_DIR}/templates/technical-reference.md` → `{module}/docs/technical-reference.md`
-- `${CLAUDE_SKILL_DIR}/templates/developer-guide.md` → `{module}/docs/developer-guide.md`
-- `${CLAUDE_SKILL_DIR}/templates/user-guide.md` → `{module}/docs/user-guide.md` (conditional)
-- `${CLAUDE_SKILL_DIR}/templates/api-reference.md` → `{module}/docs/api-reference.md` (conditional)
-- `${CLAUDE_SKILL_DIR}/templates/graphql-reference.md` → `{module}/docs/graphql-reference.md` (conditional)
-- `${CLAUDE_SKILL_DIR}/templates/changelog-scaffold.md` → `{module}/CHANGELOG.md`
-
-Follow the section order, example-derivation rules, error-model conventions,
-screenshot-appendix format, and Mermaid recipes defined in
-`${CLAUDE_SKILL_DIR}/references/doc-structure.md`.
-
-**API description artifacts** are not composed by hand. Run
-`${CLAUDE_SKILL_DIR}/scripts/emit-api-artifacts.sh` with `MODULE_PATH`, the
-`SURFACE_FILE` from Phase 2, and `FORMATS` set to the selected subset of
-`openapi,http-client,postman`. It fills these five templates:
-
-- `${CLAUDE_SKILL_DIR}/templates/openapi.yaml` → `{module}/docs/api/openapi.yaml`
-- `${CLAUDE_SKILL_DIR}/templates/http-client.http` → `{module}/docs/api/{slug}.http`
-- `${CLAUDE_SKILL_DIR}/templates/http-client.env.json` → `{module}/docs/api/http-client.env.json`
-- `${CLAUDE_SKILL_DIR}/templates/postman-collection.json` → `{module}/docs/api/postman/{slug}.postman_collection.json`
-- `${CLAUDE_SKILL_DIR}/templates/postman-environment.json` → `{module}/docs/api/postman/{slug}.postman_environment.json`
-
-The script — not the model — owns this rendering because the artifacts must be
-**byte-identical across runs** (that is what makes them reviewable in a PR, and why the
-Postman collection id is a UUIDv5 derived from `{Vendor}_{Module}` rather than random).
-It runs the Phase 4 secret/privacy gate itself and returns a JSON report naming what it
-wrote, what it blocked and why, and the `rest_warnings` it carried through. Its exit
-code is `0` for a clean run, `2` when at least one artifact was blocked, `1` on a hard
-error. Generation rules per format are in `references/doc-structure.md` → *REST API
-Description Artifacts*.
-
-Each table row in the technical reference must include the source file path so readers
-can verify the documentation against the code.
-
-### Phase 4 — Verify
-
-Before saving any file:
-
-- No unsubstituted `{tokens}` remain in the output.
-- Internal links (e.g. `[API Surface](#api-surface)`) resolve within the document.
-- No section contains an empty table or placeholder text such as "N/A" or "fill me in".
-- Confirm the skill has not written or modified any `.php`, `.xml`, `.phtml`, `.less`,
-  `.js` or `.graphqls` file, nor anything outside `{module}/docs/`,
-  `{module}/README.md`, `{module}/CHANGELOG.md`, and `{output_root}/docs-generated/`.
-- Every JSON example block parses as valid JSON (mental parse or `jq` check).
-- Every example block carries the caption `> Example — illustrative, generated from the schema`.
-- Every ` ```mermaid ``` ` block is properly fenced, brace/arrow-balanced, and uses
-  sanitized node ids (no spaces or special characters).
-- No `![]` image embeds appear anywhere in the output.
-- The `{DOCUMENTATION_LINKS}` token in `README.md` lists only the docs that were
-  actually produced in this run (registered in
-  `context/references/placeholder-schema.md`).
-- `openapi.yaml` parses as YAML and every `.json` artifact parses as JSON.
 
 #### Secret and privacy gate (blocking)
 
@@ -227,25 +147,17 @@ Example-Derivation Table, which yields `"string"` and `0` — synthetic by const
 real order increment id, customer email, bucket name or object key can only appear if
 someone widened the input, so widening the input is what is forbidden.
 
+### Phase 4 — Verify
+
+Before saving any file: no unsubstituted `{tokens}`, links resolve, no empty/placeholder sections, JSON/YAML/Mermaid blocks valid, no `![]` embeds. The skill must not have written or modified any `.php`/`.xml`/`.phtml`/`.less`/`.js`/`.graphqls` file, nor anything outside `{module}/docs/`, `{module}/README.md`, `{module}/CHANGELOG.md`, `{output_root}/docs-generated/`. The secret and privacy gate above must also pass.
+**Read `references/phase4-verify.md` before starting this phase.**
+
+
 ### Phase 5 — Report
 
-Write a run report to
-`{output_root}/docs-generated/{Vendor}_{Module}-{date}.md` listing:
+Write the run report to `{output_root}/docs-generated/{Vendor}_{Module}-{date}.md` (paths, omissions with reasons, surface inventory, skipped examples, API artifacts, blocked artifacts, `rest_warnings`, skill version). **Required follow-up** when a `.http` file was written: add `docs/api/http-client.private.env.json` to the module `.gitignore` before committing.
+**Read `references/phase5-report.md` before starting this phase.**
 
-- Module path documented.
-- Docs produced (paths).
-- New docs omitted (with reason, e.g. "user-guide omitted — no user surface found").
-- Surface inventory: entries found per category.
-- Surfaces omitted (not found in the module).
-- Examples skipped due to unresolved types (list field names and the unresolved type).
-- API description artifacts produced (paths), or the reason each was omitted.
-- Any artifact **blocked** by the Phase 4 gate, naming the assertion and the matched text.
-- Every `rest_warnings` entry, in the Phase 2 WARNING form.
-- **Required follow-up** when a `.http` file was written: *add
-  `docs/api/http-client.private.env.json` to the module `.gitignore` before committing.*
-  The JetBrains HTTP Client writes your bearer token there and it sits beside the `.http`
-  file, not inside `.idea/`, so a stock `.gitignore` does not cover it.
-- Skill version: `docs@1.4.1`.
 
 ## Inputs
 
@@ -320,22 +232,20 @@ run's reports collect under its folder.
 
 ## Reference Files
 
-- `${CLAUDE_SKILL_DIR}/references/surface-extraction.md` — read-only grep/parse recipe
-  for each surface: events, plugins, preferences, config paths, CLI commands, cron jobs,
-  REST routes, GraphQL, DB schema, extension attributes, `@api` annotations, and
-  `dispatch(` calls (events fired).
-- `${CLAUDE_SKILL_DIR}/references/doc-structure.md` — canonical section order for the
-  README and technical-reference documents, plus the per-format generation rules for the
-  API description artifacts.
-- `${CLAUDE_SKILL_DIR}/references/search-criteria-params.md` — the fixed query-parameter
-  set substituted for a `SearchCriteriaInterface` route parameter, which the module-local
-  DTO walker cannot resolve.
-- `context/references/naming.md` — shared naming conventions.
-- `context/references/placeholder-schema.md` — token registry.
-- `context/references/changelog-format.md` — canonical CHANGELOG structure and
-  entry-category vocabulary rendered by `templates/changelog-scaffold.md`.
-- `context/references/source-of-truth.md` — source-of-truth hierarchy + the
-  no-unrelated-module-scanning rule (allowed reads, live-doc fetch protocol, report affirmation).
+| Reference | Read when |
+|---|---|
+| `${CLAUDE_SKILL_DIR}/references/phase1-scope.md` | Phase 1 (which docs to produce) |
+| `${CLAUDE_SKILL_DIR}/references/phase3-render.md` | Phase 3 (templates, API artifacts script) |
+| `${CLAUDE_SKILL_DIR}/references/phase4-verify.md` | Phase 4 (pre-save checks) |
+| `${CLAUDE_SKILL_DIR}/references/phase5-report.md` | Phase 5 (run report contents) |
+| `${CLAUDE_SKILL_DIR}/references/surface-extraction.md` | Phase 2 — read-only grep/parse recipe per surface |
+| `${CLAUDE_SKILL_DIR}/references/doc-structure.md` | Phase 3 — section order, API artifact generation rules |
+| `${CLAUDE_SKILL_DIR}/references/search-criteria-params.md` | a `SearchCriteriaInterface` route parameter |
+| `context/references/naming.md` | naming conventions |
+| `context/references/placeholder-schema.md` | token registry |
+| `context/references/changelog-format.md` | CHANGELOG structure + entry categories (`templates/changelog-scaffold.md`) |
+
+- `context/references/source-of-truth.md` — source-of-truth hierarchy + the no-unrelated-module-scanning rule.
 
 ## Scripts
 
