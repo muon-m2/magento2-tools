@@ -45,7 +45,7 @@ The task graph does not change shape; the discipline moves *inside* each behavio
 
 - The two approval gates (blueprint, plan) are unchanged.
 - The Per-task completion protocol (mark `[x]` in `plan.md`, save, optional commit) is unchanged.
-- When TDD mode is **off**, Phase 5 behaves exactly as documented in `SKILL.md` (test-last).
+- When TDD mode is **off**, Phase 5 behaves exactly as documented in `references/phase5-task-types.md` (test-last).
 - When a Magento install is unavailable, follow the *tiered fallback* in `tdd-discipline.md`
   (prefer a test-first unit test; mark a skipped integration test with its reason; never report
   untested behaviour as done).
