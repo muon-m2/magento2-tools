@@ -95,6 +95,8 @@ is **mandatory** in `feature` and `extend` modes, **reduced** in `hotfix` mode, 
 9. State explicitly: *"Feature implementation complete. See report above,
    `.docs/{FeatureName}/report.md`, and the documentation set under `.docs/{FeatureName}/`."*
 
+After 7B, if the request named more than one spec, run the **Multi-spec requests** ask from `SKILL.md` (Phase 1) before ending.
+
 ---
 
 - `templates/final-report.md`: implementation report template (incl. Section 10).
