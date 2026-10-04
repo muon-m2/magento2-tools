@@ -3,11 +3,11 @@ name: fix
 version: 1.3.0
 description: >-
   End-to-end Magento 2 bug-fix workflow. Use when the user reports a defect, error, crash,
-  exception, or regression in an existing Magento 2 module. Reproduce, root cause, patch, regression
-  test, review. Requires user approval at the RCA gate before any code change. Calls
-  magento2-tools:review and magento2-tools:deploy. Accepts a diagnosed finding via
-  --from-finding=<report.json>#<id>; magento2-tools:remediate then owns the gate (plans:
-  magento2-tools:triage on a magento2-tools:audit report).
+  exception, unexpected behaviour, or regression in an existing module. Requires user approval at
+  the RCA gate before any code change. Calls magento2-tools:review, and magento2-tools:deploy only
+  when authorized. Accepts a diagnosed finding via --from-finding=<report.json>#<id>;
+  magento2-tools:remediate then owns the gate (plans: magento2-tools:triage on a
+  magento2-tools:audit report).
 ---
 
 # Magento 2 Bug Fix

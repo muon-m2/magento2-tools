@@ -2,11 +2,11 @@
 name: audit
 version: 1.1.0
 description: >-
-  Use for a full pre-release or "audit everything" pass over a Magento 2 module or codebase: runs
-  every read-only findings dimension in parallel, returns ONE ranked report plus a merged SARIF.
-  Covers magento2-tools:review, magento2-tools:security, magento2-tools:perf-audit,
+  Use for a full pre-release / release-readiness or "audit everything" pass over a module: fans out
+  read-only findings dimensions as the module's surface warrants into ONE ranked report plus merged
+  SARIF. Covers magento2-tools:review, magento2-tools:security, magento2-tools:perf-audit,
   magento2-tools:lint, magento2-tools:a11y-audit, magento2-tools:marketplace,
-  magento2-tools:breeze-compat. Read-only. For ONE dimension invoke that skill; to BUILD or change
+  magento2-tools:breeze-compat. Read-only. For ONE dimension use that skill; to BUILD or change
   functionality use magento2-tools:feature.
 ---
 

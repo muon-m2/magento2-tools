@@ -4,9 +4,9 @@ version: 2.15.2
 description: >-
   End-to-end Magento 2 feature orchestrator. Use to add, change, build, or implement any Magento 2
   functionality, from a model change to a multi-module integration: analysis, blueprint, code,
-  review, tests, report. Requires user approval at two gates before writing code. Also resumes a
-  feature when the request names a `.docs/{FeatureName}` folder; otherwise starts a new one.
-  Single-surface work: magento2-tools:admin-form, magento2-tools:graphql, or
+  review, tests, report. Requires user approval at two gates before writing code. Also
+  resume/continue/finish a feature when the request names a `.docs/{FeatureName}` folder; otherwise
+  starts a new one. Single-surface work: magento2-tools:admin-form, magento2-tools:graphql, or
   magento2-tools:eav-attribute.
 ---
 

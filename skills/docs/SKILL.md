@@ -2,11 +2,11 @@
 name: docs
 version: 1.4.1
 description: >-
-  Generate or refresh a module's technical documentation from its own code: README, guides,
-  REST/GraphQL references, and CHANGELOG scaffold covering the @api surface, events, plugins,
-  routes, and DB schema. For modules with `etc/webapi.xml` it also emits OpenAPI 3.1, a `.http`
-  file, and a Postman collection, with no live instance needed. Use for 'document this module' /
-  'generate module docs'. Never modifies source. For an architecture/quality review use
+  Generate or refresh a module's technical documentation from its own code: README, developer/user
+  guides, REST/GraphQL references, and CHANGELOG scaffold covering the @api surface, events,
+  plugins, routes, and DB schema. For modules with `etc/webapi.xml` it also emits OpenAPI 3.1, a
+  `.http` file, and a Postman collection, with no live instance needed. Use for 'document this
+  module' / 'generate module docs'. Never modifies source. For an architecture/quality review use
   `magento2-tools:review`.
 ---
 

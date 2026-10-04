@@ -5,8 +5,9 @@ description: >-
   Read-only static audit of a Magento 2 module's compatibility with Swissup Breeze. Scans RequireJS,
   Knockout, jQuery-UI widgets, and mixins; emits ranked findings (Markdown, JSON, SARIF) and a
   verdict: compatible, needs Better Compatibility, or needs a manual adapter. Use to ask whether a
-  module works with Breeze. Static only. Unlike magento2-tools:review (general quality), this is the
-  Breeze dimension; generate the adapter with magento2-tools:breeze-adapt.
+  module works with Breeze. Unlike magento2-tools:review (general quality), this is the Breeze
+  dimension; generate the adapter with magento2-tools:breeze-adapt; new theme:
+  magento2-tools:breeze-theme.
 ---
 
 # Magento 2 Breeze Compatibility Audit

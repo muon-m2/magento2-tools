@@ -6,7 +6,7 @@ description: >-
   report, triaged inline), works batch by batch via the skill owning each finding, one approval per
   batch. Use to fix, remediate, or work through a report's findings. Never edits vendor/; manual
   items are reported, not executed. For one user-reported bug use magento2-tools:fix; new behaviour
-  magento2-tools:feature; re-checking magento2-tools:audit (read-only).
+  magento2-tools:feature; to find or re-check findings use magento2-tools:audit (read-only).
 ---
 
 # Magento 2 Findings Remediation
