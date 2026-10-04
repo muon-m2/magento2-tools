@@ -64,6 +64,7 @@ root-cause analysis, the minimal fix, a regression test, and review across eight
   frames, ACL/escaping/EQP). Unlike `feature`, bug-fix has **no** sanctioned
   defer-if-present hand-wave — it is surgical and single-threaded, so there is nothing to defer.
   The governing policy and the reasons are in `context/references/process-skills.md`.
+- **Output budget.** Follow `context/references/output-budget.md` — targeted reads, summary-first test/lint output, long logs to files.
 
 ## Workflow
 

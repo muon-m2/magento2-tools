@@ -132,6 +132,7 @@ the full implementation from analysis through tested, reviewed, reported deliver
   `app/code`/`vendor/*`/Magento core for conventions; the generator sub-skills build from their
   templates + shared references. Read only the target of the change and the contracts of modules it
   explicitly depends on. See `context/references/source-of-truth.md`.
+- **Output budget.** Follow `context/references/output-budget.md` — targeted reads, summary-first test/lint output, long logs to files.
 
 ---
 

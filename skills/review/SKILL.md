@@ -24,6 +24,7 @@ missing tool or unavailable Magento runtime is an environment limitation, not a 
 - Separate confirmed defects, recommendations, subjective style notes, and environment limitations.
 - Evaluate code style, PHPDoc, DRY, SOLID, KISS, and SRP as maintainability criteria; only escalate when they create
   concrete risk or violate Magento standards.
+- **Output budget.** Follow `context/references/output-budget.md` — targeted reads, summary-first test/lint output, long logs to files.
 
 ## Workflow
 

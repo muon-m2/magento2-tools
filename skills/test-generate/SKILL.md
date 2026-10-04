@@ -37,6 +37,7 @@ Fill the test gap for an existing module. Five test types covered:
   references, and baked-in Magento 2 knowledge (official Magento/Adobe docs live-fetched only when
   uncertain). Do NOT read or "study" *other* modules under `app/code`/`vendor/*`/Magento core to
   infer conventions. See `context/references/source-of-truth.md`.
+- **Output budget.** Follow `context/references/output-budget.md` — targeted reads, summary-first test/lint output, long logs to files.
 
 ## Workflow
 
