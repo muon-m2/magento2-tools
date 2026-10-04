@@ -449,7 +449,7 @@ Where each skill stops and waits for you:
 
 Approval gates **always run in the main conversation**. Neither execution mode delegates
 a gate to a subagent — see
-[Configuration → Execution modes](configuration.md#execution-modes-agents-vs-inline).
+[Configuration → Execution modes](configuration.md#execution-modes-agents-inline-auto).
 
 ---
 

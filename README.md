@@ -236,9 +236,15 @@ All arguments/flags are passed straight through to the skill, which is the sourc
 **Subagents or one flow — your choice.** The audit/RCA commands accept `--agents` /
 `--inline` (or set `"execution_mode"` in the project's `.claude/m2.json`): `agents`
 fans analysis out to the read-only `reviewer`/`explorer` subagents in parallel, `inline`
-runs the same steps sequentially in the conversation. Defaults preserve pre-2.0
-behaviour (`audit` fans out; everything else runs inline). Approval gates always run in
-the main conversation. Contract: `skills/context/references/execution-modes.md`.
+runs the same steps sequentially in the conversation. `audit` fans out by default;
+everything else defaults to `auto` — inline in a small conversation, subagents once the
+conversation is already past the context budget. Approval gates always run in the main
+conversation. Contract: `skills/context/references/execution-modes.md`.
+
+**Context budget.** A run's cost scales with the conversation it starts in: every turn
+re-reads all of it. Start a `/magento2-tools:…` command in a conversation above 200k tokens
+and a warn-only hook recommends `/clear` first (`MAGENTO2_TOOLS_CTX_WARN` changes the
+threshold, `0` disables it — see `docs/configuration.md`).
 
 **Security scans are live, with no shipped advisory data.** The `security` skill resolves
 dependency advisories at scan time (`composer audit`) and Adobe patch state through the
@@ -274,9 +280,9 @@ detection. Changing any override busts the resolver cache automatically.
 skills/              # 36 skills (auto-discovered by Claude Code)
 commands/            # 18 /magento2-tools:<verb> shortcut commands (auto-discovered)
 agents/              # first-party read-only subagents: reviewer (per-dimension review) + explorer (code comprehension/tracing)
-hooks/               # PreToolUse guard: keeps .docs/ artifacts at the project root
+hooks/               # .docs/ path guard (PreToolUse) + warn-only context-budget hook (UserPromptSubmit / Skill)
 tests/               # contract test harness
-scripts/             # release-notes helper (used by .github/workflows/release.yml)
+scripts/             # release-notes helper (used by .github/workflows/release.yml) + token-report.py (where a session's tokens went)
 ```
 
 Bundled scripts are invoked from SKILL.md as `${CLAUDE_SKILL_DIR}/scripts/<name>` (own
