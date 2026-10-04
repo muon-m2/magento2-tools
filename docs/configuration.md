@@ -56,6 +56,7 @@ Env vars win over `.claude/m2.json`:
 | `M2_SMOKE_ADMIN_USER` | unset | Admin username for the `feature` smoke battery's authenticated admin suite. Consulted after the `CLAUDE.md` `Smoke admin user:` line and before prompting. |
 | `M2_SMOKE_ADMIN_PASS` | unset | Admin password for the same suite. **Env or interactive prompt only** — the skills deliberately refuse to read a password from `CLAUDE.md`, which is a committed file. |
 | `MAGENTO2_TOOLS_CTX_WARN` | `200000` | Context budget, in tokens, for the [context-budget hook](#context-budget-hook). Above it, starting a `/magento2-tools:…` command shows a `/clear` recommendation, and `auto` execution mode resolves to `agents`. `0` disables the hook. Set it in your shell or in `settings.json` `env` — the hook reads the environment Claude Code runs it in. |
+| `VERBOSE` | unset | `1` (or the `--verbose` flag) restores per-item output from the scripts that are quiet by default: `module-create`'s `create-dirs.sh` and `verify-created.sh`, and `feature`'s `smoke-baseline.sh`. Warnings, errors and exit codes are identical either way. |
 | `DOCS_ROOT` | `.docs` | Output root for artifact-writing **scripts**. Skills take the same value as `--docs-root={path}`. Because env vars do not persist between a skill's Bash calls, it is passed explicitly per invocation rather than exported once. |
 
 ## `.claude/m2.json`

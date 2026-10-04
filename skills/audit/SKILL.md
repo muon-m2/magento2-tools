@@ -45,6 +45,7 @@ counterpart to `feature` (which *builds*).
   storefront templates exist; breeze-compat only under a Breeze theme; marketplace only when
   release-readiness is asked for). Record skipped dimensions in the report — never let an unrun
   dimension read as "clean."
+- **Output budget.** Follow `context/references/output-budget.md` — targeted reads, summary-first test/lint output, long logs to files.
 
 ## Workflow
 

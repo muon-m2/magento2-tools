@@ -12,7 +12,13 @@
 #   core (always included), persistence, service_contracts, admin_config,
 #   admin_ui, frontend_ui, rest_api, graphql, cron, queue
 #
+# Flags:
+#   --augment   Add surfaces to an existing module.
+#   --verbose   Print the per-surface lines, the directory tree and the follow-up notes
+#               (same as VERBOSE=1). Default output is a summary only.
+#
 # Environment (optional):
+#   VERBOSE=1   Per-surface lines + directory tree + notes (see --verbose).
 #   MODULE_DIR  Module directory root. Defaults to `src/app/code` when src/ exists,
 #               otherwise `app/code`. The value from context's `module_dir`
 #               field should be exported by callers.
@@ -76,11 +82,14 @@ fi
 # --- Check for existing module ---
 # Accept --augment as a flag to allow adding surfaces to an existing module.
 AUGMENT=false
+VERBOSE="${VERBOSE:-0}"
 shift 2
 SURFACES=()
 for arg in "$@"; do
     if [[ "$arg" == "--augment" ]]; then
         AUGMENT=true
+    elif [[ "$arg" == "--verbose" ]]; then
+        VERBOSE=1
     else
         SURFACES+=("$arg")
     fi
@@ -99,6 +108,9 @@ fi
 if [[ ${#SURFACES[@]} -eq 0 ]]; then
     SURFACES=("core")
 fi
+
+# --- Helper: per-item output, only with VERBOSE=1 / --verbose ---
+say() { [[ "$VERBOSE" == "1" ]] && echo "$@"; return 0; }
 
 # --- Helper: check if a surface is declared ---
 has_surface() {
@@ -121,16 +133,16 @@ has_surface "rest_api"    && add_surface "service_contracts"
 has_surface "graphql"     && add_surface "service_contracts"
 ( has_surface "admin_ui" || has_surface "frontend_ui" ) && add_surface "i18n"
 
-echo "Scaffolding ${VENDOR}_${MODULE_NAME}"
-echo "Path: ${MODULE_PATH}"
-echo "Surfaces: ${SURFACES[*]}"
-echo ""
+say "Scaffolding ${VENDOR}_${MODULE_NAME}"
+say "Path: ${MODULE_PATH}"
+say "Surfaces: ${SURFACES[*]}"
+say ""
 
 # =============================================================================
 # Core — always created
 # =============================================================================
 mkdir -p "${MODULE_PATH}/etc"
-echo "  ✓ core       (etc/)"
+say "  ✓ core       (etc/)"
 
 # =============================================================================
 # Persistence
@@ -138,7 +150,7 @@ echo "  ✓ core       (etc/)"
 if has_surface "persistence"; then
     mkdir -p "${MODULE_PATH}/Model/ResourceModel"
     mkdir -p "${MODULE_PATH}/Setup/Patch/Data"
-    echo "  ✓ persistence (Model/, Model/ResourceModel/, Setup/Patch/Data/)"
+    say "  ✓ persistence (Model/, Model/ResourceModel/, Setup/Patch/Data/)"
 fi
 
 # =============================================================================
@@ -147,7 +159,7 @@ fi
 if has_surface "service_contracts"; then
     mkdir -p "${MODULE_PATH}/Api/Data"
     mkdir -p "${MODULE_PATH}/Service"
-    echo "  ✓ service_contracts (Api/, Api/Data/, Service/)"
+    say "  ✓ service_contracts (Api/, Api/Data/, Service/)"
 fi
 
 # =============================================================================
@@ -155,7 +167,7 @@ fi
 # =============================================================================
 if has_surface "admin_config"; then
     mkdir -p "${MODULE_PATH}/etc/adminhtml"
-    echo "  ✓ admin_config (etc/adminhtml/)"
+    say "  ✓ admin_config (etc/adminhtml/)"
 fi
 
 # =============================================================================
@@ -168,7 +180,7 @@ if has_surface "admin_ui"; then
     mkdir -p "${MODULE_PATH}/view/adminhtml/ui_component"
     mkdir -p "${MODULE_PATH}/Ui/Component/Listing/Column"
     mkdir -p "${MODULE_PATH}/Ui/DataProvider"
-    echo "  ✓ admin_ui (Controller/Adminhtml/, view/adminhtml/, Ui/Component/, Ui/DataProvider/)"
+    say "  ✓ admin_ui (Controller/Adminhtml/, view/adminhtml/, Ui/Component/, Ui/DataProvider/)"
 fi
 
 # =============================================================================
@@ -179,14 +191,14 @@ if has_surface "frontend_ui"; then
     mkdir -p "${MODULE_PATH}/view/frontend/layout"
     mkdir -p "${MODULE_PATH}/view/frontend/templates"
     mkdir -p "${MODULE_PATH}/ViewModel"
-    echo "  ✓ frontend_ui (Controller/, view/frontend/, ViewModel/)"
+    say "  ✓ frontend_ui (Controller/, view/frontend/, ViewModel/)"
 fi
 
 # =============================================================================
 # REST API — no extra dirs; webapi.xml lives in etc/
 # =============================================================================
 if has_surface "rest_api"; then
-    echo "  ✓ rest_api (etc/webapi.xml — no extra dirs)"
+    say "  ✓ rest_api (etc/webapi.xml — no extra dirs)"
 fi
 
 # =============================================================================
@@ -195,7 +207,7 @@ fi
 if has_surface "graphql"; then
     mkdir -p "${MODULE_PATH}/Model/Resolver/Mutation"
     mkdir -p "${MODULE_PATH}/Model/Resolver/Batch"
-    echo "  ✓ graphql (Model/Resolver/, Model/Resolver/Mutation/, Model/Resolver/Batch/)"
+    say "  ✓ graphql (Model/Resolver/, Model/Resolver/Mutation/, Model/Resolver/Batch/)"
 fi
 
 # =============================================================================
@@ -203,7 +215,7 @@ fi
 # =============================================================================
 if has_surface "cron"; then
     mkdir -p "${MODULE_PATH}/Cron"
-    echo "  ✓ cron (Cron/)"
+    say "  ✓ cron (Cron/)"
 fi
 
 # =============================================================================
@@ -211,7 +223,7 @@ fi
 # =============================================================================
 if has_surface "queue"; then
     mkdir -p "${MODULE_PATH}/Model/Consumer"
-    echo "  ✓ queue (Model/Consumer/)"
+    say "  ✓ queue (Model/Consumer/)"
 fi
 
 # =============================================================================
@@ -219,7 +231,7 @@ fi
 # =============================================================================
 if has_surface "i18n"; then
     mkdir -p "${MODULE_PATH}/i18n"
-    echo "  ✓ i18n (i18n/)"
+    say "  ✓ i18n (i18n/)"
 fi
 
 # =============================================================================
@@ -227,19 +239,22 @@ fi
 # =============================================================================
 mkdir -p "${MODULE_PATH}/Test/Unit"
 mkdir -p "${MODULE_PATH}/Test/Integration"
-echo "  ✓ tests (Test/Unit/, Test/Integration/)"
+say "  ✓ tests (Test/Unit/, Test/Integration/)"
 
-# =============================================================================
 # Summary
 # =============================================================================
-echo ""
-echo "Directory structure:"
-find "${MODULE_PATH}" -type d | sort | sed "s|${MODULE_PATH}|  ${MODULE_PATH}|"
-echo ""
-echo "Next: generate implementation files for each surface."
-echo ""
-echo "Note: entity-specific subdirectories (Model/ResourceModel/{Entity}/,"
-echo "  Controller/Adminhtml/{Entity}/) are created during Step 4 file generation,"
-echo "  not by this script — the entity name is not known at scaffold time."
-echo ""
+DIR_COUNT="$(find "${MODULE_PATH}" -type d | wc -l | tr -d ' ')"
+echo "Scaffolded ${VENDOR}_${MODULE_NAME} at ${MODULE_PATH} — ${DIR_COUNT} directories; surfaces: ${SURFACES[*]}"
+if [[ "$VERBOSE" == "1" ]]; then
+    echo ""
+    echo "Directory structure:"
+    find "${MODULE_PATH}" -type d | sort | sed "s|${MODULE_PATH}|  ${MODULE_PATH}|"
+    echo ""
+    echo "Next: generate implementation files for each surface."
+    echo ""
+    echo "Note: entity-specific subdirectories (Model/ResourceModel/{Entity}/,"
+    echo "  Controller/Adminhtml/{Entity}/) are created during Step 4 file generation,"
+    echo "  not by this script — the entity name is not known at scaffold time."
+    echo ""
+fi
 echo "Run scripts/verify-created.sh ${MODULE_PATH} after generation."

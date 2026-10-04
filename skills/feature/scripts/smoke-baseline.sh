@@ -34,6 +34,10 @@
 #   [reports]
 #   report=<abs path>|<mtime in integer microseconds, truncated>
 #
+# Output: quiet by default — the `logs=N reports=N` tally (python3 path) and the `baseline written:`
+# line. The magento_root/file/size_bytes/captured_at echo prints only with VERBOSE=1 in the
+# environment or --verbose in any argument position (all of it is already in the baseline file).
+#
 # Exit codes:
 #   0 — baseline captured (files may not exist yet — that is recorded, not an error)
 #   2 — could not locate a Magento root
@@ -44,12 +48,22 @@
 
 set -euo pipefail
 
-if [[ "${1:-}" == "" ]]; then
+VERBOSE="${VERBOSE:-0}"
+POSITIONAL=()
+for arg in "$@"; do
+  if [[ "${arg}" == "--verbose" ]]; then
+    VERBOSE=1
+  else
+    POSITIONAL+=("${arg}")
+  fi
+done
+set -- "${POSITIONAL[@]+"${POSITIONAL[@]}"}"
+
+OUT="${1:-}"
+if [[ "${OUT}" == "" ]]; then
   echo "usage: $0 <output-baseline-file> [<magento-root>]" >&2
   exit 64
 fi
-
-OUT="$1"
 ROOT_ARG="${2:-${MAGENTO_ROOT:-}}"
 
 abspath() {
@@ -229,7 +243,9 @@ else
 fi
 
 echo "baseline written: ${OUT}"
-echo "  magento_root=${ABS_ROOT}"
-echo "  file=${ABS_PATH}"
-echo "  size_bytes=${SIZE}"
-echo "  captured_at=${NOW}"
+if [[ "${VERBOSE}" == "1" ]]; then
+  echo "  magento_root=${ABS_ROOT}"
+  echo "  file=${ABS_PATH}"
+  echo "  size_bytes=${SIZE}"
+  echo "  captured_at=${NOW}"
+fi

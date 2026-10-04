@@ -82,7 +82,7 @@ Check CLAUDE.md for updated IDs before spawning agents — model names change ac
 
 After collecting all agent outputs:
 
-1. Run `${CLAUDE_SKILL_DIR}/scripts/verify-created.sh` on the merged module path.
+1. Run `${CLAUDE_SKILL_DIR}/scripts/verify-created.sh` on the merged module path (quiet by default; `VERBOSE=1` for per-check ✓ lines).
 2. Check `etc/di.xml` for duplicate type/preference entries from multiple agents.
 3. Verify all controller `ADMIN_RESOURCE` values match the ACL IDs in `etc/acl.xml`.
 4. Verify all `webapi.xml` handler FQCNs reference interfaces in `Api/` (not concrete classes).

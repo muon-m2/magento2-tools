@@ -2,7 +2,11 @@
 # =============================================================================
 # Verify a newly created Magento 2 module against the creation checklist.
 #
-# Usage: ./scripts/verify-created.sh src/app/code/{Vendor}/{ModuleName}
+# Usage: ./scripts/verify-created.sh src/app/code/{Vendor}/{ModuleName} [--verbose]
+#
+# Output: quiet by default — every WARN/FAIL line plus a one-line PASS/WARN/FAIL tally and the
+# RESULT verdict. The per-check PASS lines and category headers print only with VERBOSE=1 in the
+# environment or --verbose as an argument.
 #
 # Exit codes:
 #   0 — all checks pass (PASS or WARN only)
@@ -11,10 +15,18 @@
 # =============================================================================
 set -euo pipefail
 
-module_path="${1:-}"
+VERBOSE="${VERBOSE:-0}"
+module_path=""
+for arg in "$@"; do
+    if [[ "$arg" == "--verbose" ]]; then
+        VERBOSE=1
+    elif [[ -z "$module_path" ]]; then
+        module_path="$arg"
+    fi
+done
 
 if [[ -z "$module_path" || ! -d "$module_path" ]]; then
-    echo "Usage: $0 <module-path>" >&2
+    echo "Usage: $0 <module-path> [--verbose]" >&2
     exit 2
 fi
 
@@ -32,17 +44,18 @@ if command -v docker >/dev/null 2>&1 && \
     COMPOSER_CMD="docker compose exec -T -u magento php composer"
 fi
 
-ok()   { PASS=$((PASS + 1)); printf "  ✓  %s\n" "$1"; }
+vsay() { [[ "$VERBOSE" == "1" ]] && echo "$@"; return 0; }
+ok()   { PASS=$((PASS + 1)); [[ "$VERBOSE" == "1" ]] && printf "  ✓  %s\n" "$1"; return 0; }
 warn() { WARN=$((WARN + 1)); printf "  ⚠  %s\n" "$1"; }
 fail() { FAIL=$((FAIL + 1)); printf "  ✗  %s\n" "$1"; }
 
-echo "Verifying: $module_path"
-echo ""
+vsay "Verifying: $module_path"
+vsay ""
 
 # =============================================================================
 # Category 1 — Required files
 # =============================================================================
-echo "== Category 1: Required files =="
+vsay "== Category 1: Required files =="
 
 for f in registration.php composer.json etc/module.xml etc/di.xml README.md CHANGELOG.md; do
     if [[ -f "${module_path}/${f}" ]]; then
@@ -92,8 +105,8 @@ fi
 # =============================================================================
 # Category 2 — Registration & Declaration
 # =============================================================================
-echo ""
-echo "== Category 2: Registration & Declaration =="
+vsay ""
+vsay "== Category 2: Registration & Declaration =="
 
 # module.xml: no setup_version
 if [[ -f "${module_path}/etc/module.xml" ]]; then
@@ -166,8 +179,8 @@ fi
 # =============================================================================
 # Category 3 — Forbidden naming patterns
 # =============================================================================
-echo ""
-echo "== Category 3: Naming patterns =="
+vsay ""
+vsay "== Category 3: Naming patterns =="
 
 # Grep for Helper/Manager class names in production PHP
 bad_names=$(grep -RlnE --include='*.php' \
@@ -183,8 +196,8 @@ fi
 # =============================================================================
 # Category 4 — PHP coding standards
 # =============================================================================
-echo ""
-echo "== Category 4: PHP coding standards =="
+vsay ""
+vsay "== Category 4: PHP coding standards =="
 
 # PHP syntax check (uses containerized PHP when available, falls back to host)
 if $PHP_CMD -v >/dev/null 2>&1; then
@@ -246,8 +259,8 @@ fi
 # =============================================================================
 # Category 5 — PHPDoc: @api on interfaces in Api/
 # =============================================================================
-echo ""
-echo "== Category 5: PHPDoc =="
+vsay ""
+vsay "== Category 5: PHPDoc =="
 
 if [[ -d "${module_path}/Api" ]]; then
     api_missing_tag=0
@@ -266,8 +279,8 @@ fi
 # =============================================================================
 # Category 7 — Security patterns
 # =============================================================================
-echo ""
-echo "== Category 7: Security =="
+vsay ""
+vsay "== Category 7: Security =="
 
 # Deprecated $block->escape* in templates
 if find "$module_path" -name '*.phtml' | grep -q .; then
@@ -293,8 +306,8 @@ fi
 # =============================================================================
 # Category 8 — ACL check for admin controllers
 # =============================================================================
-echo ""
-echo "== Category 8: ACL =="
+vsay ""
+vsay "== Category 8: ACL =="
 
 if [[ -d "${module_path}/Controller/Adminhtml" ]]; then
     if [[ -f "${module_path}/etc/acl.xml" ]]; then
@@ -318,8 +331,8 @@ fi
 # =============================================================================
 # Category 9 — i18n: CSV present when UI surface declared
 # =============================================================================
-echo ""
-echo "== Category 9: i18n =="
+vsay ""
+vsay "== Category 9: i18n =="
 
 if [[ -d "${module_path}/view/adminhtml" || -d "${module_path}/view/frontend" ]]; then
     if [[ -f "${module_path}/i18n/en_US.csv" ]]; then
@@ -334,8 +347,8 @@ fi
 # =============================================================================
 # Category 10 — Testing: test classes for Service/ and Model/Repository
 # =============================================================================
-echo ""
-echo "== Category 10: Testing =="
+vsay ""
+vsay "== Category 10: Testing =="
 
 if [[ -d "${module_path}/Service" ]]; then
     service_missing=0
@@ -377,8 +390,8 @@ fi
 # =============================================================================
 # Category 11 — Admin configuration completeness
 # =============================================================================
-echo ""
-echo "== Category 11: Admin Configuration =="
+vsay ""
+vsay "== Category 11: Admin Configuration =="
 
 if [[ -f "${module_path}/etc/adminhtml/system.xml" ]]; then
     if [[ -f "${module_path}/etc/config.xml" ]]; then
@@ -407,8 +420,8 @@ fi
 # =============================================================================
 # XML well-formedness
 # =============================================================================
-echo ""
-echo "== XML well-formedness =="
+vsay ""
+vsay "== XML well-formedness =="
 
 if command -v xmllint >/dev/null 2>&1; then
     xml_errors=0
@@ -427,8 +440,8 @@ fi
 # =============================================================================
 # Composer validate
 # =============================================================================
-echo ""
-echo "== Composer validate =="
+vsay ""
+vsay "== Composer validate =="
 
 if [[ -f "${module_path}/composer.json" ]]; then
     if $COMPOSER_CMD --version >/dev/null 2>&1; then
@@ -452,11 +465,11 @@ fi
 # =============================================================================
 # Optional quality tools
 # =============================================================================
-echo ""
-echo "== Optional quality tools =="
+vsay ""
+vsay "== Optional quality tools =="
 
 if [[ -f "vendor/bin/phpcs" ]]; then
-    echo "  Running phpcs (Magento2 standard)..."
+    vsay "  Running phpcs (Magento2 standard)..."
     phpcs_out=$(vendor/bin/phpcs --standard=Magento2 --report=summary \
         "$module_path" 2>&1 || true)
     if echo "$phpcs_out" | grep -q "ERROR"; then
@@ -469,7 +482,7 @@ else
 fi
 
 if [[ -f "vendor/bin/phpstan" ]]; then
-    echo "  Running phpstan..."
+    vsay "  Running phpstan..."
     phpstan_out=$(vendor/bin/phpstan analyse --error-format=table \
         "$module_path" 2>&1 || true)
     if echo "$phpstan_out" | grep -qE "Error|error"; then
@@ -484,23 +497,23 @@ fi
 # =============================================================================
 # Summary
 # =============================================================================
-echo ""
-echo "============================================"
+vsay ""
+vsay "============================================"
 printf "  PASS: %-4d  WARN: %-4d  FAIL: %d\n" "$PASS" "$WARN" "$FAIL"
-echo "============================================"
+vsay "============================================"
 
 if [[ $FAIL -gt 0 ]]; then
-    echo ""
+    vsay ""
     echo "  RESULT: FAIL — fix all ✗ items before deploying."
     echo "  Run the review skill for full PHPCS + PHPStan + unit test results."
     exit 1
 elif [[ $WARN -gt 0 ]]; then
-    echo ""
+    vsay ""
     echo "  RESULT: WARN — review ⚠ items before release."
     echo "  Run the review skill on {Vendor}/{ModuleName} to verify all 12 categories."
     exit 0
 else
-    echo ""
+    vsay ""
     echo "  RESULT: PASS — module is compliant."
     echo "  Run the deploy skill to enable and deploy, then review to confirm."
     exit 0

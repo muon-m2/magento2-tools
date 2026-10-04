@@ -33,6 +33,7 @@ test after, and roll back on any failure.
   production deploy. The snapshot captures `generated/`, `var/`, optionally `vendor/`.
 - **Reports are written before state changes commit.** If the skill crashes mid-deploy,
   the report folder shows where it stopped.
+- **Output budget.** Follow `context/references/output-budget.md` — targeted reads, summary-first test/lint output, long logs to files.
 
 ## Workflow
 

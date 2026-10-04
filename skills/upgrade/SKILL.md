@@ -25,6 +25,7 @@ Bring an existing module up to a newer Magento or PHP target. The change list is
 - **Per-task commits.** Each Rector rule run, each manual edit, each BC-break note is its
   own commit. Reverting one shouldn't lose others.
 - **Test before declare-done.** A passing test suite is the gate to Phase 7.
+- **Output budget.** Follow `context/references/output-budget.md` — targeted reads, summary-first test/lint output, long logs to files.
 
 ## Workflow
 

@@ -29,6 +29,16 @@ place of the plugin's `haiku` explorer.
   subagents. `"execution_mode": "auto"` is accepted in `.claude/m2.json`. `audit` still fans out.
 - **`scripts/token-report.py`**, a developer tool that shows where a session's tokens went:
   main thread vs subagents, context percentiles, per-skill buckets, and Bash output by class.
+- **Shared output-budget reference.** `context/references/output-budget.md` holds seven rules for
+  what the heavy run skills read and print: locate then read a range, read specs once, summarize
+  test and lint output first, send long output to a file, write files with the Write tool, read
+  plugin files by section, and print browser-smoke summaries not page dumps. `feature`, `fix`,
+  `remediate`, `upgrade`, `deploy`, `docs`, `lint`, `test-generate`, `review` and `audit` cite
+  it. It changes how much is printed, never what is checked.
+- **`VERBOSE=1` / `--verbose`** restores the per-item lines of the three scripts that are now
+  quiet by default (see Changed). Warnings, errors and exit codes are the same in both modes.
+- **`tests/test-skill-body-budget.sh`** fails any `SKILL.md` body over 18,000 characters and
+  warns above 16,000.
 
 ### Changed
 
@@ -41,6 +51,21 @@ place of the plugin's `haiku` explorer.
 - **Corrected guidance.** `feature` no longer claims the harness cannot pin a model; tiers take
   effect wherever a skill dispatches a subagent. `execution-modes.md` no longer calls inline
   runs token-frugal unconditionally: they are cheap only while the conversation is small.
+- **Slimmer skills, so they survive compaction.** A very large skill body is at risk of being
+  truncated when the conversation is compacted, which loses the tail of the skill mid-run. Phase
+  detail moved verbatim into each skill's `references/`, and every `SKILL.md` body now stays
+  under 18,000 characters; approval gates, blocking gates and the `feature` per-task completion
+  protocol stay in `SKILL.md`. Body size, before to after: `feature` 56.2k to 17.4k,
+  `module-create` 23.1k to 16.6k, `widget` 21.2k to 17.4k, `docs` 20.8k to 16.2k, `fix` 18.6k to
+  17.6k characters.
+- **Quiet-by-default scripts.** `module-create`'s `create-dirs.sh` and `verify-created.sh` and
+  `feature`'s `smoke-baseline.sh` print a short summary instead of per-item lines (`create-dirs`
+  49 to 2 lines on a sample module); `VERBOSE=1` or `--verbose` brings the old output back.
+  `WARN`/`FAIL` lines still print, so an incomplete module still reports every problem.
+- **`feature` multi-spec requests run one spec, then ask.** It runs the first spec, lists the
+  rest, and after Phase 7B asks whether to continue in place or `/clear` and start the next
+  one fresh (recommended, with the next `/magento2-tools:feature ...` command printed), since
+  each feature adds roughly 150-300k tokens of context.
 
 ## [2.3.0] — 2026-09-17 — An audit that tells you who fixes each finding
 

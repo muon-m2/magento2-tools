@@ -23,59 +23,25 @@ the full implementation from analysis through tested, reviewed, reported deliver
 
 ## Core Rules
 
-- **Mode-driven.** Pick a mode in Phase 1 (`feature`, `hotfix`, `extend`, `spike`).
-  See `references/modes.md`. Default: `feature`. `hotfix` skips Phases 3-4 entirely;
-  `extend` skips Phase 3 only and keeps a **minimal Phase 4** that still writes `plan.md`
-  with a `## Current State` checklist — so every mode that executes tasks has a checklist
-  to maintain and resume from.
+Read `references/core-rules-detail.md` when a rule's one-liner is not enough.
+
+- **Mode-driven.** Pick `feature` (default), `hotfix`, `extend` or `spike` in Phase 1 (`references/modes.md`); `hotfix` skips Phases 3-4, `extend` only 3.
 - **Two approval gates.** Do not write any code until the user approves both the feature blueprint
   (after Phase 2) and the task plan (after Phase 4). Affirmative replies: "proceed", "yes", "go",
   "approved", "ok", or equivalent. In `hotfix` and `extend` mode only the blueprint gate applies.
 - **Blueprint first.** Save the blueprint before building the module schema. The module schema
   derives from the blueprint — not from assumptions.
-- **Save before present.** Every review artifact (`blueprint.md` in Phase 2, `plan.md` in Phase 4)
-  must be **written to disk and confirmed to exist** before it is presented to the user — never
-  present one from memory. After writing, verify the file is on disk (e.g. read it back) and cite
-  its path in the message. The user reviews the file, not just the chat. This applies to the
-  detailed task records too (`tasks.md` / `tasks/`): they are written **before** the Phase 4
-  approval gate, alongside `plan.md`, so the user can review the full task detail — not just the
-  index — before approving. They are still kept **out** of `plan.md` itself (no duplication).
+- **Save before present.** Write `blueprint.md`, `plan.md` and task records to disk and read them back before presenting; cite the path, never present from memory.
 - **Ask once.** Gather all clarifying questions in a single batch during Phase 1. Never interrupt
   mid-execution with more questions unless a blocking ambiguity is discovered.
-- **Continuous execution.** Once the Phase 4 plan gate is passed, Phases 5-7 run to completion in
-  one uninterrupted stretch. **Do not pause to check in with the user between tasks** — "Should I
-  continue?" prompts and progress summaries waste their time; the user approved the plan, so
-  execute it. **Finishing a task is not a stopping point.** Completing a task, flipping its `[x]`
-  in `plan.md`, and making its commit are the *cue to start the next task in the same turn* — not
-  a hand-back. The same applies at phase boundaries: roll from the last Phase 5 task into Phase 6,
-  and from 6 into 7, without asking. After the plan gate the **only** sanctioned stops are:
-  (a) a blocking ambiguity no reasonable assumption can resolve (per **Ask once**);
-  (b) an input the run cannot obtain itself — e.g. a smoke admin credential (`references/smoke-runner.md`);
-  (c) the 5-iteration smoke cap in Phase 6B; and
-  (d) Phase 7B delivered — the run is done.
-  Anything else — "task X complete, ready for Y?", a mid-run status recap, waiting for "continue" —
-  is a defect in the run, not politeness.
+- **Continuous execution.** After the plan gate, Phases 5-7 run without check-ins; a finished task cues the next. Stop only for: a blocking ambiguity, an unobtainable input, the smoke cap, 7B done.
 - **Review every module.** After creating or modifying any module, invoke `review`.
   Fix all Critical and High findings before continuing to the next task.
 - **Tests must pass.** All unit tests must complete with zero failures before Phase 7. Never mark
   implementation complete with failing tests.
-- **Test-first for behaviour (opt-in).** When TDD mode is on (`--tdd`, CLAUDE.md
-  `Feature implement: tdd = on`, or `MAGENTO2_FI_TDD=1`), behaviour-bearing `M*`/`X*` tasks are
-  implemented test-first (red → green → refactor): write the failing test, watch it fail for the
-  right reason, then write the minimal code to pass. Pure scaffold/config stays generated-then-
-  covered. Off by default; `spike` mode is always exempt. See `references/tdd-mode.md` and the
-  shared loop in `context/references/tdd-discipline.md`.
-- **Smoke before report.** Phase 6 has two sub-phases: **6A** (unit tests + coverage) and **6B**
-  (smoke battery — REST scenarios, admin login, Stores → Config, grids, new routes, customer
-  flows, error-signal diff). Phase 7 may not start while any Critical or High smoke finding is
-  open. See `references/smoke-test-guide.md`.
-- **Smoke tooling is policy, not preference.** REST and GraphQL scenarios always use `curl`;
-  admin and storefront suites use a **headless** browser and never a headed one or a
-  browser-automation MCP server. A missing browser is expected, not an error — S3–S7 degrade to a
-  curl tier and emit a mandatory Medium coverage finding rather than being skipped. An explicit
-  user directive ("do not use browser", "use curl") outranks every probe. The rules, the
-  precedence order, and the trigger phrasings live in
-  `context/references/runtime-test-tooling.md`.
+- **Test-first for behaviour (opt-in).** TDD on (`--tdd`, CLAUDE.md, `MAGENTO2_FI_TDD=1`): behaviour-bearing `M*`/`X*` tasks run red → green → refactor; `spike` exempt (`references/tdd-mode.md`).
+- **Smoke before report.** Phase 6 runs **6A** (unit tests + coverage) then **6B** (smoke battery); Phase 7 waits until no Critical/High smoke finding is open.
+- **Smoke tooling is policy, not preference.** `curl` for REST/GraphQL; **headless** browser for admin/storefront, never headed or a browser-automation MCP server; no browser ⇒ curl tier + Medium finding. A user directive outranks every probe (`context/references/runtime-test-tooling.md`).
 - **Smoke loop is bounded.** Critical/High smoke findings are auto-routed to the right
   sub-skill of this pack for remediation, then Phase 6 re-runs from 6A. The loop halts at **5
   iterations** and asks the user how to proceed (`retry` / `accept-known-issues <IDs>` / `abort`).
@@ -83,48 +49,12 @@ the full implementation from analysis through tested, reviewed, reported deliver
   as done. Every generated file must contain real implementation content.
 - **All diagrams are Mermaid.** Every diagram in every document — dependency graphs, flow charts,
   module schemas, ER diagrams — must use Mermaid syntax. No ASCII art or external image links.
-- **Document before report (required).** Phase 7 is split into **7A** (documentation) and **7B**
-  (final report). Phase 7B may not start until the feature's documentation set exists on disk and
-  is current. Documentation is a required deliverable — not an optional extra — in `feature` and
-  `extend` modes. The set spans three scopes (technical, developer, user), carries screenshots, and,
-  when the feature exposes a REST/GraphQL surface, includes request/response payload examples. Per-
-  module technical reference docs are delegated to `docs`. The required artifacts,
-  per-mode scope, and the completeness gate live in `references/documentation-guide.md`.
-- **Guides and user docs are HTML.** Development guides and user documentation default to `.html`
-  format. Define a CSS color schema once for the feature and apply it inline to every HTML file
-  in the feature folder for visual consistency. Every HTML file must declare
-  `<meta charset="utf-8">` as the first element inside `<head>`, ahead of `<title>`: these are
-  read over `file://`, where there is no HTTP `Content-Type` header, so an undeclared UTF-8 file
-  is sniffed as windows-1252 and every em dash renders as `â€”`.
-- **Per-task git commits (opt-in).** When `--per-task-commits` is set, CLAUDE.md contains
-  `Feature implement: per-task commits = on`, or `MAGENTO2_FI_PER_TASK_COMMITS=1` is set,
-  every completed task in Phase 5 produces a focused git commit. See
-  `references/per-task-commits.md` for format, scoping rules, and failure handling. Off by default.
-- **Model tiering.** Each Phase 4 task record carries a `Model tier (advisory)` field
-  (`opus`/`sonnet`/`haiku`) recommending the tier that task would ideally run on — see
-  `references/task-breakdown-guide.md` §"Model tier (advisory)". Sequential sub-skill tasks run
-  through the `Skill` tool on the session model (no sub-skill of this plugin pins a `model:`), so
-  for them the field guides manual `/model` switching. Tiers take live effect wherever this skill
-  **dispatches a subagent**, because the `Agent` tool's `model` parameter pins it — follow
-  `context/references/execution-modes.md` §"Subagent dispatch" on every dispatch: the plugin's
-  `explorer` (default `haiku`, or the `CLAUDE.md` directive `Explorer model: {tier}`) for
-  comprehension and blueprint/seam verification, `reviewer` for findings (`opus` for the Security
-  and Architecture/API dimensions, `sonnet` otherwise), never the built-in `Explore` or
-  `general-purpose` agents for that work, and an explicit `model` on every `Agent` call —
-  including docs and smoke helpers (`sonnet`).
-- **Delegate by probing, never by assumption.** The sub-skills of this pack ship in the **same
-  plugin** as this skill — if this skill is running, the plugin is installed and they are
-  Skill-invocable. Decide a sub-skill's availability by *attempting* its `Skill` invocation and
-  falling back only on an actual failure (the tool reports no such skill). **Never** pre-declare a
-  sub-skill — or the whole skill family — unreachable, and never skip delegation "from
-  memory," from a project note, or on a blanket "not Skill-invocable here" assumption. A task that
-  falls back to inline MUST record the concrete invocation failure that justified it; an
-  unverifiable citation is not a reason. Inline is the exception for a genuinely absent skill, not
-  the default — see the **Fallback discipline** note at the start of Phase 5.
-- **Deploy delegation.** D* tasks delegate to `deploy`. The skill is invoked with the
-  module list and the user's environment selection; `feature` does not run
-  `bin/magento` commands itself — `deploy` owns the deploy plan (and the manual-next-steps
-  fallback when it is absent).
+- **Document before report (required).** 7B may not start until the 7A documentation set is on disk and current (`references/documentation-guide.md`).
+- **Guides and user docs are HTML.** One shared inline CSS color schema; each HTML file declares `<meta charset="utf-8">` first in `<head>`.
+- **Per-task git commits (opt-in).** `--per-task-commits`, CLAUDE.md or `MAGENTO2_FI_PER_TASK_COMMITS=1` ⇒ one commit per Phase 5 task (`references/per-task-commits.md`).
+- **Model tiering.** Advisory `Model tier` per task; every `Agent` call sets `model`, and comprehension/findings go to `explorer`/`reviewer`, never `Explore`/`general-purpose` (`context/references/execution-modes.md` §"Subagent dispatch").
+- **Delegate by probing, never by assumption.** Attempt the sub-skill's `Skill` call; fall back inline only on a real failure, and record it. Never pre-declare one unreachable.
+- **Deploy delegation.** D* tasks delegate to `deploy` (module list + environment); `feature` never runs `bin/magento` itself.
 - **One artifact home.** Every sub-skill is invoked with `--docs-root=.docs/{FeatureName}`
   so the whole run's reports nest under the feature folder (see
   `context/references/artifact-layout.md`). Never invoke a sub-skill without it.
@@ -132,65 +62,15 @@ the full implementation from analysis through tested, reviewed, reported deliver
   `app/code`/`vendor/*`/Magento core for conventions; the generator sub-skills build from their
   templates + shared references. Read only the target of the change and the contracts of modules it
   explicitly depends on. See `context/references/source-of-truth.md`.
+- **Output budget.** Follow `context/references/output-budget.md` — targeted reads, summary-first test/lint output, long logs to files.
+- **After a context compaction,** re-read the reference for the phase in progress before continuing.
 
 ---
 
 ## Feature Folder Structure
 
-Every feature gets its own subfolder under `.docs/`. Create it at the start of Phase 2.
-
-**Location.** `.docs/` is anchored at the **project working directory** (`{ctx.docs_root}` =
-`{project_root}/.docs`), as defined by the **Artifact location** rule in
-`context/SKILL.md`. Never create it under `{ctx.magento_root}` (e.g. `src/`),
-`app/code`, or any module directory. When `magento_root` is `src`, the folder is
-`./.docs/{FeatureName}/`, a sibling of `src/` — not `src/.docs/{FeatureName}/`.
-
-```
-.docs/                        # at the project root — never inside the Magento tree
-└── {FeatureName}/
-    ├── blueprint.md          # Feature blueprint — saved for review in Phase 2, before the blueprint gate
-    ├── plan.md               # Execution plan: diagrams + resumable checkbox list — saved for review in Phase 4, before the plan gate
-    ├── tasks.md              # Flat task records (≤ 5 tasks) — written for review before the plan gate
-    │   OR
-    ├── tasks/                # One file per task (> 5 tasks) — written for review before the plan gate
-    │   ├── 001-M1-{title}.md  # {NNN} = execution-order index; same NNN ⇒ runs in parallel
-    │   ├── 002-R1-{title}.md
-    │   ├── 003-X1-{title}.md  # 003-X1 and 003-X2 share index 003 → parallel wave
-    │   ├── 003-X2-{title}.md
-    │   └── ...
-    ├── report.md             # Final implementation report — Phase 7B
-    ├── spec.md               # Cross-module technical specification — Phase 7A (required in feature mode)
-    ├── guides/               # Developer-scope documentation (HTML) — Phase 7A (required in feature/extend)
-    │   └── developer-guide.html
-    ├── user-docs/            # User/admin-scope documentation (HTML) — Phase 7A (required in feature/extend)
-    │   ├── user-guide.html
-    │   └── screenshots/      # Admin/storefront screenshots embedded in the user guide (reuse Phase 6B captures)
-    ├── api-examples/         # REST/GraphQL request + response payload samples — when the feature exposes an API
-    ├── artifacts/            # Other helpful artifacts (Postman collection, ER/sequence diagrams, sample data)
-    ├── reviews/              # .docs/{FeatureName}/reviews/ — review (R* tasks)
-    ├── tests/                # test-generate coverage reports
-    ├── quality/              # lint (V* tasks)
-    ├── audits/               # security / performance audits routed from S9
-    ├── docs-generated/       # docs run reports (Phase 7A)
-    ├── deployments/          # deploy (D* tasks)
-    └── …                     # any other invoked sub-skill's category dir
-```
-
-> Sub-skill artifacts nest by category under the feature root per
-> `context/references/artifact-layout.md`.
-
-**plan.md** is the single source of truth for resuming a run interrupted **from outside** — a lost
-session, a crash, an explicit stop by the user. It must always contain:
-
-- The implementation flow diagram (Mermaid `flowchart TD`)
-- The module schema diagram (Mermaid `graph TD`)
-- The task dependency graph (Mermaid `graph LR`)
-- A **Current State** section listing every task as a checkbox (`- [ ]` pending / `- [x]` done).
-
-After each task completes in Phase 5, mark its checkbox `[x]` in `plan.md` and save immediately,
-then continue straight into the next task. `plan.md` exists so an **externally** interrupted run
-can be picked up — it is not a licence to interrupt the run yourself (Core Rules →
-**Continuous execution**).
+Each feature lives in `.docs/{FeatureName}/` at the project root; sub-skill reports nest by category, e.g. `.docs/{FeatureName}/reviews/`.
+**Read `references/feature-folder-structure.md` before creating it in Phase 2.**
 
 ---
 
@@ -239,37 +119,10 @@ skill treats the request as a new feature.
 
 **Goal:** understand the feature well enough to write a complete blueprint.
 
-0. **Pick a mode.** Read `references/modes.md`. Choose `feature` (default), `hotfix`,
-   `extend`, or `spike` based on the request. State the chosen mode explicitly:
-   > Mode: `hotfix`. Skipping Phases 3-4 — small change scope.
-   In `hotfix` mode, Phases 3-4 are skipped. In `extend` mode, Phase 3 is skipped but a
-   minimal Phase 4 still runs to write `plan.md` (with its `## Current State` checklist) —
-   it is **not** skipped. See `references/modes.md` for the exact per-mode pipeline.
-   In `spike` mode, Phases 6-7 are reduced and findings are logged at Info.
+Pick the mode, resolve `{Vendor}` (prefer `{ctx.vendor}`; never hardcoded), ask clarifying questions in one batch, state your understanding.
+**Read `references/phase1-4-design.md` before starting this phase.**
 
-1. **Resolve `{Vendor}`** — do not assume a fixed vendor name:
-    1. Read `CLAUDE.md` for a `Vendor prefix:` line (e.g. `Vendor prefix: **Acme**`).
-    2. If absent, inspect `src/app/code/` (or `app/code/`) and use the top-level directory name found
-       there (e.g. if `app/code/Acme/` exists, `{Vendor}` = `Acme`).
-    3. If still unresolvable, ask: *"What vendor prefix does this project use (e.g. `Acme`)?"*
-       and wait for the answer before proceeding.
-       Store `{Vendor}` and use it in all subsequent phases wherever a vendor prefix is needed.
-       Never default to any hardcoded vendor name.
-
-2. Read `$ARGUMENTS`. If the request is fully specified (clear feature, scope, and constraints),
-   proceed directly to step 4.
-3. If the request is ambiguous, ask a single batch of 3–6 targeted questions. Choose from:
-    - What business problem does this solve? (if not stated)
-    - Which Magento areas are involved? (checkout, catalog, customer, order, inventory, EAV, …)
-    - Does this require admin configuration, a REST/GraphQL endpoint, or a frontend UI?
-    - Are there existing modules that already own part of this domain?
-    - Are there third-party integrations involved?
-    - Are there performance or data-volume constraints to design around?
-4. After receiving answers, map the request to:
-    - Affected Magento areas
-    - Likely surfaces from `module-create/references/surfaces.md`
-    - Whether new modules are needed or existing modules will be modified
-5. State your understanding in one paragraph, including the resolved `{Vendor}`, and proceed.
+**Multi-spec requests.** If the request names more than one spec or feature, run the first only (say which; list the rest). After Phase 7B, `AskUserQuestion`: "N specs remain: `<list>`. Continue here, or `/clear` and start the next fresh? (each feature adds ~150–300k tokens of context)" Options: **`/clear` and start fresh (Recommended)** — print `/magento2-tools:feature <remaining specs>` to run after `/clear`; **Continue here** — proceed to the next spec in place. Never hard-stop; no queue file.
 
 ---
 
@@ -277,10 +130,8 @@ skill treats the request as a new feature.
 
 **Goal:** produce a complete, approved blueprint.
 
-1. Load `references/feature-blueprint-format.md`. Apply its completeness checklist before saving.
-2. Use `templates/feature-blueprint.md` as the structural base.
-3. Fill in all 12 sections. Do not skip any — use "None" or "N/A" with a brief justification when
-   a section genuinely does not apply.
+**Read `references/phase1-4-design.md` before starting this phase** (steps 1–3).
+
 4. Create the feature folder `{ctx.docs_root}/{FeatureName}/` if it does not exist (anchored at the
    project root per the **Artifact location** rule — never under `{ctx.magento_root}`).
    **Write** the blueprint to `.docs/{FeatureName}/blueprint.md` with `Status: Awaiting Approval`
@@ -300,15 +151,8 @@ skill treats the request as a new feature.
 
 **Goal:** decide exactly which modules own which parts of the feature.
 
-1. Load `references/module-schema-guide.md`.
-2. For each component in the blueprint, apply the decision matrix (new module vs modify existing).
-3. Assign surfaces to each new module using `module-create/references/surfaces.md`.
-4. Produce a Mermaid `graph TD` dependency diagram showing all modules and their relationships,
-   following the format in `references/module-schema-guide.md` (Module Schema Diagram section).
-5. Produce the module schema output (new modules table, modified modules table, diagram, load order)
-   as described in `references/module-schema-guide.md`.
-6. Present the schema to the user as part of the task breakdown in Phase 4.
-   **Do not pause for approval here** — present schema and task breakdown together.
+New-vs-modify matrix, surfaces, Mermaid `graph TD` schema. **No approval pause** — present it with the Phase 4 plan.
+**Read `references/phase1-4-design.md` before starting this phase.**
 
 ---
 
@@ -316,58 +160,15 @@ skill treats the request as a new feature.
 
 **Goal:** produce a detailed, approved implementation plan.
 
-1. Load `references/task-breakdown-guide.md`.
-2. Use `templates/plan.md` as the structural base for `plan.md`. The **detailed task records**
-   are written separately, from `templates/task-record.md` (step 6, before the approval gate) —
-   they are never embedded in `plan.md`.
-3. Assign task IDs using the `{TypePrefix}{Number}` format from the guide.
-4. For each task, fill in: type, target, depends on, skill invoked, recommended model tier
-   (advisory), estimate, description, and acceptance criteria. Assign the tier from the
-   default-by-type table in `references/task-breakdown-guide.md` §"Model tier (advisory)".
-   When TDD mode is on (see Core Rules), a behaviour-bearing task's
-   acceptance criteria are also its **RED test list** — each criterion becomes a failing test
-   written before the task's implementation code (`references/tdd-mode.md`).
-5. Produce the execution flow diagram (Mermaid `flowchart TD`) and the dependency graph
-   (Mermaid `graph LR`).
+**Read `references/phase1-4-design.md` before starting this phase** — steps 1–7 in full. Condensed:
+
 6. **Write `plan.md` AND the detailed task records to disk for review — before presenting and
-   before the approval gate.**
-   First, save the execution plan to `.docs/{FeatureName}/plan.md` with a `Status: Awaiting Approval`
-   line in its header (see `templates/plan.md`). The plan must include, in this order:
-    - Implementation flow diagram (Mermaid `flowchart TD`)
-    - Module schema diagram (Mermaid `graph TD` from Phase 3)
-    - Task dependency graph (Mermaid `graph LR`)
-    - **Current State** checklist — every task as an unchecked checkbox: `- [ ] {ID}: {Title}`.
-    - The summary table (task count, module counts, total estimate)
-
-   `plan.md` is the resumable **index** — diagrams, the Current State checklist, and the summary.
-   It holds **no** detailed task records.
-
-   Then, save the **detailed task records** using `templates/task-record.md` as the structural
-   base, so the user can review the full task detail before approving:
-    - `.docs/{FeatureName}/tasks.md` if the feature has ≤ 5 tasks (single flat file), or
-    - `.docs/{FeatureName}/tasks/` if the feature has > 5 tasks (one file per task named
-      `{NNN}-{ID}-{kebab-title}.md`). `{NNN}` is the zero-padded execution-order index
-      (`001`, `002`, `003`, …) derived from the dependency order in `plan.md`: assign `001`
-      to the first wave (tasks with no unmet dependencies), `002` to the next wave, and so on.
-      Tasks expected to run in parallel (same wave — `Parallel: yes`, no dependency between
-      them) share the **same** `{NNN}`. So the prefix sorts the folder into execution order
-      and reveals parallel groups at a glance (e.g. `003-X1-extend-checkout.md` and
-      `003-X2-extend-customer.md` run together).
-
-   Each task record must contain: what is included, which files will change and why, execution
-   estimate, dependencies, and possible risks. Per the **Save before present** rule, `plan.md`
-   and the task records MUST all exist on disk before step 7.
+   before the approval gate.** `plan.md` (`templates/plan.md`): `Status: Awaiting Approval`,
+   three Mermaid diagrams, the **Current State** checklist (`- [ ] {ID}: {Title}`), summary
+   table — no task records; those go to `tasks.md` (≤ 5) or `tasks/` (> 5). All MUST exist on
+   disk before step 7.
 7. **Confirm `plan.md` and the task records are on disk** (read them back), then present the plan
-   to the user, citing the paths so they can review the full detail in the files: *"Plan saved to
-   `.docs/{FeatureName}/plan.md`; detailed task records in `.docs/{FeatureName}/tasks.md` (or
-   `tasks/`) — review there or below."* Present inline:
-    - Implementation flow diagram
-    - Module schema (from Phase 3)
-    - Task dependency graph
-    - Current State checklist (every task ID + title)
-    - Summary table (task count, module counts, total estimate)
-
-   The detailed records are reviewed in the file(s); reproduce them inline only if the user asks.
+   inline, citing the paths.
 8. Print the approval prompt verbatim:
    > **Plan ready for approval.**
    > Tasks: {N} | Modules to create: {N} | Modules to modify: {N}
@@ -398,35 +199,15 @@ section. Read the task records from `tasks.md` or `tasks/` and resume from the f
 item. Do not re-run tasks already marked complete. Mark each task `[x]` in `plan.md` immediately
 after it completes and save the file before starting the next task.
 
+**Read `references/phase5-task-types.md` before starting this phase** (env context, fallback, task types in full).
+
 ### Environment context (resolve once, before Phase 5 tool steps)
 
-**Invoke the `context` skill** — it is the single source of truth for `{ctx.vendor}`,
-`{ctx.runner}`, `{ctx.magento_cli}`, `{ctx.composer}`, `{ctx.tools.*}`, edition, versions, and
-the active theme. Do **not** hand-roll a runner/tool probe here (that duplicated the hub and
-drifted from it — FI-3). The same applies to the Phase 1 vendor lookup: prefer `{ctx.vendor}`,
-falling back to a `CLAUDE.md` `Vendor prefix:` line or an explicit user question only when the
-hub reports it as null.
-
-Consume the resolved values directly:
-
-- `{runner}` = `{ctx.runner}` (empty string in bare-PHP mode — `${runner} php …` still works).
-- `{magento}` = `{ctx.magento_cli}` (null ⇒ offer the commands as manual "next steps").
-- Tool availability = `{ctx.tools.phpcs}`, `{ctx.tools.phpstan}`, `{ctx.tools.phpunit}`, etc.
-  (each is the resolved path or null — skip and report the ones that are null).
-
-All subsequent tool invocations in Phase 5 and Phase 6 use these `{ctx.*}` values. Never
-hardcode a specific runner — fall back gracefully and report what was skipped.
+**Invoke the `context` skill**; use `{runner}` = `{ctx.runner}`, `{magento}` = `{ctx.magento_cli}` (null ⇒ manual next steps), tools = `{ctx.tools.*}` (null ⇒ skip and report). Never hardcode a runner.
 
 ---
 
-Work through the approved task list in dependency order. For tasks marked `Parallel: yes` in the
-task list, concurrent execution via sub-agents is permitted subject to the rules in
-`references/task-breakdown-guide.md` (Parallel Execution section) — those rules are the authority
-and stand alone. Optionally, if a generic parallel-dispatch process skill is present in the session
-(e.g. `superpowers:dispatching-parallel-agents`), you may prefer its isolation / shared-state
-mechanics on top of them; if absent, the guide's section is complete on its own. See
-`context/references/process-skills.md` for when deferring to a generic process skill is
-sanctioned — and the surfaces where it is not. For each task:
+Work through the approved task list in dependency order; `Parallel: yes` tasks may run as sub-agents per `references/task-breakdown-guide.md`. For each task:
 
 ### Per-task completion protocol (mandatory — closes every task type below)
 
@@ -454,506 +235,77 @@ protocol once per task as each one finishes, not once for the whole wave.
 
 ### Fallback discipline (applies to every delegating task below)
 
-Each task type below names the sub-skill it delegates to. Per the **Delegate by probing** Core
-Rule, attempt that invocation first and fall back to inline **only** when the `Skill` call actually
-fails. When a fallback is genuinely required:
+Fall back inline only when the `Skill` call actually fails; then keep the type prefix (never relabel to `X`), generate from the skill's own `references/`, and record the failure on the `Skill:` line. `D*` never runs inline.
 
-1. **Keep the task's type prefix.** A task is typed by the *work* — admin config = `C`, extension
-   point = `I`, CLI/cron = `L`, queue = `Q`, EAV = `E`, GraphQL = `G`, tests = `T`, validate = `V`,
-   deploy = `D` — not by which skill happened to run. Never relabel a `C`/`I`/`L`/`Q`/`E`/`G` task
-   to `X` because its generator was unavailable; that hides the work from type-based routing.
-2. **Generate inline from the same `references/` the skill uses**, to the same quality bar — e.g.
-   `system-config`'s field + config-reader patterns for a `C` task — not a thinner stub.
-3. **Record the concrete reason** on the task's `Skill:` line (e.g. "`system-config` —
-   not Skill-invocable: tool returned no such skill"), never a speculative "if Skill-invocable"
-   hedge.
+### Task types (M*, X*, R*, T*, E*, G*, I*, C*, L*, Q*, V*, D*)
 
-`T*`, `V*`, and `D*` restate their specific fallback below — and `D*` is the one type that never
-runs inline. `C*`/`I*`/`L*`/`Q*`/`E*`/`G*` have no separate inline generator: you author the same
-output the skill would have produced, keeping the type.
-
-### New module tasks (M*)
-
-1. Invoke the `module-create` skill with the module name and surfaces.
-2. After creation, immediately invoke the `review` skill (the corresponding R* task).
-3. Fix all Critical and High findings before starting the next task.
-4. Document Medium findings — they will appear in the final report.
-5. → run the **Per-task completion protocol** (mark `[x]` in `plan.md`, save, commit if enabled).
-
-**TDD mode (on):** for each behaviour-bearing class the module adds (`Service`, `Model` with
-logic, `Plugin`, `Observer`, `Console/Command`, `Resolver`, data-patch transforms), scaffold the
-**signature** first (interface + a body that throws `not implemented`), write the failing test
-from the task's acceptance criteria, **watch it fail for the right reason**, then fill the minimal
-body to green before review. Pure scaffold/config (registration, DI, module.xml, plain DTOs,
-db_schema) is exempt. Follow `references/tdd-mode.md` and the loop in
-`context/references/tdd-discipline.md`.
-
-### Existing module tasks (X*)
-
-1. Identify the exact files to add or modify.
-   Before editing unfamiliar code you may dispatch `explorer` to map its execution
-   paths and extension points first (per `references/task-breakdown-guide.md` type table). When
-   you do, pass `model` from the `CLAUDE.md` directive `Explorer model: {tier}` if set, otherwise
-   `haiku` (the explorer's frontmatter default).
-2. Apply changes following all rules in `CLAUDE.md` and `module-create/references/`.
-   **TDD mode (on):** if the change adds behaviour (not pure config/scaffold), write the failing
-   test first and watch it fail for the right reason before applying the production change, per
-   `references/tdd-mode.md` and `context/references/tdd-discipline.md`.
-3. Run `php -l` on every modified PHP file and `xmllint --noout` on every modified XML file.
-   These tools operate on local files and do not require a runner.
-4. Invoke the corresponding review task (R*).
-5. → run the **Per-task completion protocol** (mark `[x]` in `plan.md`, save, commit if enabled).
-
-### Review tasks (R*)
-
-1. Invoke `review` on the target module (`--diff` mode after the first pass keeps
-   the review focused on what changed):
-
-   ```
-   Skill: review
-   Args: --docs-root=.docs/{FeatureName} --diff {Vendor}_{Module}
-   ```
-
-2. Fix all Critical and High findings in the same task — do not defer.
-3. Log Medium findings to the final report.
-4. Mark the R* task complete only when all Critical/High findings are resolved.
-5. → run the **Per-task completion protocol** (mark `[x]` in `plan.md`, save, commit if enabled).
-
-### Test tasks (T*)
-
-Delegate to `test-generate` when available; fall back to inline generation otherwise.
-
-```
-Skill: test-generate
-Args: --types=unit --missing-only --docs-root=.docs/{FeatureName} {Vendor}_{Module}
-```
-
-`test-generate` discovers untested classes, writes tests with real assertions, and
-runs `php -l` per generated file. The T* task completes when the generator reports done.
-
-**TDD mode (on):** the behaviour tests were already written test-first inside their `M*`/`X*`
-tasks. Here the T* task **verifies** the suite is green and uses `test-generate` only to
-**top up** coverage on exempt/boilerplate classes — it does not author the behaviour's first test.
-Do not regenerate or overwrite the test-first tests.
-
-Inline fallback (when the skill is absent):
-
-1. Write unit tests for every `Api/`, `Service/`, and `Model/` class added or modified in the
-   target module. Do not create empty test stubs — every test must contain real assertions.
-2. Run `php -l` on all new test files.
-3. Do **not** run PHPUnit here — test execution and coverage measurement are handled in Phase 6.
-4. Mark the T* task complete when test files exist, contain real test logic, and pass `php -l`.
-
-→ run the **Per-task completion protocol** (mark `[x]` in `plan.md`, save, commit if enabled) —
-whether the T* task was delegated to `test-generate` or done inline.
-
-### EAV attribute tasks (E*)
-
-When the blueprint declares EAV attributes, generate an E* task per attribute and delegate
-to `eav-attribute`:
-
-```
-Skill: eav-attribute
-Args: --entity=product --code={code} --label="{Label}" --type={input_type} --module={Vendor}_{Module} --docs-root=.docs/{FeatureName}
-```
-
-The skill produces the `Setup/Patch/Data/Add{Code}Attribute.php` patch, companion models
-when needed, and a brief report. After E* completes, an R* review task runs on the
-affected module.
-
-→ run the **Per-task completion protocol** (mark `[x]` in `plan.md`, save, commit if enabled).
-
-### GraphQL surface tasks (G*)
-
-When the blueprint declares a GraphQL surface with non-trivial design (batch loaders, auth,
-schema migration), generate a G* task per resolver group and delegate to `graphql`:
-
-```
-Skill: graphql
-Args: --module={Vendor}_{Module} --operation={query|mutation} --auth={customer|admin|anonymous} --docs-root=.docs/{FeatureName}
-```
-
-The skill produces schema, resolver, batch loader (if applicable), DI, and unit tests.
-Simple GraphQL surfaces continue to use `module-create`'s graphql templates.
-
-→ run the **Per-task completion protocol** (mark `[x]` in `plan.md`, save, commit if enabled).
-
-### Extension point tasks (I*)
-
-When the blueprint wires an extension point (plugin, observer, or preference) onto existing code,
-generate an I* task and delegate to `extension-point`:
-
-```
-Skill: extension-point
-Args: --module={Vendor}_{Module} --mode={plugin|observer|preference} --docs-root=.docs/{FeatureName}
-```
-
-The skill produces the interception class, `di.xml` wiring, and a unit test.
-
-→ run the **Per-task completion protocol** (mark `[x]` in `plan.md`, save, commit if enabled).
-
-### System configuration tasks (C*)
-
-When the blueprint requires admin store configuration (system.xml fields + typed config reader),
-generate a C* task and delegate to `system-config`:
-
-```
-Skill: system-config
-Args: --module={Vendor}_{Module} --docs-root=.docs/{FeatureName}
-```
-
-The skill produces `system.xml`, `config.xml`, `acl.xml`, and a typed config reader class.
-
-→ run the **Per-task completion protocol** (mark `[x]` in `plan.md`, save, commit if enabled).
-
-### CLI command / cron tasks (L*)
-
-When the blueprint adds a CLI command or cron job, generate an L* task and delegate to
-`cli-command`:
-
-```
-Skill: cli-command
-Args: --module={Vendor}_{Module} --mode={command|cron} --docs-root=.docs/{FeatureName}
-```
-
-The skill produces the command class, `di.xml` registration, and (for cron) `crontab.xml`.
-
-→ run the **Per-task completion protocol** (mark `[x]` in `plan.md`, save, commit if enabled).
-
-### Message-queue tasks (Q*)
-
-When the blueprint adds an async message-queue surface, generate a Q* task and delegate to
-`message-queue`:
-
-```
-Skill: message-queue
-Args: --module={Vendor}_{Module} --topic={topic.name} --docs-root=.docs/{FeatureName}
-```
-
-The skill produces the topic DTO, publisher, consumer, and all five queue XML files
-(`communication.xml`, `queue_topology.xml`, `queue_publisher.xml`, `queue_consumer.xml`,
-`di.xml`).
-
-→ run the **Per-task completion protocol** (mark `[x]` in `plan.md`, save, commit if enabled).
-
-### Validate task (V*)
-
-When `lint` is present, delegate the quality gate to it — it runs PHPCS
-(Magento2 standard), PHPStan, PHPMD, and optional php-cs-fixer/rector in a single pass and
-emits ranked findings via the shared emitters:
-
-```
-Skill: lint
-Args: --module={Vendor}_{Module} --docs-root=.docs/{FeatureName}
-```
-
-When `lint` is absent, run each check inline with the probed `{runner}`.
-Skip and report any tool that is unavailable.
-
-```bash
-# Code style
-{runner} vendor/bin/phpcs --standard=Magento2 app/code/{Vendor}/{ModuleName}
-
-# Mess detection
-{runner} vendor/bin/phpmd app/code/{Vendor}/{ModuleName} text phpmd.xml
-
-# Static analysis
-{runner} vendor/bin/phpstan analyse --level=8 app/code/{Vendor}/{ModuleName}
-
-# Unit tests
-{runner} vendor/bin/phpunit -c dev/tests/unit/phpunit.xml.dist app/code/{Vendor}/{ModuleName}/Test/Unit
-```
-
-The validate task is complete only when PHPCS, PHPMD, PHPStan level 8, and PHPUnit all pass for
-every new and modified module. Record which tools were skipped due to unavailability — these are
-environment limitations, not failures.
-
-→ run the **Per-task completion protocol** (mark `[x]` in `plan.md`, save, commit if enabled).
-
-### Deploy task (D*)
-
-Delegate to `deploy`. Invoke via the `Skill` tool with the module list and the
-user's environment selection (default: `local`). This skill does not run `bin/magento`
-commands inline — `deploy` owns the pre-flight, plan, execute, smoke, and
-rollback steps.
-
-```
-Skill: deploy
-Args: --env=local --docs-root=.docs/{FeatureName} {Vendor}_{ModuleA} {Vendor}_{ModuleB}
-```
-
-Per-task commit (when enabled): D* tasks make no commit (no files change). Record the
-deploy report path returned by `deploy` in `plan.md` next to the D* task.
-
-→ run the **Per-task completion protocol** to mark `[x]` in `plan.md` (no commit for D*).
-
-If `deploy` is unavailable, state the unavailability explicitly and offer the
-equivalent commands as manual next steps for the user to run themselves:
-`{magento} module:enable {modules}` → `{magento} setup:upgrade` →
-`{magento} setup:di:compile` (prod) → `{magento} setup:static-content:deploy -f` (prod) →
-`{magento} cache:flush`. Ask the user to install `deploy` before re-running.
+Each delegates with `--docs-root=.docs/{FeatureName}` and ends with **"→ run the Per-task completion protocol"**.
 
 ---
 
 ## Phase 6 — Test
 
-Phase 6 is split into two sub-phases: **6A** (unit + coverage, existing behaviour) and **6B**
-(smoke battery, new). A Phase 6 run is only "passed" when **both** sub-phases pass. The smoke
-loop re-enters Phase 6 from 6A — not from 6B — so a smoke fix that touches PHP also re-validates
-unit tests.
-
-**At Phase 6 start (every iteration):**
-
-1. **Reconcile `## Current State`.** Before anything else, verify every Phase 5 task whose work
-   is actually complete is marked `[x]` in `plan.md`. A run that reaches Phase 6 has finished
-   all Phase 5 tasks, so any Phase 5 task still showing `- [ ]` here is missed bookkeeping, not
-   pending work: flip it to `- [x]` and save. This is a safety net for the Per-task completion
-   protocol — it should already be a no-op.
-2. If `plan.md` is missing the `## Smoke Iterations` block (i.e. the plan was written before
-   this skill version), append it with `Count: 0 / 5` and add the applicable `S*` task
-   checkboxes to `## Current State`. Save `plan.md` immediately. This is a one-time migration
-   for in-flight features.
-3. Increment the smoke-iteration counter in `plan.md` under `## Smoke Iterations`.
-4. If the counter would exceed 5, halt and print the halt prompt from
-   `references/smoke-test-guide.md` §Halt Prompt. Wait for explicit user reply
-   (`retry` / `accept-known-issues <IDs>` / `abort`). Do not loop again automatically.
-
----
-
-### Phase 6A — Unit Tests + Coverage
-
-**Goal:** ensure all new and modified code has passing unit tests with adequate coverage.
-
-1. If T* tasks were included in the plan: confirm all T* tasks are marked complete and that test
-   files exist in `Test/Unit/`. Do not rewrite tests already created in Phase 5.
-   If no T* tasks were generated (e.g. single-module, simple feature): delegate to
-   `test-generate --types=unit,integration,api --docs-root=.docs/{FeatureName}` for each module.
-   Inline fallback (when `test-generate` is absent): write unit tests now for
-   every `Api/`, `Service/`, and `Model/` class — do not skip and report it as a limitation.
-2. Run all tests using the probed `{runner}`:
-   ```bash
-   {runner} vendor/bin/phpunit -c dev/tests/unit/phpunit.xml.dist app/code/{Vendor}/{ModuleName}/Test/Unit
-   ```
-   Fix any failures. Do not proceed to Phase 6B with failing unit tests.
-   If PHPUnit is unavailable, document as an environment limitation and list the command for the user.
-3. Run coverage for each new module (requires Xdebug). Select the form that matches the probed
-   `{runner}` type:
-   ```bash
-   # Docker runner — pass the env var inside the exec call
-   docker compose exec -e XDEBUG_MODE=coverage -u magento php vendor/bin/phpunit -c dev/tests/unit/phpunit.xml.dist \
-     --coverage-clover var/log/coverage-{Vendor}_{ModuleName}.xml \
-     app/code/{Vendor}/{ModuleName}/Test/Unit
-
-   # Bare PHP runner — prefix the command directly
-   XDEBUG_MODE=coverage php vendor/bin/phpunit -c dev/tests/unit/phpunit.xml.dist \
-     --coverage-clover var/log/coverage-{Vendor}_{ModuleName}.xml \
-     app/code/{Vendor}/{ModuleName}/Test/Unit
-   ```
-   If Xdebug is not available, skip coverage measurement and note it explicitly.
-4. Target: ≥ 80% coverage for `Api/`, `Service/`, `Model/` combined.
-   If a module is below 80%, either add tests or document the gap with a specific justification.
-5. Record all test results: test count, pass/fail/skip, and coverage percentage per module.
-
----
-
-### Phase 6B — Smoke Battery
-
-**Goal:** verify the feature works against a running Magento instance and that nothing else
-regressed in the surfaces typical sites care about.
-
-Load `references/smoke-test-guide.md`, `references/smoke-runner.md`, and
-`references/error-signal-baseline.md` before starting. Phase 6B is **mandatory** in `feature`
-mode, reduced in `hotfix` and `extend` modes, and skipped in `spike` mode (see
-`references/modes.md`).
-
-Emit one `S*` task per applicable suite (Phase 4 task type `S`). S1 (baseline & probe) and S8
-(error-signal diff) are always present; S2–S7 only when the feature exercises that surface.
-The suite catalogue, per-suite acceptance, the S1 probe table + production guard, the S9
-triage/decision loop, and the data-hygiene/cleanup rules live in the references — **follow
-them rather than duplicating here** (the duplicate had already drifted from the source):
-
-- `references/smoke-runner.md` — §1 probe table (Base URL, admin creds, HTTP client, headless
-  browser) + production guard; the per-suite driver commands. Refuse to run against production
-  unless `CLAUDE.md` contains `Allow smoke on production: true`.
-- `references/smoke-test-guide.md` — the S1–S9 suite catalogue, per-suite acceptance, severity
-  rubric, fix-routing table, halt prompt, and data-hygiene/cleanup rules.
-- `references/error-signal-baseline.md` — the S8 baseline/diff mechanics for all three signal
-  sources (`exception.log`, other `var/log/*.log`, `var/report/**`), the level/attribution
-  policy, the exit-code contract, and the "no new/unresolved gating signals" pass rule.
-
-Scripts: `${CLAUDE_SKILL_DIR}/scripts/smoke-baseline.sh` (S1), `smoke-tail-since.sh` (S8),
-`smoke-browser.mjs` (browser S3–S7), `curl`/PHP-cURL (S2).
-
-**The loop (S9 decision):** 0 Critical + 0 High → Phase 6 passes → Phase 7. ≥1 Critical/High and
-iteration < 5 → delegate fixes per `smoke-test-guide.md` §Fix Routing — passing
-`--docs-root=.docs/{FeatureName}` to whichever sub-skill handles the fix, per the **One artifact
-home** Core Rule — re-deploy via `deploy --docs-root=.docs/{FeatureName}` if code changed,
-then re-enter from 6A. ≥1 Critical/High and iteration == 5 →
-halt and prompt the user. Record each iteration via `templates/smoke-run-report.md` and keep
-`templates/smoke-findings.md` updated (stable finding IDs across iterations).
+**6A** unit tests + coverage, then **6B** smoke battery; each iteration re-enters from 6A, halting at 5 per **Smoke loop is bounded**.
+Refuse to run against production unless `CLAUDE.md` contains `Allow smoke on production: true`.
+**Read `references/phase6-test.md` before starting this phase.**
 
 ---
 
 ## Phase 7 — Documentation and Final Report
 
-Phase 7 is split into two sub-phases: **7A** (documentation — required) and **7B** (final report).
-**Phase 7B may not start until Phase 7A's documentation set is written to disk and current.** The
-report is the genuine last step; documentation is produced — and verified complete — before it.
-
----
-
-### Phase 7A — Documentation (required)
-
-**Goal:** produce — or refresh — the feature's complete documentation set so it reflects the code
-as actually built.
-
-Load `references/documentation-guide.md`. It defines the required artifacts per scope, the per-mode
-documentation scope, screenshot sourcing, API payload examples, and the completeness gate. Phase 7A
-is **mandatory** in `feature` and `extend` modes, **reduced** in `hotfix` mode, and **skipped** in
-`spike` mode (see `references/modes.md`).
-
-1. **Per-module technical docs.** For every module created or modified this run, delegate to
-   `docs` to (re)generate `{module}/README.md`,
-   `{module}/docs/technical-reference.md`, and the `CHANGELOG.md` scaffold from the module's own
-   code. Re-running it is how the extracted `@api`/event/config surface stays current.
-
-   ```
-   Skill: docs
-   Args: --module={Vendor}_{Module} --docs-root=.docs/{FeatureName}
-   ```
-
-2. **Technical specification.** Write or refresh `.docs/{FeatureName}/spec.md` — the cross-module
-   technical reference (architecture, data model, module interactions, extension points,
-   sequence/flow diagrams in Mermaid). Link to the per-module references rather than restating them.
-
-3. **Developer-scope overview.** Write or refresh `guides/developer-guide.html` — the HTML overview
-   that links to the per-module docs generated in step 1 (each module's `docs/developer-guide.md`):
-   service contracts, events, plugins, DI, and worked code examples showing how the modules **compose**
-   as a feature. Cross-link into each module's own developer guide for its per-module detail — do not
-   re-author or duplicate that content here. When the feature exposes a REST or GraphQL surface, embed
-   request/response payload examples (reuse the raw S2 captures under
-   `.docs/{FeatureName}/smoke/raw/S2/` where available) and also save curated, redacted examples under
-   `api-examples/`.
-
-4. **User-scope overview.** Write or refresh `user-docs/user-guide.html` — the HTML overview that
-   links to the per-module docs generated in step 1 (each module's `docs/user-guide.md`, when
-   present): admin configuration and end-user workflows across the feature, **with screenshots**.
-   Cross-link into each module's own user guide for its per-module detail — do not re-author or
-   duplicate that content here. Reuse the Phase 6B screenshots under
-   `.docs/{FeatureName}/smoke/screenshots/` (copy the relevant ones into `user-docs/screenshots/`),
-   or capture fresh ones with the smoke browser driver for screens smoke did not exercise.
-
-5. **Other helpful artifacts** (as the module's scope warrants): a Postman collection for the REST
-   surface, an ER diagram, a sequence diagram, or sample payloads/fixtures. Save under `artifacts/`.
-   Omit any that do not apply — do not create empty placeholders.
-
-6. **Updated, not stale.** On a resume or `extend` run, **refresh** existing documents to match the
-   final code — never leave a previously generated doc describing an earlier design. Apply the
-   feature's shared CSS color schema inline to every HTML file (per the Core Rules).
-
-7. Run the completeness checklist in `references/documentation-guide.md` — including that each HTML
-   overview's cross-links into the per-module docs resolve to files that exist on disk. **Do not
-   proceed to Phase 7B until every required artifact for the current mode exists on disk.**
-
----
-
-### Phase 7B — Final Report
-
-**Goal:** produce a complete implementation report.
-
-1. Load `references/final-report-format.md`.
-2. Use `templates/final-report.md` as the structural base.
-3. Fill in all 10 sections:
-    - Executive Summary
-    - Modules Implemented (table)
-    - Public API Index
-    - Configuration Guide
-    - Tradeoffs (load `references/tradeoffs-catalog.md` and document applicable ones)
-    - Deviations from Blueprint
-    - Test Coverage Summary
-    - Known Limitations
-    - Recommended Next Steps
-    - Smoke Test Results (per `references/final-report-format.md` §10 — omit in `spike` mode)
-4. Update the blueprint status line to `Status: Complete` in `.docs/{FeatureName}/blueprint.md`.
-   Update the plan status and mark all remaining checkboxes `[x]` in `.docs/{FeatureName}/plan.md`.
-5. Save the report to `.docs/{FeatureName}/report.md`.
-6. Link the Phase 7A documentation set from the report (in Recommended Next Steps or an artifacts
-   list): `spec.md`, the developer and user guides, `api-examples/` (when present), and the
-   per-module `README.md` / `docs/technical-reference.md`.
-7. **Verify artifact collection.** For every sub-skill invoked this run, confirm its
-   category dir exists under `.docs/{FeatureName}/` (e.g. `reviews/`, `tests/`,
-   `deployments/`). If any expected artifact is missing or was written to a global
-   `.docs/{category}/` instead, note it as a collection gap in the report and (if the
-   file exists globally) move it under the feature folder.
-8. Print the report to the conversation.
-9. State explicitly: *"Feature implementation complete. See report above,
-   `.docs/{FeatureName}/report.md`, and the documentation set under `.docs/{FeatureName}/`."*
+**7A** documentation is **required** — on disk and current before **7B**, the final report.
+**Read `references/phase7-docs-report.md` before starting this phase.**
+After 7B, if specs remain, run the **Multi-spec requests** ask (Phase 1).
 
 ---
 
 ## Reference Files
 
-- `references/feature-blueprint-format.md`: required sections, completeness checklist, file path.
-- `references/module-schema-guide.md`: new vs modify decision matrix, cohesion rules, diagram format.
-- `references/task-breakdown-guide.md`: task IDs (including `S*`), task record format, Mermaid syntax, approval gate.
-- `references/tradeoffs-catalog.md`: common Magento 2 architectural tradeoffs and documentation format.
-- `references/documentation-guide.md`: Phase 7A required documentation set — per-scope artifacts (technical/developer/user), screenshot sourcing, API payload examples, per-mode scope, completeness gate.
-- `references/final-report-format.md`: report structure (incl. Section 10 — Smoke Test Results).
-- `references/modes.md`: feature/hotfix/extend/spike mode selection, per-mode pipeline overrides, per-mode smoke and documentation scope.
-- `references/per-task-commits.md`: opt-in per-task git commit format, scoping, failure handling.
-- `references/tdd-mode.md`: opt-in test-first execution — flag/config/env triple, per-mode applicability, how Phase 5 applies the shared `tdd-discipline.md` loop.
-- `references/smoke-test-guide.md`: Phase 6B suites, severity rubric, fix routing, loop control.
-- `references/smoke-runner.md`: environment probe, browser-policy resolution, REST invocation, headless browser commands, degraded curl tier.
-- `references/error-signal-baseline.md`: byte-offset baseline + tail-since-offset diff for `var/log/exception.log`, every other `var/log/*.log` (level-gated), and `var/report/**` (path+mtime).
-- `templates/feature-blueprint.md`: feature blueprint template.
-- `templates/plan.md`: execution-plan (`plan.md`) template — Mermaid diagrams, Current State checklist, Smoke Iterations, summary. No detailed task records.
-- `templates/task-record.md`: detailed task-record template for `tasks.md` / `tasks/` (incl. `S*` examples) — written for review before the plan approval gate.
-- `templates/final-report.md`: implementation report template (incl. Section 10).
-- `templates/smoke-run-report.md`: per-iteration smoke run report template.
-- `templates/smoke-scenarios.md`: REST scenarios template.
-- `templates/smoke-findings.md`: consolidated, cross-iteration findings template.
-- `${CLAUDE_SKILL_DIR}/scripts/smoke-baseline.sh`: S1 — capture the error-signal baseline (all `var/log/*.log` + `var/report/**`).
-- `${CLAUDE_SKILL_DIR}/scripts/smoke-tail-since.sh`: S8 — diff every error signal since baseline; emits `signals.json`.
-- `${CLAUDE_SKILL_DIR}/scripts/smoke-browser.mjs`: S3–S7 — headless browser driver (Playwright → Puppeteer → CDP).
-- `context/references/source-of-truth.md` — source-of-truth hierarchy + the
-  no-unrelated-module-scanning rule (allowed reads, live-doc fetch protocol, report affirmation).
+| Reference | Read when |
+|---|---|
+| `references/core-rules-detail.md` | a rule's one-liner is not enough |
+| `references/feature-folder-structure.md` | Phase 2 |
+| `references/modes.md` | Phase 1 |
+| `references/phase1-4-design.md` | Phases 1–4 |
+| `references/feature-blueprint-format.md` | Phase 2 |
+| `references/module-schema-guide.md` | Phase 3 |
+| `references/task-breakdown-guide.md` | Phases 4, 5 |
+| `references/tdd-mode.md` | TDD on |
+| `references/per-task-commits.md` | per-task commits on |
+| `references/phase5-task-types.md` | Phase 5 |
+| `references/phase6-test.md` | Phase 6 |
+| `references/smoke-test-guide.md` | Phase 6B |
+| `references/smoke-runner.md` | Phase 6B |
+| `references/error-signal-baseline.md` | Phase 6B |
+| `references/phase7-docs-report.md` | Phase 7 |
+| `references/documentation-guide.md` | Phase 7A |
+| `references/final-report-format.md` | Phase 7B |
+| `references/tradeoffs-catalog.md` | Phase 7B |
+
+- `context/references/source-of-truth.md` — source-of-truth hierarchy + the no-unrelated-module-scanning rule.
 
 ## Related Skills
 
 Invoke all related skills via the `Skill` tool. Do not spawn separate agents for sub-skill
 invocations — the `Skill` tool preserves conversation context across phases.
 
-- `module-create`: invoked for every new module in Phase 5 (M* tasks).
-- `review`: invoked after every module creation or modification (R* tasks).
-  Use `--diff` mode after each task to keep the review focused on what changed.
-- `deploy`: invoked for the D* task (Phase 5) and after every Phase 6B fix that
-  touches PHP/XML/JS/template before re-entering Phase 6 from 6A.
-- `test-generate`: invoked for the T* task (Phase 5) and Phase 6A when present.
-  Generates unit/integration/API tests; falls back to inline test generation if absent.
-- `docs`: invoked in Phase 7A for every created or modified module —
-  (re)generates the per-module `README.md`, `docs/technical-reference.md`, and `CHANGELOG.md`
-  scaffold from the module's own code, keeping the technical documentation current.
-- `eav-attribute`: invoked when the blueprint declares EAV attributes — replaces
-  hand-written `Setup/Patch/Data/` files for EAV.
-- `graphql`: invoked when the blueprint declares a GraphQL surface and
-  the design includes batch loaders or auth/scope complexity.
-- `extension-point`: invoked for I* tasks — wires a plugin, observer, or preference
-  onto existing code.
-- `system-config`: invoked for C* tasks — generates system.xml fields and a typed
-  config reader.
-- `cli-command`: invoked for L* tasks — generates a CLI command or cron job.
-- `message-queue`: invoked for Q* tasks — generates the full async message-queue
-  surface (topic, publisher, consumer, all five XML files).
-- `lint`: invoked for V* tasks when present — runs the full static
-  quality gate (PHPCS, PHPStan, PHPMD, optional auto-fix) and emits ranked findings.
-- `fix`: invoked by Phase 6B S9 to remediate Critical/High smoke findings —
-  default fix delegate; see `references/smoke-test-guide.md` §Fix Routing.
-- `debug`: invoked by Phase 6B S9 for triage of new error signals (`var/log/*.log`
-  entries, `var/report/**` files) before delegating to `fix`.
-- `perf-audit`: invoked by Phase 6B S9 when smoke surfaces slow pages,
-  N+1, or cache misses.
-- `security`: invoked by Phase 6B S9 when smoke surfaces an ACL/CSRF/escaping
-  regression.
-- `frontend`: invoked (in augment mode) by Phase 6B S9 for frontend
-  regressions (JS console errors, missing assets, KO bind errors).
-- `data-migration`: invoked by Phase 6B S9 for schema/data patch regressions.
+| Skill | For |
+|---|---|
+| `module-create` | M* |
+| `review` | R* (`--diff`) |
+| `test-generate` | T*, 6A |
+| `eav-attribute` | E* |
+| `graphql` | G* |
+| `extension-point` | I* |
+| `system-config` | C* |
+| `cli-command` | L* |
+| `message-queue` | Q* |
+| `lint` | V* |
+| `deploy` | D*, 6B fixes |
+| `docs` | 7A, per module |
+| `fix` | 6B S9 default |
+| `debug` | 6B S9 error signals |
+| `perf-audit` | 6B S9 slow/N+1 |
+| `security` | 6B S9 ACL, CSRF |
+| `frontend` | 6B S9 (augment) |
+| `data-migration` | 6B S9 patches |

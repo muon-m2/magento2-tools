@@ -66,6 +66,7 @@ building new behaviour, this skill orchestrates closing known defects.
   `context/references/artifact-layout.md`) and threads the **same** value into every
   sub-skill invocation, so one run's artifacts stay in one root. Otherwise the run report lands
   under `{ctx.docs_root}/remediation/`.
+- **Output budget.** Follow `context/references/output-budget.md` — targeted reads, summary-first test/lint output, long logs to files.
 
 ## Workflow
 
