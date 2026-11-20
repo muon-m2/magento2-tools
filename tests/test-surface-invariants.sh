@@ -829,4 +829,95 @@ TARGET_PATH="$B" SCAN_ROOT="$WORK/app/code" MAGENTO_ROOT="$WORK" \
 grep -q "communication.xml" "$WORK/broken.stderr" \
     || fail "unparseable XML must be named on stderr, got: $(cat "$WORK/broken.stderr")"
 
+# --- SI-11 shared route: a route id merged across modules (<module before/after>) -----------
+# Origin: module-blog posts to muon_blog/post/index; the route is declared by module-blog AND
+# module-blog-admin-ui, and only the latter has Controller/Adminhtml/Post/Index.php.
+mk_routes() {
+    # mk_routes <file> <router> <route-id> <module-name>
+    mkdir -p "$(dirname "$1")"
+    cat > "$1" <<EOF
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:App/etc/routes.xsd">
+  <router id="$2">
+    <route id="$3" frontName="$3">
+      <module name="$4"/>
+    </route>
+  </router>
+</config>
+EOF
+}
+mk_module() {
+    # mk_module <dir> <name>
+    mkdir -p "$1/etc"
+    printf '<?xml version="1.0"?>\n<config><module name="%s"/></config>\n' "$2" > "$1/etc/module.xml"
+}
+mk_controller() {
+    # mk_controller <file>
+    mkdir -p "$(dirname "$1")"
+    printf '<?php\ndeclare(strict_types=1);\nnamespace Acme\\X;\nclass Index\n{\n}\n' > "$1"
+}
+mk_caller() {
+    # mk_caller <module-dir> <route-path>...
+    mkdir -p "$1/Model"
+    { printf '<?php\nnamespace Acme\\X;\nclass Notifier\n{\n    public function u($b)\n    {\n'
+      for r in "${@:2}"; do printf "        \$b->getUrl('%s');\n" "$r"; done
+      printf '    }\n}\n'; } > "$1/Model/Notifier.php"
+}
+si11_titles() {
+    python3 -c "
+import json,sys
+print('\n'.join(f['title'] for f in json.load(open(sys.argv[1])) if f.get('subcategory')=='SI-11'))
+" "$1"
+}
+
+# Vendor siblings: vendor/acme/module-share-core (caller) + vendor/acme/module-share-ui (controller).
+SC="$WORK/vendor/acme/module-share-core"; SU="$WORK/vendor/acme/module-share-ui"
+mk_module "$SC" Acme_ShareCore; mk_module "$SU" Acme_ShareUi
+mk_routes "$SC/etc/adminhtml/routes.xml" admin acmeshare Acme_ShareCore
+mk_routes "$SU/etc/adminhtml/routes.xml" admin acmeshare Acme_ShareUi
+mk_controller "$SU/Controller/Adminhtml/Post/Index.php"
+# Same route id in the OTHER area, with a controller that would match `acmeshare/front/index`:
+# a frontend route never serves an admin URL, so it must not resolve it.
+SF="$WORK/vendor/acme/module-share-front"; mk_module "$SF" Acme_ShareFront
+mk_routes "$SF/etc/frontend/routes.xml" standard acmeshare Acme_ShareFront
+mk_controller "$SF/Controller/Front/Index.php"
+mk_caller "$SC" acmeshare/post/index acmeshare/nowhere/index acmeshare/front/index
+rc="$(run_checker "$SC" "$WORK/share.json")"
+[ "$rc" = "0" ] || fail "shared-route fixture: checker exited $rc ($(cat "$WORK/share.json.stderr"))"
+t="$(si11_titles "$WORK/share.json")"
+case "$t" in *'acmeshare/post/index'*) fail "SI-11: route merged across vendor siblings must resolve via the sibling's controller" ;; esac
+case "$t" in *'acmeshare/nowhere/index'*) : ;; *) fail "SI-11 control: a path no sharing module provides must still fire, got: $t" ;; esac
+case "$t" in *'acmeshare/front/index'*) : ;; *) fail "SI-11: a frontend-area sibling must not resolve an adminhtml route, got: $t" ;; esac
+
+# Cross-tree: caller in app/code, controller in vendor/ (found via the magento root).
+AC="$WORK/app/code/Acme/CrossCore"; mk_module "$AC" Acme_CrossCore
+CU="$WORK/vendor/acme/module-cross-ui"; mk_module "$CU" Acme_CrossUi
+mk_routes "$AC/etc/adminhtml/routes.xml" admin acmecross Acme_CrossCore
+mk_routes "$CU/etc/adminhtml/routes.xml" admin acmecross Acme_CrossUi
+mk_controller "$CU/Controller/Adminhtml/Post/Index.php"
+mk_caller "$AC" acmecross/post/index acmecross/nowhere/index
+rc="$(run_checker "$AC" "$WORK/cross.json")"
+[ "$rc" = "0" ] || fail "cross-tree fixture: checker exited $rc"
+t="$(si11_titles "$WORK/cross.json")"
+case "$t" in *'acmecross/post/index'*) fail "SI-11: route shared with a vendor/ module must resolve from app/code" ;; esac
+case "$t" in *'acmecross/nowhere/index'*) : ;; *) fail "SI-11 cross-tree control must still fire, got: $t" ;; esac
+
+# --- SI-07: a form with `extends` inherits its template; one without still fires ----------
+X="$WORK/app/code/Acme/Extends"; mk_module "$X" Acme_Extends
+mkdir -p "$X/view/adminhtml/ui_component"
+cat > "$X/view/adminhtml/ui_component/acme_ext_form.xml" <<'EOF'
+<?xml version="1.0"?>
+<form xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd" extends="pagebuilder_base_form">
+    <argument name="data" xsi:type="array">
+        <item name="js_config" xsi:type="array">
+            <item name="provider" xsi:type="string">acme_ext_form.acme_ext_form_data_source</item>
+        </item>
+    </argument>
+</form>
+EOF
+rc="$(run_checker "$X" "$WORK/extends.json")"
+[ "$rc" = "0" ] || fail "extends fixture: checker exited $rc"
+got="$(ids_of "$WORK/extends.json" 2>/dev/null || echo '')"
+case "$got" in *SI-07*) fail "SI-07 must skip a form with extends= (it inherits template), got: $got" ;; esac
+
 exit "$FAIL"
