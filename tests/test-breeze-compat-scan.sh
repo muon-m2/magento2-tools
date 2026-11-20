@@ -19,7 +19,7 @@ trap 'rm -rf "$WORK"' EXIT
 PASS=0
 FAIL=0
 
-reg() { # reg <dir> <Module_Name>
+reg() { # reg <dir> <Vendor_Module>
     mkdir -p "$1"
     printf "<?php\n\\\\Magento\\\\Framework\\\\Component\\\\ComponentRegistrar::register(\\\\Magento\\\\Framework\\\\Component\\\\ComponentRegistrar::MODULE, '%s', __DIR__);\n" "$2" > "$1/registration.php"
 }

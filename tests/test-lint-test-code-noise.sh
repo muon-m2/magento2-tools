@@ -2,7 +2,7 @@
 # test-lint-test-code-noise.sh — lint must grade phpcs by the type phpcs reported, and must not
 # bury a module's real findings under its test code.
 #
-# Measured on the Muon_Blog* family (28 packages): 4,452 of 4,999 lint findings were in Test/ —
+# Measured on a 28-package module family: 4,452 of 4,999 lint findings were in Test/ —
 # phpmd complexity on test methods, phpstan "undefined method object::…" on mocks (no
 # phpstan-phpunit), phpcs style — while the project's own module gate excludes Test/ from PHPMD
 # and fails only on phpcs ERRORs. phpcs WARNINGs were also "medium", indistinguishable from real problems.
