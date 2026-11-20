@@ -26,6 +26,48 @@ else
 fi
 SCRIPT_DIR="$(dirname "$0")"
 
+# Hits in test code (unit/MFTF/API tests) are usually dummy keys, but a live key pasted into a
+# test still leaks. So an UNVERIFIED test-code hit drops to medium/candidate (no longer a
+# release blocker, still reported); a verified (live) secret is never downgraded. Test code is
+# only the known roots: a `Test/` dir (Magento convention, case-sensitive), `dev/tests/`, a
+# top-level `tests/`, or a JS *.test|spec file. Paths are relative to the scan root, so a root
+# that itself sits under tests/ is unaffected.
+_downgrade_test_hits() {
+    python3 -c '
+import json, os, re, sys
+root = os.path.abspath(sys.argv[1])
+JS_TEST = re.compile(r"\.(test|spec)\.(m?js|ts)$")
+def is_test(path):
+    ap = os.path.abspath(path)
+    rel = os.path.relpath(ap, root) if ap.startswith(root + os.sep) else path
+    parts = rel.replace(os.sep, "/").split("/")
+    dirs = parts[:-1]
+    if "Test" in dirs or (dirs and dirs[0] == "tests"):
+        return True
+    if any(dirs[i] == "dev" and dirs[i + 1] == "tests" for i in range(len(dirs) - 1)):
+        return True
+    return bool(JS_TEST.search(parts[-1]))
+try:
+    data = json.load(sys.stdin)
+except Exception:
+    data = []
+for f in data:
+    ev = (f.get("evidence") or [{}])[0]
+    if f.get("severity") == "critical" and f.get("verified"):
+        continue
+    if not is_test(str(ev.get("file", ""))):
+        continue
+    f["severity"] = "medium"
+    f["confidence"] = "candidate"
+    f["description"] = ("Match is in test code (unit, API or MFTF test). It may be a dummy value, but a real "
+                        "credential committed to a test is leaked like any other: confirm before dismissing.")
+    f["recommendation"] = "Confirm the value is a dummy. If it is a real credential, rotate it and replace it with an obvious placeholder."
+for f in data:
+    f.pop("verified", None)
+print(json.dumps(data, indent=2))
+' "$SCAN_PATH"
+}
+
 if command -v gitleaks >/dev/null 2>&1; then
     # gitleaks writes its JSON to the --report-path file, NOT to stdout. The old pipe read
     # stdout (which carries only a human summary), so json.load() got nothing and every run
@@ -56,7 +98,7 @@ for i, f in enumerate(data or []):
         "verification": "Re-run scan after rotation."
     })
 print(json.dumps(out, indent=2))
-' "$GL_REPORT"
+' "$GL_REPORT" | _downgrade_test_hits
         rm -f "$GL_REPORT" "$GL_ERR"
         exit 0
     fi
@@ -86,15 +128,16 @@ for i, line in enumerate(sys.stdin):
         "title": f.get("DetectorName", "Secret detected") + ("" if verified else " (unverified)"),
         "evidence": [{"file": f.get("SourceMetadata", {}).get("Data", {}).get("Filesystem", {}).get("file", "?"), "line": f.get("SourceMetadata", {}).get("Data", {}).get("Filesystem", {}).get("line", 1)}],
         "recommendation": "Rotate the secret immediately." if verified else "Verify, then rotate if live.",
-        "verification": "Re-run scan."
+        "verification": "Re-run scan.",
+        "verified": verified
     })
 print(json.dumps(out, indent=2))
-'
+' | _downgrade_test_hits
     exit 0
 fi
 
 # Regex fallback
-python3 - "$SCAN_PATH" <<'PY'
+python3 - "$SCAN_PATH" <<'PY' | _downgrade_test_hits
 import json
 import os
 import re

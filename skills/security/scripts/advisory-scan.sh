@@ -18,6 +18,10 @@
 #                     "docker compose exec -T -u magento php" (default: "" — host).
 #                     The tool is PHP and shells out to patch(1), so on a Dockerised
 #                     stack it usually only works through the runner.
+#   SCOPE, TARGET_PATH  At module/vendor scope (SCOPE unset counts as module) with a
+#                     TARGET_PATH/composer.json, advisories for packages outside the target's
+#                     dependency closure (resolved from composer.lock) drop to info as
+#                     site-scope findings. Site scope, or no target composer.json: unchanged.
 #   PATCH_STATUS      "0" disables running vendor/bin/patch-status, for operators who
 #                     would rather the scanner not execute a binary from the scanned
 #                     tree (default: "1"). CVE_PATCH_STATUS is honoured as a legacy alias.
@@ -93,6 +97,8 @@ fi
 AUDIT_OUTPUT="$AUDIT_OUTPUT" \
 COMPOSER_LOCK="$COMPOSER_LOCK" \
 PATCH_STATUS_FILE="$PATCH_STATUS_FILE" \
+ADV_SCOPE="${SCOPE:-module}" \
+ADV_TARGET_PATH="${TARGET_PATH:-}" \
 python3 <<'PY'
 import json
 import os
@@ -118,6 +124,64 @@ if audit_raw.strip():
             "were NOT parsed — investigate manually with `composer audit`.\n"
         )
         audit = {}
+
+def _is_platform(name):
+    return name in ('php', 'php-64bit', 'hhvm', 'composer', 'composer-plugin-api',
+                    'composer-runtime-api') or name.startswith(('ext-', 'lib-'))
+
+
+def dependency_closure(target_json, lock):
+    """Package names reachable from target_json's `require` through the lock's `require`s.
+
+    Pure function over parsed JSON. `replace`/`provide` names resolve to the package that
+    declares them. require-dev is not followed: a module's dev deps never ship with it.
+    """
+    pkgs = {}
+    alias = {}
+    for p in (lock.get('packages') or []) + (lock.get('packages-dev') or []):
+        if not isinstance(p, dict) or not p.get('name'):
+            continue
+        name = p['name'].lower()
+        pkgs[name] = p
+        for key in ('replace', 'provide'):
+            for virt in (p.get(key) or {}):
+                alias.setdefault(virt.lower(), name)
+    seen = set()
+    own = (target_json.get('name') or '').lower()
+    todo = [own] if own else []
+    todo += list(target_json.get('require') or {})
+    while todo:
+        name = todo.pop().lower()
+        if _is_platform(name):
+            continue
+        name = alias.get(name, name) if name not in pkgs else name
+        if name in seen:
+            continue
+        seen.add(name)
+        todo += list((pkgs.get(name) or {}).get('require') or {})
+    return seen
+
+
+# Module/vendor scope: resolve the target's closure, or None to leave severities alone.
+closure = None
+target_name = ''
+target_path = os.environ.get('ADV_TARGET_PATH', '')
+if os.environ.get('ADV_SCOPE', 'module') != 'site' and target_path:
+    tj = os.path.join(target_path, 'composer.json')
+    lock_dir = os.path.dirname(os.path.abspath(lock_path))
+    # The project root's own composer.json IS the site — its closure is everything.
+    if os.path.isfile(tj) and os.path.abspath(target_path) != lock_dir:
+        try:
+            with open(tj, encoding='utf-8') as fh:
+                target_json = json.load(fh)
+            with open(lock_path, encoding='utf-8') as fh:
+                lock = json.load(fh)
+            closure = dependency_closure(target_json, lock)
+            target_name = target_json.get('name') or os.path.basename(os.path.abspath(target_path))
+        except (OSError, ValueError, AttributeError) as exc:
+            sys.stderr.write(f"advisory-scan: could not resolve the dependency tree of {tj} ({exc}); "
+                             "all advisories reported at their own severity.\n")
+            closure = None
 
 out = []
 fid = 1
@@ -155,6 +219,17 @@ for pkg, items in advisories.items():
             'cve': adv.get('cve'),
             'tags': [pkg, 'composer-audit'],
         })
+        # Outside the target's tree: a site-wide CVE, not this module's. Title stays
+        # module-neutral so the same finding dedupes across per-module reports.
+        if closure is not None and pkg.lower() not in closure:
+            f = out[-1]
+            f['description'] = (
+                f"{pkg} is not in {target_name}'s dependency tree; site-scope finding "
+                f"(advisory severity {sev}). " + f['description']
+            ).strip()
+            f['severity'] = 'info'
+            f['title'] += ' [site-scope: outside module dependency tree]'
+            f['tags'].append('site-scope')
         fid += 1
 
 # --- Adobe patch-status verdicts ---

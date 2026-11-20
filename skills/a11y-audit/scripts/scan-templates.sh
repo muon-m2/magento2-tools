@@ -52,6 +52,7 @@ TARGET_MODULE="$TARGET_MODULE" \
 THEME="$THEME" \
 EXTRA_SCAN_ROOTS="$EXTRA_SCAN_ROOTS" \
 python3 <<'PY'
+import bisect
 import json
 import os
 import re
@@ -164,35 +165,26 @@ for root in scan_roots:
 # ---------------------------------------------------------------------------
 # 2. Template checks.
 # ---------------------------------------------------------------------------
-IMG_TAG_RE = re.compile(r'<img\b', re.IGNORECASE)
-IMG_ALT_RE = re.compile(r'\balt\s*=\s*["\']', re.IGNORECASE)
+# Templates are normalised before matching: every PHP block and HTML comment is blanked to the same
+# length (newlines kept, so offsets and line numbers survive), then tags are matched across lines.
+# Line-window heuristics missed attributes that sit lines away from `<tag` (after PHP conditionals)
+# and labels elsewhere in the file. An echo (`<?= ?>`) becomes DYN chars: text in element content,
+# "attributes unknown until runtime" when bare inside a tag.
+DYN = "\x01"
+PHP_BLOCK_RE = re.compile(r'<\?(=|php\b)(.*?)(?:\?>|\Z)', re.S | re.I)
+PHP_ECHO_RE = re.compile(r'\b(?:echo|print)\b', re.I)
+HTML_COMMENT_RE = re.compile(r'<!--.*?(?:-->|\Z)', re.S)
+KO_TEXT_COMMENT_RE = re.compile(r'^<!--\s*ko\s+(?:text|html|i18n)\s*:', re.I)
+TAG_RE = re.compile(r'<([a-zA-Z][\w:.-]*)((?:[^>"\']|"[^"]*"|\'[^\']*\')*)>', re.S)
+CLOSE_TAG_RE = re.compile(r'</[a-zA-Z][\w:.-]*\s*>')
+ATTR_RE = re.compile(r'([^\s"\'=<>/`]+)(?:\s*=\s*("[^"]*"|\'[^\']*\'|[^\s"\'>]+))?')
+KO_BIND_ATTRS = ("data-bind", "attr", "ko-attr")
+KO_TEXT_RE = re.compile(r'(?<![\w-])(?:text|html|i18n)\s*:', re.I)
+TEXT_BIND_ATTRS = {"x-text", "x-html", "v-text", "v-html", "translate", "text", "html", "i18n"}
 
-INPUT_TAG_RE = re.compile(r'<input\b', re.IGNORECASE)
-INPUT_TYPE_RE = re.compile(r'\btype\s*=\s*["\']([^"\']+)["\']', re.IGNORECASE)
-LABEL_FOR_RE  = re.compile(r'<label\b[^>]*\bfor\s*=', re.IGNORECASE)
-ARIA_LABEL_RE = re.compile(r'\baria-label(ledby)?\s*=', re.IGNORECASE)
-
-SELECT_TAG_RE   = re.compile(r'<select\b', re.IGNORECASE)
-TEXTAREA_TAG_RE = re.compile(r'<textarea\b', re.IGNORECASE)
 FIELDSET_TAG_RE = re.compile(r'<fieldset\b', re.IGNORECASE)
 LEGEND_TAG_RE   = re.compile(r'<legend\b', re.IGNORECASE)
-
-HEADING_RE = re.compile(r'<(h[1-6])\b', re.IGNORECASE)
-
 SKIP_LINK_RE = re.compile(r'href\s*=\s*["\']#[^"\']+["\']', re.IGNORECASE)
-
-TABINDEX_RE = re.compile(r'\btabindex\s*=\s*["\']([^"\']+)["\']', re.IGNORECASE)
-
-A_TAG_RE      = re.compile(r'<a\b[^>]*>', re.IGNORECASE)
-BUTTON_TAG_RE = re.compile(r'<button\b[^>]*>', re.IGNORECASE)
-TAG_TEXT_RE   = re.compile(r'>([^<]+)<', re.IGNORECASE)
-ARIA_HIDDEN_RE = re.compile(r'\baria-hidden\s*=\s*["\']true["\']', re.IGNORECASE)
-FOCUSABLE_RE   = re.compile(r'<(a|button|input|select|textarea)\b', re.IGNORECASE)
-
-HTML_TAG_RE = re.compile(r'<html\b', re.IGNORECASE)
-HTML_LANG_RE = re.compile(r'\blang\s*=\s*["\']', re.IGNORECASE)
-
-ROLE_RE = re.compile(r'\brole\s*=\s*["\']([^"\']+)["\']', re.IGNORECASE)
 
 VALID_ARIA_ROLES = {
     "alert", "alertdialog", "application", "article", "banner", "button",
@@ -209,112 +201,167 @@ VALID_ARIA_ROLES = {
     "tooltip", "tree", "treegrid", "treeitem",
 }
 
-# Screen-reader-only class names (Luma + Hyva)
-SR_ONLY_RE = re.compile(r'class\s*=\s*["\'][^"\']*(?:visually-hidden|sr-only)[^"\']*["\']', re.IGNORECASE)
+
+def _blank(s, fill):
+    return "".join(c if c == "\n" else fill for c in s)
 
 
-def has_accessible_text_nearby(lines, tag_line_idx, window=5):
-    """Check if lines near the tag contain accessible text or sr-only spans."""
-    start = max(0, tag_line_idx - 1)
-    end = min(len(lines), tag_line_idx + window)
-    snippet = "".join(lines[start:end])
-    if ARIA_LABEL_RE.search(snippet):
-        return True
-    if SR_ONLY_RE.search(snippet):
-        return True
-    # Non-empty text node
-    for m in TAG_TEXT_RE.finditer(snippet):
-        if m.group(1).strip():
+def normalise(text):
+    def php(m):
+        echo = m.group(1) == "=" or PHP_ECHO_RE.search(m.group(2) or "")
+        return _blank(m.group(0), DYN if echo else " ")
+    text = PHP_BLOCK_RE.sub(php, text)
+
+    def comment(m):
+        return _blank(m.group(0), DYN if KO_TEXT_COMMENT_RE.match(m.group(0)) else " ")
+    return HTML_COMMENT_RE.sub(comment, text)
+
+
+class Tag:
+    """One start tag: name, attrs {lname: (masked, original)}, dyn (bare echo in the tag)."""
+
+    def __init__(self, m, original):
+        self.name = m.group(1).lower()
+        self.start, self.end = m.start(), m.end()
+        self.attrs = {}
+        self.dyn = False
+        base = m.start(2)
+        for am in ATTR_RE.finditer(m.group(2)):
+            aname = am.group(1)
+            if DYN in aname:
+                self.dyn = True
+                continue
+            masked = orig = ""
+            if am.group(2) is not None:
+                masked = am.group(2)
+                orig = original[base + am.start(2):base + am.end(2)]
+                if masked[:1] in "\"'":
+                    masked, orig = masked[1:-1], orig[1:-1]
+            self.attrs.setdefault(aname.lower(), (masked, " ".join(orig.split())))
+
+    def static(self, name):
+        """Non-empty static value (PHP-interpolated counts), or None."""
+        v = self.attrs.get(name)
+        return v[1] if v and v[0].strip() else None
+
+    def has(self, name):
+        return name in self.attrs
+
+    def bound(self, name):
+        """Alpine/Vue/KO-bound expression for attribute `name`, or None."""
+        for pre in (":", "x-bind:", "v-bind:"):
+            if pre + name in self.attrs:
+                return self.attrs[pre + name][1] or "?"
+        key = re.compile(r'(?:^|[{,\s])[\'"]?' + re.escape(name) + r'[\'"]?\s*:\s*([^,}\s]+)', re.I)
+        for ko in KO_BIND_ATTRS:
+            if ko in self.attrs:
+                km = key.search(self.attrs[ko][1])
+                if km:
+                    return km.group(1)
+        return None
+
+    def named(self):
+        return any(self.static(a) or self.bound(a) for a in ("aria-label", "aria-labelledby", "title"))
+
+    def text_bound(self):
+        if any(a in self.attrs for a in TEXT_BIND_ATTRS):
             return True
-    return False
+        return any(ko in self.attrs and KO_TEXT_RE.search(self.attrs[ko][1]) for ko in ("data-bind",))
 
 
-for fpath in template_files:
-    lines = read_lines(fpath)
-    if not lines:
-        continue
+def scan_template(fpath, text):
+    masked = normalise(text)
+    nl = [i for i, c in enumerate(masked) if c == "\n"]
 
-    full_text = "".join(lines)
-    is_root_layout = bool(ROOT_LAYOUT_PATTERNS.search(fpath))
+    def line_of(pos):
+        return bisect.bisect_right(nl, pos - 1) + 1
+
+    tags = [Tag(m, text) for m in TAG_RE.finditer(masked)]
+
+    label_for_static, label_for_bound, label_spans = set(), set(), []
+    for t in tags:
+        if t.name != "label":
+            continue
+        if t.static("for"):
+            label_for_static.add(t.static("for"))
+        if t.bound("for"):
+            label_for_bound.add(t.bound("for"))
+        close = re.compile(r'</label\s*>', re.I).search(masked, t.end)
+        label_spans.append((t.start, close.end() if close else t.end))
+
+    def labelled(t):
+        if t.dyn or t.named():
+            return True
+        if any(s <= t.start < e for s, e in label_spans):
+            return True
+        if t.static("id") and t.static("id") in label_for_static:
+            return True
+        bid = t.bound("id")
+        # `uid`: Magento ui/form/field wraps element templates in <label attr="for: uid">.
+        return bool(bid) and (bid in label_for_bound or bid == "uid")
+
+    def inner_accessible(t):
+        close = re.compile(r'</' + re.escape(t.name) + r'\s*>', re.I).search(masked, t.end)
+        if not close:
+            return True  # can't see the content: don't guess
+        inner = masked[t.end:close.start()]
+        for im in TAG_RE.finditer(inner):
+            it = Tag(im, text[t.end:close.start()])
+            if it.dyn or it.named() or it.text_bound() or it.name == "text":
+                return True
+            if it.name == "img" and (it.static("alt") or it.bound("alt")):
+                return True
+        stripped = CLOSE_TAG_RE.sub("", TAG_RE.sub("", inner))
+        return bool(stripped.strip())
+
     last_heading_level = 0
-
-    for lineno, line in enumerate(lines, start=1):
+    for t in tags:
+        line = line_of(t.start)
 
         # --- Rule A1: <img> missing alt ---
-        if IMG_TAG_RE.search(line):
-            # Check 2 lines around for alt attribute
-            window = "".join(lines[max(0, lineno - 2):min(len(lines), lineno + 2)])
-            if not IMG_ALT_RE.search(window):
+        if t.name == "img" and not (t.dyn or t.has("alt") or t.bound("alt")):
+            finding(
+                "high",
+                "<img> tag missing alt attribute",
+                fpath, line,
+                "Add alt=\"\" for decorative images or a descriptive alt text for informational images.",
+                "Re-run scan or use axe DevTools browser extension to verify.",
+                category="alt-text",
+                tags=["wcag", "wcag-1.1.1", "alt-text"],
+            )
+
+        # --- Rule F1: form control without label ---
+        if t.name == "input":
+            input_type = (t.static("type") or "text").lower()
+            if input_type not in {"hidden", "submit", "button", "reset", "image"} and not labelled(t):
                 finding(
                     "high",
-                    "<img> tag missing alt attribute",
-                    fpath, lineno,
-                    "Add alt=\"\" for decorative images or a descriptive alt text for informational images.",
-                    "Re-run scan or use axe DevTools browser extension to verify.",
-                    category="alt-text",
-                    tags=["wcag", "wcag-1.1.1", "alt-text"],
-                )
-
-        # --- Rule F1: form input without label ---
-        if INPUT_TAG_RE.search(line):
-            type_match = INPUT_TYPE_RE.search(line)
-            input_type = type_match.group(1).lower() if type_match else "text"
-            excluded_types = {"hidden", "submit", "button", "reset", "image"}
-            if input_type not in excluded_types:
-                window_lines = lines[max(0, lineno - 5):min(len(lines), lineno + 5)]
-                window = "".join(window_lines)
-                has_label = LABEL_FOR_RE.search(window) or ARIA_LABEL_RE.search(window)
-                if not has_label:
-                    finding(
-                        "high",
-                        "Form input without associated label",
-                        fpath, lineno,
-                        "Add <label for=\"field-id\">Label</label> or aria-label=\"Label\" to the input.",
-                        "Re-run scan; verify with screen reader or axe DevTools.",
-                        category="forms",
-                        tags=["wcag", "wcag-1.3.1", "wcag-4.1.2", "forms"],
-                    )
-
-        # --- Rule F1 (select/textarea without label) ---
-        for tag_re, tag_name in [(SELECT_TAG_RE, "select"), (TEXTAREA_TAG_RE, "textarea")]:
-            if tag_re.search(line):
-                window_lines = lines[max(0, lineno - 5):min(len(lines), lineno + 5)]
-                window = "".join(window_lines)
-                has_label = LABEL_FOR_RE.search(window) or ARIA_LABEL_RE.search(window)
-                if not has_label:
-                    finding(
-                        "high",
-                        f"<{tag_name}> without associated label",
-                        fpath, lineno,
-                        f"Add <label for=\"field-id\">Label</label> or aria-label=\"Label\" to the <{tag_name}>.",
-                        "Re-run scan; verify with screen reader or axe DevTools.",
-                        category="forms",
-                        tags=["wcag", "wcag-1.3.1", "wcag-4.1.2", "forms"],
-                    )
-
-        # --- Rule F2: fieldset without legend ---
-        if FIELDSET_TAG_RE.search(line):
-            window = "".join(lines[lineno - 1:min(len(lines), lineno + 10)])
-            if not LEGEND_TAG_RE.search(window):
-                finding(
-                    "medium",
-                    "<fieldset> missing <legend>",
-                    fpath, lineno,
-                    "Add <legend>Group label</legend> as the first child of <fieldset>.",
-                    "Re-run scan; verify with screen reader.",
+                    "Form input without associated label",
+                    fpath, line,
+                    "Add <label for=\"field-id\">Label</label> or aria-label=\"Label\" to the input.",
+                    "Re-run scan; verify with screen reader or axe DevTools.",
                     category="forms",
-                    tags=["wcag", "wcag-1.3.1", "forms"],
+                    tags=["wcag", "wcag-1.3.1", "wcag-4.1.2", "forms"],
                 )
+        if t.name in ("select", "textarea") and not labelled(t):
+            finding(
+                "high",
+                f"<{t.name}> without associated label",
+                fpath, line,
+                f"Add <label for=\"field-id\">Label</label> or aria-label=\"Label\" to the <{t.name}>.",
+                "Re-run scan; verify with screen reader or axe DevTools.",
+                category="forms",
+                tags=["wcag", "wcag-1.3.1", "wcag-4.1.2", "forms"],
+            )
 
         # --- Rule H1: heading order skip ---
-        h_match = HEADING_RE.search(line)
-        if h_match:
-            level = int(h_match.group(1)[1])
+        if re.fullmatch(r'h[1-6]', t.name):
+            level = int(t.name[1])
             if last_heading_level > 0 and level > last_heading_level + 1:
                 finding(
                     "medium",
                     f"Heading order skip: h{last_heading_level} followed by h{level}",
-                    fpath, lineno,
+                    fpath, line,
                     f"Use h{last_heading_level + 1} instead of h{level} to maintain a logical heading hierarchy.",
                     "Re-run scan; verify heading structure with axe DevTools.",
                     category="semantic-html",
@@ -322,59 +369,43 @@ for fpath in template_files:
                 )
             last_heading_level = level
 
-        # --- Rule K1: missing skip-link (root layouts only) ---
-        if is_root_layout and lineno == 1:
-            if not SKIP_LINK_RE.search(full_text):
+        # --- Rule K2: positive tabindex ---
+        tabindex = None
+        try:
+            tabindex = int(t.static("tabindex") or "")
+        except ValueError:
+            pass
+        if tabindex is not None and tabindex > 0:
+            finding(
+                "medium",
+                f"Positive tabindex={tabindex} disrupts natural tab order",
+                fpath, line,
+                "Remove positive tabindex. Use tabindex=\"0\" to include in natural order or tabindex=\"-1\" for programmatic focus.",
+                "Re-run scan; test keyboard navigation order.",
+                category="keyboard",
+                tags=["wcag", "wcag-2.4.3", "keyboard"],
+            )
+
+        # --- Rule L1: <a> with no accessible text (name-only anchors excluded) ---
+        if t.name == "a" and not t.dyn and any(t.has(a) or t.bound(a) for a in ("href", "role", "tabindex")):
+            if not (t.named() or t.text_bound() or inner_accessible(t)):
                 finding(
-                    "medium",
-                    "Root layout template missing skip-link",
-                    fpath, 1,
-                    'Add <a href="#maincontent" class="skip">Skip to main content</a> as the first focusable element.',
-                    "Re-run scan; navigate the page with Tab key and confirm a skip link appears.",
-                    category="keyboard",
-                    tags=["wcag", "wcag-2.4.1", "keyboard"],
+                    "high",
+                    "<a> tag with no accessible text",
+                    fpath, line,
+                    "Add descriptive link text, aria-label, or a visually-hidden <span> with meaningful text.",
+                    "Re-run scan; test with screen reader; use axe DevTools.",
+                    category="aria",
+                    tags=["wcag", "wcag-2.4.4", "wcag-4.1.2", "aria"],
                 )
 
-        # --- Rule K2: positive tabindex ---
-        ti_match = TABINDEX_RE.search(line)
-        if ti_match:
-            try:
-                ti_val = int(ti_match.group(1).strip())
-                if ti_val > 0:
-                    finding(
-                        "medium",
-                        f"Positive tabindex={ti_val} disrupts natural tab order",
-                        fpath, lineno,
-                        "Remove positive tabindex. Use tabindex=\"0\" to include in natural order or tabindex=\"-1\" for programmatic focus.",
-                        "Re-run scan; test keyboard navigation order.",
-                        category="keyboard",
-                        tags=["wcag", "wcag-2.4.3", "keyboard"],
-                    )
-            except ValueError:
-                pass
-
-        # --- Rule L1: <a> with no accessible text ---
-        if A_TAG_RE.search(line):
-            if not has_accessible_text_nearby(lines, lineno - 1):
-                # Also check for title= as an acceptable alternative
-                if "title=" not in line.lower():
-                    finding(
-                        "high",
-                        "<a> tag with no accessible text",
-                        fpath, lineno,
-                        "Add descriptive link text, aria-label, or a visually-hidden <span> with meaningful text.",
-                        "Re-run scan; test with screen reader; use axe DevTools.",
-                        category="aria",
-                        tags=["wcag", "wcag-2.4.4", "wcag-4.1.2", "aria"],
-                    )
-
         # --- Rule L2: <button> with no accessible text ---
-        if BUTTON_TAG_RE.search(line):
-            if not has_accessible_text_nearby(lines, lineno - 1):
+        if t.name == "button" and not t.dyn:
+            if not (t.named() or t.text_bound() or inner_accessible(t)):
                 finding(
                     "high",
                     "<button> tag with no accessible text",
-                    fpath, lineno,
+                    fpath, line,
                     "Add a text label, aria-label, or visually-hidden <span> to every <button>.",
                     "Re-run scan; test with screen reader.",
                     category="aria",
@@ -382,27 +413,27 @@ for fpath in template_files:
                 )
 
         # --- Rule G1: <html> missing lang ---
-        if HTML_TAG_RE.search(line):
-            if not HTML_LANG_RE.search(line):
-                finding(
-                    "low",
-                    "<html> tag missing lang attribute",
-                    fpath, lineno,
-                    'Add lang="en" (or appropriate BCP-47 tag) to the <html> element.',
-                    "Re-run scan; verify with axe DevTools.",
-                    category="semantic-html",
-                    tags=["wcag", "wcag-3.1.1", "semantic-html"],
-                )
+        if t.name == "html" and not (t.dyn or t.has("lang") or t.bound("lang")):
+            finding(
+                "low",
+                "<html> tag missing lang attribute",
+                fpath, line,
+                'Add lang="en" (or appropriate BCP-47 tag) to the <html> element.',
+                "Re-run scan; verify with axe DevTools.",
+                category="semantic-html",
+                tags=["wcag", "wcag-3.1.1", "semantic-html"],
+            )
 
-        # --- Rule AR1: invalid ARIA role ---
-        role_match = ROLE_RE.search(line)
-        if role_match:
-            role_val = role_match.group(1).strip().lower()
-            if role_val not in VALID_ARIA_ROLES:
+        # --- Rule AR1: invalid ARIA role (a literal role= only; data-role / :role are not ARIA) ---
+        role = t.attrs.get("role")
+        if role and role[0].strip() and DYN not in role[0]:
+            role_val = role[0].strip().lower()
+            # Fallback lists ("switch checkbox") are valid when any token is.
+            if not any(tok in VALID_ARIA_ROLES for tok in role_val.split()):
                 finding(
                     "medium",
                     f"Invalid or unrecognized ARIA role: role=\"{role_val}\"",
-                    fpath, lineno,
+                    fpath, line,
                     f"Replace role=\"{role_val}\" with a valid WAI-ARIA role or the appropriate semantic HTML element.",
                     "Re-run scan; verify role list at https://www.w3.org/TR/wai-aria-1.1/#role_definitions.",
                     category="aria",
@@ -410,27 +441,64 @@ for fpath in template_files:
                 )
 
         # --- Rule AR2: aria-hidden on a focusable element (intrinsic tag OR tabindex >= 0) ---
-        if ARIA_HIDDEN_RE.search(line):
-            focusable = bool(FOCUSABLE_RE.search(line))
-            if not focusable:
-                ti = TABINDEX_RE.search(line)
-                if ti:
-                    try:
-                        # tabindex="0" (and any non-negative value) makes an element focusable;
-                        # tabindex="-1" is programmatic-only, so aria-hidden is acceptable there.
-                        focusable = int(ti.group(1).strip()) >= 0
-                    except ValueError:
-                        focusable = False
+        if (t.static("aria-hidden") or "").lower() == "true":
+            if tabindex is not None:
+                # tabindex="-1" takes it out of the tab order (duplicate card-link pattern).
+                focusable = tabindex >= 0
+            else:
+                focusable = (
+                    t.name in ("button", "select", "textarea")
+                    or (t.name == "input" and (t.static("type") or "").lower() != "hidden")
+                    or (t.name == "a" and (t.has("href") or bool(t.bound("href"))))
+                    or t.has("contenteditable")
+                )
             if focusable:
                 finding(
                     "high",
                     "aria-hidden=\"true\" on a potentially focusable element",
-                    fpath, lineno,
+                    fpath, line,
                     "Remove aria-hidden from focusable elements, or add tabindex=\"-1\" before hiding from AT.",
                     "Re-run scan; test with screen reader to confirm element is not announced while focused.",
                     category="aria",
                     tags=["wcag", "wcag-4.1.2", "aria"],
                 )
+
+    # --- Rule F2: fieldset without legend (line window over the normalised text) ---
+    mlines = masked.split("\n")
+    for idx, mline in enumerate(mlines):
+        if FIELDSET_TAG_RE.search(mline):
+            window = "\n".join(mlines[idx:idx + 11])
+            if not LEGEND_TAG_RE.search(window):
+                finding(
+                    "medium",
+                    "<fieldset> missing <legend>",
+                    fpath, idx + 1,
+                    "Add <legend>Group label</legend> as the first child of <fieldset>.",
+                    "Re-run scan; verify with screen reader.",
+                    category="forms",
+                    tags=["wcag", "wcag-1.3.1", "forms"],
+                )
+
+
+for fpath in template_files:
+    lines = read_lines(fpath)
+    if not lines:
+        continue
+    full_text = "".join(lines)
+
+    # --- Rule K1: missing skip-link (root layouts only) ---
+    if ROOT_LAYOUT_PATTERNS.search(fpath) and not SKIP_LINK_RE.search(full_text):
+        finding(
+            "medium",
+            "Root layout template missing skip-link",
+            fpath, 1,
+            'Add <a href="#maincontent" class="skip">Skip to main content</a> as the first focusable element.',
+            "Re-run scan; navigate the page with Tab key and confirm a skip link appears.",
+            category="keyboard",
+            tags=["wcag", "wcag-2.4.1", "keyboard"],
+        )
+
+    scan_template(fpath, full_text)
 
 # ---------------------------------------------------------------------------
 # 3. LESS/CSS color-contrast heuristics (Rule C1 — heuristic only).

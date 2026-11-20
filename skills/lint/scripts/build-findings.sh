@@ -30,6 +30,11 @@
 #                       Value for phpstan's --memory-limit (default: 2G). php.ini's default
 #                       (commonly 128M) crashes phpstan on a Magento codebase and returns an
 #                       apparently-clean result. Forwarded to run-analysis.sh.
+#   LINT_INCLUDE_TESTS  "1" analyses test code like the rest. By default (matching the module gate,
+#                       which excludes Test/ from PHPMD) phpmd and phpstan leave Test/ and tests/
+#                       out — phpstan keeps them only when its config loads phpstan-phpunit — and
+#                       phpcs findings there are capped at low. Each omission is listed in the
+#                       document's `skipped`, so it never reads as clean.
 #   DOCS_ROOT           default: .docs — project-root artifact dir ({ctx.docs_root}).
 #   OUTPUT_DIR          default: {DOCS_ROOT}/quality
 #   SKILL_VERSION       default: 1.4.1
@@ -68,6 +73,9 @@ ANALYSIS_ERR="${TMP_DIR}/run-analysis.err"
 # could not say which scanners had actually looked at the code.
 TOOLS_FILE="${TMP_DIR}/tools.json"
 export TOOLS_FILE
+# What run-analysis.sh deliberately left out; emit-json.sh publishes it as `skipped`.
+SKIPPED_FILE="${TMP_DIR}/skipped.json"
+export SKIPPED_FILE
 
 RUNNER="$RUNNER" \
 PHPCS="$PHPCS" \
@@ -77,6 +85,7 @@ RECTOR="$RECTOR" \
 PHPSTAN_CONFIG="$PHPSTAN_CONFIG" \
 RECTOR_FORCE="$RECTOR_FORCE" \
 PHPSTAN_MEMORY_LIMIT="$PHPSTAN_MEMORY_LIMIT" \
+LINT_INCLUDE_TESTS="${LINT_INCLUDE_TESTS:-0}" \
 TARGET_PATH="$TARGET_PATH" \
 SCOPE="$SCOPE" \
 FINDINGS_FILE="$ANALYSIS_OUT" \

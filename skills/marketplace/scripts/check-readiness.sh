@@ -39,6 +39,7 @@ TARGET_MODULE="${TARGET_MODULE:-unknown_module}"
 # ---------------------------------------------------------------------------
 TARGET_PATH="$TARGET_PATH" \
 TARGET_MODULE="$TARGET_MODULE" \
+PRIVATE_PACKAGE="${PRIVATE_PACKAGE:-0}" \
 python3 <<'PY'
 import json
 import os
@@ -202,7 +203,9 @@ else:
         # wildcards like "1.0.*" are ALLOWED; only a bare "*", dev-branch references
         # ("dev-…"), and the "@dev" stability flag are rejected by EQP.
         for pkg, constraint in require.items():
-            if pkg in ("php", "php-64bit"):
+            # Platform packages conventionally use "*" (composer resolves them from the runtime).
+            if (pkg in ("php", "php-64bit", "composer-plugin-api", "composer-runtime-api")
+                    or pkg.startswith(("ext-", "lib-"))):
                 continue
             c = str(constraint).strip()
             if c == "*" or c.startswith("dev-") or "@dev" in c:
@@ -366,8 +369,10 @@ if os.path.exists(reg_path) and os.path.exists(mod_xml_path):
 # ---------------------------------------------------------------------------
 mftf_dir = os.path.join(target_path, "Test", "Mftf")
 if not os.path.isdir(mftf_dir):
+    # Private (non-Marketplace) packages: MFTF is advisory, not a listing requirement.
+    private_pkg = os.environ.get("PRIVATE_PACKAGE", "0") == "1"
     finding(
-        "medium", "testing",
+        "info" if private_pkg else "medium", "testing",
         "MFTF functional tests not found under Test/Mftf/",
         target_path, 1,
         "Add MFTF functional tests under Test/Mftf/. Marketplace evaluates functional test coverage.",

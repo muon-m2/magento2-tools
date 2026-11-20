@@ -558,11 +558,14 @@ for form_path in walk_files(mod_path('view'), ('.xml',)):
     if root is None or not root.tag.endswith('form'):
         continue
     data_arg = None
-    for arg in root.findall('argument'):
+    # extends= inherits the parent form's data argument, template included.
+    if root.get('extends'):
+        data_arg = False
+    for arg in root.findall('argument') if data_arg is None else []:
         if arg.get('name') == 'data':
             data_arg = arg
             break
-    if data_arg is not None:
+    if data_arg is not None and data_arg is not False:
         items = {i.get('name') for i in data_arg.iter('item')}
         if 'template' not in items:
             add('SI-07', 'high',
@@ -730,30 +733,92 @@ if acl_root is not None:
 # so an underscore becomes a NAMESPACE SEPARATOR, not a word boundary — `authenticate_post`
 # looks for Controller\Login\Authenticate\Post and 404s to noroute. The comparison is
 # case-insensitive, so camelCase vs lowercase is fine; only the underscore is fatal.
-route_ids = set()
-for routes_rel in ('etc/frontend/routes.xml', 'etc/adminhtml/routes.xml'):
-    r = parse_xml(mod_path(*routes_rel.split('/')))
-    if r is None:
-        continue
+ROUTE_AREAS = ('frontend', 'adminhtml')
+
+
+def route_names(module_root, area, owner=None):
+    """Route ids/frontNames declared in <module_root>/etc/<area>/routes.xml (owned by `owner`
+    when given). parse_xml is not used: sibling files are not this module's to warn about."""
+    path = os.path.join(module_root, 'etc', area, 'routes.xml')
+    if not os.path.isfile(path):
+        return set()
+    try:
+        r = ET.parse(path).getroot()
+    except (ET.ParseError, OSError):
+        return set()
+    out = set()
     for route in r.iter('route'):
-        owns = any((m.get('name') or '') == module_name for m in route.iter('module'))
-        if not owns:
+        if owner and not any((m.get('name') or '') == owner for m in route.iter('module')):
             continue
-        for key in ('id', 'frontName'):
-            if route.get(key):
-                route_ids.add(route.get(key))
+        out.update(route.get(k) for k in ('id', 'frontName') if route.get(k))
+    return out
+
+
+def controller_keys(module_root, area=None):
+    """Action keys as ActionList computes them; `area` limits a sibling to the controllers that
+    serve that area (adminhtml → Controller/Adminhtml/*, frontend → everything else)."""
+    keys = set()
+    croot = os.path.join(module_root, 'Controller')
+    for path in walk_files(croot, ('.php',)) if os.path.isdir(croot) else []:
+        key = os.path.relpath(path, croot)[:-4].replace(os.sep, '\\').lower()
+        is_admin = key.startswith('adminhtml\\')
+        if area in (None, 'frontend') and not is_admin:
+            keys.add(key)
+        if area in (None, 'adminhtml') and is_admin:
+            keys.add(key[len('adminhtml\\'):])
+        if area is None and is_admin:
+            keys.add(key)
+    return keys
+
+
+route_area = {}  # route name -> areas this module joins it in
+for area in ROUTE_AREAS:
+    for rid in route_names(target, area, module_name):
+        route_area.setdefault(rid, set()).add(area)
+route_ids = set(route_area)
+
+_sibling_roots = None
+
+
+def sibling_roots():
+    """Modules that can merge into this module's routes (<module before/after>): siblings of the
+    target in its own tree (vendor/*/* or app/code/*/*), plus both trees under the magento root."""
+    global _sibling_roots
+    if _sibling_roots is None:
+        import glob as _g
+        pats = [os.path.join(os.path.dirname(os.path.dirname(target)), '*', '*')]
+        if magento_root:
+            pats += [os.path.join(magento_root, 'vendor', '*', '*'),
+                     os.path.join(magento_root, 'app', 'code', '*', '*')]
+        seen, out = {os.path.realpath(target)}, []
+        for pat in pats:
+            for d in sorted(_g.glob(pat)):
+                rp = os.path.realpath(d)
+                if rp not in seen and os.path.isdir(os.path.join(d, 'etc')):
+                    seen.add(rp)
+                    out.append(d)
+        _sibling_roots = out
+    return _sibling_roots
+
+
+_shared_keys = {}
+
+
+def shared_route_keys(route):
+    """Controller keys of every sibling module declaring `route` in an area this module uses."""
+    if route not in _shared_keys:
+        keys = set()
+        for d in sibling_roots():
+            for area in route_area.get(route, ()):
+                if route in route_names(d, area):
+                    keys |= controller_keys(d, area)
+        _shared_keys[route] = keys
+    return _shared_keys[route]
 
 if route_ids:
     # Registered action keys, exactly as ActionList would compute them: path under Controller/
     # lowercased, separators normalised.
-    action_keys = set()
-    controller_root = mod_path('Controller')
-    for path in walk_files(controller_root, ('.php',)) if os.path.isdir(controller_root) else []:
-        rel = os.path.relpath(path, controller_root)[:-4]
-        key = rel.replace(os.sep, '\\').lower()
-        action_keys.add(key)
-        if key.startswith('adminhtml\\'):
-            action_keys.add(key[len('adminhtml\\'):])
+    action_keys = controller_keys(target)
 
     # ONLY strings passed to a URL builder. A bare 'a/b/c' literal is far more often a
     # scopeConfig path — and a module's config section id is usually identical to its route id,
@@ -772,7 +837,7 @@ if route_ids:
             if action.lower() in ROUTER_RESERVED_WORDS:
                 action += 'action'
             key = ('%s\\%s' % (controller, action)).replace('_', '\\').lower()
-            if key in action_keys:
+            if key in action_keys or key in shared_route_keys(route):
                 continue
             add('SI-11', 'high',
                 'Route "%s/%s/%s" resolves to no controller class' % (route, controller, action),

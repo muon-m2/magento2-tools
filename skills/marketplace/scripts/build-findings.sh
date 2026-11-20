@@ -13,6 +13,7 @@
 #   EQP_FINDINGS_FILE   optional: path to a JSON array of EQP static findings produced by
 #                       security's EQP pass (SKILL.md Phase 2.2). When set and
 #                       readable, those findings are merged into the combined findings list.
+#   PRIVATE_PACKAGE     default: 0 — "1" for a private (non-Marketplace) package: missing MFTF is info, not medium.
 #
 # Output:
 #   Writes {OUTPUT_DIR}/{TARGET_MODULE}-readiness-{YYYY-MM-DD}.json (module scope) or

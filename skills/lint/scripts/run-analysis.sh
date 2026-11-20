@@ -15,6 +15,11 @@
 #                 128M) crashes phpstan on a Magento codebase and yields an apparently-clean run.
 #   FINDINGS_FILE Output path for the JSON findings array (default: a new temp file, outside any
 #                 directory this script removes; the caller owns it)
+#   LINT_INCLUDE_TESTS
+#                 "1" analyses test code like any other. Default: phpmd and phpstan leave Test/ and
+#                 tests/ out, and phpcs findings there are capped at low.
+#   SKIPPED_FILE  Optional output path for a JSON array of {check, reason} — what was deliberately
+#                 left out (e.g. Test/), which build-findings.sh publishes as the document's `skipped`.
 #   TOOLS_FILE    Optional output path for a JSON object of per-scanner status — "executed",
 #                 "unavailable" (binary not found), "skipped" (deliberately not run) or "degraded"
 #                 (ran, but its result cannot be trusted as clean). build-findings.sh turns it into
@@ -77,6 +82,17 @@ RECTOR_ERR="${TMP_DIR}/rector.err"
 # `*/var/*`-style globs excluded every file under a container's /var/www install root and every file
 # of a Composer-installed module — see exclude-lib.sh.
 EXCLUDE_PATTERN="$(lint_exclude_pattern "$TARGET_PATH" "$RUNNER")"
+# The resolved target (the realpath as the tools see it) prefixes every pattern; peeled back off
+# here rather than probing the runner a second time.
+TARGET_ANCHOR="${EXCLUDE_PATTERN%%/vendor/\**}"
+
+# Test code. The module gate (validate-module.sh) excludes Test/ from PHPMD and fails only on phpcs
+# ERRORs; measured on 28 Blog packages, 4,452 of 4,999 lint findings were in Test/, burying the rest.
+LINT_INCLUDE_TESTS="${LINT_INCLUDE_TESTS:-0}"
+TEST_EXCLUDE_PATTERN=""
+for _d in Test tests; do
+    TEST_EXCLUDE_PATTERN="${TEST_EXCLUDE_PATTERN:+${TEST_EXCLUDE_PATTERN},}${TARGET_ANCHOR}/${_d}/*,${TARGET_ANCHOR}/*/${_d}/*"
+done
 
 # Positive control for phpcs, whose JSON report lists every file it scanned. A scan that covered 0
 # files is a clean result only when there was nothing to scan. When the target is not visible from
@@ -109,6 +125,33 @@ echo "[]" > "$PHPSTAN_OUT"
 echo "[]" > "$PHPMD_OUT"
 echo "[]" > "$RECTOR_OUT"
 echo "[]" > "$SURFACE_OUT"
+
+# is_test(path) for the parsers: only a Test/ or tests/ segment BELOW the target counts, so a
+# target that itself sits under some tests/ directory is not all classed as test code.
+cat > "${TMP_DIR}/lint_testpath.py" <<'PY'
+import os
+
+ANCHOR = os.environ.get('LINT_TARGET_ANCHOR', '').rstrip('/')
+TARGET = os.environ.get('LINT_TARGET_PATH', '').rstrip('/')
+if TARGET.startswith('./'):
+    TARGET = TARGET[2:]
+INCLUDE = os.environ.get('LINT_INCLUDE_TESTS', '0') == '1'
+
+
+def is_test(path):
+    p = str(path).replace('\\', '/')
+    rel = p
+    for root in (ANCHOR, TARGET):
+        if root and p.startswith(root + '/'):
+            rel = p[len(root) + 1:]
+            break
+        if root and ('/' + root + '/') in p:
+            rel = p.split('/' + root + '/', 1)[1]
+            break
+    return rel.startswith(('Test/', 'tests/')) or '/Test/' in rel or '/tests/' in rel
+PY
+export LINT_TARGET_ANCHOR="$TARGET_ANCHOR" LINT_TARGET_PATH="$TARGET_PATH" LINT_INCLUDE_TESTS
+export PYTHONPATH="${TMP_DIR}${PYTHONPATH:+:${PYTHONPATH}}"
 
 # strip_json_preamble <raw-file> <err-file> <tool> — drop anything a tool printed on stdout ahead of
 # its JSON document, and note that it did. Without this the file is not JSON, the parser falls back
@@ -157,6 +200,8 @@ run_phpcs() {
 import json
 import sys
 
+from lint_testpath import INCLUDE, is_test
+
 raw_path, target, has_php, degraded = sys.argv[1], sys.argv[2], sys.argv[3], int(sys.argv[4])
 try:
     with open(raw_path, encoding='utf-8') as fh:
@@ -175,8 +220,12 @@ seq = 1
 for file_path, file_data in files.items():
     for msg in file_data.get('messages', []):
         msg_type = msg.get('type', 'WARNING')
-        severity_map = {'ERROR': 'high', 'WARNING': 'medium'}
-        severity = severity_map.get(msg_type.upper(), 'low')
+        # The module gate fails on phpcs ERRORs only; a WARNING is advisory.
+        severity_map = {'ERROR': 'high', 'WARNING': 'low'}
+        severity = severity_map.get(str(msg_type).upper(), 'low')
+        in_test = is_test(file_path)
+        if in_test and not INCLUDE:
+            severity = 'low'
         fixable = bool(msg.get('fixable', False))
         out.append({
             'id': f'quality-phpcs-{seq:04d}',
@@ -188,7 +237,8 @@ for file_path, file_data in files.items():
             'recommendation': 'Run phpcbf --standard=Magento2 to auto-fix' if fixable
                               else f"Fix manually: {msg.get('source', 'phpcs')}",
             'verification': 'Re-run phpcs --standard=Magento2 after fixing',
-            'tags': ['phpcs', 'magento2-standard', 'auto-fixable' if fixable else 'manual'],
+            'tags': ['phpcs', 'magento2-standard', 'auto-fixable' if fixable else 'manual']
+                    + (['test-code'] if in_test else []),
         })
         seq += 1
 
@@ -267,14 +317,25 @@ run_phpstan() {
 
     run_cmd+=("$TARGET_PATH")
 
+    # Test/ rows are dropped unless the config loads phpstan-phpunit: without it every createMock()
+    # reads as bare `object` (the devpath config excludes Test/ for exactly that reason).
+    local phpstan_tests="drop"
+    if [ "$LINT_INCLUDE_TESTS" = "1" ] || { [ -n "$phpstan_config" ] && grep -qs 'phpstan-phpunit' "$phpstan_config"; }; then
+        phpstan_tests="keep"
+    fi
+
     # phpstan exits 1 when errors found — expected.
     "${run_cmd[@]}" > "$raw_file" 2> "$PHPSTAN_ERR" || true
 
-    if python3 - "$raw_file" "$DEGRADED" > "$PHPSTAN_OUT" 2>> "$PHPSTAN_ERR" <<'PY'
+    if python3 - "$raw_file" "$DEGRADED" "$phpstan_tests" "${TMP_DIR}/phpstan.dropped" > "$PHPSTAN_OUT" 2>> "$PHPSTAN_ERR" <<'PY'
 import json
 import sys
 
+from lint_testpath import is_test
+
 raw_path, degraded = sys.argv[1], int(sys.argv[2])
+drop_tests, dropped_file = sys.argv[3] == 'drop', sys.argv[4]
+dropped = 0
 try:
     with open(raw_path, encoding='utf-8') as fh:
         raw = json.load(fh)
@@ -306,6 +367,9 @@ if not isinstance(files, dict):
 for file_path, file_errors in files.items():
     if not isinstance(file_errors, dict):
         continue
+    if drop_tests and is_test(file_path):
+        dropped += len(file_errors.get('messages', []) or [])
+        continue
     for err in file_errors.get('messages', []) or []:
         ignorable = bool(err.get('ignorable', False))
         out.append({
@@ -323,6 +387,9 @@ for file_path, file_errors in files.items():
         seq += 1
 
 print(json.dumps(out, indent=2))
+if drop_tests:
+    with open(dropped_file, 'w', encoding='utf-8') as fh:
+        fh.write(str(dropped))
 
 # A run-level failure means some or all of the code was not analysed.
 if run_errors:
@@ -368,9 +435,13 @@ run_phpmd() {
         phpmd_ruleset="phpmd.xml"
     fi
 
+    local phpmd_exclude="$EXCLUDE_PATTERN"
+    if [ "$LINT_INCLUDE_TESTS" != "1" ]; then
+        phpmd_exclude="${phpmd_exclude},${TEST_EXCLUDE_PATTERN}"
+    fi
     run_cmd+=("$PHPMD_BIN_RESOLVED" "$TARGET_PATH" json
         "$phpmd_ruleset"
-        "--exclude=${EXCLUDE_PATTERN}")
+        "--exclude=${phpmd_exclude}")
 
     # phpmd exits 2 when violations found (non-zero).
     "${run_cmd[@]}" > "$raw_file" 2> "$PHPMD_ERR" || true
@@ -393,11 +464,14 @@ run_phpmd() {
     # is what keeps it from excluding the target itself.
     strip_json_preamble "$raw_file" "$PHPMD_ERR" phpmd
 
-    if python3 - "$raw_file" "$DEGRADED" > "$PHPMD_OUT" 2>> "$PHPMD_ERR" <<'PY'
+    if python3 - "$raw_file" "$DEGRADED" "${TMP_DIR}/phpmd.dropped" > "$PHPMD_OUT" 2>> "$PHPMD_ERR" <<'PY'
 import json
 import sys
 
-raw_path, degraded = sys.argv[1], int(sys.argv[2])
+from lint_testpath import INCLUDE, is_test
+
+raw_path, degraded, dropped_file = sys.argv[1], int(sys.argv[2]), sys.argv[3]
+dropped = 0
 try:
     with open(raw_path, encoding='utf-8') as fh:
         raw = json.load(fh)
@@ -440,6 +514,10 @@ for file_entry in raw.get('files', []) or []:
 violations.extend(raw.get('violations', []) or [])
 
 for violation in violations:
+    # Backstop for --exclude, which matches the realpath as phpmd sees it.
+    if not INCLUDE and is_test(violation.get('fileName', '')):
+        dropped += 1
+        continue
     priority = violation.get('priority', 3)
     severity = priority_map.get(priority, 'medium')
     out.append({
@@ -462,6 +540,9 @@ for violation in violations:
     seq += 1
 
 print(json.dumps(out, indent=2))
+if not INCLUDE:
+    with open(dropped_file, 'w', encoding='utf-8') as fh:
+        fh.write(str(dropped))
 PY
     then
         STATUS_PHPMD="executed"
@@ -665,6 +746,34 @@ tools = {
 }
 with open(sys.argv[1], 'w', encoding='utf-8') as fh:
     json.dump(tools, fh, indent=2)
+PY
+fi
+
+# What was deliberately left out, so an omitted Test/ never reads as a clean one.
+if [ -n "${SKIPPED_FILE:-}" ]; then
+    STATUS_PHPMD="$STATUS_PHPMD" STATUS_PHPSTAN="$STATUS_PHPSTAN" \
+        python3 - "$SKIPPED_FILE" "${TMP_DIR}/phpmd.dropped" "${TMP_DIR}/phpstan.dropped" <<'PY'
+import json
+import os
+import sys
+
+out_path, phpmd_dropped, phpstan_dropped = sys.argv[1:4]
+skipped = []
+for tool, path in (('phpmd', phpmd_dropped), ('phpstan', phpstan_dropped)):
+    # A dropped-count file exists only when the parser ran with test filtering on.
+    if os.environ.get('LINT_INCLUDE_TESTS') == '1' or not os.path.exists(path):
+        continue
+    if os.environ[f'STATUS_{tool.upper()}'] not in ('executed', 'degraded'):
+        continue
+    n = open(path, encoding='utf-8').read().strip() or '0'
+    if tool == 'phpmd':
+        how = 'Test/ and tests/ excluded from the run by default, as the module gate does'
+    else:
+        how = (f'{n} findings under Test/ and tests/ dropped by default — the config does not '
+               'load phpstan-phpunit, so mock types read as bare object')
+    skipped.append({'check': f'{tool} on Test/', 'reason': f'{how}; LINT_INCLUDE_TESTS=1 to include'})
+with open(out_path, 'w', encoding='utf-8') as fh:
+    json.dump(skipped, fh, indent=2)
 PY
 fi
 
