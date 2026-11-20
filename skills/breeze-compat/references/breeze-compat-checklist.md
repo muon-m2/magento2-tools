@@ -7,13 +7,16 @@ RequireJS + jQuery (UI) + Knockout. A module is compatible out-of-box when it re
 page structure, layout, templates, and `data-mage-init`/`x-magento-init`. The checks below flag the
 patterns that need Breeze's "Better Compatibility" mode or a manual adapter.
 
+Scope: only `view/frontend/` and `view/base/` are scanned — Breeze never runs in the admin. Files inside a
+Breeze adapter module (`*Breeze`, `*-breeze`) or a `breeze/` asset dir are the adapter, not a finding.
+
 ## Checks
 
 | Check | Pattern (scanner) | Severity | Breeze remediation | Auto-scaffold? |
 |-------|-------------------|----------|--------------------|----------------|
 | RequireJS config | `requirejs-config.js` present | Medium | Port registered components to Breeze widgets, or enable Better Compatibility. | Yes (module-adapt) |
 | RequireJS mixins | `mixins` key in `requirejs-config.js` | High | Breeze does not load Luma mixins by default — re-implement as a Breeze widget or enable Better Compatibility. | Partial |
-| Knockout / uiComponent | `'uiComponent'`, `Magento_Ui/js/`, `data-bind=` | High | Breeze has no Knockout — rewrite as DOM + Cash or enable Better Compatibility (KO-heavy checkout). | Partial |
+| Knockout / uiComponent | `'uiComponent'`, `Magento_Ui/js/`, `data-bind=` | High (Info under `checkout/`) | Breeze has no Knockout — rewrite as DOM + Cash or enable Better Compatibility. Checkout keeps the Luma stack under Breeze, so checkout templates are Info. | Partial |
 | jQuery-UI widget | `$.widget(` | Medium | Convert to a Breeze `$.widget` on Cash, or enable Better Compatibility. | Yes |
 | jQuery mage widget | `$.mage.` | Medium | Convert to a Breeze widget or enable Better Compatibility. | Yes |
 | Inline RequireJS | `require([...])` in `.phtml` | Medium | Move into a Breeze widget or enable Better Compatibility. | Partial |
