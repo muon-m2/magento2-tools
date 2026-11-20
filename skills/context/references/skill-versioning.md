@@ -16,12 +16,12 @@ the rules for bumping.
 <!-- BEGIN GENERATED: versions (gen-versions.sh) -->
 | Skill           | Version |
 |-----------------|---------|
-| a11y-audit      | 1.2.0   |
+| a11y-audit      | 1.2.1   |
 | admin-form      | 1.1.2   |
 | admin-listing   | 1.1.3   |
 | audit           | 1.1.1   |
 | breeze-adapt    | 1.0.2   |
-| breeze-compat   | 1.1.0   |
+| breeze-compat   | 1.1.1   |
 | breeze-theme    | 1.0.2   |
 | cli-command     | 1.1.2   |
 | context         | 1.16.0  |
@@ -37,15 +37,15 @@ the rules for bumping.
 | graphql         | 1.0.6   |
 | i18n            | 1.3.0   |
 | indexer         | 1.1.2   |
-| lint            | 1.4.1   |
-| marketplace     | 1.2.0   |
+| lint            | 1.4.2   |
+| marketplace     | 1.2.1   |
 | message-queue   | 1.1.3   |
 | module-create   | 1.11.0  |
 | perf-audit      | 1.3.0   |
 | release         | 1.2.1   |
 | remediate       | 1.0.0   |
 | review          | 2.5.0   |
-| security        | 2.1.0   |
+| security        | 2.1.1   |
 | system-config   | 1.1.3   |
 | test-generate   | 1.2.1   |
 | triage          | 1.0.0   |

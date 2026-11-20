@@ -37,7 +37,7 @@
 #                       document's `skipped`, so it never reads as clean.
 #   DOCS_ROOT           default: .docs — project-root artifact dir ({ctx.docs_root}).
 #   OUTPUT_DIR          default: {DOCS_ROOT}/quality
-#   SKILL_VERSION       default: 1.4.1
+#   SKILL_VERSION       default: 1.4.2
 #
 # Output:
 #   Writes {OUTPUT_DIR}/{TARGET_MODULE}-quality-{YYYY-MM-DD}.json (module scope) or
@@ -57,7 +57,7 @@ RECTOR_FORCE="${RECTOR_FORCE:-0}"
 PHPSTAN_MEMORY_LIMIT="${PHPSTAN_MEMORY_LIMIT:-2G}"
 DOCS_ROOT="${DOCS_ROOT:-.docs}"
 OUTPUT_DIR="${OUTPUT_DIR:-${DOCS_ROOT}/quality}"
-SKILL_VERSION="${SKILL_VERSION:-1.4.1}"
+SKILL_VERSION="${SKILL_VERSION:-1.4.2}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/../../context/scripts/findings-lib.sh"

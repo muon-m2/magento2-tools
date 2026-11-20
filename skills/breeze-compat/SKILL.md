@@ -1,6 +1,6 @@
 ---
 name: breeze-compat
-version: 1.1.0
+version: 1.1.1
 description: >-
   Read-only static audit of a Magento 2 module's compatibility with Swissup Breeze. Scans RequireJS,
   Knockout, jQuery-UI widgets, and mixins; emits ranked findings (Markdown, JSON, SARIF) and a

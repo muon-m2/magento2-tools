@@ -6,6 +6,28 @@ individual skill versions are tracked in each SKILL.md frontmatter and the gener
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.4.1] — 2026-11-20 — Scanner false positives
+
+An audit of a 28-package module family raised 14 Critical and 78 High findings, and every one of
+them was a false positive. They turned the verdict into `FAIL` with a score of 0. Each class is now
+fixed in the rule that raised it, with a true-positive control test that still fires.
+
+### Fixed
+- **a11y-audit 1.2.1:** templates are normalised first (PHP is blanked and offsets are kept), then
+  tags are matched across lines. A label now counts wherever it is in the file. `data-role` is not
+  treated as an ARIA role, and `aria-hidden` with `tabindex="-1"` is not flagged. On the family,
+  28 findings dropped to 1, and that one is a real unlabelled textarea.
+- **breeze-compat 1.1.1:** adminhtml is not scanned, and neither are the adapter's own files. A
+  sibling `-breeze` adapter downgrades the requirejs-config finding, and checkout Knockout is info.
+- **security 2.1.1:** an unverified secret in test code (`Test/`, `tests/`, `dev/tests/`, JS test
+  files) is reported as medium/candidate. A verified live secret stays critical. At module scope, a
+  CVE outside the module's `composer.lock` dependency closure is info and tagged site-scope.
+- **marketplace 1.2.1:** `php`, `ext-*`, `lib-*` and `composer-*-api` may be unbounded.
+  `PRIVATE_PACKAGE=1` downgrades a missing MFTF suite to info.
+- **lint 1.4.2:** surface invariants resolve routes shared between modules and forms built with
+  `extends=`. phpmd and phpstan skip `Test/` by default; this is recorded in `skipped[]`, and
+  `LINT_INCLUDE_TESTS=1` turns it off. A phpcs WARNING is low; an ERROR stays high.
+
 ## [2.4.0] — 2026-10-04 — Runs that don't pay for the conversation they start in
 
 Measured on two real `feature` days, the cost of a run was set less by the skill than by the
