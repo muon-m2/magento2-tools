@@ -10,7 +10,7 @@
 #   SCAN_ROOT       default: app/code or src/app/code
 #   DOCS_ROOT       default: .docs — project-root artifact dir ({ctx.docs_root}).
 #   OUTPUT_DIR      default: {DOCS_ROOT}/breeze-compat
-#   SKILL_VERSION   default: 1.1.0
+#   SKILL_VERSION   default: 1.1.1
 #
 # Output:
 #   Writes {OUTPUT_DIR}/{TARGET_MODULE}-breeze-compat-{YYYY-MM-DD}.json (module scope) or
@@ -22,7 +22,7 @@ SCOPE="${SCOPE:-module}"
 SCAN_ROOT="${SCAN_ROOT:-$([[ -d app/code ]] && echo app/code || echo src/app/code)}"
 DOCS_ROOT="${DOCS_ROOT:-.docs}"
 OUTPUT_DIR="${OUTPUT_DIR:-${DOCS_ROOT}/breeze-compat}"
-SKILL_VERSION="${SKILL_VERSION:-1.1.0}"
+SKILL_VERSION="${SKILL_VERSION:-1.1.1}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/../../context/scripts/findings-lib.sh"

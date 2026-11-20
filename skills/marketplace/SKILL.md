@@ -1,6 +1,6 @@
 ---
 name: marketplace
-version: 1.2.0
+version: 1.2.1
 description:
     Assess an existing Magento 2 module's readiness for Adobe Marketplace / EQP submission
     — composer metadata completeness, license headers, MFTF test presence,

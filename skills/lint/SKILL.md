@@ -1,6 +1,6 @@
 ---
 name: lint
-version: 1.4.1
+version: 1.4.2
 description:
     Run the project's full static-analysis gate (phpcs Magento2, phpstan, phpmd,
     php-cs-fixer, rector dry-run) over a module or diff and apply safe auto-fixes to
